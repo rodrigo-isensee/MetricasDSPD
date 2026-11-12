@@ -15,7 +15,7 @@ import { propsCartao } from '@/features/painel/propsCartao'
 
 /** Bloqueados agora: lista (sem responsável), do mais antigo ao mais novo. Zero bloqueados é sucesso, não "vazio". */
 export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('BLOQUEADOS', filtros, { simulado: true })
+  const q = useMetrica('BLOQUEADOS', filtros)
   const d = q.dados
   const itens = d
     ? [...d.itens].sort((a, b) => b.bloqueadoHaDiasUteis - a.bloqueadoHaDiasUteis)

@@ -15,10 +15,32 @@ const opcoes = {
     { id: 'a', nome: 'A' },
     { id: 'b', nome: 'B' },
   ],
+  tipos: [
+    { id: 'melhoria', nome: 'Melhoria' },
+    { id: 'requisicao', nome: 'Requisição' },
+  ],
   sistemas: [{ id: 's1', nome: 'S1' }],
   historico: { inicio: '2026-01-01', fim: '2026-10-09' },
 } as unknown as OpcoesFiltro
-const opcoesAcelerato = { dominio: 'acelerato', equipes: [] } as unknown as OpcoesFiltro
+const opcoesSust = {
+  dominio: 'acelerato',
+  equipes: [
+    { id: 'sssc-totvs', nome: 'SSSC TOTVS' },
+    { id: 'sssc-senior', nome: 'SSSC SENIOR' },
+    { id: 'sssc-fluig', nome: 'SSSC FLUIG' },
+    { id: 'time-novo', nome: 'Time Novo' },
+  ],
+  prioridades: [
+    { id: 'p1', nome: 'P1' },
+    { id: 'p2', nome: 'P2' },
+    { id: 'p3', nome: 'P3' },
+  ],
+} as unknown as OpcoesFiltro
+const opcoesAcelerato = {
+  dominio: 'acelerato',
+  equipes: [],
+  prioridades: [],
+} as unknown as OpcoesFiltro
 const P = (s: string) => new URLSearchParams(s)
 
 describe('leitura dos filtros de fluxo', () => {
@@ -34,8 +56,36 @@ describe('leitura dos filtros de fluxo', () => {
     expect(r.filtros.tipo).toEqual(['Melhoria'])
   })
 
+  it('tipo do contrato que não está nas opções da API é ignorado e anotado (L6)', () => {
+    const r = lerFluxo(P('tipo=melhoria,incidente'), opcoes, '12s')
+    expect(r.filtros.tipo).toEqual(['Melhoria'])
+    expect(r.invalidos).toEqual(['tipo "incidente"'])
+  })
+
+  it('sem opções carregadas, o tipo vale pelos ids do contrato; id desconhecido é ignorado', () => {
+    const r = lerFluxo(P('tipo=incidente,xyz'), undefined, '12s')
+    expect(r.filtros.tipo).toEqual(['Incidente'])
+    expect(r.invalidos).toEqual(['tipo "xyz"'])
+  })
+
+  it('opções de tipo com id que o contrato não conhece não viram tipo válido', () => {
+    const novas = {
+      dominio: 'businessmap',
+      equipes: [],
+      tipos: [
+        { id: 'melhoria', nome: 'Melhoria' },
+        { id: 'novo', nome: 'Novo' },
+      ],
+      sistemas: [],
+    } as unknown as OpcoesFiltro
+    const r = lerFluxo(P('tipo=novo'), novas, '12s')
+    expect(r.filtros.tipo).toEqual([])
+    expect(r.invalidos).toEqual(['tipo "novo"'])
+  })
+
   it('marcar todos equivale a Todos', () => {
     expect(lerFluxo(P('equipe=a,b'), opcoes, '12s').filtros.equipe).toEqual([])
+    expect(lerFluxo(P('tipo=melhoria,requisicao'), opcoes, '12s').filtros.tipo).toEqual([])
   })
 
   it('sem opções carregadas, aceita qualquer equipe e sistema', () => {
@@ -89,17 +139,36 @@ describe('leitura dos filtros de fluxo', () => {
 
 describe('leitura e escrita da sustentação', () => {
   it('lê equipe e prioridade e escreve só o que foge do padrão', () => {
-    const r = lerSustentacao(P('equipe=fluig&prioridade=p1,p2&periodo=4s'), undefined, '6m')
+    const r = lerSustentacao(P('equipe=sssc-fluig&prioridade=p1,p2&periodo=4s'), opcoesSust, '6m')
     expect(r.filtros).toEqual({
-      equipe: ['fluig'],
+      equipe: ['sssc-fluig'],
       prioridade: ['P1', 'P2'],
       periodo: { tipo: '4s' },
     })
     const p = escreverSustentacao(P('s3=prop'), r.filtros, '6m')
-    expect(p.get('equipe')).toBe('fluig')
+    expect(p.get('equipe')).toBe('sssc-fluig')
     expect(p.get('prioridade')).toBe('p1,p2')
     expect(p.get('periodo')).toBe('4s')
     expect(p.get('s3')).toBe('prop')
+  })
+
+  it('equipe por slug novo, inclusive de equipe que não existia antes', () => {
+    const r = lerSustentacao(P('equipe=sssc-totvs,time-novo'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs', 'time-novo'])
+    expect(r.invalidos).toEqual([])
+  })
+
+  it('id antigo na URL vira o slug novo, sem duplicar', () => {
+    const r = lerSustentacao(P('equipe=totvs,sssc-totvs,fluig'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs', 'sssc-fluig'])
+    expect(r.invalidos).toEqual([])
+    expect(escreverSustentacao(P(''), r.filtros, '6m').get('equipe')).toBe('sssc-totvs,sssc-fluig')
+  })
+
+  it('slug que não está nas opções é ignorado e anotado', () => {
+    const r = lerSustentacao(P('equipe=nao-existe,sssc-senior'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-senior'])
+    expect(r.invalidos).toEqual(['equipe "nao-existe"'])
   })
 
   it('período padrão e listas vazias saem da URL; com prefixo, só mexe no prefixo', () => {
@@ -151,13 +220,31 @@ describe('escrita do fluxo e memória', () => {
     const r = colapsarTodos(f, undefined, false)
     expect(r.equipe).toEqual(['a'])
     const s = colapsarTodos(
-      { equipe: [], prioridade: ['P1', 'P2', 'P3', 'P4', 'P5'], periodo: { tipo: '6m' } },
+      { equipe: [], prioridade: ['P1', 'P2'], periodo: { tipo: '6m' } },
+      opcoesSust,
+      true,
+    )
+    expect(s.prioridade).toEqual(['P1', 'P2'])
+    const presentes = colapsarTodos(
+      { equipe: [], prioridade: ['P1', 'P2', 'P3'], periodo: { tipo: '6m' } },
+      opcoesSust,
+      true,
+    )
+    expect(presentes.prioridade).toEqual([])
+    const semOpcoes = colapsarTodos(
+      { equipe: [], prioridade: ['P1', 'P2', 'P3'], periodo: { tipo: '6m' } },
       undefined,
       true,
     )
-    expect(s.prioridade).toEqual([])
+    expect(semOpcoes.prioridade).toEqual(['P1', 'P2', 'P3'])
     expect(colapsarTodos(f, opcoes, false).sistema).toEqual([])
-    const vazias = { dominio: 'businessmap', equipes: [], sistemas: [] } as unknown as OpcoesFiltro
+    const vazias = {
+      dominio: 'businessmap',
+      equipes: [],
+      tipos: [],
+      sistemas: [],
+    } as unknown as OpcoesFiltro
     expect(colapsarTodos(f, vazias, false).equipe).toEqual(['a'])
+    expect(colapsarTodos({ ...f, tipo: ['Melhoria'] }, vazias, false).tipo).toEqual(['Melhoria'])
   })
 })

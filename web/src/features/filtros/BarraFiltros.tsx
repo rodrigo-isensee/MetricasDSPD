@@ -3,11 +3,10 @@ import { useId, useRef, useState } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
-import { TIPOS_FILTRO } from '@metricas-dspd/contratos'
 import { TIPO_ID } from '@metricas-dspd/contratos'
 import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
-import { FiltroMulti } from './FiltroMulti'
+import { FiltroMulti, escLimpaBuscaFocada } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
 import { rotuloDoFiltro } from './paineis'
 import type { UseFiltros } from './useFiltros'
@@ -19,14 +18,18 @@ const TEXTO_ESTRATEGICO =
 const TEXTO_TIPO =
   'Aqui são cards do BusinessMap. Chamados do Acelerato estão na visão Sustentação do Operacional.'
 
+/** Ids da URL/lista viram os rótulos do contrato (o servidor só entrega ids de TIPO_ID). */
+const tiposDe = (ids: readonly string[]): FiltrosFluxo['tipo'] =>
+  (Object.keys(TIPO_ID) as FiltrosFluxo['tipo']).filter((t) => ids.includes(TIPO_ID[t]))
+
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
   const { config, opcoes } = uso
   const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
-  const tiposOpc: OpcaoFiltro[] = TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t }))
   const bm = opcoes?.dominio === 'businessmap' ? opcoes : undefined
   const ac = opcoes?.dominio === 'acelerato' ? opcoes : undefined
+  const tiposOpc: OpcaoFiltro[] = bm?.tipos ?? []
   return (
     <>
       {config.filtros.includes('equipe') && (
@@ -36,7 +39,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           opcoes={opcoes?.equipes ?? []}
           selecionados={f.equipe}
           variante={variante}
-          onChange={(ids, replace) => definir({ equipe: ids as never }, { replace })}
+          onChange={(ids, replace) => definir({ equipe: ids }, { replace })}
         />
       )}
       {config.filtros.includes('tipo') && (
@@ -48,9 +51,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           selecionados={f.tipo.map((t) => TIPO_ID[t])}
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
-          onChange={(ids, replace) =>
-            definir({ tipo: TIPOS_FILTRO.filter((t) => ids.includes(TIPO_ID[t])) }, { replace })
-          }
+          onChange={(ids, replace) => definir({ tipo: tiposDe(ids) }, { replace })}
         />
       )}
       {config.filtros.includes('sistema') && (
@@ -121,6 +122,7 @@ export function BarraFiltros({
   const barra = useRef<HTMLDivElement>(null)
   // A folha mobile inteira conta como UMA mudança de histórico: a primeira empilha, as demais substituem.
   const mudouNaFolha = useRef(false)
+  const conteudoFolha = useRef<HTMLDivElement>(null)
   useAlturaCss(barra, '--h-filtros')
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
@@ -148,7 +150,7 @@ export function BarraFiltros({
     definir: envolver(uso.definir as (...a: unknown[]) => void) as Uso['definir'],
     remover: envolver(uso.remover),
     limpar: envolver(uso.limpar),
-  } as Uso
+  }
   const usoFolha: Uso = {
     ...usoA,
     definir: ((parcial: never, op: { replace: boolean }) => {
@@ -156,7 +158,7 @@ export function BarraFiltros({
       mudouNaFolha.current = true
       ;(usoA.definir as (p: never, o: { replace: boolean }) => void)(parcial, { replace })
     }) as Uso['definir'],
-  } as Uso
+  }
 
   return (
     // `contents`: a barra sticky precisa do contêiner alto do painel, não deste invólucro (bug 003).
@@ -209,6 +211,17 @@ export function BarraFiltros({
               <Dialog.Content
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-auto rounded-t-xl border border-borda-controle bg-superficie p-4 shadow-xl"
                 aria-describedby={undefined}
+                ref={conteudoFolha}
+                tabIndex={-1}
+                onOpenAutoFocus={(e) => {
+                  // A1: sem foco no primeiro campo de busca, para não abrir o teclado virtual do celular.
+                  e.preventDefault()
+                  conteudoFolha.current?.focus()
+                }}
+                onEscapeKeyDown={(e) => {
+                  // Esc com texto no campo da lista focada só limpa o texto (FiltroMulti); senão fecha a folha.
+                  if (escLimpaBuscaFocada(e.target)) e.preventDefault()
+                }}
               >
                 <Dialog.Title className="mb-3 text-lg font-bold">
                   {legenda ?? 'Filtros'}

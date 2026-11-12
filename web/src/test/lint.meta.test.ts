@@ -3,7 +3,8 @@
  * (BM x AC, Math.min com spread, sort direto, leitura de descarte, Amostra), este teste quebra.
  * Usa as próprias regras do eslint.config.js (blocos com no-restricted-imports/-syntax), sem tipos.
  */
-import { resolve } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { ESLint, type Linter } from 'eslint'
 import tseslint from 'typescript-eslint'
@@ -297,5 +298,101 @@ describe('lint: fixtures que devem passar (sem falso positivo)', () => {
   ]
   it.each(DEVE_PASSAR)('%s', async (_nome, arquivo, codigo) => {
     expect(await lint(codigo, arquivo)).toEqual([])
+  })
+})
+
+/**
+ * G2 (ADR 0030, D6): fora de testes, só o ramo mock de `app/App.tsx` importa `web/src/data/mock/`, e por `import()`.
+ * O ESLint do repositório não vê isto (a regra de data/mock só olha o pacote `@metricas-dspd/mock`), por isso a
+ * varredura roda aqui, sobre os módulos de produção de `web/src`.
+ */
+const SRC = 'web/src'
+const MOCK = `${SRC}/data/mock`
+const APP = `${SRC}/app/App.tsx`
+const EH_TESTE = /\.test\.tsx?$|(^|\/)(test|testes)\//
+
+/** Cada `import`, `export ... from` e `import()` do código, com o alvo como está escrito. */
+const especificadores = (codigo: string): { alvo: string; dinamico: boolean }[] => [
+  ...[...codigo.matchAll(/(?:\bfrom\s*|\bimport\s*)['"]([^'"]+)['"]/g)].map((m) => ({
+    alvo: m[1]!,
+    dinamico: false,
+  })),
+  ...[...codigo.matchAll(/\bimport\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => ({
+    alvo: m[1]!,
+    dinamico: true,
+  })),
+]
+
+function violacoesDoMock(arquivo: string, codigo: string): string[] {
+  if (EH_TESTE.test(arquivo) || arquivo.startsWith(`${MOCK}/`)) return []
+  const achados: string[] = []
+  for (const { alvo, dinamico } of especificadores(codigo)) {
+    const caminho = alvo.startsWith('@/')
+      ? `${SRC}/${alvo.slice(2)}`
+      : alvo.startsWith('.')
+        ? join(dirname(arquivo), alvo)
+        : alvo
+    if (caminho !== MOCK && !caminho.startsWith(`${MOCK}/`)) continue
+    if (arquivo === APP && dinamico) continue
+    achados.push(`${arquivo} importa ${alvo}${arquivo === APP ? ' de forma estática' : ''}`)
+  }
+  return achados
+}
+
+const arquivosDeProducao = (pasta: string): string[] =>
+  readdirSync(resolve(RAIZ, pasta), { withFileTypes: true }).flatMap((e) => {
+    const caminho = `${pasta}/${e.name}`
+    if (e.isDirectory()) return arquivosDeProducao(caminho)
+    return /\.tsx?$/.test(e.name) ? [caminho] : []
+  })
+
+describe('G2: o mock não entra em módulo de produção (ADR 0030)', () => {
+  const FIXTURES: [string, string, string][] = [
+    [
+      'alias estático fora do App',
+      'web/src/data/index.ts',
+      "export { M } from '@/data/mock/MockFonteMetricas'",
+    ],
+    [
+      'relativo estático em data/',
+      'web/src/data/index.ts',
+      "export { M } from './mock/MockFonteMetricas'",
+    ],
+    [
+      'import() fora do App',
+      'web/src/features/x/X.tsx',
+      "export const m = () => import('@/data/mock/MockFonteMetricas')",
+    ],
+    [
+      'import estático no App',
+      APP,
+      "import { M } from '@/data/mock/MockFonteMetricas'\nexport const a = M",
+    ],
+    [
+      'relativo de outra pasta',
+      'web/src/features/x/X.tsx',
+      "import { M } from '../../data/mock/MockFonteMetricas'\nexport const a = M",
+    ],
+  ]
+  it.each(FIXTURES)('recusa: %s', (_nome, arquivo, codigo) => {
+    expect(violacoesDoMock(arquivo, codigo).length).toBeGreaterThan(0)
+  })
+
+  it('aceita o import() do ramo mock no App, os testes e o próprio pacote mock', () => {
+    const dinamico = "const f = () => import('@/data/mock/MockFonteMetricas')"
+    expect(violacoesDoMock(APP, dinamico)).toEqual([])
+    expect(violacoesDoMock('web/src/x/a.test.tsx', "import { M } from '@/data/mock/M'")).toEqual([])
+    expect(
+      violacoesDoMock('web/src/test/helpers.tsx', "import { M } from '@/data/mock/M'"),
+    ).toEqual([])
+    expect(violacoesDoMock(`${MOCK}/a.ts`, "import { n } from './nucleoMock'")).toEqual([])
+    expect(violacoesDoMock('web/src/x/b.ts', "import { a } from '@/data'")).toEqual([])
+  })
+
+  it('nenhum módulo de produção de web/src importa data/mock fora do ramo do App', () => {
+    const achados = arquivosDeProducao(SRC).flatMap((arq) =>
+      violacoesDoMock(relative(RAIZ, resolve(RAIZ, arq)), readFileSync(resolve(RAIZ, arq), 'utf8')),
+    )
+    expect(achados).toEqual([])
   })
 })

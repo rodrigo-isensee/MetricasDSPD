@@ -1,15 +1,14 @@
-import { useCallback, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, type ReactNode } from 'react'
 import {
   CATALOGO_CARTOES,
   cartoesDoPainel,
   motivoDaOrigemMock,
   origemDaMetrica,
-  podeSimular,
   type MetricaId,
   type PainelComCartoes,
 } from '@metricas-dspd/contratos'
 import { Icone, idDeMetrica, ProvedorOrigemCartoes, type OrigemCartao } from '@/components/ui'
-import { ehFonteSimuladora, SEM_SIMULADOS, useFonte } from '@/data'
+import { useFonte } from '@/data'
 import { plural } from '@/lib/formatar'
 
 /** Cartões do catálogo por id; fora dele vale o código como id de métrica. */
@@ -34,31 +33,14 @@ export function origemDoCartao(codigo: string, tipoFonte: 'mock' | 'api'): Orige
   }
 }
 
-/** Tira a sigla interna de pendência (ex.: "P-DS-19") do motivo mostrado na faixa: a gerência lê o texto sem jargão. */
-export const motivoSemSigla = (motivo: string): string =>
-  motivo.replace(/\s*\(P-[A-Z]+-\d+\)/g, '').replace(/,\s*P-[A-Z]+-\d+/g, '')
-
 /**
  * Liga o selo e o estado de origem de todo cartão à origem da métrica (mapa do contrato), conforme a fonte de dados.
- * O "simulado" (pedido 070) vem da camada de dados: a fonte decoradora registra quais métricas estão simuladas, e só
- * vale para cartão que o mapa dá como sem dado real. `origemDoCartao` segue só com o real: contagem do cabeçalho e
- * exportação não enxergam o simulado.
+ * Nenhum cartão é simulado (ADR 0030): sem dado real, o cartão mostra "Sem dado real" e o motivo.
  */
 export function OrigemDosCartoes({ children }: { children: ReactNode }) {
   const fonte = useFonte()
   const tipo = fonte.tipo
-  const registro = ehFonteSimuladora(fonte) ? fonte.origensSimuladas : SEM_SIMULADOS
-  const simulados = useSyncExternalStore(registro.subscribe, registro.getSnapshot)
-  const origem = useCallback(
-    (codigo: string): OrigemCartao => {
-      const real = origemDoCartao(codigo, tipo)
-      const id = idDeMetrica(codigo) as MetricaId
-      // Falha fechada: o selo só vale para cartão sem dado real que o contrato permite simular.
-      const sim = real.semDadoReal && podeSimular(id) ? simulados.get(id) : undefined
-      return sim ? { ...real, simulado: true, motivo: motivoSemSigla(sim.motivo) } : real
-    },
-    [tipo, simulados],
-  )
+  const origem = useCallback((codigo: string): OrigemCartao => origemDoCartao(codigo, tipo), [tipo])
   return <ProvedorOrigemCartoes origem={origem}>{children}</ProvedorOrigemCartoes>
 }
 

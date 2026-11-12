@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { COMUM, FILTROS_FLUXO, FonteFixa, JANELA, insuf } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
 import { CartaoT10, CartaoT11, CartaoT12, CartaoT13, CartaoT14 } from './taticas'
@@ -223,6 +223,8 @@ describe('T11 Sazonalidade da chegada', () => {
   it('um tipo por vez: a aba refaz a consulta com o tipo escolhido; "Todos os tipos" é o padrão', async () => {
     const fonte = new FonteEspia({ T11: dto(false) })
     const el = await abrir('T11', <CartaoT11 filtros={FILTROS_FLUXO} />, fonte)
+    // as abas de tipo vêm de opcoes.tipos da API (assíncrono)
+    await within(el).findByRole('tab', { name: 'Melhoria' })
     const abas = within(el).getAllByRole('tab')
     expect(abas[0]).toHaveTextContent('Todos os tipos')
     expect(abas[0]).toHaveAttribute('aria-selected', 'true')

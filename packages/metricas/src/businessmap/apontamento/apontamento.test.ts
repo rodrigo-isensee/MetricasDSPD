@@ -46,6 +46,9 @@ const H = 3600
 const CAL = criarCalendario({ feriados: new Set(['2026-09-07']) }) // jornada 8 h; 07/09/2026 é segunda
 const TAREFA = { id: '7', rotulo: 'Tarefa' }
 const BUG = { id: '8', rotulo: 'Correção' }
+const TIME_A = { id: 'time-a', rotulo: 'Time A' }
+const TIME_B = { id: 'time-b', rotulo: 'Time B' }
+const SEM_TIME = { id: 'sem-time', rotulo: 'Sem time' }
 const PROJ_A = { id: '100', rotulo: 'Projeto A', foraDoEscopo: false }
 const PROJ_B = { id: '200', rotulo: 'Projeto B', foraDoEscopo: true }
 const TESTES = { id: 'testes', rotulo: 'Testes' }
@@ -59,6 +62,7 @@ function linha(o: Partial<LinhaApontamento> = {}): LinhaApontamento {
     data: '2026-09-01',
     segundos: H,
     tipo: TAREFA,
+    equipe: TIME_A,
     projeto: PROJ_A,
     subgrupo: TESTES,
     subtarefa: DIRETO,
@@ -259,6 +263,19 @@ describe('valor atípico e filtros', () => {
   ]
   const at = diasAtipicos(base, 10 * H)
   const ids = (ls: LinhaApontamento[]) => ls.map((l) => `${l.pessoaRef ?? '-'}@${l.data}`)
+
+  it('097 L2: o filtro equipe restringe pelo time do card (e "sem-time"); lista vazia = sem filtro; só recorte, a soma do recorte bate', () => {
+    const ls = [
+      linha({ equipe: TIME_A }),
+      linha({ equipe: TIME_B, segundos: 2 * H }),
+      linha({ equipe: SEM_TIME, segundos: 3 * H }),
+    ]
+    const f = (equipe: string[]) => filtrar(ls, { anomalos: 'incluir', equipe }, new Set())
+    expect(f(['time-b']).map((l) => l.segundos)).toEqual([2 * H])
+    expect(f(['time-a', 'sem-time'])).toHaveLength(2)
+    expect(f(['inexistente'])).toHaveLength(0)
+    expect(f([])).toHaveLength(3)
+  })
 
   it('sem filtro, lista vazia ou chave ausente: tudo passa (inclusive linha sem pessoa)', () => {
     expect(filtrar(base, { anomalos: 'incluir' }, at)).toHaveLength(4)
@@ -1017,6 +1034,7 @@ const linhaArb: fc.Arbitrary<LinhaApontamento> = fc.record({
   data: diaArb,
   segundos: fc.integer({ min: 1, max: 12 * H }),
   tipo: fc.constantFrom(TAREFA, BUG),
+  equipe: fc.constantFrom(TIME_A, TIME_B, SEM_TIME),
   projeto: fc.constantFrom(PROJ_A, PROJ_B),
   subgrupo: fc.constantFrom(TESTES, NAO_CLASS),
   subtarefa: fc.constantFrom(DIRETO, EM_SUB),

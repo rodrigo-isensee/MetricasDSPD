@@ -4,7 +4,12 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-export default defineConfig({
+// ADR 0030 (D6, G1): no build, a fonte vira constante ('api' sem VITE_FONTE), e o ramo do mock em `app/App.tsx` sai do bundle.
+// Em dev e nos testes (`serve`) a variável segue lida em tempo de execução (`vi.stubEnv`).
+export default defineConfig(({ command }) => ({
+  ...(command === 'build'
+    ? { define: { 'import.meta.env.VITE_FONTE': JSON.stringify(process.env.VITE_FONTE ?? 'api') } }
+    : {}),
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
@@ -83,4 +88,4 @@ export default defineConfig({
       ],
     },
   },
-})
+}))

@@ -1,7 +1,8 @@
 import { QueryClient } from '@tanstack/react-query'
 import { describe, expect, it } from 'vitest'
 import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos'
-import { MockFonteMetricas, SemDadoRealErro } from '@/data'
+import { SemDadoRealErro } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { gerarArquivo } from './gerar'
 import { itensDoNivel } from './selecao'
 

@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.js';
 import { lerCriterios } from '../src/modulos/apontamento/repositorio.js';
 import { analisarCalendario, sincronizarCalendario } from '../src/modulos/referencia/calendario.js';
 import { registrarCriteriosApontamento } from '../src/modulos/referencia/criterios-apontamento.js';
+import { colunasDePessoa, provarSemPessoa } from './pg/colunas-pessoa.js';
 import { novaColeta, poolDe, S, url } from './pg/ctx.js';
 
 // Pedido 059, B4 contra o PostgreSQL local: o privilégio do papel `dspd_api_apontamento` (CA-AP-1, R4-5) e a rota ponta a ponta com esse papel
@@ -52,6 +53,8 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await raiz(RAIZ, RAIZ, 0, true);
     await raiz(FILHO, RAIZ, 1, true);
     await raiz(OUTRO, RAIZ, 1, true);
+    await dono.query(`UPDATE ${S.bm}.dim_card SET equipe = $2 WHERE card_id = $1`, [FILHO, 'Time Alfa Teste 097']); // 097 L2: time do card; OUTRO e SOLTO ficam em outros times / sem time
+    await dono.query(`UPDATE ${S.bm}.dim_card SET equipe = $2 WHERE card_id = $1`, [OUTRO, 'Time Beta Teste 097']);
     await card(FORA, null, null, 'Card fora do escopo', null);
     await card(ANTIGO, null, null, 'Card antigo', null);
     await dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $1, 0, false, false, now(), $2)`, [ANTIGO, coleta]);
@@ -131,7 +134,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     for (const sql of [
       `SELECT card_id, parent_card_id, subtask_id, data_apontamento, segundos, subgrupo_codigo, flags_qualidade, iniciativa_card_id, pessoa_ref, excluido_em FROM ${S.bm}.fato_apontamento LIMIT 1`,
       `SELECT card_id, raiz_card_id, raiz_fora_do_escopo FROM ${S.bm}.dim_card_raiz LIMIT 1`,
-      `SELECT card_id, titulo, tipo FROM ${S.bm}.dim_card LIMIT 1`,
+      `SELECT card_id, titulo, tipo, equipe FROM ${S.bm}.dim_card LIMIT 1`,
       `SELECT pessoa_ref, responsavel_nome FROM ${S.bm}.dim_responsavel LIMIT 1`,
       `SELECT codigo, rotulo, incluido_por_versao_id FROM ${S.bm}.ref_apontamento_subgrupo LIMIT 1`,
       `SELECT incluido_por_versao_id FROM ${S.bm}.ref_apontamento_termo LIMIT 1`,
@@ -150,7 +153,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       `SELECT logged_time_id FROM ${S.bm}.fato_apontamento`,
       `SELECT registro_sha256 FROM ${S.bm}.fato_apontamento`,
       `SELECT category_id FROM ${S.bm}.fato_apontamento`,
-      `SELECT responsaveis FROM ${S.bm}.dim_card`,
+      ...colunasDePessoa('dspd_bm.dim_card').map((c) => `SELECT ${c} FROM ${S.bm}.dim_card`),
       `SELECT count(*) FROM ${S.bm}.stg_apontamento`,
       `SELECT count(*) FROM ${S.bm}.evt_apontamento`,
       `SELECT count(*) FROM ${S.bm}.stg_card`,
@@ -229,6 +232,54 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect((await ler('&tipo=999')).kpis.segundos).toBe(0);
   });
 
+  it('filtro por equipe ponta a ponta com o papel da aba: o time do card, "Sem time", varios times como um conjunto, e o GRANT de dim_card.equipe sem coluna de pessoa (097 L2)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const ler = async (filtro: string) => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return respostaApontamentoSchema.parse(r.json());
+    };
+    const ALFA = 3600 + 7200; // FILHO, type_id 12 e 34
+    const todos = await ler('');
+    expect(todos.opcoes.equipes?.map((e) => e.id).sort()).toEqual(['sem-time', 'time-alfa-teste-097', 'time-beta-teste-097']);
+    expect(todos.kpis.segundos).toBe(ALFA + 900 + 1800);
+    expect((await ler('&equipe=time-alfa-teste-097')).kpis).toMatchObject({ segundos: ALFA, apontamentos: 2 });
+    expect((await ler('&equipe=time-beta-teste-097')).kpis).toMatchObject({ segundos: 900, apontamentos: 1 });
+    expect((await ler('&equipe=sem-time')).kpis).toMatchObject({ segundos: 1800, apontamentos: 1 });
+    expect((await ler('&equipe=time-alfa-teste-097,time-beta-teste-097')).kpis.segundos).toBe(ALFA + 900);
+    expect((await ler('&equipe=nao-existe')).kpis.segundos).toBe(0);
+    expect((await ler('&equipe=time-beta-teste-097&tipo=56')).kpis.segundos).toBe(900);
+    // o papel da aba le `equipe` de dim_card, mas nada de pessoa a mais
+    await expect(aba.query(`SELECT equipe FROM ${S.bm}.dim_card LIMIT 1`)).resolves.toBeDefined();
+    // colunas de pessoa de dim_card vêm de COLUNAS_PESSOA (K-282); card_pai não é de pessoa, é guarda de hierarquia fora do GRANT da aba
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card', S.bm);
+    expect((await falha(aba, `SELECT card_pai FROM ${S.bm}.dim_card`)).code, 'card_pai').toBe('42501');
+  });
+
+  it('cards incompletos filtrados por equipe ponta a ponta: o time do card, "Sem time" e slug inexistente com resultado vazio (097 L2, A1)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const cobertura = await novaColeta(dono, S.bm);
+    const marcar = (estado: 'incompleto' | 'completo') =>
+      dono.query(
+        `INSERT INTO ${S.bm}.ctl_apontamento_cobertura (card_id, estado, coleta_id, detectado_em) SELECT c, $2::text, $3::bigint, now() FROM unnest($1::text[]) AS c`,
+        [[FILHO, OUTRO, SOLTO], estado, cobertura]);
+    const incompletos = async (filtro: string): Promise<string[]> => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return (respostaApontamentoSchema.parse(r.json()).registroIncompleto?.cards ?? []).map((c) => c.cardId).sort();
+    };
+    await marcar('incompleto');
+    try {
+      expect(await incompletos('')).toEqual([FILHO, OUTRO, SOLTO].sort());
+      expect(await incompletos('&equipe=time-alfa-teste-097')).toEqual([FILHO]); // Alfa
+      expect(await incompletos('&equipe=time-beta-teste-097')).toEqual([OUTRO]); // Beta
+      expect(await incompletos('&equipe=sem-time')).toEqual([SOLTO]); // sem time
+      expect(await incompletos('&equipe=nao-existe')).toEqual([]); // slug inexistente: vazio, nunca "todos"
+    } finally {
+      await marcar('completo'); // append-only: o estado atual volta a completo para não vazar para os outros casos
+    }
+  });
+
   it('com o interruptor ligado o nome só aparece em opcoes.pessoas[].rotulo, uma vez', async () => {
     const r = await consultar(true, JANELA);
     expect(r.statusCode).toBe(200);
@@ -262,7 +313,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(por.get(refs.c)?.toISOString()).toBe('2029-06-01T00:00:00.000Z');
     expect(por.has(refs.d)).toBe(false);
     expect(por.has(refs.e)).toBe(false); // card fora do escopo nao conta
-    expect((await falha(aba, `SELECT responsaveis FROM ${S.bm}.dim_card_versao`)).code).toBe('42501');
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card_versao', S.bm);
     expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.apt_pessoa_time`)).code).toBe('42501');
   });
 

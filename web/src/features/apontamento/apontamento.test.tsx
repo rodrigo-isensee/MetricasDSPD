@@ -239,16 +239,14 @@ describe('estados da tela', () => {
 
 describe('CA-2: vazio', () => {
   it('recorte sem apontamento mostra o estado vazio com limpar e remover cada filtro ativo', async () => {
-    const { roteador } = renderizar(`${URL_ABA}?pessoa=p1&tipo=3`, fonteCom(respostaVazia()))
+    const { roteador } = renderizar(`${URL_ABA}?equipe=portal&tipo=3`, fonteCom(respostaVazia()))
     const vazio = await screen.findByTestId('estado-vazio-AP')
     expect(vazio).toHaveTextContent('Nenhum apontamento encontrado')
     expect(vazio).toHaveTextContent('Nenhum apontamento atende aos filtros atuais.')
     expect(within(vazio).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument()
-    expect(
-      within(vazio).getByRole('button', { name: 'Remover filtro Pessoa que apontou' }),
-    ).toBeInTheDocument()
+    expect(within(vazio).getByRole('button', { name: 'Remover filtro Equipe' })).toBeInTheDocument()
     await userEvent.click(within(vazio).getByRole('button', { name: 'Remover filtro Tipo' }))
-    await waitFor(() => expect(roteador.state.location.search).toBe('?pessoa=p1'))
+    await waitFor(() => expect(roteador.state.location.search).toBe('?equipe=portal'))
     await userEvent.click(within(vazio).getByRole('button', { name: 'Limpar filtros' }))
     await waitFor(() => expect(roteador.state.location.search).toBe(''))
   })
@@ -284,53 +282,94 @@ describe('CA-3 e o3: amostra insuficiente', () => {
 })
 
 describe('CA-4: filtros na URL', () => {
-  it('escolher a pessoa grava só o pessoaRef na URL e põe o chip nos cartões que a aplicam', async () => {
+  it('escolher a equipe grava só o slug na URL e põe o chip nos cartões que a aplicam', async () => {
     const { roteador } = await cartao('AP-KPIS')
-    await userEvent.click(screen.getByRole('button', { name: /^Pessoa que apontou: Todas/ }))
-    await userEvent.click(await screen.findByLabelText('Pessoa 3'))
-    await waitFor(() => expect(roteador.state.location.search).toBe('?pessoa=p3'))
-    expect(roteador.state.location.search).not.toMatch(/Pessoa/)
+    await userEvent.click(screen.getByRole('button', { name: /^Equipe: Todas/ }))
+    await userEvent.click(await screen.findByLabelText('Portal'))
+    await waitFor(() => expect(roteador.state.location.search).toBe('?equipe=portal'))
     const kpis = screen.getByTestId('metrica-AP-KPIS')
     await waitFor(() =>
-      expect(
-        within(kpis).getAllByText(/Filtros aplicados: Pessoa que apontou Pessoa 3/).length,
-      ).toBeGreaterThan(0),
+      expect(within(kpis).getAllByText(/Filtros aplicados: Equipe Portal/).length).toBeGreaterThan(
+        0,
+      ),
     )
-    // o chip de filtro ativo aparece na barra, com botão de remover
     expect(
-      screen.getByRole('button', { name: 'Remover filtro Pessoa que apontou: Pessoa 3' }),
+      screen.getByRole('button', { name: 'Remover filtro Equipe: Portal' }),
     ).toBeInTheDocument()
   })
 
-  it('o mapa diário só responde ao filtro Pessoa e diz isso no chip', async () => {
-    await cartao('AP-DIARIO', `${URL_ABA}?tipo=3&pessoa=p2`)
-    const diario = screen.getByTestId('metrica-AP-DIARIO')
-    expect(within(diario).getByText('Não afetado por: Tipo')).toBeInTheDocument()
+  it('a opção sem equipe se chama "Sem equipe" na tela, não "Sem time" (rótulo do UX)', async () => {
+    await cartao('AP-KPIS')
+    await userEvent.click(screen.getByRole('button', { name: /^Equipe: Todas/ }))
+    expect(await screen.findByLabelText('Sem equipe')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Sem time')).toBeNull()
+  })
+
+  it('CA-7: o filtro Equipe vem logo depois do período e o filtro Pessoa não existe', async () => {
+    await cartao('AP-KPIS')
+    const barra = screen.getByTestId('barra-filtros-apontamento')
+    const rotulos = within(barra)
+      .getAllByRole('button', { name: /^(Equipe|Projeto|Tipo|Pessoa)/ })
+      .map((b) => (b.getAttribute('aria-label') ?? '').split(':')[0])
+    expect(rotulos[0]).toBe('Equipe')
+    expect(rotulos).not.toContain('Pessoa que apontou')
+    expect(within(barra).queryByText(/Pessoa que apontou/)).toBeNull()
+  })
+
+  it('CA-8: o cartão de capacidade por pessoa segue com o mesmo formato, com a equipe só recortando', async () => {
+    await cartao('AP-CAPACIDADE-PESSOA', `${URL_ABA}?equipe=portal`)
+    const tabela = screen.getByTestId('tabela-AP-CAPACIDADE-PESSOA-detalhe')
     expect(
-      within(diario).getAllByText(/Filtros aplicados: Pessoa que apontou Pessoa 2/).length,
-    ).toBeGreaterThan(0)
-    const kpis = screen.getByTestId('metrica-AP-KPIS')
-    expect(within(kpis).getAllByText(/Filtros aplicados: .*Tipo Tarefa/).length).toBeGreaterThan(0)
+      within(tabela)
+        .getAllByRole('columnheader')
+        .map((c) => c.textContent),
+    ).toEqual([
+      'Pessoa',
+      'Intervalo',
+      'Dias úteis',
+      'Capacidade',
+      'Apontado',
+      'Apontamentos',
+      'Utilização',
+    ])
+  })
+
+  it('CA-9: pessoa= na URL é ignorado, com aviso, e a página segue funcional', async () => {
+    renderizar(`${URL_ABA}?pessoa=p1`)
+    const aviso = await screen.findByTestId('filtros-invalidos')
+    expect(aviso).toHaveTextContent('Valor inválido ignorado em: pessoa.')
+    expect(await screen.findByTestId('metrica-AP-KPIS')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Remover filtro Pessoa/ })).toBeNull()
   })
 
   it('valor inválido na URL (um nome, por exemplo) é descartado sem eco', async () => {
-    renderizar(`${URL_ABA}?pessoa=Maria,p1`)
+    renderizar(`${URL_ABA}?equipe=Maria,portal`)
     const aviso = await screen.findByTestId('filtros-invalidos')
-    expect(aviso).toHaveTextContent('Valor inválido ignorado em: Pessoa que apontou.')
+    expect(aviso).toHaveTextContent('Valor inválido ignorado em: Equipe.')
     expect(document.body).not.toHaveTextContent('Maria')
     expect(
-      screen.getByRole('button', { name: 'Remover filtro Pessoa que apontou: Pessoa 1' }),
+      screen.getByRole('button', { name: 'Remover filtro Equipe: Portal' }),
     ).toBeInTheDocument()
   })
 
-  it('não grava pessoa em localStorage (AP-8)', async () => {
+  it('o mapa diário não é afetado pela equipe e diz isso no rodapé', async () => {
+    await cartao('AP-DIARIO', `${URL_ABA}?tipo=3&equipe=portal`)
+    const diario = screen.getByTestId('metrica-AP-DIARIO')
+    expect(within(diario).getByText('Não afetado por: Equipe, Tipo')).toBeInTheDocument()
+    const kpis = screen.getByTestId('metrica-AP-KPIS')
+    expect(within(kpis).getAllByText(/Filtros aplicados: .*Equipe Portal/).length).toBeGreaterThan(
+      0,
+    )
+  })
+
+  it('não grava o filtro em localStorage (AP-8)', async () => {
     const gravar = vi.spyOn(Storage.prototype, 'setItem')
     await cartao('AP-KPIS')
-    await userEvent.click(screen.getByRole('button', { name: /^Pessoa que apontou: Todas/ }))
-    await userEvent.click(await screen.findByLabelText('Pessoa 3'))
+    await userEvent.click(screen.getByRole('button', { name: /^Equipe: Todas/ }))
+    await userEvent.click(await screen.findByLabelText('Portal'))
     await waitFor(() =>
       expect(
-        screen.getByRole('button', { name: 'Remover filtro Pessoa que apontou: Pessoa 3' }),
+        screen.getByRole('button', { name: 'Remover filtro Equipe: Portal' }),
       ).toBeInTheDocument(),
     )
     expect(gravar).not.toHaveBeenCalled()
@@ -476,7 +515,7 @@ describe('CA-8: 375 px sem rolagem na página', () => {
   })
 
   it('no mobile a barra recolhe num botão "Filtros (n)"', async () => {
-    renderizar(`${URL_ABA}?tipo=3&pessoa=p1`)
+    renderizar(`${URL_ABA}?tipo=3&equipe=portal`)
     const botao = await screen.findByRole('button', { name: 'Filtros (2)' })
     expect(botao).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(botao)
@@ -667,12 +706,14 @@ describe('o4 e AP-8: exportação e nome real', () => {
     )
   })
 
-  it('com nome real, o filtro grava só o pessoaRef na URL, nunca o nome', async () => {
+  it('com nome real, a barra não oferece pessoa: o link nunca leva nome nem pessoaRef', async () => {
     const { roteador } = await cartao('AP-KPIS', URL_ABA, fonteCom(respostaComNomesReais()))
-    await userEvent.click(screen.getByRole('button', { name: /^Pessoa que apontou: Todas/ }))
-    await userEvent.click(await screen.findByLabelText('Bruno Exemplo'))
-    await waitFor(() => expect(roteador.state.location.search).toBe('?pessoa=p2'))
-    expect(roteador.state.location.search).not.toMatch(/Bruno/)
+    const barra = screen.getByTestId('barra-filtros-apontamento')
+    expect(within(barra).queryByText(/Bruno Exemplo/)).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: /^Equipe: Todas/ }))
+    await userEvent.click(await screen.findByLabelText('Portal'))
+    await waitFor(() => expect(roteador.state.location.search).toBe('?equipe=portal'))
+    expect(roteador.state.location.search).not.toMatch(/Bruno|pessoa/)
   })
 })
 

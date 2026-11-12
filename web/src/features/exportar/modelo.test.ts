@@ -8,7 +8,7 @@ import type {
   ResultadoVisaoGeral,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import {
   CAMPO_PESSOAL,
   LIMITE_METRICAS,
@@ -89,7 +89,7 @@ describe('textoFiltros', () => {
     const t = textoFiltros(
       'S2',
       {
-        equipe: ['totvs'],
+        equipe: ['sssc-totvs'],
         prioridade: ['P1'],
         periodo: { tipo: 'custom', de: '2026-01-01', ate: '2026-03-31' },
       },

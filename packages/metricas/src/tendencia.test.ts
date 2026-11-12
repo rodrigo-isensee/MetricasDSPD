@@ -201,6 +201,79 @@ const H = '2026-10-09T18:00:00-03:00'
 const prio = (r: ReturnType<typeof acelerato.calcularTendenciaSust>, m: string, p: string) =>
   r.meses.find((x) => x.mes === m)!.prioridades.find((x) => x.prioridade === p)!
 
+describe('TENDENCIA_FLUXO com equipe (pedido 097)', () => {
+  const h = '2026-10-09T18:00:00-03:00'
+  const mista = () =>
+    umaBase([
+      ...entregues(20).map((e) => ({ ...e, equipe: 'Equipe A' })),
+      ...Array.from({ length: 5 }, (_, i) => ({ ...entregue(`b${i}`, i), equipe: 'Equipe B' })),
+    ])
+
+  it('sem equipe e com equipe vazia dão o mesmo resultado; com equipe só conta a do recorte', () => {
+    const base = mista()
+    const todos = businessmap.calcularTendenciaFluxo(ctxBM(base, h))
+    expect(businessmap.calcularTendenciaFluxo(ctxBM(base, h), [])).toEqual(todos)
+    expect(mes(todos, '2026-08').concluidos).toBe(25)
+    const a = businessmap.calcularTendenciaFluxo(ctxBM(base, h), ['equipe-a'])
+    expect(mes(a, '2026-08').concluidos).toBe(20)
+    const b = businessmap.calcularTendenciaFluxo(ctxBM(base, h), ['equipe-b'])
+    expect(mes(b, '2026-08').concluidos).toBe(5)
+    // abaixo de 20 itens no recorte não publica estatística
+    expect(mes(b, '2026-08').p85PorTipo.every((c) => c.estatistica.status === 'insuficiente')).toBe(
+      true,
+    )
+  })
+
+  it('equipe consolida (união), nunca compara: a união das duas equipes é igual a todas', () => {
+    const base = mista()
+    expect(businessmap.calcularTendenciaFluxo(ctxBM(base, h), ['equipe-a', 'equipe-b'])).toEqual(
+      businessmap.calcularTendenciaFluxo(ctxBM(base, h)),
+    )
+  })
+
+  it('equipe desconhecida não quebra: recorte vazio', () => {
+    const r = businessmap.calcularTendenciaFluxo(ctxBM(mista(), h), ['nao-existe'])
+    expect(mes(r, '2026-08').concluidos).toBe(0)
+  })
+})
+
+describe('TENDENCIA_SUST com equipe (pedido 097)', () => {
+  const mista = () =>
+    baseAC([
+      ...chamados(20, '2026-08-12'),
+      ...Array.from({ length: 5 }, (_, i) =>
+        chamado(100 + i, '2026-08-12', { equipe: 'SSSC SENIOR' }),
+      ),
+    ])
+
+  it('sem equipe e com equipe vazia dão o mesmo resultado; com equipe só conta a do recorte', () => {
+    const todos = acelerato.calcularTendenciaSust(ctxAC(mista(), H))
+    expect(acelerato.calcularTendenciaSust(ctxAC(mista(), H), [])).toEqual(todos)
+    const volume = (r: typeof todos) => r.meses.find((m) => m.mes === '2026-08')!.volume
+    expect(volume(todos)).toBe(25)
+    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['totvs']))).toBe(20)
+    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['senior']))).toBe(5)
+    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['nao-existe']))).toBe(0)
+  })
+
+  it('097 L7a: compara pelo slug do nome (sssc-totvs) e o id antigo (totvs) dá o mesmo recorte; equipe nova funciona sem código novo', () => {
+    const base = () =>
+      baseAC([
+        ...chamados(20, '2026-08-12'),
+        ...Array.from({ length: 3 }, (_, i) =>
+          chamado(200 + i, '2026-08-12', { equipe: 'Time Novo' }),
+        ),
+      ])
+    const volume = (eq: string[]) =>
+      acelerato.calcularTendenciaSust(ctxAC(base(), H), eq).meses.find((m) => m.mes === '2026-08')!
+        .volume
+    expect(volume(['sssc-totvs'])).toBe(20)
+    expect(volume(['totvs'])).toBe(20)
+    expect(volume(['time-novo'])).toBe(3)
+    expect(volume(['sssc-totvs', 'time-novo'])).toBe(23)
+  })
+})
+
 describe('TENDENCIA_SUST', () => {
   it('20 chamados na janela publicam a aderência; 19 ficam k de n; volume é do mês de abertura', () => {
     const r20 = acelerato.calcularTendenciaSust(ctxAC(baseAC(chamados(20, '2026-08-12')), H))

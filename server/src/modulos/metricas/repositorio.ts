@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { CORTE_CARDS, CORTE_CHAMADOS } from '../referencia/index.js';
 
 /**
  * Leitura das projeções para montar `BaseBM` / `BaseAC` (amostras dos painéis). Só colunas explícitas (nunca `SELECT *`):
@@ -56,7 +57,7 @@ export const lerCards = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
             titulo, granularidade, equipe, quadro_id, coluna_atual_id, excluido_em, eh_subtarefa, data_acordada,
             responsabilidade_atraso, origem_demanda, fase_deteccao, severidade, origem_bug, adicionado_apos_inicio_pai
        FROM ${S.bm}.dim_card
-      WHERE criado_em IS NOT NULL AND granularidade IS NOT NULL AND tipo IS NOT NULL
+      WHERE ${CORTE_CARDS}
       ORDER BY card_id`)).rows;
 
 /**
@@ -110,7 +111,7 @@ export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbie
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
             nivel_resolucao, com_agente, reincidente_90d
        FROM ${S.ac}.dim_chamado
-      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false
+      WHERE ${CORTE_CHAMADOS}
       ORDER BY chamado_id`)).rows;
 
 /** Sem ORDER BY: a biblioteca ordena as etapas de cada chamado (entrada, etapa). */

@@ -13,7 +13,7 @@ import type { ContextoAC } from './indice'
 import { aderenciaPorPrioridade, apuraveisComDia } from './s2'
 import { diasDeAbertura } from './s3'
 
-/** Filtros padrão da sustentação (o Resumo não filtra): todas as prioridades, janela de 12 semanas. */
+/** Filtros padrão da sustentação (sem `equipe`): todas as prioridades, janela de 12 semanas. */
 const PADRAO: FiltrosSustentacao = { equipe: [], prioridade: [], periodo: { tipo: '12s' } }
 
 /**
@@ -23,9 +23,14 @@ const PADRAO: FiltrosSustentacao = { equipe: [], prioridade: [], periodo: { tipo
  * meses. O teste de propriedade confere cada ponto contra o `calcularS2` em um contexto criado e reindexado para o
  * fim do mês. O volume é a contagem de chamados abertos no mês (base do S3). O mês em curso fica fora. Só enxerga
  * o Acelerato. */
-export function calcularTendenciaSust(ctx: ContextoAC): ResultadoTendenciaSust {
-  const abertos = diasDeAbertura(ctx, PADRAO)
-  const fechados = apuraveisComDia(ctx, PADRAO)
+export function calcularTendenciaSust(
+  ctx: ContextoAC,
+  equipe: readonly string[] = [],
+): ResultadoTendenciaSust {
+  // `equipe` chega como slug validado na fronteira (097 L7a: texto/slug, ids antigos como apelido).
+  const filtros: FiltrosSustentacao = { ...PADRAO, equipe: [...equipe] }
+  const abertos = diasDeAbertura(ctx, filtros)
+  const fechados = apuraveisComDia(ctx, filtros)
   const baldes = mesesFechados(ctx.hojeDia, MESES_TENDENCIA)
   const meses = baldes.map((b) => {
     const fimDoMes = isoDeDia(b.fimDia)
@@ -46,7 +51,7 @@ export function calcularTendenciaSust(ctx: ContextoAC): ResultadoTendenciaSust {
         ? []
         : aderenciaPorPrioridade(
             naJanela.map((c) => c.x),
-            PADRAO,
+            filtros,
           ),
       volume: abertos.filter((d) => d >= b.inicioDia && d <= b.fimDia).length,
     }
