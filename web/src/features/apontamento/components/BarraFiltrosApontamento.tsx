@@ -4,23 +4,15 @@ import { Botao, Icone, SeletorCadencia } from '@/components/ui'
 import { ChipsFiltros } from '@/features/filtros/ChipsFiltros'
 import { FiltroMulti } from '@/features/filtros/FiltroMulti'
 import { filtrosUnicos } from '@/components/ui'
-import type { AtivoApontamento, UsoFiltrosApontamento } from '../filtros'
-import {
-  LINHA_NOMES_OCULTOS,
-  ORDENS,
-  PESSOA_NAO_IDENTIFICADA,
-  QUALIDADE_FILTRO_OPCOES,
-  ROTULO_CHIP_ORDEM,
-  ROTULO_FILTRO_PESSOA,
-} from '../textos'
+import { opcoesDeEquipe, type AtivoApontamento, type UsoFiltrosApontamento } from '../filtros'
+import { ORDENS, QUALIDADE_FILTRO_OPCOES, ROTULO_CHIP_ORDEM, ROTULO_FILTRO_EQUIPE } from '../textos'
 import type { OpcoesApontamento } from '../types'
-import { NotaOutraArea } from './NotaOutraArea'
 
 const nomes = (ls: readonly { id: string; rotulo: string }[]) =>
   ls.map((o) => ({ id: o.id, nome: o.rotulo }))
 
 /**
- * Barra de filtros da aba: estado na URL, chips, "Limpar filtros". Ordem dos filtros: período, pessoa, projeto,
+ * Barra de filtros da aba: estado na URL, chips, "Limpar filtros". Ordem dos filtros: período, equipe, projeto,
  * tipo, subgrupo, subtarefa, qualidade. No mobile recolhe num botão "Filtros (n)". A ordem das listas por pessoa
  * é escolha de quem lê (o1) e fica em controle próprio, fora dos filtros.
  */
@@ -28,12 +20,10 @@ export function BarraFiltrosApontamento({
   opcoes,
   uso,
   ativos,
-  nomesReais,
 }: {
   opcoes: OpcoesApontamento
   uso: UsoFiltrosApontamento
   ativos: readonly AtivoApontamento[]
-  nomesReais: boolean
 }) {
   const [aberta, setAberta] = useState(false)
   const idPainel = useId()
@@ -98,25 +88,14 @@ export function BarraFiltrosApontamento({
             />
           </label>
         </fieldset>
-        <div className="flex flex-col gap-1">
-          <FiltroMulti
-            id="pessoa"
-            rotulo={ROTULO_FILTRO_PESSOA}
-            opcoes={opcoes.pessoas.map((p) => ({
-              id: p.pessoaRef,
-              nome: p.identificada ? p.rotulo : PESSOA_NAO_IDENTIFICADA,
-            }))}
-            selecionados={c.pessoa ?? []}
-            onChange={(ids, replace) => uso.definirLista('pessoa', ids, replace)}
-            genero="f"
-          />
-          {!nomesReais && (
-            <p className="text-xs text-texto-2" data-testid="linha-nomes-ocultos">
-              {LINHA_NOMES_OCULTOS}
-            </p>
-          )}
-          <NotaOutraArea linhas={opcoes.pessoas} />
-        </div>
+        <FiltroMulti
+          id="equipe"
+          rotulo={ROTULO_FILTRO_EQUIPE}
+          opcoes={nomes(opcoesDeEquipe(opcoes))}
+          selecionados={c.equipe ?? []}
+          onChange={(ids, replace) => uso.definirLista('equipe', ids, replace)}
+          genero="f"
+        />
         <FiltroMulti
           id="projeto"
           rotulo="Projeto"

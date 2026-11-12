@@ -241,7 +241,7 @@ describe('Resumo: tendência (CA-27)', () => {
     )
   })
 
-  it('sem histórico (mock=vazio): texto de vazio total, sem 400 e sem filtro na consulta', async () => {
+  it('sem histórico (mock=vazio): texto de vazio total, sem 400 e só a equipe do bloco na consulta', async () => {
     const chamadas: [string, unknown][] = []
     class Espiao extends MockFonteMetricas {
       override async obter<K extends MetricaId>(id: K, f: FiltrosDe<K>) {
@@ -260,8 +260,11 @@ describe('Resumo: tendência (CA-27)', () => {
     )
     const t = chamadas.filter(([id]) => id.startsWith('TENDENCIA'))
     expect(t.length).toBeGreaterThan(0)
-    for (const [, f] of t)
-      expect(Object.keys(f as object).filter((k) => k !== 'dataReferencia')).toEqual([])
+    // só a data de referência e, no fluxo, a equipe do bloco (097 L5); a Sustentação não leva equipe aqui
+    for (const [id, f] of t)
+      expect(Object.keys(f as object).filter((k) => k !== 'dataReferencia')).toEqual(
+        id === 'TENDENCIA_FLUXO' ? ['equipe'] : [],
+      )
   })
 
   it('a tendência só dispara depois dos números do bloco e as duas usam a mesma data de referência (a mais antiga das coletas)', async () => {
@@ -413,14 +416,14 @@ describe('Resumo: alertas por fonte (CA-28)', () => {
 })
 
 describe('Resumo: filtros, preferências e exportação (CA-29, CA-30)', () => {
-  it('sem barra de filtros; com filtros guardados, diz que não se aplicam', async () => {
+  it('sem barra de filtros; com filtros guardados (a Equipe é dos blocos), diz que não se aplicam', async () => {
     renderizarApp('/operacional?equipe=fluig&periodo=4s&sust_prioridade=p1')
     await bloco('resumo-fluxo')
     expect(screen.queryByTestId('barra-filtros')).toBeNull()
     expect(screen.queryByTestId('legenda-filtros')).toBeNull()
     expect(screen.queryByTestId('botao-metricas')).toBeNull()
     expect(screen.getByTestId('filtros-guardados')).toHaveTextContent(
-      'Os filtros guardados (fluxo de projeto: 2 ativos · Sustentação: 1 ativo) não se aplicam ao Resumo.',
+      'Os filtros guardados (fluxo de projeto: 1 ativo · Sustentação: 1 ativo) não se aplicam ao Resumo.',
     )
   })
 

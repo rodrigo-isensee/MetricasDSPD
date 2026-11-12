@@ -10,15 +10,15 @@ describe('lerFiltros', () => {
   it('lê só o formato do contrato e descarta o resto sem eco', () => {
     const l = lerFiltros(
       new URLSearchParams(
-        'pessoa=p1,Maria,p2&tipo=3&qualidade=generico,xx&nivelMatriz=banana&de=2026-01-01',
+        'equipe=portal,Maria,sem-time&tipo=3&qualidade=generico,xx&nivelMatriz=banana&de=2026-01-01',
       ),
     )
-    expect(l.consulta.pessoa).toEqual(['p1', 'p2'])
+    expect(l.consulta.equipe).toEqual(['portal', 'sem-time'])
     expect(l.consulta.tipo).toEqual(['3'])
     expect(l.consulta.qualidade).toEqual(['generico'])
     expect(l.consulta.nivelMatriz).toBe('tipo')
     expect(l.consulta.de).toBeUndefined()
-    expect(l.invalidos).toEqual(['Pessoa que apontou', 'Qualidade', 'Período', 'Agrupar por'])
+    expect(l.invalidos).toEqual(['Equipe', 'Qualidade', 'Período', 'Agrupar por'])
     expect(JSON.stringify(l.invalidos)).not.toContain('Maria')
   })
 
@@ -48,8 +48,8 @@ describe('lerFiltros', () => {
 
   it('formato, teto e janela são os do schema do contrato: a tela nunca aceita o que a rota recusaria', () => {
     const casos = [
-      'pessoa=p1,outra-area',
-      'pessoa=p01',
+      'equipe=portal,sem-time',
+      'equipe=Portal',
       'projeto=123456789012,1234567890123',
       'subgrupo=reuniao,Reuniao',
       `subtarefa=${'a'.repeat(41)}`,
@@ -97,19 +97,26 @@ describe('lerFiltros', () => {
   })
 
   it('respeita o teto de tamanho das listas', () => {
-    const muitos = Array.from({ length: 201 }, (_, i) => `p${i + 1}`).join(',')
-    const l = lerFiltros(new URLSearchParams(`pessoa=${muitos}`))
-    expect(l.consulta.pessoa).toBeUndefined()
-    expect(l.invalidos).toEqual(['Pessoa que apontou'])
+    const muitos = Array.from({ length: 51 }, (_, i) => `t${i + 1}`).join(',')
+    const l = lerFiltros(new URLSearchParams(`equipe=${muitos}`))
+    expect(l.consulta.equipe).toBeUndefined()
+    expect(l.invalidos).toEqual(['Equipe'])
+  })
+
+  it('pessoa= na URL é valor inválido ignorado: não entra na consulta, e o aviso não repete o valor (CA-9)', () => {
+    const l = lerFiltros(new URLSearchParams('pessoa=p1,Maria&tipo=3'))
+    expect(l.consulta).toEqual({ nivelMatriz: 'tipo', anomalos: 'incluir', tipo: ['3'] })
+    expect(l.invalidos).toEqual(['pessoa'])
+    expect(JSON.stringify(l)).not.toContain('Maria')
   })
 
   it('os filtros ativos usam o rótulo da opção, nunca o id', () => {
     const c = lerFiltros(
-      new URLSearchParams('pessoa=p3&subgrupo=nao-classificado&qualidade=completo'),
+      new URLSearchParams('equipe=sem-time&subgrupo=nao-classificado&qualidade=completo'),
     ).consulta
     const ativos = filtrosAtivos(c, RESPOSTA_FICTICIA.opcoes)
     expect(ativos.map((a) => `${a.rotulo}=${a.valor}`)).toEqual([
-      'Pessoa que apontou=Pessoa 3',
+      'Equipe=Sem equipe',
       'Subgrupo=Sem comentário',
       'Qualidade=Completo',
     ])

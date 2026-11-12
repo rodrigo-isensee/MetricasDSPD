@@ -127,12 +127,7 @@ export default function ApontamentoPage({
                 <AvisoRegistroIncompleto registro={resposta.registroIncompleto} />
               )}
               {resposta ? (
-                <BarraFiltrosApontamento
-                  opcoes={resposta.opcoes}
-                  uso={uso}
-                  ativos={ativos}
-                  nomesReais={resposta.nomesReais}
-                />
+                <BarraFiltrosApontamento opcoes={resposta.opcoes} uso={uso} ativos={ativos} />
               ) : (
                 ativos.length > 0 && <ChipsFiltros chips={ativos} onRemover={uso.remover} />
               )}

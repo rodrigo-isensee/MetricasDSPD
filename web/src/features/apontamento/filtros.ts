@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router'
 import type { FiltroAtivo } from '@/components/ui'
 import { fmtData } from '@/lib/formatar'
-import { ROTULO_FILTRO_PESSOA } from './textos'
+import { ID_SEM_EQUIPE, ROTULO_FILTRO_EQUIPE, ROTULO_SEM_EQUIPE } from './textos'
 import type { Ordem } from './ordem'
 import {
   NIVEIS_MATRIZ,
@@ -14,11 +14,11 @@ import {
 } from './types'
 
 /**
- * Filtros da aba na URL (AP-8): só `pessoaRef` (nunca nome), ids e códigos de lista fechada. Nada de texto livre,
+ * Filtros da aba na URL (AP-8): só ids de lista (a equipe é um slug, nunca nome de pessoa), ids e códigos de lista fechada. Nada de texto livre,
  * nada em `localStorage`. Valor fora do formato é descartado sem eco (o nome que alguém digitar na URL não volta à tela).
  */
 
-const CHAVES_LISTA = ['pessoa', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qualidade'] as const
+const CHAVES_LISTA = ['equipe', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qualidade'] as const
 export type ChaveLista = (typeof CHAVES_LISTA)[number]
 
 /**
@@ -31,7 +31,7 @@ const cabeNoTeto = (chave: ChaveLista, itens: string[]): boolean =>
   consultaApontamentoSchema.safeParse({ [chave]: itens }).success
 
 const ROTULOS: Record<ChaveLista | 'periodo' | 'anomalos', string> = {
-  pessoa: ROTULO_FILTRO_PESSOA,
+  equipe: ROTULO_FILTRO_EQUIPE,
   projeto: 'Projeto',
   tipo: 'Tipo',
   subtarefa: 'Subtarefa',
@@ -79,6 +79,8 @@ export function lerFiltros(params: URLSearchParams): FiltrosLidos {
     if (validos.length > 0 && cabe)
       (consulta as unknown as Record<string, string[]>)[chave] = validos
   }
+  // `pessoa` saiu dos filtros (097, CA-9): link antigo é ignorado, avisado e a página segue (nunca vai para a consulta).
+  if (params.has('pessoa')) invalidos.push('pessoa')
   const periodo = lerPar(params, 'de', 'ate')
   if (periodo === 'invalido') invalidos.push(ROTULOS.periodo)
   else if (periodo) [consulta.de, consulta.ate] = periodo
@@ -92,6 +94,15 @@ export function lerFiltros(params: URLSearchParams): FiltrosLidos {
   if (params.get('anomalos') === 'ocultar') consulta.anomalos = 'ocultar'
   const ordem: Ordem = params.get('ordem') === 'total' ? 'total' : 'alfabetica'
   return { consulta, ordem, invalidos }
+}
+
+/** Opções de equipe da resposta; a sem equipe ganha o rótulo da tela. Sem `equipes` (resposta antiga), lista vazia. */
+export function opcoesDeEquipe(
+  opcoes: OpcoesApontamento,
+): readonly { id: string; rotulo: string }[] {
+  return (opcoes.equipes ?? []).map((o) =>
+    o.id === ID_SEM_EQUIPE ? { ...o, rotulo: ROTULO_SEM_EQUIPE } : o,
+  )
 }
 
 const LISTA_DE_OPCOES = {
@@ -108,10 +119,9 @@ function nomeDoValor(
   opcoes: OpcoesApontamento | undefined,
 ): string {
   if (!opcoes) return id
-  const lista: readonly { id: string; nome: string }[] =
-    chave === 'pessoa'
-      ? opcoes.pessoas.map((p) => ({ id: p.pessoaRef, nome: p.rotulo }))
-      : opcoes[LISTA_DE_OPCOES[chave]].map((o) => ({ id: o.id, nome: o.rotulo }))
+  const lista: readonly { id: string; nome: string }[] = (
+    chave === 'equipe' ? opcoesDeEquipe(opcoes) : opcoes[LISTA_DE_OPCOES[chave]]
+  ).map((o) => ({ id: o.id, nome: o.rotulo }))
   return lista.find((o) => o.id === id)?.nome ?? id
 }
 
