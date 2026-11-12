@@ -45594,6 +45594,19 @@
               "type": "array",
               "items": {
                 "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,59}$"
+              }
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
                 "maxLength": 40,
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
               }
@@ -45846,6 +45859,26 @@
                           }
                         },
                         "tipos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "equipes": {
                           "type": "array",
                           "items": {
                             "type": "object",
