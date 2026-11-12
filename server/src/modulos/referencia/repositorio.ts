@@ -1,5 +1,6 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
 
 export type OpcaoLinha = { id: string; nome: string };
 
@@ -27,18 +28,18 @@ export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmb
   return r.rows.map((x) => ({ id: x.codigo, nome: x.rotulo }));
 }
 
-/**
- * Cortes das listas que as opções filtram (K-279): as mesmas condições de `lerCards` e `lerChamados` em
- * `metricas/repositorio.ts`. Mudou lá, muda aqui: opção fora do corte filtraria para vazio.
- */
-const CORTE_CARDS = 'criado_em IS NOT NULL AND granularidade IS NOT NULL AND tipo IS NOT NULL';
-const CORTE_CHAMADOS = 'aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false';
-
 /** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */
 export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
   const r = await db.query<{ tipo: string | null }>(
     `SELECT DISTINCT tipo FROM ${S.bm}.dim_card WHERE ${CORTE_CARDS} AND granularidade = 'story'`);
   return r.rows.map((x) => x.tipo).filter((t): t is string => typeof t === 'string');
+}
+
+/** Equipes presentes nos chamados do Acelerato (L7a do 097, E4): `DISTINCT equipe` no mesmo corte de `lerChamados`. Nenhuma pessoa, nenhuma contagem. */
+export async function lerEquipesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ equipe: string | null }>(
+    `SELECT DISTINCT equipe FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS} ORDER BY equipe`);
+  return r.rows.map((x) => x.equipe).filter((t): t is string => typeof t === 'string');
 }
 
 /** Prioridades presentes nos chamados do Acelerato (L6 do 097, E4). Mesmo corte de `lerChamados` (recorte, equipe e abertura). */

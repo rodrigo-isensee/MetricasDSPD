@@ -14,7 +14,7 @@ import type {
   ResultadoDe,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
-import { EQUIPES_SUSTENTACAO_ID, NOME_EQUIPE_SUSTENTACAO, TIPO_ID } from '@metricas-dspd/contratos'
+import { TIPO_ID } from '@metricas-dspd/contratos'
 import { TIPOS_FILTRO, PRIORIDADES } from '@metricas-dspd/contratos'
 import type { ResultadoO2Paginado } from '@metricas-dspd/contratos/validacao'
 import * as lib from '@metricas-dspd/metricas'
@@ -225,9 +225,10 @@ export class NucleoMock {
           }
         : {
             dominio: 'acelerato',
-            equipes: EQUIPES_SUSTENTACAO_ID.map((id) => ({
-              id,
-              nome: NOME_EQUIPE_SUSTENTACAO[id],
+            // Slug do nome, como a API (dim_chamado.equipe); o mock não tem equipe por chamado.
+            equipes: ['SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG'].map((nome) => ({
+              id: lib.slug(nome),
+              nome,
             })),
             prioridades: PRIORIDADES.map((p) => ({ id: p.toLowerCase(), nome: p })),
             historico: {

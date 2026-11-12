@@ -36,7 +36,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           opcoes={opcoes?.equipes ?? []}
           selecionados={f.equipe}
           variante={variante}
-          onChange={(ids, replace) => definir({ equipe: ids as never }, { replace })}
+          onChange={(ids, replace) => definir({ equipe: ids }, { replace })}
         />
       )}
       {config.filtros.includes('tipo') && (
@@ -121,6 +121,7 @@ export function BarraFiltros({
   const barra = useRef<HTMLDivElement>(null)
   // A folha mobile inteira conta como UMA mudança de histórico: a primeira empilha, as demais substituem.
   const mudouNaFolha = useRef(false)
+  const conteudoFolha = useRef<HTMLDivElement>(null)
   useAlturaCss(barra, '--h-filtros')
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
@@ -148,7 +149,7 @@ export function BarraFiltros({
     definir: envolver(uso.definir as (...a: unknown[]) => void) as Uso['definir'],
     remover: envolver(uso.remover),
     limpar: envolver(uso.limpar),
-  } as Uso
+  }
   const usoFolha: Uso = {
     ...usoA,
     definir: ((parcial: never, op: { replace: boolean }) => {
@@ -156,7 +157,7 @@ export function BarraFiltros({
       mudouNaFolha.current = true
       ;(usoA.definir as (p: never, o: { replace: boolean }) => void)(parcial, { replace })
     }) as Uso['definir'],
-  } as Uso
+  }
 
   return (
     // `contents`: a barra sticky precisa do contêiner alto do painel, não deste invólucro (bug 003).
@@ -209,6 +210,13 @@ export function BarraFiltros({
               <Dialog.Content
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-auto rounded-t-xl border border-borda-controle bg-superficie p-4 shadow-xl"
                 aria-describedby={undefined}
+                ref={conteudoFolha}
+                tabIndex={-1}
+                onOpenAutoFocus={(e) => {
+                  // A1: sem foco no primeiro campo de busca, para não abrir o teclado virtual do celular.
+                  e.preventDefault()
+                  conteudoFolha.current?.focus()
+                }}
                 onEscapeKeyDown={(e) => {
                   // Esc com texto no campo da lista focada só limpa o texto (FiltroMulti); senão fecha a folha.
                   if (escLimpaBuscaFocada(e.target)) e.preventDefault()

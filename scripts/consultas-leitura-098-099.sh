@@ -87,7 +87,7 @@ fi
 
 # --- lista do que e permitido no .sql (sem as linhas inteiras de comentario) ---
 # rc 0 = ok; rc 3 = recusado (motivo no stdout). Palavras comparadas sem diferenca de caixa, como palavra inteira.
-PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into|set_config|pg_read_file|pg_read_binary_file|lo_import'
+PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into|set_config|pg_read_file|pg_read_binary_file|lo_import|query_to_xml|query_to_xmlschema|query_to_xml_and_xmlschema|ts_stat|ts_rewrite'
 validar_sql() {
   local corpo primeiro pontos
   corpo="$(sed -E '/^[[:space:]]*--/d' "$1")"
@@ -100,6 +100,9 @@ validar_sql() {
     printf '%s' "$corpo" | tr -s '[:space:]' ' ' | sed -E 's/ $//' | grep -Eq ';$' || { echo "tem texto depois do ponto e virgula"; return 3; }
   fi
   if printf '%s' "$corpo" | grep -Eiwq "($PALAVRAS_PROIBIDAS)"; then echo "tem palavra fora da lista permitida"; return 3; fi
+  # A5 (K-277): escape de identificador (U&, UESCAPE) e funcoes de sistema por prefixo (pg_, lo_) nao entram, em qualquer caixa
+  if printf '%s' "$corpo" | grep -Eiq 'U&|(^|[^[:alnum:]_])uescape([^[:alnum:]_]|$)'; then echo "tem U& ou UESCAPE (escape de identificador)"; return 3; fi
+  if printf '%s' "$corpo" | grep -Eiq '(^|[^[:alnum:]_])(pg|lo)_'; then echo "tem identificador com prefixo pg_ ou lo_ (funcao de sistema)"; return 3; fi
   return 0
 }
 
