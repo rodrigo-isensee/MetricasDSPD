@@ -2971,3 +2971,31 @@
 | 2026-11-11 23:32 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-43 | brief | 1 | aprovado | s | portoes L7a | — | jarvis |
 | 2026-11-11 23:32 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-25 | brief | 1 | aprovado | s | portoes L7a | — | jarvis |
 | 2026-11-11 23:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-9 | brief | 1 | aprovado | s | K-278 volta 1 | — | jarvis |
+| 2026-11-11 23:35 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-20 | brief | 1 | aprovado | s | merge PR 338 | — | jarvis |
+| 2026-11-11 23:44 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-44 | brief | 1 | aprovado | s | PR K-282 | — | jarvis |
+| 2026-11-11 23:46 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-26 | brief | 1 | aprovado | s | portoes K-278 | — | jarvis |
+| 2026-11-11 23:46 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-45 | brief | 1 | aprovado | s | portoes K-278 | — | jarvis |
+| 2026-11-11 23:48 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-9 | brief | 1 | aprovado | s | portoes L2b L2c | — | jarvis |
+| 2026-11-11 23:48 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-21 | brief | 1 | aprovado | s | portoes L2b L2c | — | jarvis |
+| 2026-11-11 23:50 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-19 | brief | 1 | aprovado | s | L7a volta 1 | — | jarvis |
+| 2026-11-11 23:52 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-5 | brief | 1 | aprovado | s | UX K-278 | — | jarvis |
+| 2026-11-11 23:53 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-46 | brief | 1 | aprovado | s | PR K-278 | — | jarvis |
+| 2026-11-11 23:54 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-27 | brief | 1 | aprovado | s | portoes L7a volta 1 | — | jarvis |
+| 2026-11-11 23:54 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-47 | brief | 1 | aprovado | s | portoes L7a volta 1 | — | jarvis |
+| 2026-11-11 23:58 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-10 | brief | 1 | aprovado | s | L3 | — | jarvis |
+| 2026-11-12 00:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-ux-designer-1 | brief | 1 | aprovado | s | UX L2b L2c | — | jarvis |
+| 2026-11-12 00:03 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-11 | brief | 1 | aprovado | s | L7b | — | jarvis |
+| 2026-11-12 00:04 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-devops-engineer-9 | brief | 1 | aprovado | s | K-281 | — | jarvis |
+| 2026-11-12 00:05 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-22 | brief | 1 | aprovado | s | PR L2b L2c | — | jarvis |
+| 2026-11-12 00:08 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-4 | brief | 1 | aprovado | s | portoes K-281 | — | jarvis |
+| 2026-11-12 00:08 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-10 | brief | 1 | aprovado | s | portoes K-281 | — | jarvis |
+| 2026-11-12 00:08 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-23 | brief | 1 | aprovado | s | portoes K-281 | — | jarvis |
+| 2026-11-12 00:12 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-48 | brief | 1 | aprovado | s | portoes L3 | — | jarvis |
+| 2026-11-12 00:12 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-28 | brief | 1 | aprovado | s | portoes L3 | — | jarvis |
+| 2026-11-12 00:20 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-49 | brief | 1 | aprovado | s | portoes L7b | — | jarvis |
+| 2026-11-12 00:20 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-29 | brief | 1 | aprovado | s | portoes L7b | — | jarvis |
+| 2026-11-12 00:25 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-12 | brief | 1 | aprovado | s | L3 volta 1 | — | jarvis |
+| 2026-11-12 00:25 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-24 | brief | 1 | aprovado | s | PR K-281 | — | jarvis |
+| 2026-11-12 00:30 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-50 | brief | 1 | aprovado | s | PR L7a L7b | — | jarvis |
+| 2026-11-12 00:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-30 | brief | 1 | aprovado | s | portoes L3 volta 1 | — | jarvis |
+| 2026-11-12 00:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-51 | brief | 1 | aprovado | s | portoes L3 volta 1 | — | jarvis |

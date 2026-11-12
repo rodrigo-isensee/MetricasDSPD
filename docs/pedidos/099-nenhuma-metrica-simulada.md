@@ -27,6 +27,7 @@
 - E2.11 (node-backend): L3, tirar do contrato simulavel, podeSimular e METRICAS_SEM_SIMULACAO, com testes, docs/api/metricas.md e o OpenAPI, na branch fix/099-l3-contrato-sem-simulavel, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
 - E2.15 (react-frontend): L2b e L2c juntos (o selo importa o que o L2b apaga): além do L2b, tirar o selo Simulado da interface (SeloSimulado, ramos de CartaoMetrica, OrigemCartao.simulado, OrigemDosCartoes, StatusMeta, CartaoT3, tokens.css) com os testes do selo, e o simulavel de HttpFonteMetricas, na branch fix/099-l2b-apaga-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
 - E2.16 (ux-designer): L4, texto do catálogo (WB-1) e das 8 notas (OP-21, TA-16 a TA-18, ES-11, ES-12) sem falar em simulado, em docs/ux/099-textos-sem-simulado.md, para o react-frontend aplicar depois do L2b e L2c.
+- E2.17 (ux-designer): revisão da interface implementada no L2b e L2c (selo Simulado removido; cartão sem dado real com "Sem dado real" e o motivo), em docs/ux/099-revisao-l2b-l2c.md.
 - E2.12 (tech-lead): review por lote do 099 (L2b em diante).
 - E2.13 (qa-engineer): QA por lote do 099 (L2b em diante).
 - E2.14 (tech-lead): PR e merge por lote do 099 na develop, pela autorização do dono de 17:51.
@@ -38,6 +39,7 @@
 - E3.6 (security-engineer): revalidação de segurança do K-277.
 - E3.7 (qa-engineer): QA do K-277.
 - E3.8 (tech-lead): review, PR e merge do K-277 na develop, pela autorização do dono de 17:51.
+- E3.9 (devops-engineer): K-281, o comando de consultas de leitura recusa query_to_xml, query_to_xmlschema, query_to_xml_and_xmlschema, ts_stat e ts_rewrite (A6 da segurança do K-277) e ganha a sonda U&"x" sem UESCAPE (A1 do review), na branch fix/k281-consultas-funcoes a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -141,3 +143,21 @@
 - 2026-11-11 21:21: E3.8 review do K-277 aprovado (98cfeb8a, em a73f2c4b). A1 recomendado (sonda SELECT U&"x" sem UESCAPE) vai junto do K-281, que mexe no mesmo script. PR e merge delegados (tech-lead-18).
 - 2026-11-11 21:38: PR 338 (K-277) aberto, forge-check pr aprovado; merge suspenso pela regra do brief: o único vermelho é o banco no teste do L2 do 097 (vem da develop; o banco do push só da branch passou). Retoma depois que a correção do teste (fix/097-l2-teste-grant) entrar na develop: update-branch, checks do head novo, merge.
 - 2026-11-11 22:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-19.md 0a4c9a80c8aa7be06962ee7e9ce879102f47b21d9fbfc415ca7d50bb6af26c53
+- 2026-11-11 23:35: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-20.md edb14af6b7180e0b21ae55b75477cab25e334291fd7d3fffd78286a574d86234
+- 2026-11-11 23:36: PR 338 (K-277): todos os checks verdes no 09869a32 e forge-check pr aprovado; o prompt do merge foi recusado pela sessão WSL ativação porque o PR ficou BEHIND depois do merge do PR 339; ela atualizou a branch (637b4453). Merge refeito com a regra da sessão (mergeStateStatus imediatamente antes do merge; um PR de cada vez) e delegado (tech-lead-20).
+- 2026-11-11 23:47: entrega conferida 456e103e5556b7ff117f1762d4fffcf5ebe00fc7
+- 2026-11-11 23:48: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-9.md e895edd9f1dafaf17898baafc194ce886f623d23ca02c053bfca2fead578fc55
+- 2026-11-11 23:48: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-21.md b3ebd8dd45248cf643c8ce24ff43e5b361b6a0ff4449bf74985dd8350b5d76fe
+- 2026-11-11 23:48: E2.15 (L2b e L2c) entregue (456e103e): fonte simulada e selo Simulado removidos da web (18 arquivos, -1053 linhas); cartão sem dado real segue com Sem dado real e o motivo; motivoSemSigla removido fora da lista (sem uso). Pronto local não fechou por timeouts de carga; cobertura 100% fica com o CI do head. Entrega conferida; sem conflito com a develop. QA (qa-engineer-9), review (tech-lead-21) e revisão de UX, em série. L3 (contrato) começa depois que o L2b e L2c entrarem na develop.
+- 2026-11-11 23:59: QA do L2b e L2c aprovado (da3e1219, em 456e103e), 0 bugs: nenhum caminho da web produz ou mostra métrica simulada; CI do head verde (testes com cobertura, banco, build); e2e não rodou no push. A1 recomendado: dois specs de e2e (simulado-070-l3 e perf-api) ainda esperam selo-simulado, vai ao L5 (guardas de QA). Review delegado (tech-lead-21).
+- 2026-11-12 00:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-ux-designer-1.md 7cf716c610bb163a215a525d13399fa6697eb4538e4005fab366ea267cbbb3e3
+- 2026-11-12 00:04: brief selado docs/briefs/099-nenhuma-metrica-simulada-devops-engineer-9.md 73ed7d9a5d7eb49656f931a95becdbdf607987cb21feaa1a28524010cc2603ac
+- 2026-11-12 00:05: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-22.md 1613786897f4b8817e21335a62873259dab8d81d654eb684ba55a24924c9174f
+- 2026-11-12 00:05: PR 338 (K-277) mesclado pelo tech-lead com todos os checks verdes e CLEAN, sem --admin (squash 9e76d175); CI da develop verde. K-277 pronto; K-281 delegado (devops-engineer-9), worktree 052g. Revisão de UX do L2b e L2c aprovada com ressalvas (docs/ux/099-revisao-l2b-l2c.md): M-1 e M-2 vão ao L4; B-1 a B-4 viram o cartão K-285. PERGUNTA: ao dono, o modo de desenvolvimento com dados fictícios (VITE_FONTE=mock, aviso Dados fictícios) continua existindo? (recomendação: manter por ora, só para desenvolvimento, e tratar a retirada em pedido próprio; sem resposta, fica). PR e merge do L2b e L2c delegados (tech-lead-22).
+- 2026-11-12 00:07: entrega conferida 805130049313de3ec987d07b0cafbfa44c6b797c
+- 2026-11-12 00:08: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-4.md 15523e406120f2a4767007e660c861b8287056ab3bd265f9e42981c858627256
+- 2026-11-12 00:08: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-10.md 65244ba25d7ad796566ed387a73ad5eeae9d3d8e304175309044b903db55b945
+- 2026-11-12 00:08: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-23.md d419624b603916bce48efcd482b1684ed0533379fc6f9d7668729fe6f331abc0
+- 2026-11-12 00:08: E3.9 (K-281) entregue (80513004): recusa das 5 funções e 7 sondas novas, teste e shellcheck verdes. Entrega conferida, classe C: segurança (security-engineer-4), QA (qa-engineer-10) e review (tech-lead-23), em série.
+- 2026-11-12 00:26: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-24.md a9f7e60460d7b9dd2ac8603c3c34f19ba982a2da5a4001f2b7756fd45e5ecde5
+- 2026-11-12 00:26: Review do K-281 aprovado (55ea45dc, em 80513004), sem achados; fecha também o A1 do review do K-277. PR e merge delegados (tech-lead-24, etapa pr).
