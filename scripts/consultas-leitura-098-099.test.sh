@@ -178,6 +178,8 @@ sonda "query_to_xml em maiuscula" "SELECT QUERY_TO_XML('select 1',true,false,'')
 sonda "U& sem UESCAPE" "SELECT U&\"x\""
 # corpus de legitimos: os 31 .sql versionados passam na lista permitida (o caminho feliz acima ja exige 31 ok)
 verifica "os 31 .sql versionados cumprem a lista permitida" "$(roda | grep -q '^recusada  ' && echo 1 || echo 0)"
+# Q-RO-1: o dspd_coletor nao tem SELECT em view (so a API); nenhum .sql versionado le vw_ (permission denied = psql rc 3)
+verifica "nenhum .sql versionado le view vw_ (coletor sem grant)" "$(cat "$RAIZ"/scripts/sql/consultas-098-099/*.sql | grep -v '^--' | grep -qiE '(^|[^[:alnum:]_])vw_' && echo 1 || echo 0)"
 
 # A3: certificado fixado por ssl-fp, --defaults-file, --sandbox; sem ssl-ca nem desligar verificacao
 cat >"$TMP/bin/mysql" <<'EOF'
