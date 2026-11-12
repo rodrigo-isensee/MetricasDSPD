@@ -140,14 +140,14 @@ describe('FiltroMulti', () => {
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], false)
     await userEvent.click(screen.getByLabelText('Alfa'))
     expect(onChange).toHaveBeenLastCalledWith(['b'], true)
-    await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar seleção' }))
     expect(onChange).toHaveBeenLastCalledWith([], true)
     await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     // Ao reabrir, volta a empilhar.
     await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
     // (o botão já mostra "Todas": acompanha as caixas, não a prop antiga)
-    await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar seleção' }))
     expect(onChange).toHaveBeenLastCalledWith([], false)
   })
 

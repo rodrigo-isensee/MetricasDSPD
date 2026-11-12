@@ -342,7 +342,7 @@ export function FiltroMulti(props: Props) {
                 }}
                 className="text-xs"
               >
-                Limpar
+                Limpar seleção
               </Botao>
               <Popover.Close asChild>
                 <Botao className="text-xs">Fechar</Botao>
