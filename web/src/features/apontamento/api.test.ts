@@ -21,7 +21,7 @@ describe('consultaParaQuery', () => {
   it('só as chaves do contrato; listas em CSV; lista vazia e período incompleto somem', () => {
     const q = consultaParaQuery({
       ...PADRAO,
-      pessoa: ['p1', 'outra-area'],
+      equipe: ['portal', 'sem-time'],
       projeto: [],
       subgrupo: ['reuniao'],
       qualidade: ['completo'],
@@ -34,7 +34,7 @@ describe('consultaParaQuery', () => {
     })
     const p = new URLSearchParams(q)
     expect(Object.fromEntries(p)).toEqual({
-      pessoa: 'p1,outra-area',
+      equipe: 'portal,sem-time',
       subgrupo: 'reuniao',
       qualidade: 'completo',
       de: '2026-08-03',
@@ -55,9 +55,9 @@ describe('fonte HTTP da aba', () => {
   it('chama GET /api/apontamento sem cache e devolve a resposta validada', async () => {
     const { fetchFalso, chamadas } = criarFetchFalso()
     const fonte = criarFonteHttpApontamento({ fetchImpl: fetchFalso })
-    const r = await fonte.buscar({ ...PADRAO, pessoa: ['p1'] })
+    const r = await fonte.buscar({ ...PADRAO, equipe: ['portal'] })
     expect(r.dominio).toBe('businessmap')
-    expect(chamadas).toEqual(['/api/apontamento?pessoa=p1&nivelMatriz=tipo&anomalos=incluir'])
+    expect(chamadas).toEqual(['/api/apontamento?equipe=portal&nivelMatriz=tipo&anomalos=incluir'])
     const init = vi.mocked(fetchFalso).mock.calls[0]![1]!
     expect(init.cache).toBe('no-store')
     expect(init.headers).toEqual({ Accept: 'application/json' })

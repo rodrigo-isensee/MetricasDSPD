@@ -31,11 +31,21 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
     expect(screen.queryByTestId('selo-ficticio')).not.toBeInTheDocument()
   })
 
-  it('o filtro da URL vira parâmetro da rota, só por pessoaRef', async () => {
-    const { chamadas } = abrir(`${URL_ABA}?pessoa=p2&Pessoa=Maria&nome=Maria`)
+  it('o filtro de equipe da URL vira parâmetro da rota, só por slug', async () => {
+    const { chamadas } = abrir(`${URL_ABA}?equipe=portal&Pessoa=Maria&nome=Maria`)
     await pronto()
-    expect(chamadas.some((c) => c.includes('pessoa=p2'))).toBe(true)
+    expect(chamadas.some((c) => c.includes('equipe=portal'))).toBe(true)
     expect(chamadas.join()).not.toMatch(/Maria|nome/)
+  })
+
+  it('pessoa= na URL nunca vai à rota: aviso "Valor inválido ignorado em: pessoa." e a página segue (CA-9)', async () => {
+    const { chamadas } = abrir(`${URL_ABA}?pessoa=p2,Maria`)
+    await pronto()
+    expect(chamadas.every((c) => !c.includes('pessoa'))).toBe(true)
+    expect(screen.getByTestId('filtros-invalidos')).toHaveTextContent(
+      'Valor inválido ignorado em: pessoa.',
+    )
+    expect(document.body).not.toHaveTextContent('Maria')
   })
 
   it('carregando: o cartão mostra o estado de carregamento e o anúncio, antes da resposta', async () => {
@@ -75,11 +85,11 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
     )
   })
 
-  it('nada de pessoa em localStorage nem sessionStorage, nem ao filtrar por pessoa', async () => {
+  it('nada de pessoa em localStorage nem sessionStorage, nem ao filtrar a equipe', async () => {
     abrir(`${URL_ABA}?pessoa=p1`, { resposta: () => respostaComNomesReais() })
     await pronto()
-    await userEvent.click(screen.getByRole('button', { name: /^Pessoa que apontou: / }))
-    await userEvent.click(await screen.findByLabelText('Bruno Exemplo'))
+    await userEvent.click(screen.getByRole('button', { name: /^Equipe: / }))
+    await userEvent.click(await screen.findByLabelText('Portal'))
     await userEvent.keyboard('{Escape}')
     const chaves = (a: Storage) => Array.from({ length: a.length }, (_, k) => a.key(k))
     expect(chaves(window.localStorage)).toEqual([])
@@ -144,29 +154,22 @@ describe('filtro por tipo (id de opcoes.tipos, type_id em dígitos)', () => {
 })
 
 describe('Outra área', () => {
-  it('aparece como "Outra área", sem nome, nos filtros e por último nas listas, mesmo ordenando por total', async () => {
-    const { roteador } = abrir(`${URL_ABA}?ordem=total`, {
-      resposta: () => respostaComOutraArea(),
-    })
+  it('aparece como "Outra área", sem nome, nas listas por pessoa e por último, mesmo ordenando por total', async () => {
+    abrir(`${URL_ABA}?ordem=total`, { resposta: () => respostaComOutraArea() })
     await pronto()
-    await userEvent.click(screen.getByRole('button', { name: /^Pessoa que apontou: / }))
-    await userEvent.click(await screen.findByLabelText('Outra área'))
-    await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(roteador.state.location.search).toContain('pessoa=outra-area'))
-    expect(await screen.findByText('Pessoa que apontou: Outra área')).toBeInTheDocument()
     const matriz = await screen.findByTestId('metrica-AP-MATRIZ')
     expect(within(matriz).getAllByText('Outra área').length).toBeGreaterThan(0)
     expect(screen.getByTestId('aba-apontamento').textContent).not.toMatch(/outra-area/)
   })
 
-  it('a chave outra-area na URL é aceita; chave parecida é descartada com aviso', async () => {
-    const { chamadas } = abrir(`${URL_ABA}?pessoa=outra-area,outra-area2`, {
-      resposta: () => respostaComOutraArea(),
-    })
+  it('a barra de filtros não tem Pessoa, e a nota "Outra área" fica junto da capacidade (CA-7, Q-3)', async () => {
+    abrir(URL_ABA, { resposta: () => respostaComOutraArea() })
     await pronto()
-    expect(chamadas[0]).toContain('pessoa=outra-area')
-    expect(chamadas[0]).not.toContain('outra-area2')
-    expect(screen.getByTestId('filtros-invalidos')).toBeInTheDocument()
+    const barra = screen.getByTestId('barra-filtros-apontamento')
+    expect(within(barra).queryByRole('button', { name: /^Pessoa/ })).toBeNull()
+    expect(within(barra).queryByTestId('nota-outra-area')).toBeNull()
+    const capacidade = await screen.findByTestId('metrica-AP-CAPACIDADE-PESSOA')
+    expect(within(capacidade).getByTestId('nota-outra-area')).toBeInTheDocument()
   })
 })
 

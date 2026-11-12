@@ -4,10 +4,11 @@ import { fmtData, fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
 import { useDadosAba, useRotulos } from '../dados'
 import { fmtHoras, pctOuNulo } from '../formatar'
 import { ordenarPorTotal } from '../ordem'
-import { CARTOES } from '../textos'
+import { CARTOES, LINHA_NOMES_OCULTOS } from '../textos'
 import { PESSOA_OUTRA_AREA, type PctComPiso, type RespostaApontamento } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
+import { NotaOutraArea } from './NotaOutraArea'
 import { SeloLeituraRelativa } from './SeloLeituraRelativa'
 
 /** "19%" (a coluna já se chama Utilização) ou, abaixo do piso, só a marca de amostra insuficiente (o3). Nunca cor, faixa nem média. */
@@ -107,6 +108,13 @@ function CapacidadePessoa({ r }: { r: RespostaApontamento }) {
   return (
     <div className="flex flex-col gap-3">
       <SeloLeituraRelativa />
+      {/* Moradia nova (097, Q-3): antes ficavam sob o filtro Pessoa, que saiu; descrevem as pessoas deste cartão. */}
+      {!r.nomesReais && (
+        <p className="text-xs text-texto-2" data-testid="linha-nomes-ocultos">
+          {LINHA_NOMES_OCULTOS}
+        </p>
+      )}
+      <NotaOutraArea linhas={capacidade.porPessoa} />
       <TabelaDados
         codigo="AP-CAPACIDADE-PESSOA-detalhe"
         legenda="Capacidade por pessoa: intervalo, dias úteis, capacidade, apontado e utilização; sem meta nem faixa de bom ou ruim"

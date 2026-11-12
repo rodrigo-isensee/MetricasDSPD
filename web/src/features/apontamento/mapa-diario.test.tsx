@@ -52,17 +52,21 @@ const comApontamentoEmDiaNaoUtil = (): RespostaApontamento => ({
 })
 
 describe('mapa diário: célula ativa dentro da grade (A2 do review)', () => {
-  it('depois de filtrar pessoa, alguma célula continua sendo a parada do Tab', async () => {
+  it('depois de filtrar a equipe, alguma célula continua sendo a parada do Tab', async () => {
+    // O recorte por equipe é do servidor; a fonte de teste simula o efeito (uma só linha) para a grade encolher.
     const roteador = renderizar(
       URL_ABA,
-      fonteDe((c) => respostaFicticia(c)),
+      fonteDe((c) => {
+        const r = respostaFicticia(c)
+        return c.equipe ? { ...r, diario: { ...r.diario, linhas: r.diario.linhas.slice(0, 1) } } : r
+      }),
     )
     const antes = await mapa()
     const ultima = antes.querySelector<HTMLElement>('td[data-lin="3"][data-col="5"]')!
     act(() => ultima.focus())
     expect(ultima).toHaveAttribute('tabindex', '0')
-    await act(() => roteador.navigate(`${URL_ABA}?pessoa=p1`))
-    await waitFor(() => expect(screen.getAllByText(/Pessoa que apontou/).length).toBeGreaterThan(0))
+    await act(() => roteador.navigate(`${URL_ABA}?equipe=portal`))
+    await waitFor(() => expect(screen.getAllByText(/Equipe/).length).toBeGreaterThan(0))
     await waitFor(() => expect(antes.querySelectorAll('tbody tr')).toHaveLength(1))
     const paradas = antes.querySelectorAll('td[role="gridcell"][tabindex="0"]')
     expect(paradas).toHaveLength(1)
