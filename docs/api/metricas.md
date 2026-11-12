@@ -27,7 +27,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 | Domínio (métricas) | Parâmetros |
 |---|---|
 | Fluxo (O*, T*, E*, BLOQUEADOS, EI_FL1..3) | `equipe`, `tipo` (ids de `TIPO_ID`), `sistema`, `periodo` |
-| Sustentação (S*, EI_SUST) | `equipe` (`totvs,senior,fluig`), `prioridade` (`P1..P5`), `periodo` |
+| Sustentação (S*, EI_SUST) | `equipe` (CSV de slugs do nome da equipe, ex.: `sssc-totvs`; os ids antigos `totvs,senior,fluig` seguem aceitos como apelido; slug sem dado dá recorte vazio, slug fora de `^[a-z0-9][a-z0-9-]{0,59}$` dá 400), `prioridade` (`P1..P5`), `periodo` |
 | Pesquisa de percepção (PV1) | nenhum (só `dataReferencia`) |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
 | TENDENCIA_FLUXO, TENDENCIA_SUST | só `dataReferencia` e `equipe` opcional (janela e demais recortes fixos nos padrões) |
@@ -80,7 +80,7 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 ## GET /api/v1/filtros/:dominio
 `:dominio` = `businessmap | acelerato`. Resposta 200 = `OpcoesFiltroFluxo` ou `OpcoesFiltroSustentacao` (equipes, tipos/prioridades, sistemas, `historico`). Sem opção de pessoa. Domínio inválido -> 400 `VALIDATION_ERROR` (mesma regra de `docs/api/fontes.md`). Parâmetro de query qualquer (ex.: `?responsavel=`) -> 400. Cabeçalho `Cache-Control: private, max-age=60`. Implementada (S-07): `server/src/modulos/referencia/`. Resposta validada na saída (fora do schema = 500).
 - `equipes` (BusinessMap): `ref_quadro` vigente, nível `time`, sem quadros de teste; `id` = `slug(equipe)`. `tipos`: as categorias presentes nas stories (`SELECT DISTINCT tipo` de `dim_card`, só `granularidade = 'story'`), mapeadas para os ids de `TIPO_ID`, na ordem de `TIPOS_FILTRO`, sem `Incidente` e sem categoria sem story (pedido 097, L6; a entrada `tipo` continua o enum `TIPOS_FILTRO`, forma da resposta inalterada). `sistemas`: `ref_dominio` campo `sistema` vigente (`id` = `slug(codigo)`, `nome` = rótulo). `historico.inicio` = primeira data (America/Sao_Paulo) de `dim_card.criado_em` (BM) ou `dim_chamado.aberto_em` (AC); base vazia: `inicio = fim`; `fim` = hoje.
-- Sustentação: `equipes` `totvs|senior|fluig`; `prioridades` só as presentes em `dim_chamado` (pedido 097, L6), com `id` minúsculo (`p1`..`p5`) e `nome` `P1`..`P5`, em ordem de P1 a P5; a entrada continua o enum `PRIORIDADES`. Base vazia: lista vazia.
+- Sustentação: `equipes` só as presentes em `dim_chamado` no mesmo corte das listas de chamados (pedido 097, L7a: recorte vigente, equipe e abertura preenchidas), `id` = slug do nome (`SSSC TOTVS` -> `sssc-totvs`), em ordem de nome, sem id repetido; times novos aparecem sem mudança de código. Base vazia: lista vazia. Mudança compatível (entrada mais ampla: todo valor aceito antes segue aceito, com `totvs|senior|fluig` mapeados para `sssc-totvs|sssc-senior|sssc-fluig`); `prioridades` só as presentes em `dim_chamado` (pedido 097, L6), com `id` minúsculo (`p1`..`p5`) e `nome` `P1`..`P5`, em ordem de P1 a P5; a entrada continua o enum `PRIORIDADES`. Base vazia: lista vazia.
 
 ## GET /api/v1/criterios
 200 = `VersaoCriterio[]` (`id`, `data`, `descricao`, `afeta: MetricaId[]`), todos os domínios, registro T2.6 (mudança com data, marcada nos gráficos).

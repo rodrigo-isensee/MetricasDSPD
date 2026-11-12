@@ -18,6 +18,15 @@ const opcoes = {
   sistemas: [{ id: 's1', nome: 'S1' }],
   historico: { inicio: '2026-01-01', fim: '2026-10-09' },
 } as unknown as OpcoesFiltro
+const opcoesSust = {
+  dominio: 'acelerato',
+  equipes: [
+    { id: 'sssc-totvs', nome: 'SSSC TOTVS' },
+    { id: 'sssc-senior', nome: 'SSSC SENIOR' },
+    { id: 'sssc-fluig', nome: 'SSSC FLUIG' },
+    { id: 'time-novo', nome: 'Time Novo' },
+  ],
+} as unknown as OpcoesFiltro
 const opcoesAcelerato = { dominio: 'acelerato', equipes: [] } as unknown as OpcoesFiltro
 const P = (s: string) => new URLSearchParams(s)
 
@@ -89,17 +98,36 @@ describe('leitura dos filtros de fluxo', () => {
 
 describe('leitura e escrita da sustentação', () => {
   it('lê equipe e prioridade e escreve só o que foge do padrão', () => {
-    const r = lerSustentacao(P('equipe=fluig&prioridade=p1,p2&periodo=4s'), undefined, '6m')
+    const r = lerSustentacao(P('equipe=sssc-fluig&prioridade=p1,p2&periodo=4s'), opcoesSust, '6m')
     expect(r.filtros).toEqual({
-      equipe: ['fluig'],
+      equipe: ['sssc-fluig'],
       prioridade: ['P1', 'P2'],
       periodo: { tipo: '4s' },
     })
     const p = escreverSustentacao(P('s3=prop'), r.filtros, '6m')
-    expect(p.get('equipe')).toBe('fluig')
+    expect(p.get('equipe')).toBe('sssc-fluig')
     expect(p.get('prioridade')).toBe('p1,p2')
     expect(p.get('periodo')).toBe('4s')
     expect(p.get('s3')).toBe('prop')
+  })
+
+  it('equipe por slug novo, inclusive de equipe que não existia antes', () => {
+    const r = lerSustentacao(P('equipe=sssc-totvs,time-novo'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs', 'time-novo'])
+    expect(r.invalidos).toEqual([])
+  })
+
+  it('id antigo na URL vira o slug novo, sem duplicar', () => {
+    const r = lerSustentacao(P('equipe=totvs,sssc-totvs,fluig'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs', 'sssc-fluig'])
+    expect(r.invalidos).toEqual([])
+    expect(escreverSustentacao(P(''), r.filtros, '6m').get('equipe')).toBe('sssc-totvs,sssc-fluig')
+  })
+
+  it('slug que não está nas opções é ignorado e anotado', () => {
+    const r = lerSustentacao(P('equipe=nao-existe,sssc-senior'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-senior'])
+    expect(r.invalidos).toEqual(['equipe "nao-existe"'])
   })
 
   it('período padrão e listas vazias saem da URL; com prefixo, só mexe no prefixo', () => {

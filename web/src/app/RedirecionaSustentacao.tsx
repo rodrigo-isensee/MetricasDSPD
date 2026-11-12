@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router'
+import { idEquipeSustentacao } from '@metricas-dspd/contratos'
 import { textoBusca } from '@/features/filtros/codec'
 
 const PREFIXO_SUST = 'sust_'
@@ -20,16 +21,23 @@ const HASH_RENOMEADO: Readonly<Record<string, string>> = {
  * `cadencia=sustentacao`. Os parâmetros são reconstruídos com `URLSearchParams` (nenhum valor da URL vira
  * caminho: sem redirecionamento aberto). Parâmetros do fluxo (`tipo`, `sistema`, `cadencia`...) são descartados.
  */
+/** A equipe vai para a URL como slug; o id antigo (totvs, senior, fluig) vale só como apelido de entrada. */
+function equipeComoSlug(valor: string): string {
+  return valor.split(',').map(idEquipeSustentacao).join(',')
+}
+
 export function destinoDaSustentacao(busca: string, hash: string): string {
   const origem = new URLSearchParams(busca)
   const destino = new URLSearchParams({ cadencia: 'sustentacao' })
   origem.forEach((valor, chave) => {
-    if (FILTROS_RENOMEADOS.includes(chave)) destino.set(`${PREFIXO_SUST}${chave}`, valor)
+    if (FILTROS_RENOMEADOS.includes(chave))
+      destino.set(`${PREFIXO_SUST}${chave}`, chave === 'equipe' ? equipeComoSlug(valor) : valor)
     else if (INTACTOS.includes(chave)) destino.set(chave, valor)
   })
   // Já com prefixo (link gerado entre as duas demandas): vale sobre o equivalente sem prefixo.
   origem.forEach((valor, chave) => {
-    if (chave.startsWith(PREFIXO_SUST)) destino.set(chave, valor)
+    if (chave.startsWith(PREFIXO_SUST))
+      destino.set(chave, chave === `${PREFIXO_SUST}equipe` ? equipeComoSlug(valor) : valor)
   })
   const novoHash = HASH_RENOMEADO[hash.toLowerCase()] ?? hash
   return `/operacional?${textoBusca(destino)}${novoHash}`
