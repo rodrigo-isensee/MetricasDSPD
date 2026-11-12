@@ -33,5 +33,6 @@
   "0032_bm_stg_apontamento_versao": "a2d0b2505e13cd443e996a6fe2e2826b9a170265626a81ee5e97bd980cbc70d6",
   "0033_bm_apt_pessoa_time": "fbbc7061a690ebe35e550d5aca43e4bc0cae233bd6dcdb48c2f57f51670662e5",
   "0034_bm_ctl_apontamento_cobertura": "4388c7b466ba5281e5c268c6241f7c5508bf484c6b2b8cfac27a14d67393cbce",
-  "0035_ac_previsao_retorno_booleano": "6082cd4b2f56d2256b895fe9a8e3e4931ddc9bac1b24dd412b710e822183cfdc"
+  "0035_ac_previsao_retorno_booleano": "6082cd4b2f56d2256b895fe9a8e3e4931ddc9bac1b24dd412b710e822183cfdc",
+  "0036_ac_alvo_prioridade_unidade": "b5f73459f01899f9b90e5beeecc2e57ea4f888051af5565529ca999d728b2e66"
 }

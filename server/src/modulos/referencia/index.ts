@@ -11,4 +11,7 @@ export {
   ARQUIVO_CALENDARIO, CLASSES_CALENDARIO, ErroCalendario, METRICAS_CALENDARIO, analisarCalendario, lerCalendario, planejarCalendario, sincronizarCalendario,
   type ResultadoCalendario,
 } from './calendario.js';
+export {
+  ARQUIVO_ALVOS, ErroAlvos, METRICAS_ALVOS, analisarAlvos, lerArquivoAlvos, planejarAlvos, sincronizarAlvos, type ResultadoAlvos,
+} from './alvos-acelerato.js';
 export { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
