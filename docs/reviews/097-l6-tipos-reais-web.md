@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l6-tipos-reais-web
-commit: 1ee4b7cc9ee03fed7b895cfae34e60b527936aaf
+commit: f335d47a0630c0d8488778c958ce10ecca45f112
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-12
@@ -22,6 +22,11 @@ Diff `origin/develop...1ee4b7cc` (base 233db432): `codec.ts`, `BarraFiltros.tsx`
 - **Testes dos arquivos tocados:** `VITEST_MAX_WORKERS=2 npx vitest run codec.test.ts k039.test.ts taticas.test.tsx qa-f6-tipo-produto.test.tsx`: 4 arquivos, 58 testes, todos passam. O QA (`docs/qa/097-l6-tipos-reais-web.md`, aprovado no mesmo sha) registra o vermelho antes do verde e dois mutantes no codec mortos; não refeito aqui. E2E e suíte inteira ficam no CI do PR.
 - `docs/engineering/praticas.md` não tem regras marcadas "decidida por"; o checklist de leitura da skill foi aplicado ao diff.
 
+## Revalidação (volta 1)
+- Delta lido: `git diff e0a7de27 f335d47a` toca só `BarraFiltros.tsx`, `codec.ts` e `codec.test.ts` (18 adições, 13 remoções); com `-w`, só quebra de linha do Prettier, sem mudança de expressão, tipo ou asserção. Corrige o `format:check` do PR 353.
+- `npx prettier --check` nos três arquivos: "All matched files use Prettier code style!". `npx vitest run src/features/filtros/codec.test.ts`: 19 testes, todos passam.
+- As linhas citadas nos achados (BarraFiltros.tsx:22, taticas.tsx:273, nucleoMock.ts:222, taticas.test.tsx:226) não mudaram no delta.
+
 ## Achados
 - A1 (recomendado) web/src/features/complementares/taticas.tsx:273 · as abas do T11 usam `t.nome` como `TipoFiltro` sem passar por `TIPO_ID`, ao contrário do codec, que descarta id desconhecido; um tipo novo na API vira aba cuja consulta falha no schema. Sugestão: mapear pelo id, como `idsTipo`.
 - A2 (recomendado) web/src/features/filtros/BarraFiltros.tsx:22 · `tiposDe` refaz o mapa id para rótulo que o `codec.ts` já tem em `TIPO_POR_ID`; dois lugares com a mesma regra. Sugestão: exportar um único conversor do codec.
@@ -29,4 +34,4 @@ Diff `origin/develop...1ee4b7cc` (base 233db432): `codec.ts`, `BarraFiltros.tsx`
 - A4 (recomendado) web/src/features/complementares/taticas.test.tsx:226 · concordo com o A1 do QA: o teste do T11 passa também na base; falta um caso com `opcoes.tipos` parcial provando que a aba ausente some.
 
 ## Veredito
-Aprovado. Nenhum bloqueante: o comportamento pedido está implementado e coberto no codec; os achados são de robustez e duplicação, para um cartão de acompanhamento.
+Aprovado no sha f335d47a. Nenhum bloqueante: o comportamento pedido está implementado e coberto no codec; a volta 1 é só formatação; os achados são de robustez e duplicação, para um cartão de acompanhamento.
