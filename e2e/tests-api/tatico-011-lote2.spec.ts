@@ -68,7 +68,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     }
   });
 
-  test('TT-02 CA-7 e CA-16: fonte BusinessMap, "Como ler", tabela equivalente e selo fictício só no T13 e no T14', async ({ page, painel }) => {
+  test('TT-02 CA-7 e CA-16: fonte BusinessMap, "Como ler", tabela equivalente e sem selo fictício (ADR 0030: Sem dado real)', async ({ page, painel }) => {
     await abrir(page, painel);
     for (const id of ['T10', 'T11', 'T12', 'T13', 'T14']) {
       const c = page.getByTestId(`metrica-${id}`);
@@ -76,7 +76,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
       await expect(c).toContainText('Fonte: BusinessMap');
       await expect(c).not.toContainText(/Acelerato/);
       await expect(c.getByRole('button', { name: 'Como ler e como é calculado' })).toBeVisible();
-      await expect(c.getByTestId('selo-ficticio')).toHaveCount(id === 'T13' || id === 'T14' ? 1 : 0);
+      await expect(c.getByTestId('selo-ficticio')).toHaveCount(0);
     }
     for (const id of ['T10', 'T11', 'T12', 'T14']) {
       await expect(page.getByTestId(`metrica-${id}`).getByRole('table')).toBeVisible();
