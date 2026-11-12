@@ -28,6 +28,13 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: o pronto do autor em `praticas.md` segue a decisão do dono (só testes e typecheck do pacote durante o desenvolvimento; `pnpm run pronto` antes do commit final da branch) (K-172) (#303); `contrato: 0` no frontmatter de dez documentos antigos de `docs/qa`, `docs/reviews` e `docs/architecture`, sem mudar o corpo (K-121) (#307); o guia do desenvolvedor segue a mesma decisão para o `pnpm run pronto` (K-265) (#308).
 - Bloqueios com dado real (pedido 075, K-204): a web deixa de depender da nota `bloqueio-sem-dado-real` no O1 e no O2, e a coluna Bloqueado do O2 mostra o motivo real ou "—" (lote 9a) (#320); o id da nota sai do contrato e o servidor perde o ramo dela, com `bloqueados` nulo do O1 seguindo nulo, nunca 0 (lote 9b) (#323).
 - Documentação: retrospectivas dos pedidos 091 e 092 (#315); ADR 0030, que revoga a ADR 0028 (simulado por cartão) por decisão do dono (pedido 099) (#322).
+- Filtros (pedido 097, L1): todo filtro de lista ganha o campo Buscar; a busca ignora maiúsculas e acentos, anuncia quantas opções sobraram, mantém marcado o que ficou fora da busca e avisa quantas são, funciona pelo teclado e não vai para o link (#336).
+- Filtros (pedido 097, L6): as opções de tipo do fluxo e de prioridade da sustentação passam a ser as que existem no dado real, com o mesmo corte das listas, para nenhuma opção filtrar para vazio; tipo que não está nas opções, num link antigo, é ignorado e avisado (#330, #353).
+- Aba Apontamento (pedido 097, L2 e L3): o filtro Pessoa dá lugar ao filtro Equipe (o time do card ou do card pai, com a opção "Sem equipe"), logo depois do período; a equipe só recorta, nunca agrupa nem compara times. Os nomes ocultos e a nota "Outra área" passam para o cartão de capacidade por pessoa (#337, #345).
+- Resumo (pedido 097, L4 e L5): filtro Equipe dentro de cada bloco, o do Fluxo com as equipes do BusinessMap e o da Sustentação com as do Acelerato, cada um mudando só os números, os alertas e a tendência do próprio bloco; com duas ou mais equipes o número é consolidado (soma), nunca comparação (#333, #350).
+- Sustentação (pedido 097, L7a e L7b): as equipes vêm do dado real do Acelerato, identificadas pelo nome (por exemplo `sssc-totvs`), e não mais de uma lista fixa de três (#344).
+- Ferramentas: comando único `pnpm run consultas:098-099` para o dono rodar as consultas só de leitura dos pedidos 098 e 099 (PostgreSQL da demo e MySQL do Acelerato), com sessão só de leitura, certificado fixado, senha fora da linha de comando e saída recusada se trouxer coluna de pessoa ou texto livre (K-275) (#329).
+- Documentação: retrospectivas dos pedidos 093, 094, 095, 096 e 100 (#334); revisões de UX, análises e a segunda rodada de UX do 097 (#356).
 
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
@@ -44,6 +51,15 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Entradas: o passo de critérios do apontamento lê o `.env` da raiz sozinho, pelo novo script `bm:criterios-apontamento` (K-270) (#319); a falha do banco imprime só a categoria do erro, sem pilha nem dados de conexão, a data é validada como data civil e argumento a mais é recusado (K-271) (#325).
 - Testes: o caso "o mock é criado uma só vez" de `simulado.test.tsx` deixa de ser intermitente (K-268) (#317).
 - CI: os jobs com navegador (`e2e-parte`, `perf`, `e2e-homolog-parte`, `perf-homolog`) ficam em `ubuntu-24.04`, porque a imagem `ubuntu-latest` não resolve os espelhos do apt; voltam a `ubuntu-latest` quando a imagem 26 resolver (K-269) (#318).
+- Web, nada simulado (pedido 099, ADR 0030): sai a opção simulado dos cartões (L2a) (#331); sai o código do simulador e o selo "Simulado" (L2b e L2c) (#342); o Catálogo e as notas deixam de falar em dado simulado ou fictício (L4) (#347); o código do mock não entra mais no build de uso diário (L2d) (#351). Cartão sem dado real mostra só "Sem dado real" e o motivo.
+- Guardas da ADR 0030 contra a volta do simulado: G1 (o build de uso diário é recusado se levar código ou texto do mock) e G2 (só a escolha da fonte importa o mock fora dos testes) (#351); G3 (os testes ponta a ponta contra a API conferem que cartão sem dado real não mostra número) e G4 (painel inteiro sem dado real mostra só "Sem dado real") (#355).
+- Filtros: ressalvas de UX da busca, com nome acessível no popover, contagem "de N", foco que não salta na folha do celular e anúncio das marcações fora da busca (K-278) (#341); o aviso "Marcada: X." não se repete no clique nem no Esc (K-284) (#346); as opções de tipo e prioridade usam o mesmo corte das listas (K-279) (#335).
+- Sustentação: duas equipes cujo nome dá o mesmo identificador ficam sempre com o mesmo nome, independente do banco (K-288) (#352).
+- Leia junto: espaço entre os links, para o alvo de toque não oscilar (K-292) (#354).
+- Consultas só de leitura (K-275): o comando recusa `U&`, `UESCAPE` e funções `pg_` e `lo_` (K-277) (#338) e funções que executam texto como SQL (K-281) (#343).
+- Referência: condição única do corte de cards e chamados, usada pelas listas e pelas opções; nenhum número muda (K-280) (#339).
+- Testes: GRANT de `dim_card` sem `responsavel_id` (097 L2) (#340); as provas de GRANT tiram as colunas de pessoa de `COLUNAS_PESSOA`, a lista única (K-282) (#349).
+- Testes: três specs do E2E contra a API acompanham os pedidos 097 e 099 (filtro de tipo pelo tipo que existe no dado real, sem selo fictício no T13 e no T14, equipe válida aceita nas tendências), sem afrouxar a checagem de dado de pessoa (K-273) (#357).
 
 ### Desempenho
 - Métricas: `ehDiaUtil` consulta os feriados como número de dia, sem gerar texto por dia; nenhum resultado muda (teste de equivalência com o código antigo) (K-174, lote 1) (#316).
@@ -52,6 +68,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Contrato (pedido 075, lote 9b): o valor `bloqueio-sem-dado-real` sai do enum de `notas` de O1, O2 e O3 e de `TEXTO_NOTA_CARTAO`; aceite de uso único em `aceitas.json`, fotografado e removido no mesmo PR, sem `/api/v2`. A API não emite a nota desde o 6b e a web não a lê desde o 9a (#323).
 - Migração 0035 (pedido 069, L9-c, decisão do dono D-L9-1): `previsao_retorno` de `dim_chamado` e `dim_chamado_versao` passa de `timestamptz` a booleano "tem previsão de retorno"; a coluna nunca foi projetada e está nula, a migração recusa a troca sem alterar nada se achar valor, e recria as três views que a leem (#238). `down` volta o tipo só com a coluna toda nula.
 - A primeira coleta do Acelerato depois do L9-c recusa com `parametros-mudaram` até o reconhecimento: rode `pnpm coleta ac --reconhecer-mudanca` uma vez (o hash `fluxo_sha256` entrou nos parâmetros comparados) (#238).
+- Contrato (pedido 099, L3): o campo opcional `simulavel` sai da resposta "sem dado real", e `podeSimular` e `METRICAS_SEM_SIMULACAO` saem do pacote de contratos; a web não lê o campo desde o L2a (#348).
+- Aba Apontamento (097 L3): link antigo com `pessoa=` deixa de filtrar; o valor é ignorado e avisado como inválido (#345).
+- Sustentação (097 L7a): os ids antigos de equipe `totvs`, `senior` e `fluig` seguem aceitos na URL e na API como apelido de `sssc-totvs`, `sssc-senior` e `sssc-fluig` por um ciclo de release (#344).
+- Implantação: o papel da aba Apontamento passa a ler `dim_card.equipe` (coluna de time, não de pessoa). Sem migração nova; o GRANT é reaplicado pelo `db:migrate`, que precisa rodar na implantação desta versão (#337).
 
 ### Mudanças de critério de cálculo
 - 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
