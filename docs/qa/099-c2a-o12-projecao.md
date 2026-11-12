@@ -3,12 +3,12 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-c2a-o12-projecao
-commit: 34ba37fc11f26e3d04fab964faf7c089b6f3abb8
+commit: e3212e6ec351048a8f0c13e6abc5783486a424af
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
-bugs_medios: 1
+bugs_medios: 0
 bugs_baixos: 0
 data: 2026-11-12
 ---
@@ -17,7 +17,7 @@ data: 2026-11-12
 Diff contra `develop` (d9f32012), 4 arquivos: `normalizador.ts` (`dataAcordada`, parse estrito), `projetor.ts` (`COLUNAS_DIM`), teste do normalizador e `.pg` novo. Obrigações: `docs/analises/099-o12-deadline.md` §1, §2 e riscos C6 e C7 do §9 (sem especificação de UX no lote). O `.pg` roda só no CI (sem banco local); a suíte inteira fica com o check-run `bateria` do mesmo sha, que não consegui consultar daqui (rede bloqueada), então não o cito.
 
 ## Achados
-- A1 (recomendado) server/src/modulos/businessmap/normalizador.ts:145 · `dataAcordada('0000-01-01')` passa (JS aceita o ano 0), mas o `date` do PostgreSQL não tem ano 0000 e derrubaria o INSERT do lote. Exigir ano >= 1 e testar. Bug 099-C2A-001 (médio, vira cartão).
+- A1 (recomendado) server/src/modulos/businessmap/normalizador.ts:150 · ano 0000 recusado com a nota (fechado na volta 1); bug 099-C2A-001 fechado.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
@@ -45,3 +45,10 @@ Diff contra `develop` (d9f32012), 4 arquivos: `normalizador.ts` (`dataAcordada`,
 
 ## Veredito
 Aprovado. C6 e C7 estão cobertos; o único caso faltante é o ano 0000 (A1), de probabilidade baixa e fora do formato que o teste do coletor usa, por isso recomendado, não bloqueante.
+
+## Revalidação (volta 1, E3.41)
+`forge-check parecer delta` listou 3 arquivos no domínio: `normalizador.ts` (guarda `!valor.startsWith('0000')`), `normalizador-businessmap.test.ts` (0000-01-01 e 0000-12-31 nos ruins; bloco novo com o caso 0000 e o ano 0001 aceito) e `data-model.md` (origem de `data_acordada` e ano >= 0001). Código em e3212e6e; os commits seguintes só trazem pareceres.
+- Vermelho: cópia de `git archive` do head com o `normalizador.ts` de 34ba37fc: 2 falhas (o `it` das formas ruins e o `it` do ano 0000); o `it` do ano 0001 passa nos dois, como esperado (fronteira que a base já aceitava).
+- Verde no head: `vitest run tests/normalizador-businessmap.test.ts`: 29 passaram.
+- Mutante da linha nova (tirar a guarda `startsWith('0000')`) é a própria base do vermelho: morto por 2 testes.
+- Bug 099-C2A-001: resolvido e fechado. Parecer segue aprovado; o `.pg` e a suíte inteira seguem com a bateria do CI.

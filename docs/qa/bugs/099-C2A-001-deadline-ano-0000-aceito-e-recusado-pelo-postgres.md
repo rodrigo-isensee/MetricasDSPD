@@ -16,3 +16,6 @@ Retorna `'0000-01-01'`. Se o banco recusar, o INSERT do `dim_card` falha e derru
 
 ## Evidência
 Teste descartável numa cópia: `expect(dataAcordada('0000-01-01', n)).toBeNull()` falha (recebe `'0000-01-01'`). Nenhum teste do diff cobre o ano 0000. Correção sugerida: exigir ano >= 0001 e acrescentar `'0000-01-01'` à lista `ruins` do teste.
+
+## Fechamento
+Resolvido em e3212e6e: 0000-01-01 e 0000-12-31 voltam nulos com a nota; teste vermelho na base 34ba37fc (2 falhas), verde no head (29 passaram).
