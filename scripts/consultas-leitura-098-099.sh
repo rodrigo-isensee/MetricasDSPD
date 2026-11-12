@@ -100,6 +100,9 @@ validar_sql() {
     printf '%s' "$corpo" | tr -s '[:space:]' ' ' | sed -E 's/ $//' | grep -Eq ';$' || { echo "tem texto depois do ponto e virgula"; return 3; }
   fi
   if printf '%s' "$corpo" | grep -Eiwq "($PALAVRAS_PROIBIDAS)"; then echo "tem palavra fora da lista permitida"; return 3; fi
+  # A5 (K-277): escape de identificador (U&, UESCAPE) e funcoes de sistema por prefixo (pg_, lo_) nao entram, em qualquer caixa
+  if printf '%s' "$corpo" | grep -Eiq 'U&|(^|[^[:alnum:]_])uescape([^[:alnum:]_]|$)'; then echo "tem U& ou UESCAPE (escape de identificador)"; return 3; fi
+  if printf '%s' "$corpo" | grep -Eiq '(^|[^[:alnum:]_])(pg|lo)_'; then echo "tem identificador com prefixo pg_ ou lo_ (funcao de sistema)"; return 3; fi
   return 0
 }
 

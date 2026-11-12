@@ -121,6 +121,7 @@ export function BarraFiltros({
   const barra = useRef<HTMLDivElement>(null)
   // A folha mobile inteira conta como UMA mudança de histórico: a primeira empilha, as demais substituem.
   const mudouNaFolha = useRef(false)
+  const conteudoFolha = useRef<HTMLDivElement>(null)
   useAlturaCss(barra, '--h-filtros')
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
@@ -209,6 +210,13 @@ export function BarraFiltros({
               <Dialog.Content
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-auto rounded-t-xl border border-borda-controle bg-superficie p-4 shadow-xl"
                 aria-describedby={undefined}
+                ref={conteudoFolha}
+                tabIndex={-1}
+                onOpenAutoFocus={(e) => {
+                  // A1: sem foco no primeiro campo de busca, para não abrir o teclado virtual do celular.
+                  e.preventDefault()
+                  conteudoFolha.current?.focus()
+                }}
                 onEscapeKeyDown={(e) => {
                   // Esc com texto no campo da lista focada só limpa o texto (FiltroMulti); senão fecha a folha.
                   if (escLimpaBuscaFocada(e.target)) e.preventDefault()
