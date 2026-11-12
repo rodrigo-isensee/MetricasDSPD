@@ -568,10 +568,10 @@ test('IF-I01 marcar todas (uma a uma) e desmarcar todas, em cada filtro múltipl
     await expect.poll(() => new URL(page.url()).searchParams.get(chave)).toBe(ids[0]);
     await page.getByTestId(`${filtro}-opcao-${ids[0]}`).click();
     await expect.poll(() => new URL(page.url()).searchParams.has(chave)).toBe(false);
-    // botão "Limpar" do popover
+    // botão "Limpar seleção" do popover
     await page.getByTestId(`${filtro}-opcao-${ids[1]}`).click();
     await expect.poll(() => new URL(page.url()).searchParams.get(chave)).toBe(ids[1]);
-    await page.getByRole('button', { name: 'Limpar', exact: true }).click();
+    await page.getByRole('button', { name: 'Limpar seleção', exact: true }).click();
     await expect.poll(() => new URL(page.url()).searchParams.has(chave)).toBe(false);
     await page.keyboard.press('Escape');
   }
