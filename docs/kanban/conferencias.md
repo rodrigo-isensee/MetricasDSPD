@@ -2954,3 +2954,20 @@
 | 2026-11-11 20:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-3 | brief | 1 | aprovado | s | portoes K-277 | — | jarvis |
 | 2026-11-11 20:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-8 | brief | 1 | aprovado | s | portoes K-277 | — | jarvis |
 | 2026-11-11 20:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-17 | brief | 1 | aprovado | s | portoes K-277 | — | jarvis |
+| 2026-11-11 20:43 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-8 | brief | 1 | aprovado | s | K-278 | — | jarvis |
+| 2026-11-11 21:18 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-18 | brief | 1 | aprovado | s | PR K-277 | — | jarvis |
+| 2026-11-11 21:23 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-22 | brief | 1 | aprovado | s | portoes K-280 | — | jarvis |
+| 2026-11-11 21:23 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-37 | brief | 1 | aprovado | s | portoes K-280 | — | jarvis |
+| 2026-11-11 21:26 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-38 | brief | 1 | aprovado | s | PR K-280 | — | jarvis |
+| 2026-11-11 21:28 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-23 | brief | 1 | aprovado | s | portoes E4.4 | — | jarvis |
+| 2026-11-11 21:28 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-39 | brief | 1 | aprovado | s | portoes E4.4 | — | jarvis |
+| 2026-11-11 21:30 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-40 | brief | 1 | aprovado | s | PR E4.4 | — | jarvis |
+| 2026-11-11 21:37 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-17 | brief | 1 | aprovado | s | L7a | — | jarvis |
+| 2026-11-11 22:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-19 | brief | 1 | aprovado | s | retomada PR 338 | — | jarvis |
+| 2026-11-11 22:02 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-41 | brief | 1 | aprovado | s | retomada PR 339 | — | jarvis |
+| 2026-11-11 22:13 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-18 | brief | 1 | aprovado | s | K-282 | — | jarvis |
+| 2026-11-11 23:30 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-42 | brief | 1 | aprovado | s | portoes K-282 | — | jarvis |
+| 2026-11-11 23:31 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-24 | brief | 1 | aprovado | s | portoes K-282 | — | jarvis |
+| 2026-11-11 23:32 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-43 | brief | 1 | aprovado | s | portoes L7a | — | jarvis |
+| 2026-11-11 23:32 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-25 | brief | 1 | aprovado | s | portoes L7a | — | jarvis |
+| 2026-11-11 23:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-9 | brief | 1 | aprovado | s | K-278 volta 1 | — | jarvis |

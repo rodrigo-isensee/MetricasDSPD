@@ -20,6 +20,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-281 | [scripts] Comando de consultas de leitura: recusar query_to_xml, query_to_xmlschema, query_to_xml_and_xmlschema, ts_stat e ts_rewrite (A6 da segurança do K-277; só negação de serviço, transação só de leitura) | 099 | forge:devops-engineer | 2026-11-11 | 2026-11-11 21:10 | docs/security/099-k277-consultas-escape.md; depois do K-277. |
 | K-268 | [teste] web/src/features/coleta/simulado.test.tsx:94 é intermitente: o selo-simulado-O12 não aparece a tempo (8,3 s) e o job testes cai; passa na rodada seguinte do mesmo commit | 092 | forge:react-frontend | 2026-11-11 | 2026-11-11 12:08 | Visto no CI dos PRs 311 (run 43032347561) e 315 (run 43043273858). |
 | K-259 | [Forge] forge-check entrega conta como "fora do declarado" os arquivos trazidos por merge da develop na branch (077 L7, 087 demo); o intervalo deveria excluir o que já está na base | 077 | forge:tech-lead | 2026-11-10 | 2026-11-10 13:15 | Fila; vai ao Forge (só propor). |
 | K-252 | [Forge] brief que toca .githooks/ deve dizer que é arquivo do usuário e que o agente entrega o diff (MELHORIA da retrospectiva do 083) | 083 | forge:tech-lead | 2026-11-10 | 2026-11-10 09:05 | Fila; vai ao Forge (só propor). |
@@ -106,7 +107,6 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-279 | [server] Opções de filtro do L6 com o mesmo corte das listas: prioridades com o recorte de lerChamados (A1 do review), tipos com criado_em não nulo (A2 do review) e teste de prioridades vazias do Acelerato (A1 do QA) | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 20:14 | PR 335 na develop (167f3a13), QA 90bbd5e5 e review 814af30b; A1 do review vira K-280. |
-| K-278 | [web] Ressalvas da revisão de UX do L1 da busca (A1 foco que abre o teclado na folha mobile, A2 popover sem nome acessível, A3 a A8 baixos) e o A5 do review (teste com queryByLabelText exato) | 097 | forge:react-frontend | 2026-11-11 | 2026-11-11 18:31 | docs/ux/097-revisao-l1.md; depois do L1, antes do L5. |
 | K-276 | [web] Ressalvas baixas da revisão de UX do lote 9a (anel do O2 sobre o triângulo do P95, legenda do anel sem bloqueados, apoio em text-xs, leitura do travessão, decisão do O1 só por hoje.bloqueados; série de bloqueados no O1) | 075 | forge:react-frontend | 2026-11-11 | 2026-11-11 14:30 | docs/ux/075-revisao-l9a.md, achados 2 a 7. |
 | K-275 | [pedido do dono] Nenhuma métrica simulada na web, começando pelo Operacional; guarda contra regressão | 099 | forge:software-architect | 2026-11-11 | 2026-11-11 13:55 | varredura em curso. |
 | K-272 | [bug] AP-TIPO "Horas por tipo" repete "Trabalho de produto" em várias linhas (agrupa por type_id e mostra a categoria); filtro tipo do apontamento repete opções | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 13:49 | relatado pelo dono na demo; espera P-097-7 (categoria ou tipo real). |
@@ -123,6 +123,8 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-282 | [server] Provas de GRANT nos testes .pg geram a lista de colunas proibidas de COLUNAS_PESSOA (lgpd.ts) em vez de lista escrita à mão (A1 do review da correção do teste do L2; a lista à mão apontou coluna inexistente e deixou a develop vermelha) | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 22:15 | worktree: MetricasDSPD-056 · branch fix/k282-grant-colunas-pessoa; pedido 097, E4.6. |
+| K-278 | [web] Ressalvas da revisão de UX do L1 da busca (A1 foco que abre o teclado na folha mobile, A2 popover sem nome acessível, A3 a A8 baixos) e o A5 do review (teste com queryByLabelText exato) | 097 | forge:react-frontend | 2026-11-11 | 2026-11-11 20:45 | worktree: MetricasDSPD-052c · branch fix/k278-ux-busca; pedido 097, E3.6; L1 na develop pelo PR 336. |
 | K-277 | [scripts] Comando de consultas de leitura: recusar U&, UESCAPE e os prefixos pg_ e lo_ na lista de palavras (A5 da segurança) | 099 | forge:devops-engineer | 2026-11-11 | 2026-11-11 20:14 | worktree: MetricasDSPD-052g · branch fix/k277-consultas-escape; pedido 099, E3.5. |
 | K-280 | [server] Condição única do corte de cards e chamados: lerTiposBM e lerPrioridadesAC reusam a condição de lerCards e lerChamados em vez de copiá-la (A1 do review do K-279) | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 20:14 | worktree: MetricasDSPD-056d · branch fix/k280-corte-unico; pedido 097, E4.3. |
 | K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:tech-lead | 2026-11-04 | 2026-11-11 18:07 | 9a e 9b na develop; release 100 (volta na branch docs/100-release-b): PR para a develop, depois homolog e o PR para a main do dono · worktree: MetricasDSPD-052h |
