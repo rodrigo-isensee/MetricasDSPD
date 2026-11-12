@@ -3150,3 +3150,7 @@
 | 2026-11-12 12:39 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-46 | brief | 1 | aprovado | s | merge fix/k296-origem-sem-dado | — | jarvis |
 | 2026-11-12 12:41 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-26 | brief | 1 | aprovado | s | K-286 volta UX | — | jarvis |
 | 2026-11-12 12:42 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-agile-coach-0 | brief | 1 | aprovado | s | retro 101 | — | jarvis |
+| 2026-11-12 12:45 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-48 | brief | 1 | aprovado | s | 097-k286-mapa-diario-equipe qa | — | jarvis |
+| 2026-11-12 12:45 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-77 | brief | 1 | aprovado | s | 097-k286-mapa-diario-equipe rev | — | jarvis |
+| 2026-11-12 12:45 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-12 | brief | 1 | aprovado | s | UX K-286 v1 | — | jarvis |
+| 2026-11-12 12:46 | 097-resumo-filtro-time | 097-resumo-filtro-time-security-engineer-4 | brief | 1 | aprovado | s | K-286 seg v1 | — | jarvis |
