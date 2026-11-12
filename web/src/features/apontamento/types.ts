@@ -29,7 +29,7 @@ export type FiltroQualidade = FlagQualidade | 'completo'
 export interface ConsultaApontamento {
   de?: DataCivil
   ate?: DataCivil
-  pessoa?: PessoaRef[]
+  equipe?: string[] // slug do time (097); `pessoa` saiu da tela, o servidor ainda o aceita mas a web não o envia
   projeto?: string[]
   tipo?: string[]
   subtarefa?: string[]

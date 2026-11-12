@@ -13,7 +13,7 @@ import {
   paramsDeFluxo,
   textoBusca,
 } from './codec'
-import { buscaVigente, registrarBusca } from './buscaPendente'
+import { buscaVigente, invalidosPendentes, registrarBusca } from './buscaPendente'
 import { useMemoriaAtual, useMemoriaFiltros } from './memoria'
 import {
   PAINEIS,
@@ -237,16 +237,46 @@ export function useFiltros(
   const invalidosAgora = leitura.invalidos
   useEffect(() => {
     if (!normalizada) return
+    // Dois conjuntos de filtros na mesma URL (o Resumo tem o do fluxo e o da Sustentação) normalizam no mesmo
+    // instante: cada um aplica só a sua diferença sobre a URL vigente (a pendente conta) e soma os seus avisos.
+    const vigente = new URLSearchParams(buscaVigente(location.pathname, location.search))
+    const p =
+      vigente.toString() === params.toString() ? new URLSearchParams(normalizada.p) : vigente
+    if (p === vigente)
+      for (const k of new Set([...params.keys(), ...normalizada.p.keys()])) {
+        const novo = normalizada.p.get(k)
+        if (novo === params.get(k)) continue
+        if (novo === null) p.delete(k)
+        else p.set(k, novo)
+      }
+    const search = textoBusca(p)
+    const avisos = [
+      ...new Set([
+        ...invalidosPendentes(location.pathname),
+        ...(normalizada.invalidos ? invalidosAgora : []),
+      ]),
+    ]
+    registrarBusca(location.pathname, search ? `?${search}` : '', avisos)
     void navigate(
-      { pathname: location.pathname, search: textoBusca(normalizada.p), hash: location.hash },
+      { pathname: location.pathname, search, hash: location.hash },
       {
         replace: true,
-        state: normalizada.invalidos
-          ? ({ filtrosInvalidos: invalidosAgora } satisfies EstadoNav)
-          : (location.state as EstadoNav | null),
+        state:
+          avisos.length > 0
+            ? ({ filtrosInvalidos: avisos } satisfies EstadoNav)
+            : (location.state as EstadoNav | null),
       },
     )
-  }, [normalizada, navigate, location.pathname, location.hash, location.state, invalidosAgora])
+  }, [
+    normalizada,
+    navigate,
+    params,
+    location.pathname,
+    location.search,
+    location.hash,
+    location.state,
+    invalidosAgora,
+  ])
 
   // Parâmetros "de agora": incluem a última navegação que o router ainda não renderizou, para que
   // uma ação rápida parta do estado que o usuário acabou de montar (IF-001, IS-003).
