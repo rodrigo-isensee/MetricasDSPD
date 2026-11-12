@@ -1,5 +1,6 @@
 # 099-q-ro-1 - caso novo do teste do script nunca falha (pipefail + grep -q)
 - Severidade: média
+- Estado: FECHADO em 6f3b80ee (grep -ci comparado a 0; falha com o SQL antigo, rc 1)
 - Responsável sugerido: devops-engineer
 - Ambiente: fix/099-q-ro-1 @ 97c39b1e, bash
 
