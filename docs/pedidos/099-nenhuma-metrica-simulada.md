@@ -23,26 +23,30 @@
 - E2.7 (tech-lead): review do L2a.
 - E2.8 (qa-engineer): QA do L2a.
 - E2.9 (tech-lead): PR do L2a; o merge é do dono.
-- E2.10 (react-frontend): L2b, apagar FonteComSimulado.ts, simulado.ts, as exportações em data/index.ts e SemDadoRealErro.simulavel, com os testes desses arquivos, na branch fix/099-l2b-apaga-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.10 (react-frontend): L2b, apagar a fonte simulada (absorvido pelo E2.15, PR 342).
 - E2.11 (node-backend): L3, tirar do contrato simulavel, podeSimular e METRICAS_SEM_SIMULACAO, com testes, docs/api/metricas.md e o OpenAPI, na branch fix/099-l3-contrato-sem-simulavel, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
-- E2.15 (react-frontend): L2b e L2c juntos (o selo importa o que o L2b apaga): além do L2b, tirar o selo Simulado da interface (SeloSimulado, ramos de CartaoMetrica, OrigemCartao.simulado, OrigemDosCartoes, StatusMeta, CartaoT3, tokens.css) com os testes do selo, e o simulavel de HttpFonteMetricas, na branch fix/099-l2b-apaga-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.15 (react-frontend): L2b e L2c juntos, a web sem fonte simulada nem selo Simulado (feito, PR 342).
 - E2.16 (ux-designer): L4, texto do catálogo (WB-1) e das 8 notas (OP-21, TA-16 a TA-18, ES-11, ES-12) sem falar em simulado, em docs/ux/099-textos-sem-simulado.md, para o react-frontend aplicar depois do L2b e L2c.
 - E2.17 (ux-designer): revisão da interface implementada no L2b e L2c (selo Simulado removido; cartão sem dado real com "Sem dado real" e o motivo), em docs/ux/099-revisao-l2b-l2c.md.
 - E2.18 (react-frontend): L4, aplicar na web os textos de docs/ux/099-textos-sem-simulado.md (catálogo WB-1 e as 8 notas), branch fix/099-l4-textos-sem-simulado a partir da develop, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
 - E2.19 (ux-designer): revisão da interface implementada no L4 (catálogo e notas sem simulado), em docs/ux/099-revisao-l4.md.
+- E2.20 (react-frontend): L2d, o mock fora do build api (App.tsx com import() só no ramo VITE_FONTE=mock) e as guardas G1 (web/scripts/sem-mock.mjs no pronto da web) e G2 (lint) da ADR 0030, branch fix/099-l2d-mock-fora-do-build a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E2.21 (security-engineer): parecer de segurança do L2d (gatilho: web/package.json; o pronto da web ganha um passo).
 - E2.12 (tech-lead): review por lote do 099 (L2b em diante).
 - E2.13 (qa-engineer): QA por lote do 099 (L2b em diante).
 - E2.14 (tech-lead): PR e merge por lote do 099 na develop, pela autorização do dono de 17:51.
-- E3.1 (devops-engineer): um comando único para o dono rodar as consultas só de leitura dos pedidos 098 e 099 (PostgreSQL da demo e MySQL do Acelerato), que grava a saída num arquivo sem dado de pessoa, na branch chore/consultas-leitura-098-099, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- E3.1 (devops-engineer): comando único de consultas só de leitura dos pedidos 098 e 099 (feito, PR 329).
 - E3.2 (security-engineer): parecer de segurança do comando (lê o .env e os bancos reais, só leitura).
 - E3.3 (tech-lead): review e PR do comando; o merge é do dono.
 - E3.4 (qa-engineer): QA do comando (classe N pelo gatilho do package.json).
-- E3.5 (devops-engineer): K-277, o comando de consultas de leitura recusa U&, UESCAPE e os prefixos pg_ e lo_ na lista de palavras (A5 da segurança), na branch fix/k277-consultas-escape a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E3.5 (devops-engineer): K-277, o comando de consultas recusa U&, UESCAPE, pg_ e lo_ (feito, PR 338).
 - E3.6 (security-engineer): revalidação de segurança do K-277.
 - E3.7 (qa-engineer): QA do K-277.
 - E3.8 (tech-lead): review, PR e merge do K-277 na develop, pela autorização do dono de 17:51.
-- E3.9 (devops-engineer): K-281, o comando de consultas de leitura recusa query_to_xml, query_to_xmlschema, query_to_xml_and_xmlschema, ts_stat e ts_rewrite (A6 da segurança do K-277) e ganha a sonda U&"x" sem UESCAPE (A1 do review), na branch fix/k281-consultas-funcoes a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E3.9 (devops-engineer): K-281, o comando de consultas recusa 5 funções que executam texto como SQL (feito, PR 343).
 - E3.10 (qa-engineer): L5, as guardas G3 (e2e chromium-api) e G4 (Vitest do painel sem dado real) da ADR 0030, a leitura vermelha da G1 e da G3 na develop e a troca dos specs que ainda esperam o selo (simulado-070-l3 e perf-api:181), branch test/099-l5-guardas a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056d.
+- E3.11 (qa-engineer): diagnóstico do e2e L3-08 do PR 347 (feito: instabilidade, K-292).
+- E3.12 (react-frontend): K-292, espaçamento vertical entre os links do leia-junto do Operacional para o alvo de toque não oscilar no axe target-size (L3-08 instável), branch fix/k292-leia-junto-alvo, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -191,3 +195,28 @@
 - 2026-11-12 01:33: QA do L5 aprovado (ef175ed4, em 061ed316) por outra instância, 0 bugs: G3 e G4 caem por mutação e passam sem ela; it.fails explícito; A1 recomendado (axe da Sustentação que o spec apagado cobria). Review delegado (tech-lead-29). PR 344 (L7a e L7b do 097) mesclado na develop (04:27 UTC).
 - 2026-11-12 01:38: Review do L5 aprovado (b291ecbd, em 061ed316). DECISÃO TÉCNICA (tech-lead, dono dos portões): para o L2d bastam a G1 vermelha pela leitura do build e a G3 vermelha por mutação; o texto da ADR 0030 vira o cartão K-291 do arquiteto. A1 e A2 recomendados (it.fails preciso, textoDaTela sem efeito de módulo). Ordem: o PR do L5 entra depois do L4 (PR 347), porque o it.fails do fictíci passa a falhar quando o L4 entrar; uma volta curta do autor troca it.fails por it, com A1 e A2, depois do merge do 347.
 - 2026-11-12 01:43: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-15.md a02087f5249e74f981bec86170b76ce77446fa1db8aa8b2531fd4eef5f0688a6
+- 2026-11-12 01:57: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-8.md b34b867dd7462518b55d26280f2dc663e16c7ad4a69149b375125c943015bee6
+- 2026-11-12 01:57: PR 343 (K-281) mesclado pelo tech-lead com todos os checks verdes e CLEAN, sem --admin (squash d4edc6d1); CI da develop verde; K-281 pronto. E2.20 (L2d: mock fora do build api, G1 e G2) delegada ao react-frontend (react-frontend-8), worktree 052g, branch fix/099-l2d-mock-fora-do-build. Melhoria vista do tech-lead (para a retro): fila de merge na develop, porque cada merge alheio volta o PR para BEHIND.
+- 2026-11-12 02:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-16.md 033802024de594b080544f7ebe56cade4251c34b61571f7cef33193cc9672e41
+- 2026-11-12 02:02: PR 347 (L4) aberto; verde no 15a34f64; depois do update-branch com a develop (PR 344), o head b125e941 reprovou no e2e L3-08 (axe target-size no leia-junto-o15 do Operacional), também no retry; o L4 não toca esse trecho. O CI de push da develop pula o e2e, então a develop pode estar com a falha. Diagnóstico delegado ao QA (qa-engineer-16, E3.11) antes de qualquer merge; o PR 347 fica aberto.
+- 2026-11-12 02:14: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-30.md 072d7da77c7cc1ce2fa382ca7f993b0c88c065325815ee970b04e80081bb0e90
+- 2026-11-12 02:14: Diagnóstico do L3-08 (docs/qa/bugs/099-e2e-l3-08-target-size.md): a falha não se reproduz em quatro shas, inclusive no head do PR (12 de 12 com repetição), e nenhum commit toca o leia-junto; instabilidade provável do alvo de toque num link longo. A causa provável vira o cartão K-292. Retomada do merge do PR 347 com nova rodada só dos jobs que falharam (tech-lead-30); se o L3-08 falhar de novo, a correção vem antes do merge.
+- 2026-11-12 02:19: entrega conferida 4bbc8f94c05bfd2b63ed3ca5093d9b5181e1aeb6
+- 2026-11-12 02:20: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-5.md a836edb1b176ce50e82ef56e3c8878f6bff59af590ac24127804613451c8e1ac
+- 2026-11-12 02:20: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-17.md f7a4631437a17d009e45cd7e471b541896cbeffc168666fe837dff181f221283
+- 2026-11-12 02:21: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-31.md e4346654857b570b820f4fb9d3701f914ba8f1d3e52e00396362e926515e889a
+- 2026-11-12 02:21: E2.20 (L2d) entregue (4bbc8f94): mock fora do build api (import() só no ramo mock, define no vite.config.ts), G1 sem-mock.mjs no pronto da web, G2 no lint.meta.test.ts; build api sem chunk do mock; G1 e G2 caem por mutação; pronto da web rc 0, cobertura 100%. Entrega conferida. Classe C (web/package.json): segurança (security-engineer-5), QA (qa-engineer-17) e review (tech-lead-31, decide os três desvios do autor), em série. Textos de etapas feitas do 099 encurtados para os briefs caberem no teto.
+- 2026-11-12 02:27: Segurança do L2d aprovada (8694356e, em 4bbc8f94): o passo novo do pronto só lê o dist; o define põe só VITE_FONTE no bundle; build api sem mock e build mock recusado pela G1; os três desvios do autor não mudam a segurança. A1 recomendado (a G2 não vê o mock por new Worker nem import de test/; a G1 cobre), para o review. QA delegado (qa-engineer-17). Melhoria vista repetida nesta noite (retro): forge-check docs acusa erros antigos de outros pedidos e esconde o resultado do parecer novo.
+- 2026-11-12 02:31: QA do L2d aprovado (308e864f, em 4bbc8f94), 0 bugs: build api sem mock com a G1 ok; build mock recusado pela G1; G1 e G2 caem por mutação; modo mock segue nos testes e no e2e (39 passaram). Review delegado (tech-lead-31), que decide os três desvios do autor.
+- 2026-11-12 02:37: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-32.md 7cb29ab9c3f532fca1bae5f3ca3cba842270e8ce27de34f4fe693ac18945f34d
+- 2026-11-12 02:37: Review do L2d aprovado (49435166, em 4bbc8f94), com os três desvios do autor aceitos; achados recomendados no cartão K-294. PR do L2d delegado (tech-lead-32): abre já e só mescla depois do L5, que entra depois do L4 (PR 347).
+- 2026-11-12 03:10: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-9.md 396c1ffdefdafe2e6e8edb0c1729f90dd0de84aa6332cd0051c8bb7592ba6caa
+- 2026-11-12 03:10: PR 348 (L3 do 099) mesclado na develop (03:02 UTC). E3.12 (K-292, espaço entre os links do leia-junto para o L3-08 não oscilar) delegada ao react-frontend (react-frontend-9), worktree 041.
+- 2026-11-12 03:14: PR 348 (L3 do 099) confirmado: squash 25e57350, todos os checks verdes e CLEAN, sem --admin; CI da develop verde (run 43165331219). Três update-branch pela corrida de merges (já registrada como ERRO-JARVIS no 097).
+- 2026-11-12 03:17: entrega conferida 0f4eb5208a58fb7f4386bd1b4974d91450a9c977
+- 2026-11-12 03:17: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-18.md c803d6d7691001d3a1e05d41bc35033f15c8ab65c06bbcdef5e97e01f7272117
+- 2026-11-12 03:17: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-33.md 6eeb2227e4d9865f05b3e02adfee50c3dc21af83780cde343e4cc53045b9f698
+- 2026-11-12 03:18: E3.12 (K-292) entregue (0f4eb520): gap-y-2 no ul do leia-junto; L3-08 10 de 10 local (o flake nunca reproduziu localmente); cobertura da web 100%. Entrega conferida. QA (qa-engineer-18) e review (tech-lead-33), em série. PERGUNTA: ao dono, o arquivo .git/config.lock vazio e só de leitura no repositório principal, de 2026-11-11 12:28, pode ser apagado? Ele faz falhar todo git checkout -b e push -u nas worktrees (a criação da branch funciona pela metade e o upstream nunca é gravado). Recomendação: apagar, depois de conferir que nenhum git está rodando; sem resposta, fica e os agentes seguem contornando pelo caminho previsto.
+- 2026-11-12 03:21: QA do K-292 aprovado (ed7ea724, em 0f4eb520), 0 bugs; L3-08 10 de 10 e 66 testes dos specs do leia-junto no Playwright. Review delegado (tech-lead-33).
+- 2026-11-12 03:24: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-34.md ee931ee2d2203ea6242e4a77427f33ceb853eccd396f84d5f97c6c3ef7d69ee6
+- 2026-11-12 03:24: Review do K-292 aprovado (6a5d74f0, em 0f4eb520), sem achados. PR do K-292 delegado (tech-lead-34): abre já e só mescla depois que os PRs 345, 347, 350, 352 e 353 saírem, para não disputar a develop.
