@@ -144,6 +144,6 @@ describe('filtros ↔ URL', () => {
     expect(
       screen.getByRole('button', { name: 'Remover filtro Prioridade: P2' }),
     ).toBeInTheDocument()
-    expect(busca(r).get('equipe')).toBe('fluig')
+    expect(busca(r).get('equipe')).toBe('sssc-fluig')
   })
 })
