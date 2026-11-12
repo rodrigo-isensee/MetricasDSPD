@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-d3-ci-vermelho
-commit: 332f134a8b77d5c15932a5dd5b605b3b1cf9cf53
+commit: 931444b41f80668bab33947ab86d98ef48e26cd8
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
@@ -29,6 +29,12 @@ Delta lido: `forge-check parecer delta docs/reviews/099-d3-ci-vermelho.md`, inte
 - **Testes dos arquivos tocados:** `vitest run tests/alvos-acelerato-sincronizar.test.ts tests/metricas.mapa.test.ts` em `server/`: 2 arquivos, 17 testes, passaram. A cobertura de 100% é decidida pelo check `testes` do PR 364, não refeita aqui.
 - **Comportamento, não só linha:** os casos afirmam o resultado (`inseridos`, `fechados`, `versaoRegistrada`), a ordem `BEGIN`…`COMMIT`/`ROLLBACK`, os parâmetros gravados (`['P1', '2031-01-10', 0.25, 'corrido', 4, 'corrido']`, o `UPDATE` só de `P3`), a idempotência sem escrita e as recusas com a mensagem. Em `mapa`, unidade fora de `corrido`/`util` em cada um dos dois campos dá erro, nunca padrão. Sondas manuais em `src/` (revertidas): `hoje <= ultima` trocado por `<` morre; `if (existe.rows[0] === undefined)` trocado por `if (true)` morre; ignorar o `vigente_ate` sobrevive (S1, A2).
 - **O duble de pg não esconde regra:** ele só devolve linhas por trecho do SQL e registra texto e parâmetros; toda regra (`planejarAlvos`, a data máxima por prioridade em `lerEstado`, a versão por hash, a transação de `emTransacao`) roda no código real. O que o duble não prova (predicados SQL, `CHECK`, tipos do Postgres) segue com `alvos-acelerato.pg.test.ts`, no portão da `homolog`.
+
+## Revalidação por delta (E3.47, hash do web)
+Delta lido: `forge-check parecer delta docs/reviews/099-d3-ci-vermelho.md`, intervalo `332f134a..931444b4`, no domínio só `web/src/data/mock/nucleoMock.paridade.test.ts` (+6 -2).
+- **Só hashes e comentário:** `68a67741`→`de6a8953` (base, duas ocorrências) e `0113e077`→`20541e9d` (Acelerato), os mesmos valores já conferidos no `packages/mock` e na evidência; o hash das extensões (`82329bc3`) segue igual. Nenhuma guarda mudada; nada a declarar em mutante.
+- **Nenhum hash velho fora do comentário:** `git grep "68a67741\|0113e077" -- web packages` acha só o comentário da linha 165.
+- **Testes do arquivo tocado:** `vitest run src/data/mock/nucleoMock.paridade.test.ts` em `web/`: 1 arquivo, 8 testes, passaram. `prettier --check` no arquivo: "All matched files use Prettier code style!". Suíte inteira no check `testes` do PR 364.
 
 ## Sondas
 - S1 · `server/src/modulos/referencia/alvos-acelerato.ts:120` com `const fim = l.vigente_de;` · espera: um teste falha · obtido: `Tests 7 passed (7)`
