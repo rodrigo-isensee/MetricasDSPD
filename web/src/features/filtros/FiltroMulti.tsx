@@ -113,7 +113,8 @@ function Lista({
     Array.from(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
   // Esc no campo ou numa opção: limpa o texto; quem fecha (Popover ou Dialog) é impedido pelo contêiner.
   const aoEsc = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') escLimpaBusca(e, busca, () => {
+    if (e.key === 'Escape')
+      escLimpaBusca(e, busca, () => {
         setRetorno('')
         setBusca('')
       })
