@@ -23,7 +23,11 @@ interface TendFluxo {
   meses: MesFluxo[];
 }
 
-const PESSOA = /usuarioKey|"e-?mail"|"nome"|"titulo"|"descricao"|assignee|responsavel/i;
+// `descricao` é texto livre de chamado; o marco de critério (`criterios.serie[].descricao`) é texto fixo do sistema e fica fora da checagem.
+const semCriterios = (corpo: string): string =>
+  JSON.stringify(JSON.parse(corpo), (k, v: unknown) => (k === 'criterios' ? undefined : v));
+const DESCRICAO = /"descricao"/i;
+const PESSOA = /usuarioKey|"e-?mail"|"nome"|"titulo"|assignee|responsavel/i;
 
 test.describe('tendências pela API real', () => {
   test('CT-45 o volume de cada mês da TENDENCIA_SUST é o S3 do mesmo mês (base.n)', async ({ request }) => {
@@ -55,15 +59,17 @@ test.describe('tendências pela API real', () => {
   });
 
   for (const id of ['TENDENCIA_FLUXO', 'TENDENCIA_SUST'] as const) {
-    test(`CT-58 ${id}: 200 com cabeçalhos, 304 por ETag, 400 para parâmetro extra e data futura ou inválida`, async ({ request }) => {
+    test(`CT-58 ${id}: 200 com cabeçalhos, 304 por ETag, 400 para parâmetro extra ou equipe inválida, 200 com equipe válida e 400 para data futura ou inválida`, async ({ request }) => {
       const r = await request.get(`${BASE}/${id}`);
       expect(r.status()).toBe(200);
       for (const h of ['x-data-referencia', 'x-versao-criterio', 'etag', 'cache-control']) expect(r.headers()[h], h).toBeTruthy();
       const r304 = await request.get(`${BASE}/${id}`, { headers: { 'if-none-match': r.headers()['etag']! } });
       expect(r304.status()).toBe(304);
-      for (const extra of ['equipe=x', 'tipo=y', 'prioridade=p1', 'periodo=12s', 'pageSize=5', 'usuarioKey=1']) {
+      for (const extra of ['tipo=y', 'prioridade=p1', 'periodo=12s', 'pageSize=5', 'usuarioKey=1']) {
         expect((await request.get(`${BASE}/${id}?${extra}`)).status(), extra).toBe(400);
       }
+      for (const equipe of ['fluig', 'sssc-totvs', 'fluig,senior']) expect((await request.get(`${BASE}/${id}?equipe=${equipe}`)).status(), `equipe=${equipe}`).toBe(200);
+      for (const equipe of ['A%20B', 'x_y', '-x']) expect((await request.get(`${BASE}/${id}?equipe=${equipe}`)).status(), `equipe=${equipe}`).toBe(400);
       const futura = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
       for (const d of [futura, '2026-13-40', '2026-02-30', '']) expect((await request.get(`${BASE}/${id}?dataReferencia=${d}`)).status(), `dataReferencia=${d}`).toBe(400);
     });
@@ -72,6 +78,7 @@ test.describe('tendências pela API real', () => {
       const corpo = await (await request.get(`${BASE}/${id}`)).text();
       expect(corpo.length).toBeGreaterThan(200);
       expect(corpo).not.toMatch(PESSOA);
+      expect(semCriterios(corpo), 'descricao fora do marco de critério').not.toMatch(DESCRICAO);
       expect(corpo).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
     });
   }

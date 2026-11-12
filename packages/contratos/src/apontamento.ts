@@ -37,6 +37,7 @@ const codigo = z
   .string()
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
   .max(40) // códigos de lista fechada da referência
+const idEquipe = z.string().regex(/^[a-z0-9][a-z0-9-]{0,59}$/) // slug(nome do time) ou `sem-time`, o mesmo formato do fluxo
 const segundos = z.number().int().nonnegative()
 const contagem = z.number().int().nonnegative()
 
@@ -139,6 +140,7 @@ export const consultaApontamentoSchema = z
     pessoa: lista(pessoaRefSchema, 200).optional(),
     projeto: lista(idNumerico, 200).optional(), // card_id da raiz (dim_card_raiz)
     tipo: lista(idNumerico, 50).optional(), // type_id
+    equipe: lista(idEquipe, 50).optional(), // slug do time do card (097 L2); só recorte, nunca agrupamento
     subtarefa: lista(codigo, 50).optional(),
     subgrupo: lista(codigo, 50).optional(),
     qualidade: lista(filtroQualidadeSchema, 6).optional(),
@@ -363,6 +365,7 @@ export const opcoesApontamentoSchema = z
     pessoas: z.array(pessoaApontamentoSchema), // mesma ordem neutra (o1)
     projetos: z.array(opcaoSchema.extend({ foraDoEscopo: z.boolean() }).strict()),
     tipos: z.array(opcaoSchema),
+    equipes: z.array(opcaoSchema).optional(), // times do recorte (097 L2); filtro, nunca comparação
     subtarefas: z.array(opcaoSchema),
     subgrupos: z.array(opcaoSchema),
     historico: z.object({ inicio: dataCivil, fim: dataCivil }).strict(), // limites do período personalizado

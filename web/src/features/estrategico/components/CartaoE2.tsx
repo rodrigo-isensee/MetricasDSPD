@@ -8,7 +8,7 @@ import { fmtInteiro, fmtPct, fmtTrimestre } from '@/lib/formatar'
 import { NOTAS_ESTRATEGICO } from '../notas'
 
 export function CartaoE2({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('E2', filtros, { simulado: true })
+  const q = useMetrica('E2', filtros)
   const d = q.dados
   const tri = d?.trimestres ?? []
   const publicados = tri.filter(

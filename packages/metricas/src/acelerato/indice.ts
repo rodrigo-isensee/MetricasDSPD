@@ -1,4 +1,3 @@
-import type { EquipeSustentacaoId } from '@metricas-dspd/contratos'
 import {
   diaLocal,
   horasUteisEntre,
@@ -10,16 +9,12 @@ import type { VersaoCriterio } from '../core/criterios'
 import { TOTALIZADORES, ETAPAS_PAUSA, totalizadorDaEtapa, type Totalizador } from './totalizadores'
 import type { BaseAC, Chamado, EtapaChamado } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
-
-const SLUG_EQUIPE: Record<Chamado['equipe'], EquipeSustentacaoId> = {
-  'SSSC TOTVS': 'totvs',
-  'SSSC SENIOR': 'senior',
-  'SSSC FLUIG': 'fluig',
-}
+import { slug } from '../slug'
 
 export interface ChamadoCalc {
   c: Chamado
-  equipeId: EquipeSustentacaoId
+  /** `slug(c.equipe)`: o mesmo id das opções de filtro. */
+  equipeId: string
   /** Concluído, com data de finalização, não excluído. */
   fechado: boolean
   /** Fechado e fora da exceção de SLA por registro posterior: entra em tempos e aderência. */
@@ -85,7 +80,7 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
     }
     return {
       c,
-      equipeId: SLUG_EQUIPE[c.equipe],
+      equipeId: slug(c.equipe),
       fechado,
       apuravel: fechado && !c.excecao_sla_registro_posterior,
       etapas,

@@ -17,7 +17,7 @@ const URL_ABA = '/operacional/apontamento'
 
 function renderizar(url: string, resposta: () => RespostaApontamento = () => RESPOSTA_FICTICIA) {
   const fonte: FonteApontamento = {
-    buscar: (c) => Promise.resolve(c.pessoa ? respostaFicticia(c, resposta()) : resposta()),
+    buscar: (c) => Promise.resolve(c.equipe ? respostaFicticia(c, resposta()) : resposta()),
   }
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const roteador = createMemoryRouter([{ path: '*', element: <ApontamentoPage fonte={fonte} /> }], {
@@ -52,15 +52,15 @@ describe('A-1: tabelas por pessoa rolam só no bloco, com a coluna Pessoa fixa',
 })
 
 describe('A-3: nota fixa de quem é Outra área', () => {
-  it('aparece nas listas por pessoa e no filtro, uma vez por cartão, e não nas outras', async () => {
+  it('aparece nas listas por pessoa e junto da capacidade, uma vez por cartão, e não na barra de filtros', async () => {
     renderizar(URL_ABA, () => respostaComOutraArea())
-    for (const codigo of ['AP-MATRIZ', 'AP-QUALIDADE-PESSOA']) {
+    for (const codigo of ['AP-MATRIZ', 'AP-QUALIDADE-PESSOA', 'AP-CAPACIDADE-PESSOA']) {
       const c = await cartao(codigo)
       expect(within(c).getAllByTestId('nota-outra-area')).toHaveLength(1)
     }
-    expect(screen.getAllByText(NOTA_OUTRA_AREA)).toHaveLength(3) // matriz, qualidade por pessoa e filtro
+    expect(screen.getAllByText(NOTA_OUTRA_AREA)).toHaveLength(3) // matriz, qualidade por pessoa e capacidade (Q-3)
     const barra = screen.getByTestId('barra-filtros-apontamento')
-    expect(within(barra).getByText(NOTA_OUTRA_AREA)).toBeInTheDocument()
+    expect(within(barra).queryByText(NOTA_OUTRA_AREA)).toBeNull()
     expect(NOTA_OUTRA_AREA).toBe(
       'Outra área: pessoas que não foram responsáveis por card do DSPD nos últimos 12 meses, somadas, sem nome.',
     )
@@ -126,7 +126,7 @@ describe('A-8: a ordem fora do padrão aparece como chip e conta em Filtros (n)'
   })
 
   it('Limpar filtros também volta à ordem neutra', async () => {
-    const roteador = renderizar(`${URL_ABA}?ordem=total&pessoa=p1`)
+    const roteador = renderizar(`${URL_ABA}?ordem=total&equipe=portal`)
     await cartao('AP-KPIS')
     await userEvent.click(await screen.findByRole('button', { name: 'Limpar filtros' }))
     await waitFor(() => expect(roteador.state.location.search).toBe(''))

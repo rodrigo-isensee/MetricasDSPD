@@ -11,3 +11,4 @@ export {
   ARQUIVO_CALENDARIO, CLASSES_CALENDARIO, ErroCalendario, METRICAS_CALENDARIO, analisarCalendario, lerCalendario, planejarCalendario, sincronizarCalendario,
   type ResultadoCalendario,
 } from './calendario.js';
+export { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';

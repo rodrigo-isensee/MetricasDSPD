@@ -1,6 +1,6 @@
 # Contrato da métrica TENDENCIA_FLUXO
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_FLUXO. Público: time (back-end, front-end, QA). Revisão: 2026-11-08.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_FLUXO. Público: time (back-end, front-end, QA). Revisão: 2026-11-11.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -12,6 +12,7 @@ Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite en
 | Parâmetro | Tipo | Obrigatório | Detalhe |
 |---|---|---|---|
 | `dataReferencia` | string | não | formato: date |
+| `equipe` | string | não |  |
 
 ## Filtros
 

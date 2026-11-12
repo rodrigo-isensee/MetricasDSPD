@@ -94,8 +94,8 @@ const CALCULOS: {
   O17: (f, c) => AC.calcularO17(c.ac, f, c.ext?.ac),
   EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
   PV1: (_f, c) => PESQ.calcularPV1(c.pesq),
-  TENDENCIA_FLUXO: (_f, c) => BM.calcularTendenciaFluxo(c.bm),
-  TENDENCIA_SUST: (_f, c) => AC.calcularTendenciaSust(c.ac),
+  TENDENCIA_FLUXO: (f, c) => BM.calcularTendenciaFluxo(c.bm, f.equipe ?? []),
+  TENDENCIA_SUST: (f, c) => AC.calcularTendenciaSust(c.ac, f.equipe ?? []),
   VISAO_GERAL: (_f, ctx) => calcularVisaoGeral(ctx.bm, ctx.ac),
 }
 

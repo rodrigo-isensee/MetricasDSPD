@@ -1,5 +1,6 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
 
 export type OpcaoLinha = { id: string; nome: string };
 
@@ -25,6 +26,29 @@ export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmb
     `SELECT codigo, rotulo FROM ${S.bm}.ref_dominio
      WHERE campo = 'sistema' AND vigente_ate IS NULL ORDER BY ordem, codigo`);
   return r.rows.map((x) => ({ id: x.codigo, nome: x.rotulo }));
+}
+
+/** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */
+export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ tipo: string | null }>(
+    `SELECT DISTINCT tipo FROM ${S.bm}.dim_card WHERE ${CORTE_CARDS} AND granularidade = 'story'`);
+  return r.rows.map((x) => x.tipo).filter((t): t is string => typeof t === 'string');
+}
+
+/** Equipes presentes nos chamados do Acelerato (L7a do 097, E4): `DISTINCT equipe` no mesmo corte de `lerChamados`. Nenhuma pessoa, nenhuma contagem. */
+export async function lerEquipesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ equipe: string | null }>(
+    `SELECT DISTINCT equipe FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS}`);
+  // K-288: a ordem de bytes (UTF-8) fica só aqui, sem ORDER BY no SQL (DISTINCT + ORDER BY exigiria a expressão no select e prenderia a collation), para que dois nomes de mesmo slug resolvam sempre para o mesmo (o primeiro), sem depender da collation do banco.
+  return r.rows.map((x) => x.equipe).filter((t): t is string => typeof t === 'string')
+    .sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')));
+}
+
+/** Prioridades presentes nos chamados do Acelerato (L6 do 097, E4). Mesmo corte de `lerChamados` (recorte, equipe e abertura). */
+export async function lerPrioridadesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ prioridade: string | null }>(
+    `SELECT DISTINCT prioridade FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS} AND prioridade IS NOT NULL`);
+  return r.rows.map((x) => x.prioridade).filter((t): t is string => typeof t === 'string');
 }
 
 /** Primeira data civil (America/Sao_Paulo) com dado na base de cada fonte; `null` se a base está vazia. */

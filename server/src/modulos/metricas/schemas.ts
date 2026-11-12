@@ -1,5 +1,5 @@
 import {
-  EQUIPES_SUSTENTACAO_ID, PERIODOS_PADRAO, PRIORIDADES, TIPO_ID, resultadoO2, versaoCriterioSchema, type FiltrosFluxo,
+  PERIODOS_PADRAO, PRIORIDADES, TIPO_ID, resultadoO2, versaoCriterioSchema, type FiltrosFluxo,
   type FiltrosSustentacao, type TipoFiltro,
 } from '@metricas-dspd/contratos';
 import { z } from 'zod';
@@ -55,9 +55,9 @@ export const queryFluxoSchema = z.object({
   return r;
 });
 
-/** Sustentação (Acelerato): equipe (`totvs,senior,fluig`) e prioridade (`P1..P5`, aceita minúscula). */
+/** Sustentação (Acelerato): equipe (slug do nome, ex.: `sssc-totvs`; os ids antigos `totvs,senior,fluig` seguem aceitos) e prioridade (`P1..P5`, aceita minúscula). */
 export const querySustentacaoSchema = z.object({
-  equipe: lista(z.enum(EQUIPES_SUSTENTACAO_ID)),
+  equipe: lista(idSlug),
   prioridade: lista(z.string().transform((p) => p.toUpperCase()).pipe(z.enum(PRIORIDADES))),
   ...comumQuery,
 }).strict().transform((q, ctx): ConsultaCalculo<FiltrosSustentacao> => {
@@ -72,8 +72,13 @@ export const querySustentacaoSchema = z.object({
 export const queryVisaoGeralSchema = z.object({ dataReferencia: data.optional() }).strict()
   .transform((q): ConsultaCalculo<Record<string, never>> => (q.dataReferencia === undefined ? { filtros: {} } : { filtros: {}, dataReferencia: q.dataReferencia }));
 
-/** Tendência mensal do Resumo (TENDENCIA_FLUXO e TENDENCIA_SUST): sem filtros; só a data de referência (ADR 0019). */
-export const queryTendenciaSchema = queryVisaoGeralSchema;
+/** Tendência mensal do Resumo (TENDENCIA_FLUXO e TENDENCIA_SUST): `dataReferencia` e `equipe` opcional (CSV de slugs; ADR 0019, pedido 097). Sem período, tipo nem prioridade. */
+export const queryTendenciaSchema = z.object({ dataReferencia: data.optional(), equipe: lista(idSlug) }).strict()
+  .transform((q): ConsultaCalculo<{ equipe: string[] }> => {
+    const r: ConsultaCalculo<{ equipe: string[] }> = { filtros: { equipe: q.equipe ?? [] } };
+    if (q.dataReferencia !== undefined) r.dataReferencia = q.dataReferencia;
+    return r;
+  });
 
 /** Pesquisa de percepção (PV1): só a data de referência; equipe, prioridade e período não se aplicam. */
 export const queryPesquisaSchema = z.object({ dataReferencia: data.optional() }).strict()

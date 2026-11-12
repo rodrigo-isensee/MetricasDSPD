@@ -35,7 +35,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos" (`schemas.ts:9`).
 | Domínio | Métricas | Parâmetros |
 |---|---|---|
 | Fluxo (BusinessMap) | `O*`, `T*`, `E*`, `BLOQUEADOS`, `EI_FL1..3` | `equipe` (slug), `tipo` (ids de `TIPO_ID`), `sistema` (slug), `periodo`, `de`, `ate`, `dataReferencia`, `page`, `pageSize` |
-| Sustentação (Acelerato) | `S1..S7`, `EI_SUST` (`METRICAS_SUSTENTACAO`, `packages/contratos/src/metricas.ts:87`) | `equipe` (`totvs`, `senior`, `fluig`), `prioridade` (`P1..P5`, aceita minúscula), `periodo`, `de`, `ate`, `dataReferencia` |
+| Sustentação (Acelerato) | `S1..S7`, `EI_SUST` (`METRICAS_SUSTENTACAO`, `packages/contratos/src/metricas.ts:87`) | `equipe` (slug do nome da equipe, ex.: `sssc-totvs`; os ids antigos `totvs`, `senior`, `fluig` valem como apelido), `prioridade` (`P1..P5`, aceita minúscula), `periodo`, `de`, `ate`, `dataReferencia` |
 | Visão geral | `VISAO_GERAL` | só `dataReferencia` |
 
 - `periodo`: `4s | 12s | 6m | 12m` (padrão `12s`) ou `custom` com `de` e `ate`. `de`/`ate` só valem com `custom`, e `custom` exige os dois (`schemas.ts:24-37`).

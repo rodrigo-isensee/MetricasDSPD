@@ -1,6 +1,5 @@
 import { useState, type CSSProperties } from 'react'
 import {
-  TIPOS_FILTRO,
   type TipoFiltro,
   type FiltrosFluxo,
   type ResultadoT10,
@@ -9,7 +8,7 @@ import {
   type ResultadoT14,
 } from '@metricas-dspd/contratos'
 import { Icone, SeletorLocal, TabelaDados } from '@/components/ui'
-import { useMetrica, type MetricaQuery } from '@/data'
+import { useMetrica, useOpcoesFiltro, type MetricaQuery } from '@/data'
 import { fmtInteiro, fmtNumero, plural } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { CartaoComplementar } from './CartaoComplementar'
@@ -54,7 +53,7 @@ function leituraT10(d: ResultadoT10): string | undefined {
 
 /** T10: uma linha por fornecedor, como vem da API (nome já normalizado e em ordem alfabética, B11-001 e CA-11). */
 export function CartaoT10({ filtros }: P) {
-  const q0 = useMetrica('T10', filtros, { simulado: true })
+  const q0 = useMetrica('T10', filtros)
   const q = comoOk(q0, true)
   const d = q.dados
   return (
@@ -152,7 +151,9 @@ const LISTRADO: CSSProperties = {
 /** T11: mapa de calor mês × ano da chegada; um tipo por vez, ou todos (o tipo vira filtro da consulta). */
 export function CartaoT11({ filtros }: P) {
   const [tipo, setTipo] = useState<TipoFiltro | ''>('')
-  const q0 = useMetrica('T11', tipo ? { ...filtros, tipo: [tipo] } : filtros, { simulado: true })
+  // Tipos do dado real (opcoes.tipos); sem as opções (carregando ou erro), só "Todos os tipos".
+  const { data: opcoes } = useOpcoesFiltro('businessmap')
+  const q0 = useMetrica('T11', tipo ? { ...filtros, tipo: [tipo] } : filtros)
   // Com um tipo escolhido e sem pedidos, o seletor precisa continuar na tela: o cartão não vira "vazio".
   const q = comoOk(q0, tipo !== '')
   const d = q.dados
@@ -269,7 +270,7 @@ export function CartaoT11({ filtros }: P) {
             anuncio={tipo ? `Tipo ${tipo}.` : 'Todos os tipos.'}
             itens={[
               { valor: '', rotulo: 'Todos os tipos' },
-              ...TIPOS_FILTRO.map((t) => ({ valor: t, rotulo: t })),
+              ...(opcoes?.tipos ?? []).map((t) => ({ valor: t.nome, rotulo: t.nome })),
             ]}
           >
             <div className="mt-3">{mapa}</div>
@@ -301,7 +302,7 @@ function leituraT12(d: ResultadoT12): string | undefined {
 
 /** T12: por área solicitante, em ordem de volume (a ordem da API), "com ida e volta" × "sem" com k de n. */
 export function CartaoT12({ filtros }: P) {
-  const q = useMetrica('T12', filtros, { simulado: true })
+  const q = useMetrica('T12', filtros)
   const d = q.dados
   return (
     <CartaoComplementar
@@ -402,7 +403,7 @@ function leituraT13(d: ResultadoT13, g: Gran): string | undefined {
 
 /** T13: uma granularidade por vez (demandas ou frentes), nunca juntas; o par com × sem é por tipo. */
 export function CartaoT13({ filtros }: P) {
-  const q = useMetrica('T13', filtros, { simulado: true })
+  const q = useMetrica('T13', filtros)
   const [gran, setGran] = useState<Gran>('story')
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
@@ -551,7 +552,7 @@ function leituraT14(b: ResultadoT14['porGranularidade'][number], g: Gran): strin
 
 /** T14: participação do meu time em cada projeto. Equipe obrigatória; nunca nomeia nem ordena outros times. */
 export function CartaoT14({ filtros }: P) {
-  const q0 = useMetrica('T14', filtros, { simulado: true })
+  const q0 = useMetrica('T14', filtros)
   const [gran, setGran] = useState<Gran>('story')
   const d0 = q0.dados
   // Sem equipe a API devolve base 0 (estado "vazio" do cartão); aqui o corpo diz o que fazer (CA-28).
