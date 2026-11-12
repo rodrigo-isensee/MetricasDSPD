@@ -51,9 +51,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           selecionados={f.tipo.map((t) => TIPO_ID[t])}
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
-          onChange={(ids, replace) =>
-            definir({ tipo: tiposDe(ids) }, { replace })
-          }
+          onChange={(ids, replace) => definir({ tipo: tiposDe(ids) }, { replace })}
         />
       )}
       {config.filtros.includes('sistema') && (

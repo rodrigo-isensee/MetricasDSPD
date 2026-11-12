@@ -36,7 +36,11 @@ const opcoesSust = {
     { id: 'p3', nome: 'P3' },
   ],
 } as unknown as OpcoesFiltro
-const opcoesAcelerato = { dominio: 'acelerato', equipes: [], prioridades: [] } as unknown as OpcoesFiltro
+const opcoesAcelerato = {
+  dominio: 'acelerato',
+  equipes: [],
+  prioridades: [],
+} as unknown as OpcoesFiltro
 const P = (s: string) => new URLSearchParams(s)
 
 describe('leitura dos filtros de fluxo', () => {
@@ -234,7 +238,12 @@ describe('escrita do fluxo e memória', () => {
     )
     expect(semOpcoes.prioridade).toEqual(['P1', 'P2', 'P3'])
     expect(colapsarTodos(f, opcoes, false).sistema).toEqual([])
-    const vazias = { dominio: 'businessmap', equipes: [], tipos: [], sistemas: [] } as unknown as OpcoesFiltro
+    const vazias = {
+      dominio: 'businessmap',
+      equipes: [],
+      tipos: [],
+      sistemas: [],
+    } as unknown as OpcoesFiltro
     expect(colapsarTodos(f, vazias, false).equipe).toEqual(['a'])
     expect(colapsarTodos({ ...f, tipo: ['Melhoria'] }, vazias, false).tipo).toEqual(['Melhoria'])
   })

@@ -104,7 +104,9 @@ export function lerFluxo(
   return {
     filtros: {
       equipe: lerLista(p, 'equipe', idsDe(opcoes, 'equipes'), 'equipe', invalidos),
-      tipo: lerLista(p, 'tipo', idsTipo(opcoes), 'tipo', invalidos).map((id) => TIPO_POR_ID.get(id) as TipoFiltro),
+      tipo: lerLista(p, 'tipo', idsTipo(opcoes), 'tipo', invalidos).map(
+        (id) => TIPO_POR_ID.get(id) as TipoFiltro,
+      ),
       sistema: lerLista(p, 'sistema', idsDe(opcoes, 'sistemas'), 'sistema', invalidos),
       periodo: lerPeriodo(p, padrao, opcoes, invalidos, restricao),
     },
@@ -132,13 +134,9 @@ export function lerSustentacao(
         invalidos,
         idEquipeSustentacao,
       ),
-      prioridade: lerLista(
-        p,
-        'prioridade',
-        idsPrioridade(opcoes),
-        'prioridade',
-        invalidos,
-      ).map((x) => x.toUpperCase() as Prioridade),
+      prioridade: lerLista(p, 'prioridade', idsPrioridade(opcoes), 'prioridade', invalidos).map(
+        (x) => x.toUpperCase() as Prioridade,
+      ),
       periodo: lerPeriodo(p, padrao, opcoes, invalidos, restricao),
     },
     invalidos,
