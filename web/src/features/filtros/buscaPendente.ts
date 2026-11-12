@@ -11,13 +11,22 @@ export const VALIDADE_MS = 3000
 interface Pendente {
   pathname: string
   search: string
+  /** Valores inválidos já avisados nessa navegação (vários filtros normalizam a mesma URL no mesmo instante). */
+  invalidos: string[]
   em: number
 }
 
 let pendente: Pendente | null = null
 
-export function registrarBusca(pathname: string, search: string): void {
-  pendente = { pathname, search, em: Date.now() }
+export function registrarBusca(pathname: string, search: string, invalidos: string[] = []): void {
+  pendente = { pathname, search, invalidos, em: Date.now() }
+}
+
+/** Inválidos da navegação pendente desta rota (vazio sem pendente válida). */
+export function invalidosPendentes(pathname: string): string[] {
+  if (!pendente || pendente.pathname !== pathname || Date.now() - pendente.em > VALIDADE_MS)
+    return []
+  return pendente.invalidos
 }
 
 /** Busca vigente: a pendente (se ainda válida para esta rota) ou a da URL renderizada. */
