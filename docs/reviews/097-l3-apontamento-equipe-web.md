@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l3-apontamento-equipe-web
-commit: e6d98fb80cae74436ef0737001e4b05db0164f65
+commit: 662612e73fd79008dbe71cc1bd016cd0ee945666
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
@@ -11,8 +11,11 @@ data: 2026-11-12
 # Review: Equipe no lugar de Pessoa na barra do Apontamento (097 L3, E3.2, K-273)
 
 ## Achados
-- A1 (recomendado) web/src/features/apontamento/filtros.ts:83 · o aviso do `pessoa=` usa a chave crua em minúscula, entre rótulos: "em: pessoa, Tipo, Agrupar por.". Sugestão: constante "Pessoa" em `textos.ts`, ou o UX decide o texto na revisão do lote.
+- A1 (recomendado) web/src/features/apontamento/filtros.ts:83 · o aviso do `pessoa=` usa a chave crua em minúscula, entre rótulos: "em: Tipo, pessoa, Agrupar por.". Sugestão: constante "Pessoa" em `textos.ts`, ou o UX decide o texto na revisão do lote.
 - A2 (recomendado) web/src/features/apontamento/mapa-diario.test.tsx:56 · a fonte do teste encolhe o mapa diário quando há `equipe`, e o servidor não faz isso (`filtrar(..., soPessoa)` ignora a equipe). Sugestão: encolher a grade por outro gatilho, como a janela, para o teste não descrever um recorte que não existe.
+
+## Revalidação (volta 2)
+Delta lido em `forge-check parecer delta`: "intervalo: e6d98fb8..e26f5ec6", "dispensado: e2e/tests/apontamento-qa.spec.ts (teste do QA aprovado em 662612e)", "delta: nenhum arquivo do domínio mudou". O `git diff e6d98fb8 662612e7` em web, e2e e server só troca a expectativa do CT-08 para "em: Tipo, pessoa, Agrupar por.". Ela bate com `lerFiltros` (filtros.ts:72-83), em que o laço de `CHAVES_LISTA` põe Tipo antes de `pessoa`. Nenhum código de produção mudou. O QA (e26f5ec6) registra o e2e do PR 345 verde. Parecer mantido: aprovado em 662612e7.
 
 ## Parecer
 Aprovado. Li o patch do L3 sobre a base (`git diff 9e76d175..e6d98fb8`, a merge-base). O `git diff origin/develop e6d98fb8` do brief também mostra o K-278 (#341) desfeito, só porque a develop andou. `git merge-tree` com a develop atual não dá conflito.
