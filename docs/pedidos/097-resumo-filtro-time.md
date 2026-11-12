@@ -40,6 +40,7 @@
 - E4.7 (react-frontend): L7b, codec da web por slug (feito, PR 344).
 - E4.8 (react-frontend): L6 web, Tipo e prioridades do dado real (PR 353).
 - E4.9 (node-backend): K-288, nome de equipe estável por slug (PR 352).
+- E4.10 (node-backend): K-283, as demais provas de pessoa à mão nos testes .pg passam ao helper de COLUNAS_PESSOA (A1 do review do K-282), branch test/k283-provas-pessoa-helper, worktree /home/rodrigoisensee/MetricasDSPD-056d.
 - E3.1 (react-frontend): L1, busca no FiltroMulti (feito, PR 336).
 - E3.6 (react-frontend): K-278, ressalvas da revisão de UX do L1 e o A5 do review (feito, PR 341).
 - E3.7 (react-frontend): K-284, aviso Marcada fora da região viva no clique e no Esc (feito, PR 346).
@@ -439,3 +440,12 @@
 - 2026-11-12 05:24: entrega conferida 3b6bc40d3f84eef680244d29fb085675db0c116d
 - 2026-11-12 05:25: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-45.md 66760b96e103617997569bf74d82ca50a4193ccdf688fd9d9a505448c5e0a045
 - 2026-11-12 05:26: QA do K-293 delegado (qa-engineer-45) no head 3b6bc40d; o review vem depois (uma escrita por branch). Merge depois da release 101.
+- 2026-11-12 05:29: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-74.md a89b35519c5cec1bc9d96e39ba2093337ec3ba679bfb112b713465c361d7d1b0
+- 2026-11-12 05:33: QA do K-293 aprovado (ae398e72, em 3b6bc40d), 0 bugs; Vitest 87 de 87, e2e resumo 5 passaram e o CA-6 pulado de forma declarada (K-298); mutação na região viva morta. Review delegado (tech-lead-74).
+- 2026-11-12 05:33: Review do K-293 aprovado (b4095f51, em 3b6bc40d), 2 achados recomendados (região viva estável; test.skip do CA-6 antes da checagem de console), que viram o cartão K-300. K-293 com os portões aprovados; merge depois da release 101. Melhorias vistas para a retro: praticas.md sem linhas 'decidida por'; prettier não cobre o e2e/.
+- 2026-11-12 05:38: brief selado docs/briefs/097-resumo-filtro-time-node-backend-24.md c6fac42116f968c7c2358b2a9fbedda0a0463294527f035e829bff4995b03a3e
+- 2026-11-12 05:39: E4.10 (K-283) delegada ao node-backend (node-backend-24), worktree 056d; merge depois da release 101.
+- 2026-11-12 05:40: brief selado docs/briefs/097-resumo-filtro-time-node-backend-25.md 39bf700691345aaef13946813642d4cd5949b0940402be5ada7c3d13a5ec72aa
+- 2026-11-12 05:41: K-283 parado com razão: a worktree 056d parecia ocupada (52 staged). Diagnóstico do Jarvis: o checkout -b falhou pela metade pelo config.lock antigo e deixou o índice na develop com o HEAD na branch antiga; o diff --cached contra a branch nova é vazio, não há trabalho de ninguém. Redelegado (node-backend-25) com a verificação explícita no brief.
+- 2026-11-12 06:04: E4.10 (K-283) entregue em parte (df78e1a6): seis provas de 42501 à mão em quatro testes .pg passam ao provarSemPessoa, sem mudar o que afirmam; typecheck e lint verdes. Os .pg não rodam no sandbox (sem PG_TESTE_URL) e a cobertura caiu por tempo e spawnSync com a máquina carregada; a prova dos .pg e a mutação ficam para o job banco do CI e para o QA, depois da release 101. Melhoria vista (para a retro): a trava da suíte única espera sem dizer quem a segura nem ter tempo limite.
+- 2026-11-12 06:54: entrega conferida df78e1a65fe2646b5b7653b208b608679454743f

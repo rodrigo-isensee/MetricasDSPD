@@ -32,6 +32,7 @@
 - E2.19 (ux-designer): revisão da interface implementada no L4 (catálogo e notas sem simulado), em docs/ux/099-revisao-l4.md.
 - E2.20 (react-frontend): L2d, o mock fora do build api (App.tsx com import() só no ramo VITE_FONTE=mock) e as guardas G1 (web/scripts/sem-mock.mjs no pronto da web) e G2 (lint) da ADR 0030, branch fix/099-l2d-mock-fora-do-build a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
 - E2.21 (security-engineer): parecer de segurança do L2d (gatilho: web/package.json; o pronto da web ganha um passo).
+- E2.22 (ux-designer): K-297, parte de UX: o texto do parágrafo do catálogo com a contagem que bate com o código (65 linhas, 62 códigos: 60 métricas, EI e PV1), na especificação docs/ux/099-textos-sem-simulado.md; o alinhamento do código vem depois, com o react-frontend.
 - E2.12 (tech-lead): review por lote do 099 (L2b em diante).
 - E2.13 (qa-engineer): QA por lote do 099 (L2b em diante).
 - E2.14 (tech-lead): PR e merge por lote do 099 na develop, pela autorização do dono de 17:51.
@@ -48,6 +49,7 @@
 - E3.11 (qa-engineer): diagnóstico do e2e L3-08 do PR 347 (feito: instabilidade, K-292).
 - E3.12 (react-frontend): K-292, espaçamento vertical entre os links do leia-junto do Operacional para o alvo de toque não oscilar no axe target-size (L3-08 instável), branch fix/k292-leia-junto-alvo, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
 - E3.13 (react-frontend): K-290, ajustes depois do L4 (contagem do parágrafo do catálogo, origemDaMetrica sem o estado mock, COMP-12 exige Sem dado real no O17, docs/qa sem Fictícios), branch fix/k290-pos-l4, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b; o merge espera a release 101.
+- E3.14 (react-frontend): K-285, estado sem dado real (motivo a 14 px no NumeroChave, faixa de selos sem espaço vazio, role=status; B-2 a B-4 da revisão de UX do L2b e L2c; o B-1 saiu, ver histórico), branch fix/k285-sem-dado-real-ux, worktree /home/rodrigoisensee/MetricasDSPD-052c.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -236,3 +238,23 @@
 - 2026-11-12 05:24: entrega conferida d476583b87c7c821d7e3215e5adeb6f6ede9b0b7
 - 2026-11-12 05:25: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-20.md b116438af4aa95b983a6aa101a7d198b4d10e1173b6615219320988dd95061cd
 - 2026-11-12 05:26: QA do K-290 delegado (qa-engineer-20) no head d476583b, com a troca de Fictícios por Sem dado real nos casos do COMP-12 em docs/qa; o review vem depois. Merge depois da release 101.
+- 2026-11-12 05:29: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-37.md 7e85347ca0b2331f4d16b7f2824cade0918a60a26b5ab3d5c22ee6a24b23f06f
+- 2026-11-12 05:33: QA do K-290 aprovado (37472190, em d476583b), 0 bugs; complementares 30 passaram, mutação no texto morta; docs/qa/metricas-complementares.md:27 passa a dizer Sem dado real. Review delegado (tech-lead-37).
+- 2026-11-12 05:33: Review do K-290 aprovado (383dcab5, em d476583b), sem achados; fecha o A1 e o A2 da revisão do L4. K-290 com os portões aprovados; merge depois da release 101. Melhoria vista (para a retro): forge-check docs sem argumento varre o repositório todo e acusa erros antigos (042, 077, 059).
+- 2026-11-12 05:33: PR 355 (L5, guardas G3 e G4) mesclado na develop (squash 02272442, 08:28 UTC). O PR 351 (L2d) segue com o agente da fila (tech-lead-32); o PR 356 (documentos da noite) espera o 351.
+- 2026-11-12 05:33: ERRO-JARVIS: horas do histórico escritas à mão, adiantadas (05:34 a 05:42); corrigidas para a hora do relógio. Daqui em diante, hora por date.
+- 2026-11-12 05:33: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-11.md d42b81e35f6577d7f9aeb20a8bb74f9854c85ef315447f4598bf308d658eb097
+- 2026-11-12 05:35: PR 351 (L2d) não mesclado: depois do update-branch (head 21e70aa5) o typecheck falhou (run 43183441642), porque o equipe.test.tsx do 097 L5 (PR 350) importa MockFonteMetricas de @/data, reexportação que o L2d tira. Volta 1 delegada ao react-frontend (react-frontend-11): uma linha de import. Depois, os portões pelo delta e o merge. Melhoria vista (para a retro): forge-check sobreposicao compara só arquivos e não vê um PR paralelo que importa um nome removido.
+- 2026-11-12 05:38: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-12.md 9d64988be08ebdd51146c7bfc44724762847d05acd951a6e8b409e9a4d2746d7
+- 2026-11-12 05:39: E3.14 (K-285) delegada ao react-frontend (react-frontend-12), worktree 052c; merge depois da release 101.
+- 2026-11-12 05:39: K-285 parado com razão antes de editar: o B-1 (motivo padrão) não tem texto aprovado; a própria revisão de UX diz que não há ajuste de interface agora e que o motivo deveria vir do servidor, por métrica. DECISÃO TÉCNICA (Jarvis): o B-1 sai do K-285 (fica no cartão K-296, motivo da origem sem dado no contrato); o K-285 segue só com B-2 a B-4. ERRO-JARVIS: o brief citou um texto da especificação sem conferir que ele existia.
+- 2026-11-12 05:41: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-13.md 259b86e6728b13ccf8ab1c80d2b325f31037a26d38e09b82611e24f7effe5ece
+- 2026-11-12 05:41: K-285 redelegado (react-frontend-13) só com B-2 a B-4. Melhoria vista (para a retro): o PR 355 trouxe a linha de teto escrita à mão (376) diferente da medida (370); a linha deveria vir da medida.
+- 2026-11-12 05:49: L2d volta 1: import trocado (sem commit ainda); o pronto da worktree 052g saiu 1 com 12 testes caídos todos por tempo (~90 s cada, server e web), com três pronto rodando ao mesmo tempo (L2d, K-283, K-285): carga da máquina, não regressão. O autor segue com a sua execução.
+- 2026-11-12 06:03: E2.22 (K-297, texto do parágrafo do catálogo) delegada ao ux-designer (ux-designer-3); trabalho leve, sem testes, com a máquina carregada pelos três pronto. ERRO-JARVIS: o PQ-1 usa contém '1' sobre uma contagem (repete um erro já registrado); confiro pelo relatório e pelo arquivo.
+- 2026-11-12 06:04: brief selado docs/briefs/099-nenhuma-metrica-simulada-ux-designer-3.md b9d8293ff51d9b5b6edf60ade37c449b76849ec90653d2bef2aae3481db4abf6
+- 2026-11-12 06:04: E2.22 (K-297, UX) cumprida: o parágrafo do catálogo fica sem número fixo (métricas do briefing, as complementares acrescentadas depois e a de percepção); a contagem exata segue na linha contagem-catalogo. Contagem do código: 62 códigos = 45 do briefing (44 métricas e EI) + 16 complementares + PV1. A especificação mudou só na árvore principal, depois do commit do PR 356: entra num próximo PR de documentos. O alinhamento do código (parágrafo e comentários de CatalogoPage.tsx e linhas.ts) segue com o react-frontend no K-297, depois da release. INFORMAÇÃO ao dono: o catálogo tem 16 métricas complementares além das tabelas do briefing.
+- 2026-11-12 06:47: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-14.md 98cafc69aa889f6effb6f0081cf857b03fe545104956181c1607d2638a8e70af
+- 2026-11-12 06:47: L2d volta 1: a segunda execução do pronto local foi encerrada (exit 143). DECISÃO TÉCNICA (Jarvis): para uma troca de import de uma linha num teste, a prova local é typecheck, lint e o Vitest do arquivo; a suíte completa é a do CI do PR 351 no head novo. Fim da volta delegado (react-frontend-14).
+- 2026-11-12 06:53: E3.14 (K-285) entregue (5dcf0e4d): B-2 motivo a 14 px, B-3 min-h-6 só com base (data-testid na faixa), B-4 role=status, testes vermelhos antes do verde; o pronto local caiu só por tempo com a máquina a load 11 a 17 (os 22 arquivos caídos passam isolados). Prova completa fica para o CI do PR, depois da release 101. ERRO-JARVIS: disparei três pronto locais ao mesmo tempo (L2d, K-283, K-285) e nenhum fechou; daqui em diante, um pronto local por vez e o resto prova pelo CI.
+- 2026-11-12 06:54: entrega conferida 5dcf0e4da462c35e2f338d763980124eb40c1d5f
