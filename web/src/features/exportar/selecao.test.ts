@@ -90,12 +90,12 @@ describe('filtrosDoNivel', () => {
   })
   it('em /operacional a Sustentação lê os sust_* e o fluxo, os parâmetros sem prefixo', () => {
     const url = new URLSearchParams(
-      'periodo=4s&equipe=fluig&sust_periodo=12m&sust_prioridade=p1&sust_equipe=totvs',
+      'periodo=4s&equipe=fluig&sust_periodo=12m&sust_prioridade=p1&sust_equipe=sssc-totvs',
     )
     expect(filtrosDoNivel('sustentacao', '/operacional', url, {}, undefined)).toMatchObject({
       periodo: { tipo: '12m' },
       prioridade: ['P1'],
-      equipe: ['totvs'],
+      equipe: ['sssc-totvs'],
     })
     const fluxo = filtrosDoNivel('operacional', '/operacional', url, {}, undefined)
     expect(fluxo.periodo).toEqual({ tipo: '4s' })

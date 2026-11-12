@@ -127,12 +127,15 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('heading', { name: 'Eficiência de fluxo' })).toBeFocused()
   })
 
-  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 65 (decisão 20)', async ({ page }) => {
+  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Real" ou "Sem dado real" nas 65', async ({ page }) => {
     await page.goto('/metricas')
-    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Fictícios')
-    await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Fictícios')
-    await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Fictícios')
-    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(65)
+    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText(/Real|Sem dado real/)
+    await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Real')
+    await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Real')
+    const reais = await page.getByRole('cell', { name: 'Real', exact: true }).count()
+    const semDado = await page.getByRole('cell', { name: 'Sem dado real', exact: true }).count()
+    expect(reais + semDado).toBe(65)
+    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(0)
     await expect(page.getByRole('cell', { name: 'Da coleta', exact: true })).toHaveCount(0)
   })
 

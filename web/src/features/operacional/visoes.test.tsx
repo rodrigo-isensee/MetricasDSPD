@@ -165,7 +165,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     ).toBeInTheDocument()
     await waitFor(() => expect(busca(r).get('sust_prioridade')).toBe('p1'))
     expect(busca(r).get('sust_periodo')).toBe('12m')
-    expect(busca(r).get('sust_equipe')).toBe('totvs')
+    expect(busca(r).get('sust_equipe')).toBe('sssc-totvs')
     expect(busca(r).has('tipo')).toBe(false)
     expect(busca(r).get('cadencia')).toBe('sustentacao')
   })

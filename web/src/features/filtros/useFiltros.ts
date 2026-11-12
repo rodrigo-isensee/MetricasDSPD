@@ -332,8 +332,7 @@ export function useFiltros(
         f.prioridade = valorId
           ? f.prioridade.filter((x) => x.toLowerCase() !== valorId.toLowerCase())
           : []
-      else if (chave === 'equipe')
-        f.equipe = (valorId ? f.equipe.filter((x) => x !== valorId) : []) as typeof f.equipe
+      else if (chave === 'equipe') f.equipe = valorId ? f.equipe.filter((x) => x !== valorId) : []
       else if (chave === 'sistema')
         f.sistema = valorId ? f.sistema.filter((x) => x !== valorId) : []
       aplicar(f, false)

@@ -13,8 +13,6 @@ import {
   MOTIVO_ORIGEM_MOCK,
   motivoDaOrigemMock,
   motivoSemDadoReal,
-  METRICAS_SEM_SIMULACAO,
-  podeSimular,
   semDadoRealSchema,
   NOTAS_FIXAS_DO_CARTAO,
   notaCartaoIdSchema,
@@ -115,23 +113,21 @@ describe('estado sem dado real (pedido 060, P3)', () => {
 
   it('o corpo não carrega número nem campo fora de estado, métrica e motivo', () => {
     const corpo = corpoSemDadoReal('S1')
-    expect(Object.keys(corpo).sort()).toEqual(['estado', 'metrica', 'motivo', 'simulavel'])
+    expect(Object.keys(corpo).sort()).toEqual(['estado', 'metrica', 'motivo'])
     expect(corpo.estado).toBe(ESTADO_SEM_DADO_REAL)
     expect(semDadoRealSchema.safeParse({ ...corpo, valor: 1 }).success).toBe(false)
     expect(semDadoRealSchema.safeParse({ ...corpo, motivo: '' }).success).toBe(false)
   })
 
-  it('T-C2: o schema aceita o corpo com e sem simulavel e segue strict', () => {
+  it('T-C2: o schema é strict e recusa simulavel', () => {
     const base = {
       estado: ESTADO_SEM_DADO_REAL,
       metrica: 'O12',
       motivo: 'aguardando campo no quadro',
     }
     expect(semDadoRealSchema.safeParse(base).success).toBe(true)
-    expect(semDadoRealSchema.safeParse({ ...base, simulavel: true }).success).toBe(true)
-    expect(semDadoRealSchema.safeParse({ ...base, simulavel: false }).success).toBe(true)
-    expect(semDadoRealSchema.safeParse({ ...base, simulavel: 'sim' }).success).toBe(false)
-    expect(semDadoRealSchema.safeParse({ ...base, simulavel: true, valor: 1 }).success).toBe(false)
+    expect(semDadoRealSchema.safeParse({ ...base, simulavel: true }).success).toBe(false)
+    expect(semDadoRealSchema.safeParse({ ...base, valor: 1 }).success).toBe(false)
   })
 
   it('PV1 não tem motivo de dado fictício', () => {
@@ -144,7 +140,6 @@ describe('estado sem dado real (pedido 060, P3)', () => {
       expect(origemDaMetrica(id), id).toBe('real')
       expect(motivoDaOrigemMock(id), id).toBeNull()
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
-      expect(podeSimular(id), id).toBe(false)
     }
     // T10 e T12 leem a mesma `fato_bloqueio`, mas esperam a WS1 (P-075-11 e P-075-12, "B"): nada muda para eles.
     for (const id of ['T10', 'T12'] as const) {
@@ -170,31 +165,6 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(o1.porTipoColuna.element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(o1.porColuna.unwrap().element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(resultadoO5.shape).not.toHaveProperty('notas') // O5 inteiro sai do mapa real (decisão B): contrato anterior, sem nota nem null
-  })
-})
-
-describe('simulado por cartão (pedido 070, ADR 0028)', () => {
-  it('T-C1: id do mapa real nunca simulável (as duas tendências) e podeSimular é falso para todo id real e para os quatro excluídos', () => {
-    expect([...METRICAS_SEM_SIMULACAO].sort()).toEqual([
-      'EI_SUST',
-      'TENDENCIA_FLUXO',
-      'TENDENCIA_SUST',
-      'VISAO_GERAL',
-    ])
-    expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_FLUXO')).toBe(true) // pedido 077 (L5): id do mapa real nunca simulável, mesmo na lista de exclusão
-    expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_SUST')).toBe(true) // pedido 077 (L7)
-    for (const id of METRICAS_ORIGEM_REAL) expect(podeSimular(id), id).toBe(false)
-    for (const id of METRICAS_SEM_SIMULACAO) expect(podeSimular(id), id).toBe(false)
-  })
-
-  it('podeSimular é verdadeiro exatamente para o que está fora do mapa real e fora da exclusão, e o corpo copia o valor', () => {
-    for (const id of METRICA_IDS) {
-      const esperado = !METRICAS_ORIGEM_REAL.has(id) && !METRICAS_SEM_SIMULACAO.has(id)
-      expect(podeSimular(id), id).toBe(esperado)
-      if (!METRICAS_ORIGEM_REAL.has(id)) expect(corpoSemDadoReal(id).simulavel, id).toBe(esperado)
-    }
-    expect(podeSimular('O12')).toBe(true)
-    expect(podeSimular('S1')).toBe(true)
   })
 })
 

@@ -3,7 +3,6 @@
  * além de primitivos e dos domínios fechados de `contracts/comum`.
  */
 import type {
-  EquipeSustentacao,
   MotivoEncerramento,
   MotivoEscalacao,
   NivelResolucao,
@@ -36,7 +35,7 @@ export interface Chamado {
   chamado_id: string
   organizacao: 'DSPD Sustentação'
   tipo_fila: 'DSPD - SSSC'
-  equipe: EquipeSustentacao
+  equipe: string
   natureza: 'incidente' | 'requisicao'
   categoria_sistema: string
   excluido: boolean

@@ -255,6 +255,23 @@ describe('TENDENCIA_SUST com equipe (pedido 097)', () => {
     expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['senior']))).toBe(5)
     expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['nao-existe']))).toBe(0)
   })
+
+  it('097 L7a: compara pelo slug do nome (sssc-totvs) e o id antigo (totvs) dá o mesmo recorte; equipe nova funciona sem código novo', () => {
+    const base = () =>
+      baseAC([
+        ...chamados(20, '2026-08-12'),
+        ...Array.from({ length: 3 }, (_, i) =>
+          chamado(200 + i, '2026-08-12', { equipe: 'Time Novo' }),
+        ),
+      ])
+    const volume = (eq: string[]) =>
+      acelerato.calcularTendenciaSust(ctxAC(base(), H), eq).meses.find((m) => m.mes === '2026-08')!
+        .volume
+    expect(volume(['sssc-totvs'])).toBe(20)
+    expect(volume(['totvs'])).toBe(20)
+    expect(volume(['time-novo'])).toBe(3)
+    expect(volume(['sssc-totvs', 'time-novo'])).toBe(23)
+  })
 })
 
 describe('TENDENCIA_SUST', () => {

@@ -87,7 +87,7 @@ fi
 
 # --- lista do que e permitido no .sql (sem as linhas inteiras de comentario) ---
 # rc 0 = ok; rc 3 = recusado (motivo no stdout). Palavras comparadas sem diferenca de caixa, como palavra inteira.
-PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into|set_config|pg_read_file|pg_read_binary_file|lo_import'
+PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into|set_config|pg_read_file|pg_read_binary_file|lo_import|query_to_xml|query_to_xmlschema|query_to_xml_and_xmlschema|ts_stat|ts_rewrite'
 validar_sql() {
   local corpo primeiro pontos
   corpo="$(sed -E '/^[[:space:]]*--/d' "$1")"
