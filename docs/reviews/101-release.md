@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 101-release-filtros-sem-simulado
 branch: docs/101-release
-commit: ea826a9ca695f84e810387ff85ea86befa997d1f
+commit: 5d7fe1aac6db8b7f4a9f547719fc73cff7a887e5
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-12
@@ -24,6 +24,7 @@ Escopo: `git log --first-parent origin/homolog..ea826a9c`, 27 PRs (#329 a #356, 
 - **Nada simulado na web:** `git grep` em `web/src` fora de testes acha só o modo mock declarado (`VITE_FONTE=mock`, `nucleoMock`, `simulacao.ts` do simulador de estados de erro e de coleta), que a ADR 0030 D7 mantém para testes e homologação. Rodei a G1 nesta revisão: `pnpm --filter @metricas-dspd/web build` e `node scripts/sem-mock.mjs` saíram 0 ("G1 ok: sem chunk, sentinela ou texto do mock").
 - **Regras invioláveis:** BusinessMap e Acelerato seguem separados (equipe do Fluxo só do BusinessMap, da Sustentação só do Acelerato, cada uma no seu bloco); nenhum ranking ou comparação entre times; cálculo pela biblioteca.
 - **CHANGELOG:** os 27 PRs do range estão citados em [Não publicado] (conferido por script, número a número).
+- **Revalidação na develop em 5d7fe1aa (PR 357):** delta lido por `forge-check parecer delta docs/reviews/101-release.md` (intervalo ea826a9c..217ae4de, no domínio só o `CHANGELOG.md` desta branch) e `git diff ea826a9c 5d7fe1aa`: o PR 357 (K-273, E1.9) muda só três specs de `e2e/tests-api/` e traz o próprio review aprovado (`docs/reviews/101-specs-e2e-api.md`). FA5-04 e FA5-16 trocam `Incidente` por `Melhoria` (tipo que existe no dado real, 097 L6); TT-02 espera zero selo fictício (ADR 0030); CT-58 tira `equipe=x` dos parâmetros recusados e prova equipe válida 200 e inválida 400 (097 L4/L5); CT-59 só tira `descricao` do regex de pessoa para conferi-la à parte fora de `criterios` (texto fixo do sistema), com nome, e-mail, `usuarioKey`, título e responsável checados no corpo inteiro como antes. Nenhum código de produção, migração, contrato ou critério muda. CI do PR 357 verde com `e2e`, `e2e-parte` 1/2 e 2/2 e `banco`; CI do push na develop em 5d7fe1aa run 43227913561 `completed/success`. O PR 357 entra no CHANGELOG em Corrigido, linha de Testes.
 
 ## Achados
 
@@ -33,4 +34,4 @@ Escopo: `git log --first-parent origin/homolog..ea826a9c`, 27 PRs (#329 a #356, 
 
 ## Parecer
 
-Aprovado. A release em ea826a9c pode seguir para a homolog quando os pareceres de QA e segurança desta release estiverem gravados; o meu não depende deles. Os achados não bloqueiam: o A1 se fecha com o E2E do QA ou do portão da homolog verde.
+Aprovado, revalidado na develop em 5d7fe1aa com o PR 357. A release em 5d7fe1aa pode seguir para a homolog quando os pareceres de QA e segurança desta release estiverem gravados; o meu não depende deles. Os achados não bloqueiam: o A1 se fecha com o E2E do QA ou do portão da homolog verde (o E2E do PR 357, já com o código do #351, passou).

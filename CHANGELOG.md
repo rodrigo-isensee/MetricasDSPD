@@ -59,6 +59,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Consultas só de leitura (K-275): o comando recusa `U&`, `UESCAPE` e funções `pg_` e `lo_` (K-277) (#338) e funções que executam texto como SQL (K-281) (#343).
 - Referência: condição única do corte de cards e chamados, usada pelas listas e pelas opções; nenhum número muda (K-280) (#339).
 - Testes: GRANT de `dim_card` sem `responsavel_id` (097 L2) (#340); as provas de GRANT tiram as colunas de pessoa de `COLUNAS_PESSOA`, a lista única (K-282) (#349).
+- Testes: três specs do E2E contra a API acompanham os pedidos 097 e 099 (filtro de tipo pelo tipo que existe no dado real, sem selo fictício no T13 e no T14, equipe válida aceita nas tendências), sem afrouxar a checagem de dado de pessoa (K-273) (#357).
 
 ### Desempenho
 - Métricas: `ehDiaUtil` consulta os feriados como número de dia, sem gerar texto por dia; nenhum resultado muda (teste de equivalência com o código antigo) (K-174, lote 1) (#316).
