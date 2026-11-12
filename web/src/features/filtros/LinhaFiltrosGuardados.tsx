@@ -11,10 +11,11 @@ const ativos = (n: number) => `${n} ${plural(n, 'ativo', 'ativos')}`
  */
 export function LinhaFiltrosGuardados({ visao }: { visao: 'resumo' | 'fluxo' | 'sustentacao' }) {
   const [params] = useSearchParams()
-  const fluxo = contarAtivos(params, 'fluxo')
-  const sust = contarAtivos(params, 'sustentacao', 'sust_')
+  const resumo = visao === 'resumo'
+  const fluxo = contarAtivos(params, 'fluxo', '', resumo)
+  const sust = contarAtivos(params, 'sustentacao', 'sust_', resumo)
   let texto: string | null = null
-  if (visao === 'resumo') {
+  if (resumo) {
     const partes = [
       fluxo > 0 ? `fluxo de projeto: ${ativos(fluxo)}` : null,
       sust > 0 ? `Sustentação: ${ativos(sust)}` : null,

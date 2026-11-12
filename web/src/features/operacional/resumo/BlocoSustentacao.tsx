@@ -1,28 +1,36 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { FaixaAtencao, estadoFaixa } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { itensSustentacao } from '../atencao'
 import { ROTULO_VISAO } from '@/features/navegacao/visao'
+import { useFiltros } from '@/features/filtros'
 import { textoPeriodoCurto } from '@/features/filtros/paineis'
 import { BlocoResumo } from './BlocoResumo'
 import { FILTROS_SUST_RESUMO, filtrosTendencia, useReferenciaDasTendencias } from './consultas'
 import { useDestinoDaVisao, useDestinoNaVisao } from './destinos'
 import { numeroS1, numeroS2, numeroS3 } from './modelo'
+import { FiltroEquipeBloco } from './FiltroEquipeBloco'
 import { NumeroChave } from './NumeroChave'
 import { TendenciaSustentacao } from './TendenciaSustentacao'
 
-const f = FILTROS_SUST_RESUMO
 /** Janela do alerta do Resumo, escrita na tela: sai dos mesmos filtros que alimentam as consultas (U1 = (a), decidida pelo usuário em 2026-10-14). */
-const JANELA_ALERTA = textoPeriodoCurto(f.periodo)
+const JANELA_ALERTA = textoPeriodoCurto(FILTROS_SUST_RESUMO.periodo)
 
 function ConteudoSustentacao() {
+  // Mesmo prefixo da visão Sustentação (`sust_equipe`): o link "Ver na Sustentação" leva a equipe junto.
+  const uso = useFiltros('sustentacao', { prefixo: 'sust_' })
+  const f = useMemo(
+    () => ({ ...FILTROS_SUST_RESUMO, equipe: uso.filtros.equipe }),
+    [uso.filtros.equipe],
+  )
   const destinoDe = useDestinoNaVisao()
   const destinoVisao = useDestinoDaVisao()
   const referencia = useReferenciaDasTendencias()
   const qS2 = useMetrica('S2', f)
   const qS1 = useMetrica('S1', f)
   const qS3 = useMetrica('S3', f)
-  const qT = useMetrica('TENDENCIA_SUST', filtrosTendencia(referencia.dataReferencia), {
+  const qT = useMetrica('TENDENCIA_SUST', filtrosTendencia(referencia.dataReferencia, f.equipe), {
     habilitada: referencia.pronta && [qS2, qS1, qS3].every((q) => q.estado !== 'carregando'),
   })
   const itens = itensSustentacao(qS2.dados, qS1.dados).map((i) => ({
@@ -32,6 +40,7 @@ function ConteudoSustentacao() {
   const { estado, recarregar } = estadoFaixa([qS2, qS1])
   return (
     <>
+      <FiltroEquipeBloco bloco="sustentacao" uso={uso} />
       <FaixaAtencao
         nivel="h3"
         titulo="Pede atenção · Sustentação (Acelerato)"

@@ -35,10 +35,17 @@ export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Dat
   return {
     dominio,
     // L7a do 097 (E4): equipes do dado real (corte de lerChamados); id = slug do nome, sem repetir id.
-    equipes: [...new Map((await lerEquipesAC(db, S)).map((nome) => [slug(nome), { id: slug(nome), nome }])).values()],
+    equipes: equipesPorSlug(await lerEquipesAC(db, S)),
     prioridades: PRIORIDADES.filter((p) => prioridadesPresentes.has(p)).map((p) => ({ id: p.toLowerCase(), nome: p })),
     historico: { inicio: inicio ?? fim, fim },
   };
+}
+
+/** K-288: `nomes` vem em ordem de bytes; em slug repetido vale o primeiro, sem id repetido. */
+function equipesPorSlug(nomes: string[]): { id: string; nome: string }[] {
+  const porId = new Map<string, { id: string; nome: string }>();
+  for (const nome of nomes) if (!porId.has(slug(nome))) porId.set(slug(nome), { id: slug(nome), nome });
+  return [...porId.values()];
 }
 
 /**

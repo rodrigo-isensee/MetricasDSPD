@@ -26,6 +26,6 @@ export const NOTAS_ESTRATEGICO = {
     comoSeCalcula: 'Ganho medido ÷ ganho previsto, com o previsto declarado antes do início.',
     comoLer: 'Entregar não é o mesmo que resolver; 40% do ganho é aprendizado, não falha.',
     meta: '100% das iniciativas com resultado declarado antes do início.',
-    cuidados: 'Sem esse fechamento o painel mede movimento, não valor. Valores são fictícios.',
+    cuidados: 'Sem esse fechamento o painel mede movimento, não valor.',
   },
 } satisfies Record<string, TextoNota>
