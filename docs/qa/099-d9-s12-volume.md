@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: fac4c624516c28d2b9d12358e13bbf9b7dc0d889
+commit: 047f9d609a9df1b947f5a78b888d2610030cd8ad
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -44,3 +44,19 @@ Base 4c4a7a33, head fac4c624 (d86d33d3, 970258a4, e80e647a, b3bac117, fac4c624).
 
 ## Resposta: o ramo de campo sem fonte do chromium-api precisa de e2e?
 Não. O projeto chromium-api sobe o servidor em modo mock, onde o S12 mantém a exceção de SLA, então o ramo não é alcançável ali sem um servidor real com base do Acelerato, que o e2e não tem. O ramo está provado em três pontos: leitura-s12.test.ts (texto), painel-real-f6.test.ts (servidor real: null com nota, validado no schema) e o comentário do complementares.spec.ts que registra o motivo. Um e2e dele repetiria o teste de componente por outro caminho. Reavaliar só se a base real passar a alimentar o e2e.
+
+## Revalidação (volta 1 da web, 047f9d60)
+Delta de código e testes desde fac4c624: 7 arquivos da web (catálogo: CatalogoPage, linhas, catalogo.test; complementares: comuns, notas, sustentacao, ramos.test). Contrato inalterado.
+
+| Correção | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| Nota do S12 fixa quando excecaoSla é nula (ALTO-1) | ramos.test.tsx: S12 sem meses e com exceção nula | excecaoSla null, sem notas do servidor | passou |
+| Texto próprio da reincidência sem fonte (ALTO-2) | ramos.test.tsx (mesmo teste: não diz que nada é publicado) | CampoSemFonte com e sem texto | passou |
+| Cuidados do S12 em notas.ts (MÉDIO-1) | suíte de notas e complementares | n/a | passou |
+| Anotação Parcial na linha S12 do catálogo, sem terceiro valor (MÉDIO-2) | catalogo.test.tsx: "Parcial: volume por sistema; reincidência sem fonte"; contagem "Sem dado real" segue 65 - reais | dados continua Real ou Sem dado real | passou |
+
+- Testes dos arquivos tocados (web/src/features/catalogo e complementares): 13 arquivos, 322 passaram.
+- lint-alterados: 23 arquivos, sem erro. typecheck-alterados: mock, metricas, server e web verdes.
+- Mutação, desfeita (worktree limpa): `r.excecaoSla === null &&` trocado por `false &&` derrubou o teste da nota fixa do S12; `l.anotacao ?` trocado por `false ?` derrubou o teste do catálogo. Na rodada da primeira mutação, outros testes de complementares caíram por prazo sob carga; não são do diff e passam na rodada limpa acima.
+- A1 segue como estava (recomendado, sem bloqueio). Suíte inteira e `.pg`: check-run `bateria` do PR (I5).
+- Parecer: aprovado, sem bugs abertos.
