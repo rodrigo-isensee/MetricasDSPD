@@ -313,7 +313,7 @@ describe('D1a: nomes exatos da fonte (B5-b), com dois-pontos, e texto livre fora
   it('"Qual suporte foi acionado?" (TEXT, texto livre) não está na lista e a linha dele falha fechado, sem o valor', () => {
     expect([...NOMES_ETAPA_LISTA, ...NOMES_ETAPA_PREENCHIDO]).not.toContain('Qual suporte foi acionado?');
     expect(CAMPOS_ETAPA_F3.map((c) => c.chave)).not.toContain('suporte_acionado');
-    expect(() => camposEtapa([lista('Qual suporte foi acionado?', MARCADORES[0]!)], [], dom, new Map(), new Contadores())).toThrowError(/nome/);
+    expect(() => camposEtapa([lista('Qual suporte foi acionado?', MARCADORES[0]!)], [], dom, new Map(), new Contadores())).toThrowError(expect.objectContaining({ codigo: 'dados-invalidos', coluna: 'nome' }));
     let msg = '';
     try { camposEtapa([lista('Qual suporte foi acionado?', MARCADORES[0]!)], [], dom, new Map(), new Contadores()); } catch (e) { msg = String(e); }
     expect(msg).not.toContain(MARCADORES[0]);
