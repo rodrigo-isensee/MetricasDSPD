@@ -11,11 +11,11 @@ data: 2026-11-12
 # Review: D1a, nomes exatos dos campos de etapa do Acelerato (E3.63)
 
 ## Achados
-- A1 (recomendado) docs/architecture/fontes/acelerato-listas.md:37 · o dicionário de onde veio o erro (docs/analises/099-saidas-consultas.md §5 item 2) segue com os nomes sem dois-pontos (linhas 37, 42 e 45) e com "Qual suporte foi acionado?" como "domínio fechado, se lista" (linha 38). Para alinhar: os três nomes com dois-pontos e a linha 38 como fora da lista (texto livre, B6-a). Não muda o comportamento do código; não bloqueia.
-- A2 (recomendado) server/tests/acelerato-campos-etapa.test.ts:321 · o título diz que Q6 e Q7 recebem só os nomes com dois-pontos, mas a origem do caso não traz "Qual suporte foi acionado?" e o caso não lê os parâmetros das consultas; o oráculo D1a-nome-exato (§7) pede o campo TEXT na fixture. A sonda S1 mostra que o comportamento está certo; para o teste provar o que o título diz, ponha o campo TEXT com marcador na `etapa([...])` e afirme que o marcador não chega ao `banco.estado`. Não bloqueia.
+- A1 (recomendado) docs/architecture/fontes/acelerato-listas.md:37 · o dicionário segue com os nomes sem dois-pontos (37, 42, 45) e "Qual suporte foi acionado?" como "domínio fechado, se lista" (38); alinhar à B5-b e à B6-a.
+- A2 (recomendado) server/tests/acelerato-campos-etapa.test.ts:321 · o caso não põe o campo TEXT na origem, como pede o oráculo D1a-nome-exato; incluir com marcador e afirmar a ausência no banco (o comportamento está certo: S1).
 
 ## Sondas
-- S1 · cópia temporária do teste com a origem trazendo `Motivo da Escalação:` (lista, "Hardware") e `Qual suporte foi acionado?` (texto, "MARCADOR-SONDA"), coleta incremental · espera: coleta ok, `motivo_escalacao` = "Hardware", marcador ausente de todo o estado do banco · obtido: passou (arquivo removido; árvore limpa)
+- S1 · origem com `Motivo da Escalação:` (lista) e `Qual suporte foi acionado?` (texto, marcador), coleta incremental · espera: ok, valor da lista, marcador fora do banco · obtido: passou
 
 ## O que foi lido
 Diff `develop(4c4a7a33)..75c59c1b`, 2 commits, 7 arquivos, +75 -46 (121 linhas, dentro dos 150), um comportamento só.
