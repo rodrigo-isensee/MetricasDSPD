@@ -3,13 +3,22 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/k286-mapa-diario-equipe
-commit: 62a622abf9abecc9813c01e3a6ca015e21d21cb4
-parecer: reprovado
+commit: b0ba260bbe693ecce9aab29fb80673cbf6ec0ca0
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-13
 ---
 
-# Code review: 097 K-286, mapa diário do Apontamento recortado pela Equipe (E3.2, E4.14)
+# Code review: 097 K-286, mapa diário do Apontamento recortado pela Equipe (E3.2, E4.14, E4.17)
+
+## Revalidação depois da correção do A3 (E4.17, 2026-11-13)
+Parecer: **aprovado** em b0ba260b. O A3 foi resolvido.
+
+- **Delta lido.** `forge-check parecer delta`, `62a622ab..b0ba260b` sem o que veio da develop. No domínio entra só `web/src/features/apontamento/mapa-diario-equipe.test.tsx`, com um caso novo: `?equipe=integracoes,portal` afirma o nome da grade `/^Horas apontadas por pessoa e dia, das equipes Integrações, Portal, de /`. Produção não mudou e não há `istanbul ignore`. Da develop vieram 7 arquivos de servidor, SQL e docs (K-305 e K-311), iguais aos da base, nenhum no Apontamento.
+- **Teste e mutante.** O arquivo roda local com 8 testes, todos passando. Troquei o ramo plural de `daEquipe` (`CartaoDiario.tsx:86`, `'das equipes'` → `'da equipe'`) e o caso novo caiu, com 1 falha e 7 passando. O mutante morreu, e o arquivo foi restaurado.
+- **CI do PR 377 no head b0ba260b.** Os runs 43469310948 (pull_request) e 43469295271 (push) terminaram em `success`, com `e2e-parte` 1/2 e 2/2 verdes. `web cobertura: Branches : 100% ( 5226/5226 )`.
+- **Escopo do teste.** O caso afirma o nome da grade (`CartaoDiario.tsx:128`), mas não a legenda (`:241`) que o A3 sugeria. A grade sozinha já cobre o ramo, porque nome e legenda saem da mesma `daEquipe`. Não bloqueia.
+- A1 e A2 (recomendados) seguem abertos e não bloqueiam. O A3 está resolvido.
 
 ## Revalidação na junção com a develop (E4.14, 2026-11-13)
 Parecer: **reprovado**. A junção está limpa, mas o CI do PR 377 está vermelho por um ramo do próprio K-286 sem teste.
