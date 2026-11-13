@@ -11,8 +11,8 @@ import {
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
-import { fmtTempoPrioridade } from '@/features/sustentacao/formatar'
 import { fmtHorasUteis } from '@/lib/formatar'
+import { fmtHU } from '@/features/sustentacao/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
 import { CampoSemFonte, Leia } from './comuns'
 
@@ -219,9 +219,9 @@ export function CartaoS10({ filtros }: P) {
               {atual.estatistica.status === 'ok' ? (
                 <>
                   <p className="text-sm font-medium" data-testid="percentis-S10">
-                    P50 {fmtTempoPrioridade(atual.estatistica.valor.p50, atual.prioridade)} · P85{' '}
-                    {fmtTempoPrioridade(atual.estatistica.valor.p85, atual.prioridade)} · P95{' '}
-                    {fmtTempoPrioridade(atual.estatistica.valor.p95, atual.prioridade)}
+                    P50 {fmtHU(atual.estatistica.valor.p50)} · P85{' '}
+                    {fmtHU(atual.estatistica.valor.p85)} · P95{' '}
+                    {fmtHU(atual.estatistica.valor.p95)}
                   </p>
                   {atual.histograma && (
                     <Histograma

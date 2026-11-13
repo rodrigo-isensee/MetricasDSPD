@@ -97,7 +97,7 @@ export default function AjudaPage() {
         <p>
           Percentis 50/85/95, janela móvel de {textoJanela(JANELA_PERCENTIS_PADRAO)}, mínimo de 20
           itens, tempo em dias úteis e média nunca sozinha. Na Sustentação o tempo é em horas úteis
-          (1 dia útil = 8 horas úteis).
+          (1 dia útil = 8 h 48 úteis).
         </p>
       </section>
       <section id="resumo" tabIndex={-1} className="outline-none">

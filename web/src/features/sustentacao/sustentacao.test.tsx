@@ -16,11 +16,17 @@ async function cartao(codigo: string, url = '/sustentacao') {
 
 describe('formatação da Sustentação (J2)', () => {
   it('P1 a P3 em h úteis; P4 e P5 em dias úteis; nunca minutos', () => {
-    expect(fmtTempoPrioridade(0.25, 'P1')).toBe('0,25 h úteis')
-    expect(fmtTempoPrioridade(16, 'P3')).toBe('16 h úteis')
-    expect(fmtTempoPrioridade(4, 'P4')).toBe('0,5 dia útil')
-    expect(fmtTempoPrioridade(8, 'P5')).toBe('1 dia útil')
-    expect(fmtTempoPrioridade(12, 'P4')).toBe('1,5 dias úteis')
+    expect(fmtTempoPrioridade(0.25, 'P1', 8.8)).toBe('0,25 h úteis')
+    expect(fmtTempoPrioridade(16, 'P3', 8.8)).toBe('16 h úteis')
+    expect(fmtTempoPrioridade(4.4, 'P4', 8.8)).toBe('0,5 dia útil')
+    expect(fmtTempoPrioridade(8.8, 'P5', 8.8)).toBe('1 dia útil')
+    expect(fmtTempoPrioridade(13.2, 'P4', 8.8)).toBe('1,5 dias úteis')
+  })
+
+  it('converte em dias úteis pelo horasPorDiaUtil do resultado, sem constante', () => {
+    expect(fmtTempoPrioridade(17.6, 'P5', 8.8)).toBe('2 dias úteis')
+    expect(fmtTempoPrioridade(17.6, 'P5', 8)).toBe('2,2 dias úteis')
+    expect(fmtTempoPrioridade(8.8, 'P4', 8)).toBe('1,1 dias úteis')
     expect(fmtHU(0.25)).toBe('0,25 h úteis')
   })
 })
@@ -91,7 +97,7 @@ describe('painel Sustentação', () => {
     const { el } = await cartao('S1', SEM_CALIBRACAO)
     const mttr = within(el).getByTestId('s1-mttr')
     expect(within(mttr).getByTestId('s1-insuficiente-mttr-p1')).toHaveTextContent(
-      'Amostra insuficiente (9 de 20 itens mínimos)',
+      'Amostra insuficiente (10 de 20 itens mínimos)',
     )
     expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(
       /\d+ chamados com exceção de registro posterior \(fora/,
@@ -115,8 +121,8 @@ describe('painel Sustentação', () => {
     const { el } = await cartao('S2', SEM_CALIBRACAO)
     const t = within(el).getByTestId('tabela-S2-detalhe')
     const p2 = within(t).getByRole('row', { name: /^P2/ })
-    expect(p2).toHaveTextContent('88,9% · 144 de 162')
-    expect(p2).toHaveTextContent('73,5% · 119 de 162')
+    expect(p2).toHaveTextContent('89,6% · 146 de 163')
+    expect(p2).toHaveTextContent('74,2% · 121 de 163')
     expect(p2).toHaveTextContent('Abaixo de 90%')
     expect(within(t).getByRole('row', { name: /^P5/ })).toHaveTextContent('Acima de 90%')
   })
