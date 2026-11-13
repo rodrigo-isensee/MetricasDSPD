@@ -744,6 +744,29 @@ test.describe('acessibilidade automática (CT-65, WCAG 2.2 AA)', () => {
     }
   }
 
+  // K-289 (A1) e B1 da revisão de UX: o aviso novo do filtro Pessoa usa text-atencao; o contraste é medido nos dois temas e larguras.
+  for (const tema of ['claro', 'escuro'] as const) {
+    for (const largura of [1280, 375]) {
+      test(`aviso do filtro Pessoa retirado, tema ${tema} em ${largura}px: visível e zero violações críticas ou sérias`, async ({
+        page,
+      }) => {
+        await page.emulateMedia({ colorScheme: tema === 'escuro' ? 'dark' : 'light' })
+        await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), tema)
+        await page.setViewportSize({ width: largura, height: largura === 375 ? 812 : 900 })
+        await semear(page)
+        await abrir(page, `${ABA}?pessoa=Ana%20Exemplo`)
+        const aviso = page.getByTestId('aviso-pessoa-retirada')
+        await expect(aviso).toHaveText('O filtro Pessoa foi retirado; use Equipe.')
+        await expect(aviso.locator('svg')).not.toHaveCount(0)
+        const r = await rodarAxe(page, { incluir: '[data-testid="barra-filtros-apontamento"]' })
+        expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+        // contraste é regra "serious" do axe: nenhuma violação de color-contrast, nem informativa, no aviso
+        const todas = [...r.bloqueantes, ...r.informativas].filter((v) => v.id === 'color-contrast')
+        expect(todas, JSON.stringify(todas)).toEqual([])
+      })
+    }
+  }
+
   test('tema escuro, com todas as tabelas abertas e a legenda da finalidade expandida', async ({
     page,
   }) => {
