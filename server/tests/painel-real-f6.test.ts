@@ -103,7 +103,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
 
   it('as origens do mapa decidem: as reais calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'O19', 'BLOQUEADOS', 'EI_FL1'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'O19', 'O25', 'BLOQUEADOS', 'EI_FL1'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.headers['x-estado-dado'], id).toBeUndefined();

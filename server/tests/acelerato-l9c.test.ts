@@ -8,7 +8,7 @@ import { normalizarChamado } from '../src/modulos/acelerato/normalizador.js';
  * projeção das colunas da F3. A ordem das linhas nunca decide: cada linha traz um `kanbanStatusKey` diferente.
  */
 const dom: DominiosEtapa = new Map([['motivo_escalacao', new Set(['A', 'B', 'C'])]]);
-const lista = (valor: string | null, etapa: number | null, nome = 'Motivo da Escalação') => ({ ticket_key: 1, nome, tipo: 'lista', valor, kanban_status_key: etapa });
+const lista = (valor: string | null, etapa: number | null, nome = 'Motivo da Escalação:') => ({ ticket_key: 1, nome, tipo: 'lista', valor, kanban_status_key: etapa });
 /** Desenho do fluxo escrito à mão: etapa 10 vem antes da 20, que vem antes da 30; a 40 tem a mesma posição da 30. */
 const FLUXO: OrdemFluxo = new Map([[10, 1], [20, 2], [30, 3], [40, 3], [50, 4], [60, 4]]);
 const campo = (l: unknown[], c = new Contadores(), fluxo: OrdemFluxo = FLUXO) => camposEtapa(l, [], dom, fluxo, c).motivo_escalacao;

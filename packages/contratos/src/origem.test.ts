@@ -30,6 +30,7 @@ describe('origemDaMetrica (H-13)', () => {
       [
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
+        ...['O25'], // pedido 099 (lote A3)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
