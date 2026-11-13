@@ -44,7 +44,11 @@ export const SELO_LEITURA_RELATIVA = 'Comparação relativa; não é jornada tot
 export const DICA_LEITURA_RELATIVA =
   'O apontamento cobre só parte da jornada. Por isso a utilização serve para comparar períodos, não para medir quanto alguém trabalhou. Pode passar de 100%.'
 
-export const ROTULO_FILTRO_PESSOA = 'Pessoa que apontou'
+export const ROTULO_FILTRO_EQUIPE = 'Equipe'
+
+/** O servidor chama a opção sem equipe de "Sem time"; na tela o rótulo é "Equipe" (097, UX), então a opção se chama assim. */
+export const ROTULO_SEM_EQUIPE = 'Sem equipe'
+export const ID_SEM_EQUIPE = 'sem-time'
 
 export const FLAGS: Record<FlagQualidade | 'completo', string> = {
   'sem-comentario': 'Sem comentário',
@@ -67,6 +71,9 @@ export const ANOMALIA = {
   filtro: 'Ocultar possíveis erros',
   dica: (limiteHoras: number) =>
     `Mais de ${fmtNumero(limiteHoras, 0)} h apontadas por uma pessoa em um dia. O valor foi mantido na soma e marcado para conferência.`,
+  /** Só no mapa com a Equipe ativa: as horas da célula são as da equipe, o atípico olha o dia todo. */
+  dicaRecorteEquipe:
+    'O dia é avaliado com todas as horas da pessoa, não só as da equipe escolhida.',
 } as const
 
 export const ROTULO_CHIP_ORDEM = { rotulo: 'Ordem', valor: 'total de horas' } as const
@@ -182,7 +189,7 @@ export const CARTOES = {
   diario: {
     pergunta: 'Como as horas se distribuem pelos dias, por pessoa?',
     comoLer:
-      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. Este cartão responde só ao filtro Pessoa.",
+      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. A Equipe escolhida na barra recorta este mapa; os demais filtros e o período da barra não o afetam, e a janela dele é a escolhida aqui. O dia atípico é decidido sobre o dia inteiro da pessoa, em qualquer equipe.",
     criterio: 'Faixas fixas; limite de possível erro configurável no servidor.',
   },
 } satisfies Record<string, TextosCartao>

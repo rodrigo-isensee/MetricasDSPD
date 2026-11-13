@@ -1,6 +1,6 @@
 # Contrato da métrica EI_SUST
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-11-13.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -228,7 +228,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
 ```json
 {
   "base": {
-    "n": 932,
+    "n": 931,
     "unidade": "chamados",
     "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
   },
@@ -243,10 +243,10 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     {
       "chave": "p1",
       "rotulo": "P1",
-      "n": 9,
+      "n": 10,
       "estatistica": {
         "status": "insuficiente",
-        "n": 9,
+        "n": 10,
         "minimo": 20,
         "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
       },
@@ -258,16 +258,16 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     {
       "chave": "p2",
       "rotulo": "P2",
-      "n": 56,
+      "n": 57,
       "estatistica": {
         "status": "ok",
-        "n": 56,
-        "valor": {"cliente":17.58,"time":4.4,"indicePct":75,"acimaDe50":true},
+        "n": 57,
+        "valor": {"cliente":15.6,"time":3.79,"indicePct":75.68,"acimaDe50":true},
         "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
       },
       "serie": [
-        {"mes":"2026-08","n":87,"cliente":16.59,"time":4.61,"indicePct":72.22},
-        {"mes":"2026-09","n":52,"cliente":17.58,"time":4.65,"indicePct":73.57}
+        {"mes":"2026-08","n":86,"cliente":14.9,"time":4.22,"indicePct":71.68},
+        {"mes":"2026-09","n":52,"cliente":15.98,"time":4.13,"indicePct":74.18}
       ]
     }
   ]

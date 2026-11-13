@@ -1,4 +1,4 @@
-import { METRICA_IDS, motivoDaOrigemMock, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, motivoDaOrigemSemDado, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -92,14 +92,14 @@ function varrer(o: unknown, aoNodo: (n: Nodo, caminho: string) => void, caminho 
 }
 
 describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
-  it('fictícias do painel operacional são exatamente O8, O12, O14 a O18 (com o motivo da H-13) e O20 a O26; as reais são as 12 da H-13 mais BLOQUEADOS, O5 e O19 (pedido 075, 6b) e PV1 (pedido 060)', () => {
+  it('fictícias do painel operacional são exatamente O8, O12, O14 a O18 (com o motivo da H-13) e O20 a O26 menos o O25; as reais são as 12 da H-13 mais BLOQUEADOS, O5 e O19 (pedido 075, 6b), O25 (pedido 099, lote A3) e PV1 (pedido 060)', () => {
     const ficticiasFL1 = ['O8', 'O12', 'O14', 'O15', 'O16', 'O17', 'O18'] as MetricaId[];
-    const comp = ['O20', 'O21', 'O22', 'O23', 'O24', 'O25', 'O26'] as MetricaId[];
-    for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('mock'); expect(motivoDaOrigemMock(id), id).toBe('aguardando campo no quadro'); }
-    for (const id of comp) expect(origemDaMetrica(id), id).toBe('mock');
-    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'PV1', 'S2', 'S3', 'S4', 'S8', 'S10', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
+    const comp = ['O20', 'O21', 'O22', 'O23', 'O24', 'O26'] as MetricaId[];
+    for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('sem-dado'); expect(motivoDaOrigemSemDado(id), id).toBe('aguardando campo no quadro'); }
+    for (const id of comp) expect(origemDaMetrica(id), id).toBe('sem-dado');
+    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'O25', 'PV1', 'S2', 'S3', 'S4', 'S8', 'S10', 'S12', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
     // FL2, FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
-    for (const id of METRICA_IDS.filter((m) => /^(T|E)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('mock');
+    for (const id of METRICA_IDS.filter((m) => /^(T|E)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('sem-dado');
   });
 });
 

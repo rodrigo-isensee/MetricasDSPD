@@ -29,20 +29,20 @@ Total: 50 (plano §2, "Resumo"). A allow-list do zod aceita exatamente as 35 lid
 
 ## 3. Nomes de campo personalizado (plano §2.1; `ref_dominio` campo `campo_personalizado`)
 
-Igualdade exata de nome. "Fatia" = quando a consulta passa a pedir o nome (ADR 0023 item 4).
+Igualdade exata de nome, inclusive os dois-pontos finais onde a fonte os tem ("Motivo da Escalação:", "Se a prioridade foi ajustada, justifique:", "Previsão de retorno:"); sem eles o nome não casa e a coleta falha fechado. "Fatia" = quando a consulta passa a pedir o nome (ADR 0023 item 4).
 
 | Nome exato | Coluna | Métrica | Tratamento (plano §2.1) | Domínio do valor | Fatia |
 |---|---|---|---|---|---|
 | Este problema já ocorreu nos últimos 90 dias? | 45 | S8 | sim, não, sem resposta | `SIM` → sim; `NÃO` e `NAO` → não (dash §4); vazio ou ausente → sem resposta (D-10). Outra grafia: a conferir na carga inicial com o dono (contagem de fora do domínio) | F1 |
-| Motivo da Escalação | 46 | S5 | domínio fechado, se o `tipo` for lista | a preencher na carga inicial com o dono (P-DS-19) | F3 |
-| Qual suporte foi acionado? | 46 | S5 (apoio) | domínio fechado, se lista; senão fora | a preencher na carga inicial com o dono (P-DS-19) | F3 |
+| Motivo da Escalação: | 46 | S5 | domínio fechado, se o `tipo` for lista | a preencher na carga inicial com o dono (P-DS-19) | F3 |
+| Qual suporte foi acionado? | 46 | S5 (apoio) | fora da lista fechada: o campo é TEXT (texto livre) na fonte e o valor nunca sai do MySQL (D1a) | não se aplica | fora |
 | Motivo de Encerramento | 46 | S6, S7, S11 | domínio fechado | a preencher na carga inicial com o dono (P-DS-19) | F3 |
 | Categoria de solução | 46 | S6 (alternativa) | só se o dono preferir à Motivo de Encerramento | a preencher na carga inicial com o dono (P-DS-19) | F3 |
 | Prioridade ajustada manualmente? | 46 | S7 | booleano | valores que significam sim e não: a preencher na carga inicial com o dono (P-DS-19) | F3 |
-| Se a prioridade foi ajustada, justifique | 46 | S7 | só `justificativa_informada` (booleano); o texto nunca sai do MySQL | não se aplica | F3 |
+| Se a prioridade foi ajustada, justifique: | 46 | S7 | só `justificativa_informada` (booleano); o texto nunca sai do MySQL | não se aplica | F3 |
 | Classifique o chamado no Tipo de Prioridade corretamente! | 46 | S7 (tipo) | domínio fechado, se lista | a preencher na carga inicial com o dono (P-DS-19) | F3 |
 | Motivo de Pendência | 46 | S9 | domínio fechado, se lista | a preencher na carga inicial com o dono (P-DS-19) | F3 |
-| Previsão de retorno | 46 | S9 | só se tem previsão (booleano) | não se aplica | F3 |
+| Previsão de retorno: | 46 | S9 | só se tem previsão (booleano) | não se aplica | F3 |
 | Avaliação de Problema | 46 | S11 | domínio fechado, se lista | a preencher na carga inicial com o dono (P-DS-19) | F3 |
 | Número do ticket anterior | 45 | S11 (conversão) | só booleano `tem_ticket_anterior`, se o dono aceitar como vínculo (D-15) | não se aplica | F3, depois de D-15 |
 

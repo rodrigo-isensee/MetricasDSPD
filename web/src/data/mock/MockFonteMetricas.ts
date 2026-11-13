@@ -10,6 +10,7 @@ import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 import type { FonteMetricas } from '../FonteMetricas'
 import type { ArgsPorMetodo, Metodo, Pedido, Resposta } from './protocolo'
 import type { EstadoWorker } from './nucleoMock'
+import { SENTINELA_MOCK } from './sentinela'
 
 export interface OpcoesMock {
   semente?: number
@@ -80,6 +81,8 @@ class ClienteWorker {
  */
 export class MockFonteMetricas implements FonteMetricas {
   readonly tipo = 'mock' as const
+  /** Marca em texto que a guarda G1 procura no build `api` (ADR 0030). */
+  readonly sentinela = SENTINELA_MOCK
   /** Transporte em uso (marcação para a paridade E2E, ADR 0021 seção 3, item 4). */
   readonly transporte: Transporte
 

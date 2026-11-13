@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { ErroConfiguracao } from '../../plataforma/categoria-erro.js';
+import { carregarConfigWorker, type ConfigWorker } from '../../plataforma/config.js';
 import { ErroColeta } from './erros.js';
 import { normalizarImpressao } from './tls.js';
 
@@ -45,11 +47,13 @@ export type ConfigAcelerato = {
 
 /** `NODE_TLS_REJECT_UNAUTHORIZED=0` desligaria a verificação do certificado (M3): a partida é recusada. */
 export function carregarConfigAcelerato(env: NodeJS.ProcessEnv = process.env): ConfigAcelerato {
-  if (env.NODE_TLS_REJECT_UNAUTHORIZED === '0') throw new ErroColeta('configuracao-invalida', { coluna: 'NODE_TLS_REJECT_UNAUTHORIZED' });
+  const tlsDesligado = env.NODE_TLS_REJECT_UNAUTHORIZED === '0';
   const bruto: Record<string, string | undefined> = {};
   for (const nome of VARIAVEIS_ACELERATO) bruto[nome] = env[nome] === '' ? undefined : env[nome];
   const r = esquema.safeParse(bruto);
-  if (!r.success) throw new ErroColeta('configuracao-invalida', { coluna: variaveisInvalidas(r.error).join(',') });
+  // A recusa do TLS não interrompe a validação: a lista de nomes sai completa (K-311).
+  const nomes = [...(tlsDesligado ? ['NODE_TLS_REJECT_UNAUTHORIZED'] : []), ...(r.success ? [] : variaveisInvalidas(r.error))];
+  if (!r.success || nomes.length > 0) throw new ErroColeta('configuracao-invalida', { coluna: nomes.join(',') });
   const v = r.data;
   return {
     host: v.ACELERATO_MYSQL_HOST, porta: v.ACELERATO_MYSQL_PORT, banco: v.ACELERATO_MYSQL_DATABASE, usuario: v.ACELERATO_MYSQL_USER,
@@ -60,3 +64,30 @@ export function carregarConfigAcelerato(env: NodeJS.ProcessEnv = process.env): C
 
 /** Nomes (nunca valores) das variáveis que falharam. */
 export const variaveisInvalidas = (e: z.ZodError): string[] => [...new Set(e.issues.map((i) => String(i.path[0])))];
+
+/**
+ * Configuração da coleta manual do Acelerato (K-304): a do worker (banco do coletor) e a do MySQL, validadas juntas. Se faltar ou for inválida
+ * alguma, a falha lista os NOMES de todas de uma vez (nunca valor, nem parte dele), como `ErroConfiguracao`.
+ */
+export function carregarConfigColetaAcelerato(env: NodeJS.ProcessEnv = process.env): { worker: ConfigWorker; config: ConfigAcelerato } {
+  const nomes: string[] = [];
+  let worker: ConfigWorker | undefined;
+  let config: ConfigAcelerato | undefined;
+  try {
+    worker = carregarConfigWorker(env);
+  } catch (e) {
+    if (!(e instanceof ErroConfiguracao)) throw e;
+    nomes.push(...e.nomes);
+  }
+  try {
+    config = carregarConfigAcelerato(env);
+  } catch (e) {
+    if (!(e instanceof ErroColeta) || e.codigo !== 'configuracao-invalida' || e.coluna === undefined) throw e;
+    nomes.push(...e.coluna.split(','));
+  }
+  if (worker === undefined || config === undefined) {
+    const unicos = [...new Set(nomes)];
+    throw new ErroConfiguracao(`Configuração inválida (variáveis: ${unicos.join(', ')})`, unicos);
+  }
+  return { worker, config };
+}

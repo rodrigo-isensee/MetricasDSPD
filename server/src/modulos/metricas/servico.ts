@@ -11,8 +11,8 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
-import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
-import { comCorteDaSerieO1, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
+import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
+import { comCorteDaSerieO1, comNotaS12SemFonte, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
@@ -46,11 +46,16 @@ const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3', 'S2', 'TE
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 /**
  * Calendário do domínio (pedido 069, L7-b; ADR 0027): o vigente da referência para a classe; sem linha, `CALENDARIO_PADRAO` (o comportamento anterior).
- * Turnos e modo ficam os padrão. A construção é da biblioteca (T2.5): aqui só se entregam os feriados e o deslocamento.
+ * Turnos (Decisão 13, pedido 099 D3b): só o domínio Acelerato os lê (`ref_calendario_turno`); o BusinessMap fica nos turnos padrão. Sem calendário na
+ * referência, o Acelerato usa `CALENDARIO_SUSTENTACAO_PADRAO` (528 min); com calendário sem turnos gravados, turnos padrão da biblioteca. A construção é da
+ * biblioteca (T2.5): aqui só se entregam os feriados, o deslocamento e os turnos.
  */
 async function calendarioDaReferencia(db: Consultavel, S: Esquemas | undefined, dominio: Dom, classe: string): Promise<Calendario> {
   const ref = await lerCalendarioVigente(db, S, dominio, classe);
-  return ref === null ? CALENDARIO_PADRAO : criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos });
+  if (ref === null) return dominio === 'acelerato' ? acelerato.CALENDARIO_SUSTENTACAO_PADRAO : CALENDARIO_PADRAO;
+  if (dominio === 'businessmap') return criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos });
+  const gravados = await lerTurnosVigentes(db, S, dominio, classe);
+  return criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos, turnos: gravados.length > 0 ? gravados : acelerato.TURNOS_SUSTENTACAO });
 }
 const BASE_AC_VAZIA: BaseAC = { chamados: [], etapas: [], config: { alvos: [], criterios: [] } };
 const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
@@ -325,6 +330,8 @@ export class ServicoMetricas {
     if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
     if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
+    // Pedido 099 (D9): o S12 real sem a fonte da exceção de SLA sai `excecaoSla: null` da biblioteca; aqui só a nota. Só publicação.
+    if (real) resultado = comNotaS12SemFonte(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };

@@ -347,4 +347,61 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'campo_customizado' AND codigo = ANY($1::text[])`, [['91201', '91202']]);
     }
   });
+
+  it('C2a: o deadline nativo preenche data_acordada em dim_card e dim_card_versao; segunda projeção sem mudança não cria versão; prazo mudado gera versão; prazo removido volta a nulo sem apagar versão', async () => {
+    const versoes = (id: string) => dono.query<{ data_acordada: string | null }>(`SELECT data_acordada::text AS data_acordada FROM ${E.bm}.dim_card_versao WHERE card_id = $1 ORDER BY vigente_de`, [id]).then((r) => r.rows.map((x) => x.data_acordada));
+    const prazo = async (id: string): Promise<string | null> => (await unico<{ d: string | null }>(`SELECT data_acordada::text AS d FROM ${E.bm}.dim_card WHERE card_id = $1`, [id])).d;
+    const base = novo({ deadline: '2026-10-30' });
+    const id = await staging(base);
+    await projetar();
+    expect(await prazo(id)).toBe('2026-10-30');
+    expect(await versoes(id)).toEqual(['2026-10-30']);
+
+    const r = await projetar();
+    expect(r.versoes).toBe(0);
+    expect(await versoes(id)).toEqual(['2026-10-30']);
+
+    await staging({ ...base, deadline: '2026-11-15' }, [], new Date(relogio.getTime() + 60_000));
+    await projetar();
+    expect(await prazo(id)).toBe('2026-11-15');
+    expect(await versoes(id)).toEqual(['2026-10-30', '2026-11-15']);
+
+    const semPrazo: Cartao = { ...base };
+    delete semPrazo.deadline;
+    await staging(semPrazo, [], new Date(relogio.getTime() + 120_000));
+    await projetar();
+    expect(await prazo(id)).toBeNull();
+    expect(await versoes(id)).toEqual(['2026-10-30', '2026-11-15', null]);
+
+    const ruim = novo({ deadline: '2026-10-30T00:00:00Z' });
+    await staging(ruim);
+    const rr = await projetar();
+    expect(await prazo(String(ruim.card_id))).toBeNull();
+    expect(rr.notas.deadline_fora_da_forma).toBeGreaterThanOrEqual(1);
+  });
+
+  it('C8a (K-306): priority do staging vira severidade em dim_card pelo mapa vigente do ref_dominio; fora do mapa e nulo ficam sem severidade; sem mapa, nenhuma', async () => {
+    const com = (priority: unknown): Cartao => novo({ priority });
+    const crit = await staging(com(1));
+    const baixa = await staging(com(4));
+    const fora = await staging(com(5));
+    const nulo = await staging(novo());
+    await projetar();
+    for (const id of [crit, baixa, fora, nulo]) expect((await dim(id)).severidade).toBeNull();
+
+    const mapa: [string, string][] = [['1', 'Crítica'], ['2', 'Alta'], ['3', 'Média'], ['4', 'Baixa']];
+    for (const [codigo, rotulo] of mapa) {
+      await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('prioridade_severidade', $1, '2020-01-01', $2, 0)`, [codigo, rotulo]);
+    }
+    try {
+      const r = await projetar();
+      expect((await dim(crit)).severidade).toBe('Crítica');
+      expect((await dim(baixa)).severidade).toBe('Baixa');
+      expect((await dim(fora)).severidade).toBeNull();
+      expect((await dim(nulo)).severidade).toBeNull();
+      expect(r.notas.priority_fora_do_mapa).toBeGreaterThanOrEqual(1);
+    } finally {
+      await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'prioridade_severidade'`);
+    }
+  });
 });

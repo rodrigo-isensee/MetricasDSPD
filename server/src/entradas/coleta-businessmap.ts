@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pino } from 'pino';
 import { analisarArgumentos, coletarApontamentos, ErroColetaBm, executarColeta, lerConferencia, montarDepsApontamento } from '../modulos/businessmap/index.js';
+import { categoriaDoErro, ErroConfiguracao } from '../plataforma/categoria-erro.js';
 import { carregarConfigColetaBusinessMap } from '../plataforma/config.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { criarPool } from '../plataforma/db/pool.js';
@@ -51,7 +52,8 @@ try {
   // etapa do worklog que não pôde rodar (`apontamento.falha`): os cards saem no JSON e o código é 3, como em `parcial`
   process.exitCode = r.estado === 'sucesso' && !(r.apontamento !== null && 'falha' in r.apontamento) ? 0 : 3;
 } catch (e) {
-  const codigo = e instanceof ErroColetaBm ? e.codigo : e instanceof ErroBusinessMap ? e.tipo : 'erro-interno';
+  // Configuração ausente ou inválida: só os NOMES das variáveis (K-304), nunca o valor.
+  const codigo = e instanceof ErroConfiguracao ? categoriaDoErro(e) : e instanceof ErroColetaBm ? e.codigo : e instanceof ErroBusinessMap ? e.tipo : 'erro-interno';
   // `uso` e `trava` trazem texto fixo nosso; o resto sai só como código
   process.stderr.write(`bm:coleta falhou: ${codigo}${e instanceof ErroColetaBm ? ` (${e.message})` : ''}\n`);
   process.exitCode = e instanceof ErroColetaBm && e.codigo === 'uso' ? 2 : 1;
