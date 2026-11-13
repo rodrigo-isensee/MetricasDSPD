@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-k304-nomes-env
-commit: f77f3545dcb06ed7bdca043816791283d6cd072e
+commit: e623a45aac6901e1328d9cbea8b8913d0f88f16d
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -44,5 +44,9 @@ Base 9bb72d1f, head 3f2803e2. Classe N, sem especificação de UX nem contrato d
 - `forge-check parecer delta`: só server/tests/coleta-nomes-env.test.ts mudou no domínio (testes no mesmo processo de carregarConfigColetaAcelerato, lerConfig({}) no plural, espaços como ausente); src intocado.
 - Mutantes do A1, aplicados na worktree e revertidos: `!env[nome]?.trim()` para `!env[nome]` morreu (1 teste caiu, "valor só com espaços conta como ausente"); `e.coluna.split(',')` para `e.coluna` morreu (1 teste caiu, duas variáveis do MySQL). Sem mutante: 13 passaram.
 - `gh pr checks 372` no head f77f3545: `testes` passou (push, 6m3s; PR, 7m42s). E2E ainda pendente quando o parecer foi escrito, fora deste escopo.
+
+## Revalidação da junção (e623a45a, E3.132)
+- O PR 373 (K-294) entrou na develop e a branch recebeu `gh pr update-branch`. `forge-check parecer delta`: intervalo f77f3545..e623a45a, escopo sem o que veio da base, "nenhum arquivo do domínio mudou". A junção só trouxe arquivos do K-294, sem arquivo em comum com o K-304 e sem conflito: os testes e o código revisados valem como estão.
+- `gh pr checks 372` no head e623a45a, nenhum check falhou: `testes` passou (push 10m5s; PR 7m17s), `e2e-parte (1/2)` 13m12s e `e2e-parte (2/2)` 20m17s passaram, `e2e` agregado passou, e `build`, `banco`, `imagem`, `openapi`, `rapida`, `seguranca`, `filtro` passaram; `perf` ficou skipping por regra de caminho.
 
 Parecer: aprovado, sem bug crítico, alto ou médio.
