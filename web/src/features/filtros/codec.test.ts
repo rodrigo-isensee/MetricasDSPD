@@ -15,6 +15,10 @@ const opcoes = {
     { id: 'a', nome: 'A' },
     { id: 'b', nome: 'B' },
   ],
+  tipos: [
+    { id: 'melhoria', nome: 'Melhoria' },
+    { id: 'requisicao', nome: 'Requisição' },
+  ],
   sistemas: [{ id: 's1', nome: 'S1' }],
   historico: { inicio: '2026-01-01', fim: '2026-10-09' },
 } as unknown as OpcoesFiltro
@@ -26,8 +30,17 @@ const opcoesSust = {
     { id: 'sssc-fluig', nome: 'SSSC FLUIG' },
     { id: 'time-novo', nome: 'Time Novo' },
   ],
+  prioridades: [
+    { id: 'p1', nome: 'P1' },
+    { id: 'p2', nome: 'P2' },
+    { id: 'p3', nome: 'P3' },
+  ],
 } as unknown as OpcoesFiltro
-const opcoesAcelerato = { dominio: 'acelerato', equipes: [] } as unknown as OpcoesFiltro
+const opcoesAcelerato = {
+  dominio: 'acelerato',
+  equipes: [],
+  prioridades: [],
+} as unknown as OpcoesFiltro
 const P = (s: string) => new URLSearchParams(s)
 
 describe('leitura dos filtros de fluxo', () => {
@@ -43,8 +56,36 @@ describe('leitura dos filtros de fluxo', () => {
     expect(r.filtros.tipo).toEqual(['Melhoria'])
   })
 
+  it('tipo do contrato que não está nas opções da API é ignorado e anotado (L6)', () => {
+    const r = lerFluxo(P('tipo=melhoria,incidente'), opcoes, '12s')
+    expect(r.filtros.tipo).toEqual(['Melhoria'])
+    expect(r.invalidos).toEqual(['tipo "incidente"'])
+  })
+
+  it('sem opções carregadas, o tipo vale pelos ids do contrato; id desconhecido é ignorado', () => {
+    const r = lerFluxo(P('tipo=incidente,xyz'), undefined, '12s')
+    expect(r.filtros.tipo).toEqual(['Incidente'])
+    expect(r.invalidos).toEqual(['tipo "xyz"'])
+  })
+
+  it('opções de tipo com id que o contrato não conhece não viram tipo válido', () => {
+    const novas = {
+      dominio: 'businessmap',
+      equipes: [],
+      tipos: [
+        { id: 'melhoria', nome: 'Melhoria' },
+        { id: 'novo', nome: 'Novo' },
+      ],
+      sistemas: [],
+    } as unknown as OpcoesFiltro
+    const r = lerFluxo(P('tipo=novo'), novas, '12s')
+    expect(r.filtros.tipo).toEqual([])
+    expect(r.invalidos).toEqual(['tipo "novo"'])
+  })
+
   it('marcar todos equivale a Todos', () => {
     expect(lerFluxo(P('equipe=a,b'), opcoes, '12s').filtros.equipe).toEqual([])
+    expect(lerFluxo(P('tipo=melhoria,requisicao'), opcoes, '12s').filtros.tipo).toEqual([])
   })
 
   it('sem opções carregadas, aceita qualquer equipe e sistema', () => {
@@ -179,13 +220,31 @@ describe('escrita do fluxo e memória', () => {
     const r = colapsarTodos(f, undefined, false)
     expect(r.equipe).toEqual(['a'])
     const s = colapsarTodos(
-      { equipe: [], prioridade: ['P1', 'P2', 'P3', 'P4', 'P5'], periodo: { tipo: '6m' } },
+      { equipe: [], prioridade: ['P1', 'P2'], periodo: { tipo: '6m' } },
+      opcoesSust,
+      true,
+    )
+    expect(s.prioridade).toEqual(['P1', 'P2'])
+    const presentes = colapsarTodos(
+      { equipe: [], prioridade: ['P1', 'P2', 'P3'], periodo: { tipo: '6m' } },
+      opcoesSust,
+      true,
+    )
+    expect(presentes.prioridade).toEqual([])
+    const semOpcoes = colapsarTodos(
+      { equipe: [], prioridade: ['P1', 'P2', 'P3'], periodo: { tipo: '6m' } },
       undefined,
       true,
     )
-    expect(s.prioridade).toEqual([])
+    expect(semOpcoes.prioridade).toEqual(['P1', 'P2', 'P3'])
     expect(colapsarTodos(f, opcoes, false).sistema).toEqual([])
-    const vazias = { dominio: 'businessmap', equipes: [], sistemas: [] } as unknown as OpcoesFiltro
+    const vazias = {
+      dominio: 'businessmap',
+      equipes: [],
+      tipos: [],
+      sistemas: [],
+    } as unknown as OpcoesFiltro
     expect(colapsarTodos(f, vazias, false).equipe).toEqual(['a'])
+    expect(colapsarTodos({ ...f, tipo: ['Melhoria'] }, vazias, false).tipo).toEqual(['Melhoria'])
   })
 })

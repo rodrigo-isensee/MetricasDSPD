@@ -6,7 +6,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
     oQueE:
       'Tempo até o primeiro atendimento (MTTA) e até a restauração validada (MTTR), em cada prioridade.',
     comoSeCalcula:
-      'Tempo útil pelo calendário de expediente (dia útil = 8 horas úteis); no MTTR, as pendências são descontadas do relógio; exceções de registro posterior saem desta apuração.',
+      'Tempo útil pelo calendário de expediente da Sustentação (1 dia útil = 8 h 48 min); no MTTR, as pendências são descontadas do relógio; exceções de registro posterior saem desta apuração.',
     comoLer: 'Cada barra é comparada ao alvo da sua prioridade (100% = alvo).',
     meta: 'Os prazos da matriz Impacto × Urgência.',
     cuidados:

@@ -86,7 +86,23 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     };
     expect(chamadoDe(l)).toMatchObject({ categoria_sistema: '', aberto_em: T.getTime(), restaurado_em: T.getTime(), primeiro_atendimento_em: null, justificativa_ajuste: null, justificativa_informada: true, tipo_fila: 'DSPD - SSSC' });
     expect(etapaDe({ chamado_id: 'a1', etapa: 'Novo', entrada: T.getTime(), saida: null, motivo_pendencia: null })).toEqual({ chamado_id: 'a1', etapa: 'Novo', entrada: T.getTime(), saida: null, motivo_pendencia: null });
-    const ac = montarBaseAC({ chamados: [l], etapas: [], alvos: [{ prioridade: 'P1', prazo_pa_horas_uteis: '0.25', prazo_r_horas_uteis: '4.00' }], criterios: [] });
-    expect(ac.config.alvos).toEqual([{ prioridade: 'P1', primeiro_atendimento_horas: 0.25, restauracao_horas: 4 }]);
+    const ac = montarBaseAC({
+      chamados: [l], etapas: [], criterios: [],
+      alvos: [
+        { prioridade: 'P1', prazo_pa_horas: '0.25', unidade_pa: 'corrido', prazo_r_horas: '4.00', unidade_r: 'corrido' },
+        { prioridade: 'P2', prazo_pa_horas: '0.50', unidade_pa: 'corrido', prazo_r_horas: '8.00', unidade_r: 'util' },
+      ],
+    });
+    expect(ac.config.alvos).toEqual([
+      { prioridade: 'P1', primeiro_atendimento_horas: 0.25, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 4, unidade_restauracao: 'corrido' },
+      { prioridade: 'P2', primeiro_atendimento_horas: 0.5, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 8, unidade_restauracao: 'util' },
+    ]);
+  });
+
+  it('unidade de prazo fora de corrido e util em ref_alvo_prioridade: erro, nunca um padrão (a unidade muda o número da S1)', () => {
+    const base = { chamados: [], etapas: [], criterios: [] };
+    const alvo = (unidade_pa: string, unidade_r: string) => ({ prioridade: 'P1', prazo_pa_horas: '1.00', unidade_pa, prazo_r_horas: '4.00', unidade_r });
+    expect(() => montarBaseAC({ ...base, alvos: [alvo('semana', 'util')] })).toThrow('unidade de prazo desconhecida');
+    expect(() => montarBaseAC({ ...base, alvos: [alvo('util', 'semana')] })).toThrow('unidade de prazo desconhecida');
   });
 });

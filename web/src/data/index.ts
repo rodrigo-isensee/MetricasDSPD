@@ -13,7 +13,6 @@ export {
   type MetricaQuery,
   type EstadoMetrica,
 } from './useMetrica'
-export { MockFonteMetricas } from './mock/MockFonteMetricas'
 export { lerModoMock, type ModoMock } from './simulacao'
 export { HttpFonteMetricas, PAGINA_O2 } from './http/HttpFonteMetricas'
 export { ErroApi } from './http/ErroApi'

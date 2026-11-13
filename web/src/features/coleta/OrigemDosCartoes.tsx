@@ -2,7 +2,7 @@ import { useCallback, type ReactNode } from 'react'
 import {
   CATALOGO_CARTOES,
   cartoesDoPainel,
-  motivoDaOrigemMock,
+  motivoDaOrigemSemDado,
   origemDaMetrica,
   type MetricaId,
   type PainelComCartoes,
@@ -25,11 +25,11 @@ export function origemDoCartao(codigo: string, tipoFonte: 'mock' | 'api'): Orige
   const doCatalogo = cartao?.status === 'mock'
   if (tipoFonte === 'mock') return { ficticio: doCatalogo, semDadoReal: false, motivo: null }
   const metricas: readonly MetricaId[] = cartao?.metricas ?? [idDeMetrica(codigo) as MetricaId]
-  const semDado = metricas.filter((m) => origemDaMetrica(m) === 'mock')
+  const semDado = metricas.filter((m) => origemDaMetrica(m) === 'sem-dado')
   return {
     ficticio: false,
     semDadoReal: semDado.length > 0,
-    motivo: semDado.map(motivoDaOrigemMock).find((m) => m !== null) ?? null,
+    motivo: semDado.map(motivoDaOrigemSemDado).find((m) => m !== null) ?? null,
   }
 }
 

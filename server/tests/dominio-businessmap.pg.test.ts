@@ -48,11 +48,19 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   const versoes = async (c: pg.PoolClient, sha: string): Promise<number> =>
     Number((await c.query(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [referenciaDaVersaoBm(sha)])).rows[0].n);
 
-  it('o arquivo real (vazio de campos) não grava nada nem registra versão', async () => {
+  it('o arquivo real (sem campos, com o mapa priority -> severidade) grava as 4 linhas, registra a versão com a métrica O16 e repetir não grava mais nada', async () => {
     await comoRef(async (pool, c) => {
       const real = lerDominioBm();
-      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 0, inseridas: 0, fechadas: 0, versaoRegistrada: false });
-      expect(await versoes(c, real.sha256)).toBe(0);
+      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 0, inseridas: 4, fechadas: 0, versaoRegistrada: true });
+      expect((await linhas(c, 'prioridade_severidade')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([
+        ['1', 'Crítica', null], ['2', 'Alta', null], ['3', 'Média', null], ['4', 'Baixa', null]]);
+      expect(await versoes(c, real.sha256)).toBe(1);
+      const metricas = (await c.query(
+        `SELECT m.metrica_id FROM ${S.core}.ref_versao_criterio v JOIN ${S.core}.ref_versao_criterio_metrica m USING (versao_id) WHERE v.referencia = $1`,
+        [referenciaDaVersaoBm(real.sha256)])).rows.map((r) => r.metrica_id);
+      expect(metricas).toEqual(['O16']);
+      expect(await sincronizarDominioBm(pool, S, real, D2, AGORA)).toMatchObject({ inseridas: 0, fechadas: 0, versaoRegistrada: false });
+      expect(await versoes(c, real.sha256)).toBe(1);
     });
   });
 

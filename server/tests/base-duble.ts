@@ -59,7 +59,7 @@ export function bancoDoMock(base: BaseMock, opcoes: { coletaId?: string; versaoC
     if (t.includes('ref_sle')) return base.bm.config.sle.filter((s) => s.dias_uteis !== null).map((s) => ({ classe: s.classe, valor: String(s.dias_uteis), desde: s.publicado_em }));
     if (t.includes('ref_alocacao_acordada')) return base.bm.config.alocacao.map((a) => ({ classe: a.natureza, valor: String(a.pct), desde: '2026-01-01' }));
     if (t.includes('ref_ficha_resultado')) return base.bm.fichas.map((f) => ({ card_id: f.card_id, ficha: Object.fromEntries(Object.entries(f).filter(([k]) => k !== 'card_id')) }));
-    if (t.includes('ref_alvo_prioridade')) return base.ac.config.alvos.map((a) => ({ prioridade: a.prioridade, prazo_pa_horas_uteis: String(a.primeiro_atendimento_horas), prazo_r_horas_uteis: String(a.restauracao_horas) }));
+    if (t.includes('ref_alvo_prioridade')) return base.ac.config.alvos.map((a) => ({ prioridade: a.prioridade, prazo_pa_horas: String(a.primeiro_atendimento_horas), unidade_pa: a.unidade_primeiro_atendimento, prazo_r_horas: String(a.restauracao_horas), unidade_r: a.unidade_restauracao }));
     return [];
   };
 }
