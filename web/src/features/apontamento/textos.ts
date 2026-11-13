@@ -329,6 +329,7 @@ export const INCOMPLETO = {
 export const MAIORES = {
   mostrando: (n: number) => `Mostrando os ${LIMITE_MAIORES} projetos com mais horas, de ${n}.`,
   demais: (n: number, horas: string) => `Demais ${n} ${n === 1 ? 'projeto' : 'projetos'}: ${horas}`,
+  mostrandoTodos: (n: number) => `Mostrando todos os ${n} projetos.`,
   verTodos: (n: number) => `Ver todos os ${n} projetos`,
   verMaiores: `Ver só os ${LIMITE_MAIORES} maiores`,
   regiao: 'Todos os projetos, com rolagem',
