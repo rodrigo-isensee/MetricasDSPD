@@ -95,8 +95,11 @@ export const ROTULO_NIVEL: Record<NivelMatriz, string> = {
 }
 
 export const VAZIO = {
-  titulo: 'Nenhum apontamento encontrado',
-  texto: 'Nenhum apontamento atende aos filtros atuais.',
+  secao: 'Período dos filtros',
+  titulo: 'Nenhum apontamento no período dos filtros',
+  texto:
+    'Nenhum apontamento atende aos filtros atuais. O mapa dia a dia abaixo usa a janela própria dele.',
+  anuncio: 'Nenhum apontamento no período dos filtros. O mapa dia a dia tem janela própria.',
 } as const
 
 export const CARREGANDO = 'Carregando apontamentos'

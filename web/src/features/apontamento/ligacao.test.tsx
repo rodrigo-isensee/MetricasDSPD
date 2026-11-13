@@ -81,7 +81,7 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
   it('vazio: período sem apontamento mostra o estado vazio com orientação', async () => {
     abrir(URL_ABA, { resposta: () => respostaVazia() })
     expect(await screen.findByTestId('estado-vazio-AP')).toHaveTextContent(
-      'Nenhum apontamento encontrado',
+      'Nenhum apontamento no período dos filtros',
     )
   })
 
@@ -136,7 +136,7 @@ describe('filtro por tipo (id de opcoes.tipos, type_id em dígitos)', () => {
   it('id inexistente (dígitos que a rota não conhece): vai à rota, volta o recorte vazio com orientação, e o chip sai pelo X', async () => {
     const { chamadas, roteador } = abrir(`${URL_ABA}?tipo=999`)
     expect(await screen.findByTestId('estado-vazio-AP')).toHaveTextContent(
-      'Nenhum apontamento encontrado',
+      'Nenhum apontamento no período dos filtros',
     )
     expect(chamadas.some((c) => /[?&]tipo=999(&|$)/.test(c))).toBe(true)
     await userEvent.click(screen.getAllByRole('button', { name: /^Remover filtro Tipo/ })[0]!)

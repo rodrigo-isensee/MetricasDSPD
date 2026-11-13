@@ -241,7 +241,7 @@ describe('CA-2: vazio', () => {
   it('recorte sem apontamento mostra o estado vazio com limpar e remover cada filtro ativo', async () => {
     const { roteador } = renderizar(`${URL_ABA}?equipe=portal&tipo=3`, fonteCom(respostaVazia()))
     const vazio = await screen.findByTestId('estado-vazio-AP')
-    expect(vazio).toHaveTextContent('Nenhum apontamento encontrado')
+    expect(vazio).toHaveTextContent('Nenhum apontamento no período dos filtros')
     expect(vazio).toHaveTextContent('Nenhum apontamento atende aos filtros atuais.')
     expect(within(vazio).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument()
     expect(within(vazio).getByRole('button', { name: 'Remover filtro Equipe' })).toBeInTheDocument()

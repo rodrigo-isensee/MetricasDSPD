@@ -209,7 +209,7 @@ test.describe('recorte vazio e amostra insuficiente (CA-2, CA-3, o3)', () => {
   }) => {
     await semear(page)
     await abrir(page, `${ABA}?tipo=999&projeto=1042`)
-    await expect(page.getByText('Nenhum apontamento encontrado').first()).toBeVisible()
+    await expect(page.getByText('Nenhum apontamento no período dos filtros').first()).toBeVisible()
     const barra = page.getByTestId('barra-filtros-apontamento')
     await expect(barra.getByRole('button', { name: /Remover filtro/ })).toHaveCount(2)
     await expect(barra.getByRole('button', { name: 'Limpar filtros' })).toBeVisible()
