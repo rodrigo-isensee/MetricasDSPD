@@ -309,6 +309,49 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
   });
 });
 
+describe('C8a: severidade pelo priority nativo (1 Critical a 4 Low, escala decrescente)', () => {
+  // Mapa escrito AQUI (fato da OpenAPI v2 do BusinessMap), não importado do código (B-1 da ADR 0020).
+  const COM_PRIORIDADE: Referencia = { ...REF, prioridades: new Map([['1', 'Crítica'], ['2', 'Alta'], ['3', 'Média'], ['4', 'Baixa']]) };
+  const sev = (priority: unknown, ref: Referencia = COM_PRIORIDADE) => projetarCard(entrada(card({ priority })), ref)!;
+  it.each([[1, 'Crítica'], [2, 'Alta'], [3, 'Média'], [4, 'Baixa'], ['1', 'Crítica'], ['4', 'Baixa']])('priority %j vira %s', (priority, esperado) => {
+    const p = sev(priority);
+    expect(p.dim.severidade).toBe(esperado);
+    expect(p.notas).not.toContain('priority_fora_do_mapa');
+  });
+  it('priority nulo ou ausente fica sem severidade (Q-099-33, recomendação A), sem nota e sem supor Média', () => {
+    for (const p of [sev(null), sev(undefined)]) {
+      expect(p.dim.severidade).toBeNull();
+      expect(p.notas).not.toContain('priority_fora_do_mapa');
+    }
+  });
+  it.each([[5], [0], [-1], [2.5], ['alta'], ['02'], [true], [{}], [NaN]])('priority %j fora do mapa fica sem severidade, com uma nota (nunca vira Baixa)', (priority) => {
+    const p = sev(priority);
+    expect(p.dim.severidade).toBeNull();
+    expect(p.notas.filter((n) => n === 'priority_fora_do_mapa')).toHaveLength(1);
+  });
+  it('sem o mapa carregado (ref-sync não rodou) nada é projetado nem contado', () => {
+    for (const ref of [REF, { ...REF, prioridades: new Map() }]) {
+      const p = sev(1, ref);
+      expect(p.dim.severidade).toBeNull();
+      expect(p.notas).not.toContain('priority_fora_do_mapa');
+    }
+  });
+  it('o priority substitui a coluna severidade vinda de campo customizado só quando há mapa; as outras colunas de lista seguem', () => {
+    const ref: Referencia = { ...COM_PRIORIDADE, camposLista: new Map([['503', 'severidade'], ['502', 'sistema']]) };
+    const c = card({ priority: 2, custom_fields: [{ field_id: '503', valor: 'x' }, { field_id: '502', valor: 'sis' }] });
+    const p = projetarCard(entrada(c), ref)!;
+    expect(p.dim.severidade).toBe('Alta');
+    expect(p.dim.sistema).toBe('sis');
+    expect(projetarCard(entrada(c), { ...ref, prioridades: undefined })!.dim.severidade).toBe('x');
+  });
+  it('priority nulo com mapa carregado apaga a severidade vinda de campo customizado, sem nota', () => {
+    const ref: Referencia = { ...COM_PRIORIDADE, camposLista: new Map([['503', 'severidade']]) };
+    const p = projetarCard(entrada(card({ priority: null, custom_fields: [{ field_id: '503', valor: 'x' }] })), ref)!;
+    expect(p.dim.severidade).toBeNull();
+    expect(p.notas).not.toContain('priority_fora_do_mapa');
+  });
+});
+
 describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de segurança)', () => {
   // Entradas literais das sondas, gravadas no corpus: o JS aceita o ano 0 e o PostgreSQL recusa; por isso a guarda do normalizador exige ano >= 1.
   const SONDAS = [
