@@ -3,10 +3,10 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: 57c74bc3707397b9d1d255969fd3b92b7752d4c0
+commit: d9abb3098b9a958e18c4438250baea8f93a5005e
 parecer: aprovado
 revisor: forge:tech-lead
-data: 2026-11-12
+data: 2026-11-13
 ---
 # Code review: D9 do 099, S12 no mapa real só com o volume (E3.73)
 
@@ -42,6 +42,13 @@ Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, inter
 - **Conflito resolvido certo:** o O25 do A3 (já aprovado em `docs/reviews/099-a3-o25-descarte.md`) entra em `METRICAS_ORIGEM_REAL` ao lado do S12 do D9, e nenhum dos dois se perdeu. Nos três testes, as listas de reais ficam com O25 e S12 juntos, e o O25 sai da lista de complementares sem dado em `qa-f6-painel.test.ts`. A linha do O25 em `docs/api/metricas.md` é a do A3, sem texto novo.
 - **Regras invioláveis:** nenhum cálculo novo, nenhuma métrica além das duas já revisadas; Acelerato e BusinessMap seguem separados (O25 só BusinessMap, S12 só Acelerato).
 - **Ferramentas:** `packages/contratos` `vitest run src/origem.test.ts` (16 testes) e `server` `vitest run tests/painel-real-f6.test.ts tests/qa-f6-painel.test.ts` (47 testes): passaram. Os `.pg`, a suíte inteira e o e2e ficam no CI do PR 370.
+- A1 a A5 seguem como estavam (recomendados). Nenhum achado novo.
+
+## Revalidação por delta (E3.94, CI vermelho do PR 370)
+Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, intervalo `57c74bc3..d9abb309`. No domínio: `packages/metricas/src/acelerato/s12.ts` e `web/src/features/coleta/origem.test.tsx`, ambos do commit `d9abb309` (E3.93).
+- **s12.ts:** só a quebra de linha do prettier na chamada de `taxa(...)` da exceção de SLA; o cálculo é o mesmo.
+- **origem.test.tsx:** o S12 passa à lista dos que têm dado real e sai a expectativa do motivo "aguardando fonte do registro posterior", alinhando o teste ao `METRICAS_ORIGEM_REAL` de `packages/contratos/src/origem.ts`, que já tinha o S12 (revisado na E3.73). Sem código de produção.
+- **Ferramentas:** `web` `vitest run src/features/coleta/origem.test.tsx` (18 testes) e `packages/metricas` `vitest run src/complementares.test.ts` (21): passaram; `prettier --check` nos dois arquivos: verde. Suíte inteira e e2e no CI do PR 370.
 - A1 a A5 seguem como estavam (recomendados). Nenhum achado novo.
 
 ## Achados
