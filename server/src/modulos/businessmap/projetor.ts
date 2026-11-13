@@ -8,7 +8,7 @@ import { lerCalendarioVigente } from '../referencia/index.js';
 import { COLUNAS_LISTA } from './allow-list.js';
 import { derivarBloqueios, type VersaoBloqueio } from './bloqueios.js';
 import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
-import { CAMPO_CUSTOMIZADO, CAMPO_MOTIVO_BLOQUEIO, colunasDosCampos, motivosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
+import { CAMPO_CUSTOMIZADO, CAMPO_MOTIVO_BLOQUEIO, CAMPO_PRIORIDADE_SEVERIDADE, colunasDosCampos, motivosDeLinhas, prioridadesDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
 import {
   agrupar, diaDe, instanteDoBm, noDia, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
@@ -69,6 +69,8 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
   const tipos = await linhas<LinhaTipo>(db, `SELECT tipo_id, eh_item, categoria, vigente_de, vigente_ate FROM ${S.bm}.ref_tipo_card`);
   // L2-b: só a ligação `field_id` -> coluna, vigente, validada de novo (A4); os valores já foram reduzidos a código pelo coletor
   const campos = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_CUSTOMIZADO]);
+  // C8a: mapa `priority` -> severidade, vigente, validado de novo; sem linhas, nenhuma severidade é projetada
+  const prioridades = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_PRIORIDADE_SEVERIDADE]);
   return {
     colunas: agrupar(colunas, (c) => `${c.quadro_id}|${c.coluna_id}`),
     workflows: agrupar(workflows, (w) => `${w.quadro_id}|${w.workflow_id}`),
@@ -76,6 +78,7 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
     times: agrupar(times, (t) => String(t.time_id)),
     tipos: agrupar(tipos, (t) => t.tipo_id),
     camposLista: colunasDosCampos(campos),
+    prioridades: prioridadesDeLinhas(prioridades),
   };
 }
 
