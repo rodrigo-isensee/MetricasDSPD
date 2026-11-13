@@ -9,7 +9,7 @@ import {
 import type { FiltrosSustentacao, Prioridade, ResultadoS1 } from '@metricas-dspd/contratos'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
-import { fmtInteiro, fmtPct } from '@/lib/formatar'
+import { fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import { fmtTempoPrioridade } from '../formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { TextoInsuficiente } from './comuns'
@@ -179,8 +179,14 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
             {d.excecoesForaDaApuracao === 1 ? 'chamado com' : 'chamados com'} exceção de registro
             posterior (fora desta apuração).
           </p>
+          <p className="text-sm text-texto-2" data-testid="s1-dia-util">
+            Dia útil da Sustentação: {fmtNumero(d.horasPorDiaUtil, 2)} h.
+          </p>
           {MEDIDAS.map((medida) => (
-            <Bloco key={medida.chave} medida={medida} linhas={d.prioridades}
+            <Bloco
+              key={medida.chave}
+              medida={medida}
+              linhas={d.prioridades}
               horasPorDiaUtil={d.horasPorDiaUtil}
             />
           ))}

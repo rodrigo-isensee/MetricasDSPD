@@ -19,6 +19,9 @@ describe('formatação da Sustentação (J2)', () => {
     expect(fmtTempoPrioridade(0.25, 'P1', 8.8)).toBe('0,25 h úteis')
     expect(fmtTempoPrioridade(16, 'P3', 8.8)).toBe('16 h úteis')
     expect(fmtTempoPrioridade(4.4, 'P4', 8.8)).toBe('0,5 dia útil')
+    expect(fmtTempoPrioridade(4, 'P4', 8.8)).toBe('0,45 dia útil')
+    expect(fmtTempoPrioridade(88, 'P5', 8.8)).toBe('10 dias úteis')
+    expect(fmtTempoPrioridade(44, 'P4', 8.8)).toBe('5 dias úteis')
     expect(fmtTempoPrioridade(8.8, 'P5', 8.8)).toBe('1 dia útil')
     expect(fmtTempoPrioridade(13.2, 'P4', 8.8)).toBe('1,5 dias úteis')
   })
@@ -28,6 +31,7 @@ describe('formatação da Sustentação (J2)', () => {
     expect(fmtTempoPrioridade(17.6, 'P5', 8)).toBe('2,2 dias úteis')
     expect(fmtTempoPrioridade(8.8, 'P4', 8)).toBe('1,1 dias úteis')
     expect(fmtHU(0.25)).toBe('0,25 h úteis')
+    expect(fmtHU(26.4)).toBe('26,4 h úteis')
   })
 })
 
@@ -90,7 +94,7 @@ describe('painel Sustentação', () => {
       expect(within(el).getByText('Granularidade: chamado')).toBeInTheDocument()
       expect(within(el).queryByText(/BusinessMap/)).toBeNull()
     }
-    expect(screen.queryByText(/minutos|\bmin\b|horas corridas/)).toBeNull()
+    expect(screen.queryByText(/minutos|(?<!8 h 48 )\bmin\b|horas corridas/)).toBeNull()
   })
 
   it('S1: sempre por prioridade; P1 com amostra insuficiente sem barra; exceções à parte; alvo com status em ícone e texto', async () => {

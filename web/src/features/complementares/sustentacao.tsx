@@ -11,7 +11,6 @@ import {
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
-import { fmtHorasUteis } from '@/lib/formatar'
 import { fmtHU } from '@/features/sustentacao/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
 import { CampoSemFonte, Leia } from './comuns'
@@ -176,8 +175,7 @@ export function CartaoS9({ filtros }: P) {
           ]}
           linhas={r.porMotivo.map((m) => {
             const v = m.estatistica.status === 'ok' ? m.estatistica.valor : undefined
-            const c = (k: 'p50' | 'p85' | 'p95') =>
-              v ? fmtHorasUteis(v[k]) : <CelulaInsuficiente />
+            const c = (k: 'p50' | 'p85' | 'p95') => (v ? fmtHU(v[k]) : <CelulaInsuficiente />)
             return { m: m.motivo, n: fmtInteiro(m.n), p50: c('p50'), p85: c('p85'), p95: c('p95') }
           })}
         />
@@ -220,8 +218,7 @@ export function CartaoS10({ filtros }: P) {
                 <>
                   <p className="text-sm font-medium" data-testid="percentis-S10">
                     P50 {fmtHU(atual.estatistica.valor.p50)} · P85{' '}
-                    {fmtHU(atual.estatistica.valor.p85)} · P95{' '}
-                    {fmtHU(atual.estatistica.valor.p95)}
+                    {fmtHU(atual.estatistica.valor.p85)} · P95 {fmtHU(atual.estatistica.valor.p95)}
                   </p>
                   {atual.histograma && (
                     <Histograma

@@ -7,13 +7,13 @@ export function fmtHU(h: number): string {
 }
 
 /**
- * Unidade fixa por prioridade (J2): P1 a P3 em h úteis; P4 e P5 em dias úteis (até 1 casa; singular até 1,0).
+ * Unidade fixa por prioridade (J2): P1 a P3 em h úteis; P4 e P5 em dias úteis (até 2 casas, sem zeros sobrando; singular até 1,0).
  * A conversão usa as horas do dia útil do calendário do resultado (`horasPorDiaUtil`, Decisão 13), nunca uma constante.
  */
 export function fmtTempoPrioridade(h: number, p: Prioridade, horasPorDiaUtil: number): string {
   if (p === 'P4' || p === 'P5') {
-    const d = Math.round((h / horasPorDiaUtil) * 10) / 10
-    return `${fmtNumero(d, 1)} ${d <= 1 ? 'dia útil' : 'dias úteis'}`
+    const d = Math.round((h / horasPorDiaUtil) * 100) / 100
+    return `${fmtNumero(d, 2)} ${d <= 1 ? 'dia útil' : 'dias úteis'}`
   }
   return fmtHU(h)
 }
