@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Dica } from '@/components/ui'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
+import type { Dominio, OpcoesFiltro } from '@metricas-dspd/contratos'
 import { renderizarBarra } from '@/test/helpers'
 import { FiltroMulti } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
@@ -650,5 +652,66 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
     await u.keyboard('{Escape}')
     expect(screen.getByLabelText(/^Buscar/)).toHaveValue('')
     expect(screen.getByLabelText('Beta')).toBeInTheDocument()
+  })
+})
+
+/** Fonte cujas opções de Tipo, Sistema e Prioridade vêm vazias (recorte sem dado) ou nunca chegam (carregando). */
+class FonteOpcoes extends MockFonteMetricas {
+  constructor(private readonly modo: 'vazias' | 'carregando') {
+    super({ latenciaMs: 0 })
+  }
+  override async opcoesFiltro<D extends Dominio>(
+    dominio: D,
+  ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
+    if (this.modo === 'carregando') return new Promise(() => {})
+    const real = await super.opcoesFiltro(dominio)
+    const vazio: OpcoesFiltro =
+      real.dominio === 'businessmap'
+        ? { ...real, tipos: [], sistemas: [] }
+        : { ...real, prioridades: [] }
+    return vazio as Extract<OpcoesFiltro, { dominio: D }>
+  }
+}
+
+describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', () => {
+  it('Tipo e Sistema sem opções dizem que não há nada no recorte, sem campo de busca', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('vazias'))
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    expect(await screen.findByText('Nenhum tipo disponível neste recorte.')).toBeInTheDocument()
+    expect(screen.queryByTestId('tipo-busca')).toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(screen.getByTestId('filtro-sistema'))
+    expect(await screen.findByText('Nenhum sistema disponível neste recorte.')).toBeInTheDocument()
+    expect(screen.queryByTestId('sistema-busca')).toBeNull()
+  })
+
+  it('Prioridade sem opções (Sustentação) diz que não há nada no recorte', async () => {
+    renderizarBarra('/sustentacao', new FonteOpcoes('vazias'))
+    await userEvent.click(await screen.findByTestId('filtro-prioridade'))
+    expect(
+      await screen.findByText('Nenhuma prioridade disponível neste recorte.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('prioridade-busca')).toBeNull()
+  })
+
+  it('enquanto as opções não chegam, diz que está carregando, não que está vazio', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('carregando'))
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    expect(await screen.findByText('Carregando tipos...')).toBeInTheDocument()
+    expect(screen.queryByText(/disponível neste recorte/)).toBeNull()
+  })
+
+  it('com opções, a lista aparece com a busca e sem a mensagem', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    expect(await screen.findByTestId('tipo-busca')).toBeInTheDocument()
+    expect(screen.queryByTestId('tipo-vazio')).toBeNull()
+  })
+
+  it('o mock não oferece Incidente (a API não devolve, A3), só os tipos do BusinessMap', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    expect(await screen.findByTestId('tipo-opcao-melhoria')).toBeInTheDocument()
+    expect(screen.queryByTestId('tipo-opcao-incidente')).toBeNull()
   })
 })

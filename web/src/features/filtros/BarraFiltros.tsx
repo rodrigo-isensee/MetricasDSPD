@@ -3,7 +3,7 @@ import { useId, useRef, useState } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
-import { TIPO_ID } from '@metricas-dspd/contratos'
+import { TIPO_ID, TIPO_POR_ID } from '@metricas-dspd/contratos'
 import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
 import { FiltroMulti, escLimpaBuscaFocada } from './FiltroMulti'
@@ -20,7 +20,13 @@ const TEXTO_TIPO =
 
 /** Ids da URL/lista viram os rótulos do contrato (o servidor só entrega ids de TIPO_ID). */
 const tiposDe = (ids: readonly string[]): FiltrosFluxo['tipo'] =>
-  (Object.keys(TIPO_ID) as FiltrosFluxo['tipo']).filter((t) => ids.includes(TIPO_ID[t]))
+  ids.flatMap((id) => TIPO_POR_ID.get(id) ?? [])
+
+/** Texto da lista sem opções: ainda carregando, ou nada no recorte (ou erro; a lista não distingue). */
+const semOpcoes = (carregando: boolean, plural: string, genero: 'm' | 'f' = 'm'): string =>
+  carregando
+    ? `Carregando ${plural}...`
+    : `${genero === 'm' ? 'Nenhum' : 'Nenhuma'} ${plural.replace(/s$/, '')} disponível neste recorte.`
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
   const { config, opcoes } = uso
@@ -48,6 +54,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Tipo de demanda"
           genero="m"
           opcoes={tiposOpc}
+          vazio={semOpcoes(!opcoes, 'tipos')}
           selecionados={f.tipo.map((t) => TIPO_ID[t])}
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
@@ -60,6 +67,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Sistema"
           genero="m"
           opcoes={bm?.sistemas ?? []}
+          vazio={semOpcoes(!opcoes, 'sistemas')}
           selecionados={f.sistema}
           variante={variante}
           onChange={(ids, replace) => definir({ sistema: ids }, { replace })}
@@ -70,6 +78,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           id="prioridade"
           rotulo="Prioridade"
           opcoes={ac?.prioridades ?? []}
+          vazio={semOpcoes(!opcoes, 'prioridades', 'f')}
           selecionados={f.prioridade.map((p) => p.toLowerCase())}
           variante={variante}
           onChange={(ids, replace) =>

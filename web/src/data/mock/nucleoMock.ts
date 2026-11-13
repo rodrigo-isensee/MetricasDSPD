@@ -223,7 +223,11 @@ export class NucleoMock {
             equipes: base.bm.config.equipes
               .map((e) => ({ id: lib.slug(e.nome), nome: e.nome }))
               .sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR')),
-            tipos: TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t })),
+            // Como a API: sem Incidente, que não vem do BusinessMap (só do Acelerato).
+            tipos: TIPOS_FILTRO.filter((t) => t !== 'Incidente').map((t) => ({
+              id: TIPO_ID[t],
+              nome: t,
+            })),
             sistemas: base.bm.config.sistemas.map((s) => ({ id: lib.slug(s), nome: s })),
             historico,
           }

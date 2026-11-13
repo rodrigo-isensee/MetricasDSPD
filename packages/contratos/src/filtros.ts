@@ -46,6 +46,11 @@ export const TIPO_ID: Record<TipoFiltro, string> = {
   'Trabalho de produto': 'trabalho-produto',
 }
 
+/** Id (URL, opções de filtro) -> rótulo do contrato: o único mapa inverso de `TIPO_ID`. */
+export const TIPO_POR_ID: ReadonlyMap<string, TipoFiltro> = new Map(
+  (Object.keys(TIPO_ID) as TipoFiltro[]).map((t) => [TIPO_ID[t], t]),
+)
+
 /**
  * Filtros do fluxo (BusinessMap). Lista vazia = "Todos" (padrão). Equipe e sistema são ids
  * (slugs) vindos de `OpcoesFiltro`. Várias equipes = resultado consolidado, nunca comparação.

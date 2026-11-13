@@ -33,7 +33,7 @@ test('FIL-03/06/07 marcar atualiza URL, recarregar restaura, chip remove, limpar
   await expect(page).not.toHaveURL(/equipe=/);
   await o4.esperarPronto();
   await expect.poll(() => o4.baseItens()).toBe(antes);
-  await painel.filtros.alternar('tipo', ['Incidente']);
+  await painel.filtros.alternar('tipo', ['Melhoria']);
   await painel.filtros.limpar.click();
   await expect.poll(() => painel.filtros.parametros().toString()).toBe('cadencia=semanal'); // limpar filtros preserva a cadência (não é filtro)
 });
@@ -127,8 +127,8 @@ test('FIL-22 alternar 10 vezes não gera URL inconsistente', async ({ painel, pa
 });
 
 test('NAV-06 links entre painéis de fluxo preservam filtros', async ({ painel, page }) => {
-  await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus&tipo=incidente');
+  await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus&tipo=melhoria');
   await painel.cabecalho.linkPara('Tático').click();
   await expect(page).toHaveURL(/equipe=erp-protheus/);
-  await expect(page).toHaveURL(/tipo=incidente/);
+  await expect(page).toHaveURL(/tipo=melhoria/);
 });
