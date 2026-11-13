@@ -24,6 +24,13 @@ const sust = (p: FiltrosSustentacao['periodo']): FiltrosSustentacao => ({
 })
 
 describe('MockFonteMetricas', () => {
+  it('S1 usa o dia útil da Sustentação (8,8 h) e os alvos do PROC em dias: P4 44 h = 5 dias úteis', async () => {
+    const r = await fonte.obter('S1', sust({ tipo: '6m' }))
+    expect(r.horasPorDiaUtil).toBe(8.8)
+    const p4 = r.prioridades.find((x) => x.prioridade === 'P4')
+    expect((p4?.restauracao.alvoHoras ?? 0) / r.horasPorDiaUtil).toBe(5)
+  })
+
   it('toda métrica devolve um DTO válido pelo schema zod, com filtros padrão e com filtros estreitos', async () => {
     for (const id of METRICA_IDS) {
       const s = fonteDaMetrica(id) === 'acelerato'

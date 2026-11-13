@@ -34,7 +34,7 @@ function referencia(semente: number | undefined) {
   )
   const ctx = {
     bm: lib.businessmap.criarContextoBM(bmBase, base.config.hoje, cal),
-    ac: lib.acelerato.criarContextoAC(base.ac, base.config.hoje, cal),
+    ac: lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.acelerato.CALENDARIO_SUSTENTACAO_PADRAO),
     pesq,
   }
   const ext = mock.gerarExtensoesMock({ ...base, bm: bmBase })
