@@ -379,4 +379,29 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     expect(await prazo(String(ruim.card_id))).toBeNull();
     expect(rr.notas.deadline_fora_da_forma).toBeGreaterThanOrEqual(1);
   });
+
+  it('C8a (K-306): priority do staging vira severidade em dim_card pelo mapa vigente do ref_dominio; fora do mapa e nulo ficam sem severidade; sem mapa, nenhuma', async () => {
+    const com = (priority: unknown): Cartao => novo({ priority });
+    const crit = await staging(com(1));
+    const baixa = await staging(com(4));
+    const fora = await staging(com(5));
+    const nulo = await staging(novo());
+    await projetar();
+    for (const id of [crit, baixa, fora, nulo]) expect((await dim(id)).severidade).toBeNull();
+
+    const mapa: [string, string][] = [['1', 'Crítica'], ['2', 'Alta'], ['3', 'Média'], ['4', 'Baixa']];
+    for (const [codigo, rotulo] of mapa) {
+      await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('prioridade_severidade', $1, '2020-01-01', $2, 0)`, [codigo, rotulo]);
+    }
+    try {
+      const r = await projetar();
+      expect((await dim(crit)).severidade).toBe('Crítica');
+      expect((await dim(baixa)).severidade).toBe('Baixa');
+      expect((await dim(fora)).severidade).toBeNull();
+      expect((await dim(nulo)).severidade).toBeNull();
+      expect(r.notas.priority_fora_do_mapa).toBeGreaterThanOrEqual(1);
+    } finally {
+      await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'prioridade_severidade'`);
+    }
+  });
 });
