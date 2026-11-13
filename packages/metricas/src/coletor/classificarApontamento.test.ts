@@ -786,13 +786,22 @@ describe('A3: orçamento de tempo (plano §3.4)', () => {
     )
   })
 
-  it('10 000 comentários de 2000 pontos de código contra 500 termos em até 5 s', () => {
-    const comentarios = Array.from({ length: 10000 }, (_, i) =>
+  it('10 000 comentários de 2000 pontos de código contra 500 termos: melhor de 10 lotes de 1000 em até 0,5 s de CPU (equivale a 5 s)', () => {
+    // Tempo de CPU (não de parede) e o melhor lote: sob carga (pronto paralelo) o processo é
+    // descalonado e o relógio de parede infla (5,4 s medidos contra 1,6 s isolado), mas uma regressão
+    // real de complexidade encarece todos os lotes e continua estourando o limite.
+    const lotes = 10
+    const porLote = 1000
+    const comentarios = Array.from({ length: porLote }, (_, i) =>
       i % 2 === 0 ? pior : `${tipico}${i}`,
     )
-    const t0 = performance.now()
-    for (const c of comentarios) classificarApontamento({ comentario: c, typeId: null }, dTeto)
-    expect(performance.now() - t0).toBeLessThan(5000)
+    const medidas = Array.from({ length: lotes }, () => {
+      const c0 = process.cpuUsage()
+      for (const c of comentarios) classificarApontamento({ comentario: c, typeId: null }, dTeto)
+      const c1 = process.cpuUsage(c0)
+      return (c1.user + c1.system) / 1000
+    })
+    expect(Math.min(...medidas)).toBeLessThan(500)
   })
 
   it('um comentário de 2000 pontos de código com 500 termos em menos de 5 ms (melhor de 7 medidas, já aquecido)', () => {
