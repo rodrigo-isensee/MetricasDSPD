@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { ErroConfiguracao } from '../../plataforma/categoria-erro.js';
+import { carregarConfigWorker, type ConfigWorker } from '../../plataforma/config.js';
 import { ErroColeta } from './erros.js';
 import { normalizarImpressao } from './tls.js';
 
@@ -60,3 +62,30 @@ export function carregarConfigAcelerato(env: NodeJS.ProcessEnv = process.env): C
 
 /** Nomes (nunca valores) das variáveis que falharam. */
 export const variaveisInvalidas = (e: z.ZodError): string[] => [...new Set(e.issues.map((i) => String(i.path[0])))];
+
+/**
+ * Configuração da coleta manual do Acelerato (K-304): a do worker (banco do coletor) e a do MySQL, validadas juntas. Se faltar ou for inválida
+ * alguma, a falha lista os NOMES de todas de uma vez (nunca valor, nem parte dele), como `ErroConfiguracao`.
+ */
+export function carregarConfigColetaAcelerato(env: NodeJS.ProcessEnv = process.env): { worker: ConfigWorker; config: ConfigAcelerato } {
+  const nomes: string[] = [];
+  let worker: ConfigWorker | undefined;
+  let config: ConfigAcelerato | undefined;
+  try {
+    worker = carregarConfigWorker(env);
+  } catch (e) {
+    if (!(e instanceof ErroConfiguracao)) throw e;
+    nomes.push(...e.nomes);
+  }
+  try {
+    config = carregarConfigAcelerato(env);
+  } catch (e) {
+    if (!(e instanceof ErroColeta) || e.codigo !== 'configuracao-invalida' || e.coluna === undefined) throw e;
+    nomes.push(...e.coluna.split(','));
+  }
+  if (worker === undefined || config === undefined) {
+    const unicos = [...new Set(nomes)];
+    throw new ErroConfiguracao(`Configuração inválida (variáveis: ${unicos.join(', ')})`, unicos);
+  }
+  return { worker, config };
+}
