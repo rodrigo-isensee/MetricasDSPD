@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l10a-setor-dicionario
-commit: 977d1484196e59f0a587269b027f2862ef9cd036
+commit: b8894efe8413f72c1075eb361c234117c6764fa5
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-12
+data: 2026-11-13
 ---
 
 # QA: L10a, dicionário de setores e opcoes.setores (097, E3.3)
@@ -56,5 +56,17 @@ O delta toca `docs/api/openapi.json` (bloco `setores` em `opcoes`, sem campo obr
 - `VITEST_MAX_WORKERS=2`, `dominio-businessmap.test.ts` e `opcoes-setores.test.ts`: 2 arquivos, 64 testes passaram.
 - Mutação da guarda de slug vazio (`servico.ts:49`, remove a condição de slug vazio): o teste novo "nome cujo slug é vazio..." cai (1 falha, 5 passam); arquivo restaurado por `git checkout`, árvore limpa. Vermelho provado.
 - Veredito mantido: aprovado, 0 bugs. A suíte inteira fica com o check-run `bateria` do mesmo sha.
+
+## Revalidação da junção com a develop e da volta 1 (delta 977d1484..b8894efe; o head f67c685b só adiciona parecer de review)
+Domínio no delta (`forge-check parecer delta`): `dominio-businessmap.ts`, `referencia/index.ts`, `repositorio.ts`, `businessmap-dominio.json`, `referencia.test.ts`, `dominio-businessmap.test.ts`, `docs/api`. A volta 1 (`b8894efe`) só troca o import de `setor.js` pelo `index.ts` da referência (ADR 0013), que passa a reexportar `CAMPO_SETOR_QUADRO`, `CODIGO_QUADRO` e `rotuloDeSetorSeguro`; sem mudança de comportamento.
+- Convivência setores (L10a) e `prioridade_severidade` (C8a): `listasDoArquivo` grava `setor_quadro` e `prioridade_severidade` lado a lado; o JSON de domínio tem `setores: []` e as 4 severidades. Testes (`--maxWorkers=2`, nada contra a base real): `dominio-businessmap`, `opcoes-setores` e `referencia` do server: 3 arquivos, 98 passaram (2 arquivos `.pg` pulados, ficam com o job `banco`); `packages/contratos` (inclui `referencia.test.ts`): 12 arquivos, 219 passaram.
+- Mutação à mão em `dominio-businessmap.ts`, cada uma isolada e restaurada (cópia do original, árvore limpa depois):
+  - M1 remove `listas[CAMPO_SETOR_QUADRO] = a.setores`: morto, 3 testes caem.
+  - M2 remove `listas[CAMPO_PRIORIDADE_SEVERIDADE] = ...`: morto, 4 caem.
+  - M3 remove o `.refine(rotuloDeSetorSeguro)` (guarda de setor): morto, 2 caem.
+  - M4 remove o filtro de regex do código em `prioridadesDeLinhas`: morto, 1 cai.
+  - A 1ª tentativa empilhou mutantes (o `git checkout` falhou na sandbox); foi descartada e refeita isolada.
+- CI do head f67c685b (run 43529993673, em andamento na leitura): filtro, build, seguranca, imagem, openapi, rapida e banco com sucesso; `testes` (bateria) ainda rodando. A suíte inteira vale pelo check-run `bateria` do mesmo sha; o parecer não o declara verde antes dele.
+- Veredito mantido: aprovado, 0 bugs, condicionado ao `bateria` verde do sha.
 
 ## Achados
