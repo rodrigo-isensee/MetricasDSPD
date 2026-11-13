@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-c8a-criticidade
-commit: 8c77eeffeafb79837ff245d37d163c9f0dd80e51
+commit: 7f9b6f4f307f10a4bb25f3f8a9cfdfd10f37b583
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -35,6 +35,12 @@ Diff contra `develop` (3c34a63b), 7 arquivos (classe N): mapa `prioridade_severi
 ## Execução local
 - `server`: `vitest run tests/dominio-businessmap.test.ts tests/normalizador-businessmap.test.ts`: 99 passaram em 8c77eeff.
 - Vermelho antes do verde (cópia com `server/src` e `docs/architecture/fontes` da base 3c34a63b e os testes do HEAD; não usei `forge-testes --vermelho`): caíram, entre outros, os 15 casos de priority do normalizador, o do arquivo real e o do esquema das quatro severidades. Com o HEAD, passam.
+
+## Revalidação (volta 1, 7f9b6f4f)
+- Delta: data-model.md (linhas 116 e 136, texto), comentário da regex em dominio-businessmap.ts (sem mudança de código) e um teste novo em normalizador-businessmap.test.ts (priority nulo com mapa apaga a severidade de campo customizado, sem nota; fronteira: nulo com mapa carregado).
+- vitest run tests/dominio-businessmap.test.ts tests/normalizador-businessmap.test.ts: 100 passaram.
+- Mutação do teste novo (return null do nulo trocado por return undefined, restaurado): 1 falha, exatamente o teste novo. Morta.
+- A1 segue aberto como recomendado (.pg com a bateria).
 
 ## Mutação (cópia descartável de `git archive`, restaurada a cada uma)
 - M1 nulo vira "Média": 2 falhas. Morta.
