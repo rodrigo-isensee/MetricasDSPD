@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  ARQUIVO_DOMINIO_BM, TIPOS_SELECAO_UNICA, TAMANHO_MAXIMO_ARQUIVO, analisarDominioBm, dominiosDeLinhas, lerDominioBm, listasDoArquivo, sincronizarDominioBm,
+  ARQUIVO_DOMINIO_BM, prioridadesDeLinhas, TIPOS_SELECAO_UNICA, TAMANHO_MAXIMO_ARQUIVO, analisarDominioBm, dominiosDeLinhas, lerDominioBm, listasDoArquivo, sincronizarDominioBm,
 } from '../src/modulos/businessmap/dominio-businessmap.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { ErroDominio } from '../src/modulos/referencia/dominio-acelerato.js';
@@ -36,6 +36,11 @@ describe('bm:ref-sync: o arquivo versionado', () => {
   it('nasce vazio de campos, valido, e a lista positiva de tipos nasce vazia', () => {
     const lido = lerDominioBm();
     expect(lido.arquivo.campos).toEqual([]);
+    // C8a: escrito AQUI, não importado do código (B-1 da ADR 0020); fato da OpenAPI v2 do BusinessMap, escala decrescente
+    expect(lido.arquivo.prioridade_severidade).toEqual([
+      { codigo: '1', rotulo: 'Crítica' }, { codigo: '2', rotulo: 'Alta' }, { codigo: '3', rotulo: 'Média' }, { codigo: '4', rotulo: 'Baixa' },
+    ]);
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O16']);
     expect(lido.sha256).toBe(createHash('sha256').update(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')).digest('hex'));
     expect(TIPOS_SELECAO_UNICA).toEqual([]);
   });
@@ -52,8 +57,9 @@ describe('bm:ref-sync: o arquivo versionado', () => {
       area_solicitante: [{ codigo: 'a1', rotulo: 'Area Um' }],
       sistema: [{ codigo: 's1', rotulo: 'Sistema Um' }],
       motivo_bloqueio: [],
+      prioridade_severidade: [],
     });
-    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [] });
+    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], prioridade_severidade: [] });
   });
 
   it.each(PROIBIDOS)('CA-069-1: o field %s no arquivo recusa a carga inteira, sem valor na mensagem', (id) => {
@@ -183,7 +189,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
     const versao = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio'))!;
     expect(versao.valores).toEqual([HOJE, 'Teste do bm:ref-sync', 'Teste', `069:ref-bm-campos:${lido.sha256}`, AGORA.toISOString()]);
-    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio']]);
+    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'prioridade_severidade']]);
   });
 
   it('já vigente e igual: nada é gravado e nenhuma versão é registrada; versão já existente não duplica', async () => {
@@ -203,5 +209,43 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(d.chamadas.filter((c) => c.texto.startsWith('UPDATE dspd_bm.ref_dominio SET vigente_ate')).map((c) => c.valores)).toEqual([[HOJE, 'campo_customizado', '7']]);
     const retro = criarDublePg((c) => (c.texto.startsWith('SELECT campo, codigo, rotulo, vigente_de') ? vigentes : c.texto.includes('max(greatest') ? [{ campo: 'campo_customizado', ultima: '2026-11-10' }] : []));
     await expect(sincronizarDominioBm(retro.pool, S, vazio, HOJE, AGORA)).rejects.toBeInstanceOf(ErroDominio);
+  });
+});
+
+describe('C8a: mapa priority -> severidade (prioridade_severidade)', () => {
+  const comPrioridade = (p: unknown, afeta: unknown = []): string => JSON.stringify({
+    ...JSON.parse(arquivo([])), prioridade_severidade: p,
+    versao_criterio: { dominio: 'businessmap', descricao: 'Teste', motivo: 'Teste', referencia: 'teste', afeta },
+  });
+  it('aceita as quatro severidades do contrato e vira lista de ref_dominio', () => {
+    const lido = analisarDominioBm(comPrioridade([{ codigo: '1', rotulo: 'Crítica' }, { codigo: '4', rotulo: 'Baixa' }]));
+    expect(listasDoArquivo(lido.arquivo).prioridade_severidade).toEqual([{ codigo: '1', rotulo: 'Crítica' }, { codigo: '4', rotulo: 'Baixa' }]);
+  });
+  it.each([
+    ['rótulo fora das quatro', [{ codigo: '1', rotulo: 'Urgente' }]],
+    ['código com zero à esquerda', [{ codigo: '01', rotulo: 'Crítica' }]],
+    ['código não numérico', [{ codigo: 'a', rotulo: 'Crítica' }]],
+    ['código repetido', [{ codigo: '1', rotulo: 'Crítica' }, { codigo: '1', rotulo: 'Alta' }]],
+    ['campo extra', [{ codigo: '1', rotulo: 'Crítica', extra: 1 }]],
+  ])('recusa %s, sem valor na mensagem', (_n, p) => {
+    expect(recusa(comPrioridade(p))).toMatch(/inválido/);
+  });
+  it('recusa métrica afetada que não existe', () => {
+    expect(() => analisarDominioBm(comPrioridade([], ['X99']))).toThrow(ErroDominio);
+  });
+  it('a leitura do projetor desconfia do banco: só código de 1 a 3 dígitos e severidade das quatro; código ligado a duas severidades sai', () => {
+    const l = (campo: string, codigo: string, rotulo: string) => ({ campo, codigo, rotulo });
+    expect([...prioridadesDeLinhas([
+      l('prioridade_severidade', '1', 'Crítica'), l('prioridade_severidade', '2', 'Alta'), l('prioridade_severidade', '3', 'Urgente'),
+      l('prioridade_severidade', '04', 'Baixa'), l('outro', '4', 'Baixa'), l('prioridade_severidade', '5', 'Baixa'), l('prioridade_severidade', '5', 'Alta'),
+    ])]).toEqual([['1', 'Crítica'], ['2', 'Alta']]);
+  });
+  it('a versão de critério grava as métricas de afeta, uma linha por métrica, só em dspd_core', async () => {
+    const lido = analisarDominioBm(comPrioridade([{ codigo: '1', rotulo: 'Crítica' }], ['O16']));
+    const d = criarDublePg((c) => (c.texto.includes('RETURNING versao_id') ? [{ versao_id: '77' }] : []));
+    const r = await sincronizarDominioBm(d.pool, montarEsquemas(''), lido, '2026-11-04', new Date('2026-11-04T12:00:00Z'));
+    expect(r).toMatchObject({ inseridas: 1, versaoRegistrada: true });
+    const m = d.chamadas.filter((c) => c.texto.startsWith('INSERT INTO dspd_core.ref_versao_criterio_metrica'));
+    expect(m.map((c) => c.valores)).toEqual([['77', 'O16']]);
   });
 });

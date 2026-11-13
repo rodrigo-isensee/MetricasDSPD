@@ -55,6 +55,8 @@ export interface Referencia {
   tipos: ReadonlyMap<string, readonly LinhaTipo[]>;
   /** `field_id` -> coluna de lista de `dim_card` (L2-b, `ref_dominio campo = 'campo_customizado'`); vazio = nenhuma coluna de lista é preenchida. */
   camposLista: ReadonlyMap<string, string>;
+  /** `priority` do card -> severidade (C8a, `ref_dominio campo = 'prioridade_severidade'`); ausente ou vazio = nenhuma severidade é projetada. */
+  prioridades?: ReadonlyMap<string, string>;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -152,6 +154,19 @@ export function dataAcordada(valor: unknown, notas: string[]): string | null {
   notas.push('deadline_fora_da_forma');
   return null;
 }
+/**
+ * C8a: severidade pelo `priority` nativo e o mapa versionado (1 Critical a 4 Low, decrescente). Sem mapa: `undefined` (a coluna fica como a lista a deixou).
+ * `priority` nulo ou ausente: `null` (Sem severidade, Q-099-33 recomendação A: o valor não foi gravado; não se supõe Average). Valor fora do mapa
+ * (por exemplo acima de 4): `null` com a nota `priority_fora_do_mapa` (contagem; o valor nunca vai a log nem a tabela); a regra "acima de 4 = Low" da ferramenta não se aplica.
+ */
+export function severidadeDaPrioridade(valor: unknown, mapa: ReadonlyMap<string, string> | undefined, notas: string[]): string | null | undefined {
+  if (mapa === undefined || mapa.size === 0) return undefined;
+  if (valor === undefined || valor === null) return null;
+  const chave = typeof valor === 'number' && Number.isInteger(valor) ? String(valor) : typeof valor === 'string' && /^[1-9]\d{0,2}$/.test(valor) ? valor : null;
+  const sev = chave === null ? undefined : mapa.get(chave);
+  if (sev === undefined) notas.push('priority_fora_do_mapa');
+  return sev ?? null;
+}
 const data = (ms: number | null): Date | null => (ms === null ? null : new Date(ms));
 
 function colunaDoPasso(ref: Referencia, quadro: string | null, coluna: string, dia: string, notas: string[]): { passo: ColunaDoPasso; tipo: 'fila' | 'execucao' | null } | undefined {
@@ -232,6 +247,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   const pai = pais[0] === undefined || (paiTipo !== undefined && !paiTipo.eh_item) ? null : pais[0];
   if (pais[0] !== undefined && pai === null) notas.push('pai_sprint');
 
+  const severidade = severidadeDaPrioridade(e.card.priority, ref.prioridades, notas);
   const titulo = texto(e.card.title);
   const eventos: EventoCard[] = [{ card_id: e.id, tipo: 'criado', ocorrido_em: new Date(criado) }];
   if (arquivadoNativo !== null) eventos.push({ card_id: e.id, tipo: 'arquivado', ocorrido_em: new Date(arquivadoNativo) });
@@ -244,6 +260,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
       excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), ...colunasDeLista(e.card, ref.camposLista, notas),
+      ...(severidade === undefined ? {} : { severidade }),
     },
     transicoes, eventos, notas,
   };
