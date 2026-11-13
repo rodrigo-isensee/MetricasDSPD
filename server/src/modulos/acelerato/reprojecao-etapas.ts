@@ -1,9 +1,8 @@
-import { acelerato } from '@metricas-dspd/metricas';
+import * as acelerato from '@metricas-dspd/metricas/acelerato';
 import { FERIADOS_NACIONAIS } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
-import { lerCalendarioVigente, lerTurnosVigentes } from '../referencia/repositorio.js';
-import { registrarCriterioD7528 } from '../referencia/criterios-acelerato.js';
+import { dataCivil, lerCalendarioVigente, lerTurnosVigentes, registrarCriterioD7528 } from '../referencia/index.js';
 import { exigirEsquemaSemSeed } from './erros.js';
 import { etapasDoStaging, regravarIntervalos, TAMANHO_LOTE } from './projetor.js';
 
@@ -47,16 +46,13 @@ async function divergencias(db: Parameters<typeof lerCalendarioVigente>[0], S: E
   return lista;
 }
 
-/** Data civil (-03:00) do instante, AAAA-MM-DD. */
-const dataCivilBrasilia = (d: Date): string => new Date(d.getTime() - 3 * 3_600_000).toISOString().slice(0, 10);
-
 export async function reprojetarEtapasAcelerato(pool: PoolLike, S: Esquemas, agora: () => Date): Promise<ResultadoReprojecao> {
   return emTransacao(pool, async (db) => {
     await exigirEsquemaSemSeed(db, S);
     const diverge = await divergencias(db, S);
     if (diverge.length > 0) throw new ErroReprojecao(`o calendário da referência difere do da montagem (CALENDARIO_SUSTENTACAO_PADRAO): ${diverge.join('; ')}`);
     const inicio = agora();
-    const vigenteDesde = dataCivilBrasilia(inicio);
+    const vigenteDesde = dataCivil(inicio);
     const ctl = await db.query<{ coleta_id: string }>(
       `INSERT INTO ${S.ac}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_REPROJECAO_D7]);
     const coletaId = Number(ctl.rows[0]!.coleta_id);

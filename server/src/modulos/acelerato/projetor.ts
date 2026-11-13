@@ -3,10 +3,10 @@ import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/d
 import { Contadores, type RegistroChamado } from './allow-list.js';
 import { ErroColeta, exigirEsquemaSemSeed } from './erros.js';
 import { registrarContagens, type Contagem } from './controle.js';
-import { acelerato } from '@metricas-dspd/metricas';
+import * as acelerato from '@metricas-dspd/metricas/acelerato';
 import { CALENDARIO_PADRAO, type Calendario } from '@metricas-dspd/metricas/core';
 import { intervalosDasEtapas } from './etapas-sinteticas.js';
-import { REFERENCIA_D7_528 } from '../referencia/criterios-acelerato.js';
+import { REFERENCIA_D7_528 } from '../referencia/index.js';
 import { normalizarChamado, type EtapaTotal, type Natureza, type NaturezaPorPrefixo, type LinhaProjecao } from './normalizador.js';
 import { ultimasDeEtapas } from './staging.js';
 
