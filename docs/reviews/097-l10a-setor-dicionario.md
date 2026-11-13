@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l10a-setor-dicionario
-commit: 91403ece93906660884625279179c143ab209449
-parecer: reprovado
+commit: b8894efe8413f72c1075eb361c234117c6764fa5
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-13
 ---
@@ -49,6 +49,11 @@ Lido: `forge-check parecer delta docs/reviews/097-l10a-setor-dicionario.md`, int
 - CI do head `91403ece` (run 43524246705, evento push; o PR ainda não existe): **falhou** no job `rapida`, passo `pnpm run lint`, com `8:1 error '../referencia/setor.js' import is restricted from being used by a pattern. Módulos se conhecem só pelo index.ts (ADR 0013 §9) no-restricted-imports` (`✖ 1 problem`). Os jobs `testes`, `openapi`, `banco`, `build`, `seguranca`, `filtro` e `imagem` passaram, e `e2e` e `perf` foram pulados por dependerem da `rapida`.
 - **A causa não é a junção.** A linha 8 de `dominio-businessmap.ts` já estava no `977d1484`, e a regra do `server/eslint.config.js:14` não mudou de `977d1484` a `e5092e05`. Os runs da branch nos heads `86a3808f` e `53da301f` também acabaram em falha, e os do meio foram cancelados. Na volta 1 eu aprovei sem o CI verde, porque o PR não existia. Esse foi um erro deste review, e o A4 o corrige.
 
+## Delta da volta 3 (A4)
+Lido: `forge-check parecer delta docs/reviews/097-l10a-setor-dicionario.md`, intervalo `91403ece..b8894efe`. No domínio entram só `server/src/modulos/businessmap/dominio-businessmap.ts` e `server/src/modulos/referencia/index.ts` (`git diff d247a62c b8894efe`: 2 arquivos, +2 -2).
+- **A4 fechado.** `referencia/index.ts` reexporta `CAMPO_SETOR_QUADRO`, `CODIGO_QUADRO` e `rotuloDeSetorSeguro` de `./setor.js`, e `dominio-businessmap.ts` importa tudo de `../referencia/index.js` numa linha só. Não há ciclo: `setor.ts` não importa nada, e nenhum arquivo de `referencia/` importa de `businessmap/`. Fora de `modulos/referencia/`, nenhum arquivo de `server/src` nem de `web/src` importa `referencia/setor` direto.
+- CI do head `b8894efe` (run 43528540695, evento push): **success**. Passaram `rapida` (lint) e `testes`, e também `banco`, `openapi`, `build`, `seguranca`, `filtro` e `imagem`. `e2e-parte`, `e2e` e `perf` foram pulados porque só rodam em `pull_request` ou `workflow_dispatch` (`ci.yml:193`, `ci.yml:233`). Eles rodam no PR.
+- A mudança é só de import e reexport, sem comportamento novo, e por isso não pede teste nem mutante.
+
 ## Achados
-- A4 (bloqueante) server/src/modulos/businessmap/dominio-businessmap.ts:8 · importa `../referencia/setor.js` direto (ADR 0013 §9); o lint do CI recusa e o CI fica vermelho. Autor: exportar pelo `referencia/index.ts` e importar de `../referencia/index.js`, sem ciclo; `pnpm run pronto` verde no PQ.
 - A3 (recomendado) docs/analises/097-plano-e5-e7.md:100 · FiltrosFluxo.setor e FiltroFluxoChave 'setor' saíram do L10a. O brief do L10b deve listá-los, para o contrato da entrada não se perder. Dono: Jarvis, no brief.
