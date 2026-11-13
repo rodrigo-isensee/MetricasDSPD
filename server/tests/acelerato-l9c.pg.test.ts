@@ -88,12 +88,12 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
 
     relogio = new Date('2026-11-05T11:00:00Z');
     await coletar([etapa([
-      { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Alfa' }, { nome: 'Motivo da Escalação', tipo: 'lista', valor: '', kanbanStatusKey: 20 },
+      { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Alfa' }, { nome: 'Motivo da Escalação:', tipo: 'lista', valor: '', kanbanStatusKey: 20 },
       // 'Beta' vem primeiro na lista e vence porque a etapa 20 vem por último no desenho do fluxo (a ordem das linhas não decide).
       { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Beta', kanbanStatusKey: 20 }, { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Alfa', kanbanStatusKey: 10 },
       { nome: 'Avaliação de Problema', tipo: 'lista', valor: 'Beta' }, { nome: 'Motivo de Pendência', tipo: 'lista', valor: 'Alfa' },
       { nome: 'Prioridade ajustada manualmente?', tipo: 'lista', valor: 'SIM' },
-      { nome: 'Se a prioridade foi ajustada, justifique', tipo: 'texto', valor: 'TEXTO-LIVRE-L9C' }, { nome: 'Previsão de retorno', tipo: 'data', valor: '2026-12-01' },
+      { nome: 'Se a prioridade foi ajustada, justifique:', tipo: 'texto', valor: 'TEXTO-LIVRE-L9C' }, { nome: 'Previsão de retorno:', tipo: 'data', valor: '2026-12-01' },
     ])]);
     await projetarAcelerato(coletor, E, () => relogio);
     expect((await dono.query(`SELECT * FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0]).toMatchObject({

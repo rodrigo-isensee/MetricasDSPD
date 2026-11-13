@@ -249,7 +249,7 @@ describe('BUG-087-2: nome do campo de etapa devolvido pela collation da conexão
   const preench = (nome: string) => ({ ticket_key: 1, nome, preenchido: 1 });
   const rodar = (l: unknown[], p: unknown[], c: Contadores) => camposEtapa(l, p, dom, new Map(), c);
   const variantesLista: [string, string][] = [
-    ['acento', 'Motivo da Escalacao'], ['maiúscula', 'MOTIVO DA ESCALAÇÃO'], ['espaço no fim', 'Motivo da Escalação  '],
+    ['acento', 'Motivo da Escalacao:'], ['maiúscula', 'MOTIVO DA ESCALAÇÃO:'], ['espaço no fim', 'Motivo da Escalação:  '],
   ];
   for (const [rotulo, recebido] of variantesLista) {
     it(`lista: variante de ${rotulo} segue com o valor e soma o contador`, () => {
@@ -259,7 +259,7 @@ describe('BUG-087-2: nome do campo de etapa devolvido pela collation da conexão
     });
   }
   const variantesPreenchido: [string, string][] = [
-    ['acento', 'Previsao de retorno'], ['maiúscula', 'PREVISÃO DE RETORNO'], ['espaço no fim', 'Previsão de retorno '],
+    ['acento', 'Previsao de retorno:'], ['maiúscula', 'PREVISÃO DE RETORNO:'], ['espaço no fim', 'Previsão de retorno: '],
   ];
   for (const [rotulo, recebido] of variantesPreenchido) {
     it(`preenchido: variante de ${rotulo} segue e soma o contador`, () => {
@@ -270,7 +270,7 @@ describe('BUG-087-2: nome do campo de etapa devolvido pela collation da conexão
   }
   it('nome exato não soma contador', () => {
     const c = new Contadores();
-    rodar([lista('Motivo da Escalação')], [preench('Previsão de retorno')], c);
+    rodar([lista('Motivo da Escalação:')], [preench('Previsão de retorno:')], c);
     expect(c.entradas().filter(([k]) => k.startsWith('nome_variante_'))).toEqual([]);
   });
   it('linha que não é objeto, sem nome ou com nome que não é texto segue falhando fechado', () => {
