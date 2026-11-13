@@ -280,14 +280,14 @@ describe('ramos dos componentes complementares', () => {
   it('S9 mostra a pendência em horas úteis, nunca em dias úteis nem minutos (CA-1)', async () => {
     renderizarCartao(<CartaoS9 filtros={FILTROS_SUSTENTACAO} />, {
       fonte: new FonteAjustada({
-        S9: ((r: Qualquer) => {
+        S9: (r: Qualquer) => {
           r.porMotivo[0].estatistica = {
             status: 'ok',
             n: 30,
             valor: { p50: 26.4, p85: 30, p95: 40 },
             janela: r.base.janela,
           }
-        }) as never,
+        },
       }),
     })
     const el = await screen.findByTestId('metrica-S9')
