@@ -112,7 +112,7 @@ export async function regravarIntervalos(
  * intervalos de 8 h e de 8 h 48: até o comando de reprojeção tudo é 8 h; depois dele, tudo é 8 h 48.
  */
 export async function calendarioDaMontagem(db: Consultavel, S: Esquemas): Promise<Calendario> {
-  const r = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [REFERENCIA_D7_528]);
+  const r = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio v WHERE v.dominio = 'acelerato' AND v.referencia = $1`, [REFERENCIA_D7_528]);
   return r.rows.length > 0 ? acelerato.CALENDARIO_SUSTENTACAO_PADRAO : CALENDARIO_PADRAO;
 }
 

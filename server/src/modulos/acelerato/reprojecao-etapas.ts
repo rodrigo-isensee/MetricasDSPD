@@ -11,7 +11,7 @@ import { etapasDoStaging, regravarIntervalos, TAMANHO_LOTE } from './projetor.js
  * Reprojeção dos intervalos por etapa (D-7) com o dia útil de 8 h 48 (K-308; ADR 0027, item 7.4; Decisão 25a do dono, pedido 099). Uma transação
  * só (tudo ou nada), com a credencial do migrador: registra a versão `099:D-7-528` e refaz SÓ `fato_etapa_chamado` dos chamados fechados, a
  * partir das etapas da última versão do staging. Nada coletado é tocado (`stg_*`, `dim_chamado_versao`, `dim_chamado`, versões de critério
- * existentes, BusinessMap). Repetir é seguro. Sem dado de pessoa: o staging não tem coluna de pessoa (ADR 0020).
+ * existentes, nenhuma tabela do outro domínio). Repetir é seguro. Sem dado de pessoa: o staging não tem coluna de pessoa (ADR 0020).
  */
 export const VERSAO_REPROJECAO_D7 = 'acelerato-f2/2-reprojecao-d7';
 
