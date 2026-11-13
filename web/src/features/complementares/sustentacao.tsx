@@ -299,8 +299,12 @@ const totaisPorSistema = (d: R12): [string, number][] => {
   return [...totais.entries()].sort((a, b) => b[1] - a[1])
 }
 
-const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
-  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${textoTaxa(d.excecaoSla)}.`
+/** O contrato passa a aceitar `excecaoSla` nula (sem fonte); o tipo local já aceita antes da mudança. */
+type R12Leitura = Omit<R12, 'excecaoSla'> & { excecaoSla: R12['excecaoSla'] | null }
+
+/** Exceção de SLA sem fonte mostra "campo sem fonte" (padrão do painel), nunca 0%. */
+export const leituraS12 = (d: R12Leitura, [sistema, n]: [string, number]) =>
+  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${d.excecaoSla ? textoTaxa(d.excecaoSla) : 'campo sem fonte'}.`
 
 /** S12: volume por sistema, reincidência e exceção de SLA por registro posterior. */
 export function CartaoS12({ filtros }: P) {
