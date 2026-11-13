@@ -3,12 +3,20 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k303-vazio-apontamento
-commit: 66a11117ba70f67cff1d64b1363a035ee8224bfb
-parecer: reprovado
+commit: 2ed9e70169451fddd3f11de63e81145203a890c5
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-13
 ---
-# Review: lote do Apontamento do 097, K-303, K-302 e K-289 (E4.29)
+# Review: lote do Apontamento do 097, K-303, K-302 e K-289 (E4.29; revalidação E4.32)
+
+## Revalidação (volta 1, 2ed9e701)
+Delta lido: `forge-check parecer delta docs/reviews/097-k303-vazio-apontamento.md` aponta o intervalo `66a11117..2ed9e701` e, no domínio, só `e2e/tests/apontamento-qa.spec.ts` e `web/src/features/apontamento/components/CartoesCapacidade.tsx` (`git diff b19c8322 2ed9e701`: 6 linhas a mais, 5 a menos).
+- **A1 resolvido:** o CT-08 borda espera `em: Tipo, Agrupar por.` e afirma `aviso-pessoa-retirada` visível, como pedido. Pela mesma causa, a asserção da nota de Outra área (linha 274) passou ao texto atual de `NOTA_OUTRA_AREA_FORA_CAPACIDADE` (`textos.ts:43`), que o K-289 também mudou: estava quebrada pelo mesmo motivo, e a correção é legítima.
+- **A2 resolvido:** `CartoesCapacidade.tsx:116` usa `pessoas.length < capacidade.porPessoa.length`. `PESSOA_OUTRA_AREA` segue em uso no filtro da linha 103, sem import morto.
+- **A3:** segue recomendado e vai no corpo do PR (`teto: excedido`).
+- **Rodado:** `npx playwright test --project=chromium --workers=1 tests/apontamento-qa.spec.ts -g "CT-08|Outra área"` em 2ed9e701: 5 passando (a S1 agora dá o esperado). Mutante do A2 (`<` por `<=`): falha `revisao-ux.test.tsx` "K-289 A2: sem Outra área, a capacidade não traz a frase de exclusão", ou seja, o mutante morre; arquivo restaurado, 39 de 39 passando.
+- **CI:** run 43527382755 (push, head 2ed9e701) `completed:success`; os jobs `e2e` saem `skipped` no push e rodam no PR, onde são check obrigatório.
 
 Diff lido: `git diff e5092e05...66a11117` (base `e5092e05`, develop). O merge `c8a334af` só trouxe a develop, sem conflito.
 
@@ -31,4 +39,6 @@ Diff lido: `git diff e5092e05...66a11117` (base `e5092e05`, develop). O merge `c
 - **Commits:** um por cartão (`fix(web)` K-303, `test(apontamento)` K-302, `fix(web)` K-289), em Conventional Commits em português.
 
 ## Parecer
-Reprovado em 66a11117 pelo A1: o CT-08 do e2e quebra com o aviso novo da Pessoa, e o `e2e` é check obrigatório do PR. O resto do lote cumpre K-303, K-302 e K-289. Na volta, o review lê só o delta do `apontamento-qa.spec.ts`.
+Aprovado em 2ed9e701: A1 e A2 resolvidos; o A3 vai no corpo do PR.
+
+Histórico: reprovado em 66a11117 pelo A1: o CT-08 do e2e quebra com o aviso novo da Pessoa, e o `e2e` é check obrigatório do PR. O resto do lote cumpre K-303, K-302 e K-289. Na volta, o review lê só o delta do `apontamento-qa.spec.ts`.
