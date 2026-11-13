@@ -1,4 +1,5 @@
 import type { TextoNota } from '@/components/ui'
+import { LIMITE_MAIORES } from './dezMaiores'
 import { fmtMes, fmtNumero } from '@/lib/formatar'
 import type { FaixaDiario, FiltroQualidade, FlagQualidade, NivelMatriz } from './types'
 
@@ -324,6 +325,15 @@ export const INCOMPLETO = {
   comoLer: 'Cards com registro de horas incompleto entram nos totais só com o que já foi coletado.',
   projetosComSelo: 'Projetos com horas incompletas',
 } as const
+/** AP-PROJETO: os 10 projetos com mais horas e o "ver todos" (097, E5, CA-33 a CA-38). */
+export const MAIORES = {
+  mostrando: (n: number) => `Mostrando os ${LIMITE_MAIORES} projetos com mais horas, de ${n}.`,
+  demais: (n: number, horas: string) => `Demais ${n} ${n === 1 ? 'projeto' : 'projetos'}: ${horas}`,
+  verTodos: (n: number) => `Ver todos os ${n} projetos`,
+  verMaiores: `Ver só os ${LIMITE_MAIORES} maiores`,
+  regiao: 'Todos os projetos, com rolagem',
+} as const
+
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 
 /** Subgrupo "Sem comentário" (não é a marca de qualidade de mesmo nome): explicação visível e atalho do subgrupo. */
