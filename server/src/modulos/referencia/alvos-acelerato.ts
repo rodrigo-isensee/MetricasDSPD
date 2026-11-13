@@ -4,13 +4,15 @@ import { z } from 'zod';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { dataCivilValida, textoSeguro } from './dominio-acelerato.js';
+import { lerTurnosVigentes } from './repositorio.js';
 
 /**
  * Carregador dos alvos de prioridade do Acelerato (pedido 099, D3; Q-099-5a e Q-099-11): grava `ref_alvo_prioridade` a partir do arquivo
  * versionado `docs/architecture/fontes/acelerato-alvos.json` (os 10 prazos do PROC 30.000.010 v002, em horas, cada um com a unidade
  * `corrido` ou `util`). Só INSERT e `UPDATE (vigente_ate)`: valor gravado nunca é alterado (mudança = nova vigência) e o arquivo inteiro é
  * validado antes de qualquer escrita (tudo ou nada, numa transação). Com mudança, registra uma versão de critério (T2.6) só com a S1 (exceção
- * à D-3, decidida na Q-099-11). Sem dado de pessoa. Escrita pelo papel de referência (`dspd_ref`); chamado pelo `ac:ref-sync`.
+ * à D-3, decidida na Q-099-11). D3b (Decisão 13): `versao` 2 traz `horas_por_dia_util` (8,8), a conversão de dias em horas do PROC; antes de gravar, o carregador recusa se o expediente vigente
+ * do calendário da Sustentação (`ref_calendario_turno`) não somar essas horas (rode `ref:sync-calendario` antes). Sem dado de pessoa. Escrita pelo papel de referência (`dspd_ref`); chamado pelo `ac:ref-sync`.
  */
 export const ARQUIVO_ALVOS = new URL('../../../../docs/architecture/fontes/acelerato-alvos.json', import.meta.url);
 
@@ -33,7 +35,9 @@ const prazo = z.object({ horas, unidade: z.enum(UNIDADES_PRAZO), texto_proc: tex
 const alvoSchema = z.object({ prioridade: z.enum(PRIORIDADES_ALVO), primeiro_atendimento: prazo, restauracao: prazo }).strict();
 
 export const esquemaAlvos = z.object({
-  versao: z.literal(1),
+  versao: z.literal(2),
+  /** Horas do dia útil da Sustentação usadas para converter os prazos em dias do PROC (Decisão 13: 8,8). Tem de bater com o expediente gravado. */
+  horas_por_dia_util: z.number().gt(0).max(24).refine((h) => Math.round(h * 100) / 100 === h, 'no máximo duas casas decimais'),
   fonte: textoSeguro(80),
   versao_criterio: z.object({ descricao: textoSeguro(300), motivo: textoSeguro(500) }).strict(),
   alvos: z.array(alvoSchema).length(PRIORIDADES_ALVO.length),
@@ -125,6 +129,15 @@ async function lerEstado(db: Consultavel, S: Esquemas): Promise<EstadoAlvos> {
   return { vigentes, ultimas, ultimaVersao: v?.ultima ?? undefined };
 }
 
+/** Guarda do D3b: alvo de dias x 8,8 h só com expediente de 528 min gravado (senão medida e alvo usariam dias úteis diferentes). */
+async function conferirExpediente(db: Consultavel, S: Esquemas, horasPorDiaUtil: number): Promise<void> {
+  const turnos = await lerTurnosVigentes(db, S, 'acelerato', 'sustentacao');
+  const minutos = turnos.reduce((n, t) => n + (t.fimMin - t.inicioMin), 0);
+  if (minutos !== Math.round(horasPorDiaUtil * 60)) {
+    throw new ErroAlvos('vigencia', `alvos: o dia útil do arquivo (${horasPorDiaUtil} h) difere do expediente gravado da Sustentação (${minutos} min); rode o ref:sync-calendario antes`);
+  }
+}
+
 export interface ResultadoAlvos { sha256: string; inseridos: number; fechados: number; versaoRegistrada: boolean }
 
 /**
@@ -135,6 +148,7 @@ export async function sincronizarAlvos(pool: PoolLike, S: Esquemas, lido: AlvosL
   if (!dataCivilValida(hoje)) throw new ErroAlvos('vigencia', 'data de vigência inválida');
   return emTransacao(pool, async (db) => {
     const plano = planejarAlvos(lido.arquivo, await lerEstado(db, S), hoje);
+    if (plano.mudou) await conferirExpediente(db, S, lido.arquivo.horas_por_dia_util);
     let versaoRegistrada = false;
     if (plano.mudou) {
       const referencia = referenciaDaVersaoAlvos(lido.sha256);

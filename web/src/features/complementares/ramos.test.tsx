@@ -18,7 +18,7 @@ import { MaisMetricas } from './MaisMetricas'
 import { ListaInsuficientes } from './comuns'
 import { CartaoO14, CartaoO5 } from './fluxo'
 import { CartaoE4, CartaoE5, CartaoT6 } from './previsao'
-import { CartaoO17, CartaoS10, CartaoS12, CartaoS8 } from './sustentacao'
+import { CartaoO17, CartaoS10, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
 vi.setConfig({ testTimeout: 45000 })
 
@@ -316,6 +316,25 @@ describe('ramos dos componentes complementares', () => {
     })
     renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     expect(await screen.findByText('Acima de 5%')).toBeInTheDocument()
+  })
+
+  it('S9 mostra a pendência em horas úteis, nunca em dias úteis nem minutos (CA-1)', async () => {
+    renderizarCartao(<CartaoS9 filtros={FILTROS_SUSTENTACAO} />, {
+      fonte: new FonteAjustada({
+        S9: (r: Qualquer) => {
+          r.porMotivo[0].estatistica = {
+            status: 'ok',
+            n: 30,
+            valor: { p50: 26.4, p85: 30, p95: 40 },
+            janela: r.base.janela,
+          }
+        },
+      }),
+    })
+    const el = await screen.findByTestId('metrica-S9')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    expect(el.textContent).toContain('26,4 h úteis')
+    expect(el.textContent).not.toMatch(/dias? úteis|\d min\b/)
   })
 
   it('S10 com percentis publicados mostra os três e o histograma só quando existe', async () => {

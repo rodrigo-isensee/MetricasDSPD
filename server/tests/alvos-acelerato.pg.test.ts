@@ -2,6 +2,7 @@ import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { lerAlvos } from '../src/modulos/metricas/repositorio.js';
 import { ErroAlvos, analisarAlvos, lerArquivoAlvos, referenciaDaVersaoAlvos, sincronizarAlvos } from '../src/modulos/referencia/alvos-acelerato.js';
+import { lerCalendario, sincronizarCalendario } from '../src/modulos/referencia/calendario.js';
 import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
 import { migrar } from '../src/plataforma/db/migrar.js';
 import { poolDe, url } from './pg/ctx.js';
@@ -84,12 +85,18 @@ d('0036 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () => {
       `SELECT v.referencia, v.vigente_desde::text AS vigente_desde, array_agg(m.metrica_id ORDER BY m.metrica_id) AS metricas FROM ${E.core}.ref_versao_criterio v
        JOIN ${E.core}.ref_versao_criterio_metrica m USING (versao_id) WHERE v.referencia LIKE '099:alvos:%' GROUP BY v.versao_id ORDER BY v.vigente_desde, v.versao_id`)).rows;
 
+    it('Decisão 13: sem o expediente de 528 min gravado (ref:sync-calendario antes), o carregador recusa e nada é gravado', async () => {
+      await expect(sincronizarAlvos(ref, E, lido, D1, AGORA)).rejects.toThrow(/difere do expediente gravado da Sustentação \(0 min\); rode o ref:sync-calendario antes/);
+      expect(await linhas()).toEqual([]);
+      await sincronizarCalendario(ref, E, lerCalendario(), D1, AGORA);
+    });
+
     it('arquivo real: grava as 5 prioridades com a unidade de cada prazo e uma versão de critério só com a S1; repetir não muda nada', async () => {
       const r = await sincronizarAlvos(ref, E, lido, D1, AGORA);
       expect(r).toEqual({ sha256: lido.sha256, inseridos: 5, fechados: 0, versaoRegistrada: true });
       expect((await linhas()).map((l) => [l.prioridade, l.vigente_de, l.vigente_ate, l.prazo_pa_horas, l.unidade_pa, l.prazo_r_horas, l.unidade_r])).toEqual([
-        ['P1', D1, null, '0.25', 'corrido', '4.00', 'corrido'], ['P2', D1, null, '0.50', 'corrido', '8.00', 'util'], ['P3', D1, null, '2.00', 'util', '16.00', 'util'],
-        ['P4', D1, null, '4.00', 'util', '40.00', 'util'], ['P5', D1, null, '8.00', 'util', '80.00', 'util'],
+        ['P1', D1, null, '0.25', 'corrido', '4.00', 'corrido'], ['P2', D1, null, '0.50', 'corrido', '8.00', 'util'], ['P3', D1, null, '2.00', 'util', '17.60', 'util'],
+        ['P4', D1, null, '4.00', 'util', '44.00', 'util'], ['P5', D1, null, '8.80', 'util', '88.00', 'util'],
       ]);
       expect(await versoes()).toEqual([{ referencia: referenciaDaVersaoAlvos(lido.sha256), vigente_desde: D1, metricas: ['S1', 'VISAO_GERAL'] }]);
       const antes = [await linhas(), await versoes()];
@@ -99,8 +106,8 @@ d('0036 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () => {
 
     it('a leitura da API (lerAlvos) devolve só a vigente, com a unidade', async () => {
       expect((await lerAlvos(ref, E)).map((a) => [a.prioridade, a.prazo_pa_horas, a.unidade_pa, a.prazo_r_horas, a.unidade_r])).toEqual([
-        ['P1', '0.25', 'corrido', '4.00', 'corrido'], ['P2', '0.50', 'corrido', '8.00', 'util'], ['P3', '2.00', 'util', '16.00', 'util'],
-        ['P4', '4.00', 'util', '40.00', 'util'], ['P5', '8.00', 'util', '80.00', 'util'],
+        ['P1', '0.25', 'corrido', '4.00', 'corrido'], ['P2', '0.50', 'corrido', '8.00', 'util'], ['P3', '2.00', 'util', '17.60', 'util'],
+        ['P4', '4.00', 'util', '44.00', 'util'], ['P5', '8.80', 'util', '88.00', 'util'],
       ]);
     });
 

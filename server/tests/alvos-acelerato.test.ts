@@ -7,7 +7,7 @@ import {
 
 // Pedido 099, D3 (Q-099-5a e Q-099-11): o arquivo versionado de alvos e o planejamento puro (sem banco). O `.pg` cobre a gravação.
 type Celula = Record<string, unknown>;
-type Doc = { versao: unknown; versao_criterio?: unknown; alvos: { prioridade: unknown; primeiro_atendimento: Celula; restauracao: Celula; [k: string]: unknown }[] };
+type Doc = { versao: unknown; horas_por_dia_util?: unknown; versao_criterio?: unknown; alvos: { prioridade: unknown; primeiro_atendimento: Celula; restauracao: Celula; [k: string]: unknown }[] };
 const bruto = (): Doc => JSON.parse(readFileSync(ARQUIVO_ALVOS, 'utf8'));
 const texto = (mexer: (d: Doc) => void): string => { const d = bruto(); mexer(d); return JSON.stringify(d); };
 const recusa = (t: string): string => { try { analisarAlvos(t); } catch (e) { expect(e).toBeInstanceOf(ErroAlvos); return (e as Error).message; } throw new Error('não recusou'); };
@@ -17,19 +17,22 @@ describe('arquivo acelerato-alvos.json (PROC 30.000.010 v002)', () => {
   it('traz os 10 prazos em horas, já com a unidade da Q-099-11 por célula: P1 (os dois) e o primeiro atendimento de P2 em tempo corrido', () => {
     expect(arquivo.fonte).toBe('PROC 30.000.010 v002');
     expect(arquivo.alvos.map((a) => [a.prioridade, a.primeiro_atendimento.horas, a.primeiro_atendimento.unidade, a.restauracao.horas, a.restauracao.unidade])).toEqual([
-      ['P1', 0.25, 'corrido', 4, 'corrido'], ['P2', 0.5, 'corrido', 8, 'util'], ['P3', 2, 'util', 16, 'util'], ['P4', 4, 'util', 40, 'util'], ['P5', 8, 'util', 80, 'util'],
+      ['P1', 0.25, 'corrido', 4, 'corrido'], ['P2', 0.5, 'corrido', 8, 'util'], ['P3', 2, 'util', 17.6, 'util'], ['P4', 4, 'util', 44, 'util'], ['P5', 8.8, 'util', 88, 'util'],
     ]);
     expect(sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(referenciaDaVersaoAlvos(sha256)).toBe(`099:alvos:${sha256}`);
     expect(arquivo.versao_criterio.motivo).toContain('Q-099-11');
+    expect(arquivo.versao_criterio.motivo).toContain('Decisão 13');
+    expect(arquivo.versao).toBe(2);
+    expect(arquivo.horas_por_dia_util).toBe(8.8);
   });
   it('a versão de critério afeta a S1 e a Visão geral, que lê calcularS1 (A1 do QA; T2.6)', () => {
     expect(METRICAS_ALVOS).toEqual(['S1', 'VISAO_GERAL']);
   });
-  it('o texto do PROC ao lado confere com as horas (dia útil = 8 h)', () => {
+  it('o texto do PROC ao lado confere com as horas (dia útil = 8,8 h, Decisão 13; tabela fixa, não leitura do texto em produção)', () => {
     const horasDoTexto = (t: string): number => {
       const n = Number(/(\d+)/.exec(t)![1]);
-      return /dia/.test(t) ? n * 8 : /minuto/.test(t) ? n / 60 : n;
+      return /dia/.test(t) ? Math.round(n * 8.8 * 100) / 100 : /minuto/.test(t) ? n / 60 : n;
     };
     for (const a of arquivo.alvos) for (const c of [a.primeiro_atendimento, a.restauracao]) {
       expect(c.horas, `${a.prioridade} ${c.texto_proc}`).toBe(horasDoTexto(c.texto_proc));
@@ -51,7 +54,11 @@ describe('analisarAlvos: arquivo inválido é recusado inteiro, com mensagem sem
     ['horas em texto', (d) => { d.alvos[2]!.restauracao.horas = '4'; }],
     ['campo a mais', (d) => { d.alvos[0]!.extra = 1; }],
     ['campo a mais na célula', (d) => { d.alvos[0]!.restauracao.nome = 'x'; }],
-    ['versão diferente de 1', (d) => { d.versao = 2; }],
+    ['versão diferente de 2', (d) => { d.versao = 1; }],
+    ['sem horas por dia útil', (d) => { delete d.horas_por_dia_util; }],
+    ['horas por dia útil zero', (d) => { d.horas_por_dia_util = 0; }],
+    ['horas por dia útil acima de 24', (d) => { d.horas_por_dia_util = 25; }],
+    ['horas por dia útil com mais de duas casas', (d) => { d.horas_por_dia_util = 8.123; }],
     ['texto do PROC com arroba', (d) => { d.alvos[0]!.restauracao.texto_proc = 'a@b.c'; }],
     ['sem versão de critério', (d) => { delete d.versao_criterio; }],
   ])('%s', (_nome, mexer) => {

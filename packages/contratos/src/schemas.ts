@@ -630,6 +630,8 @@ export const resultadoS1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
   excecoesForaDaApuracao: z.number(),
+  /** Horas do dia útil do calendário usado no cálculo (Decisão 13: 8,8 na Sustentação). Aditivo: a web converte horas em dias úteis por este número, nunca por constante. */
+  horasPorDiaUtil: z.number(),
   /** Tempos em horas úteis (calendário de expediente) para todas as prioridades. */
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),

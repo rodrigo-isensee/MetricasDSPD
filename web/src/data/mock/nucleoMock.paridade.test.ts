@@ -34,7 +34,11 @@ function referencia(semente: number | undefined) {
   )
   const ctx = {
     bm: lib.businessmap.criarContextoBM(bmBase, base.config.hoje, cal),
-    ac: lib.acelerato.criarContextoAC(base.ac, base.config.hoje, cal),
+    ac: lib.acelerato.criarContextoAC(
+      base.ac,
+      base.config.hoje,
+      lib.acelerato.CALENDARIO_SUSTENTACAO_PADRAO,
+    ),
     pesq,
   }
   const ext = mock.gerarExtensoesMock({ ...base, bm: bmBase })
@@ -162,20 +166,19 @@ describe.each(SEMENTES)('paridade do núcleo, semente %s', (semente) => {
 })
 
 describe('determinismo da base', () => {
-  // Hashes regravados (099 D3, PR 363): base de 68a67741 para de6a8953 e Acelerato de 0113e077
-  // para 20541e9d. As unidades novas dos AlvoPrioridade mudaram a configuração que o mock lê.
-  // Com a develop de antes do PR 363 (6fe9fdcf) o teste passa com os hashes antigos; a troca
-  // vem só dessa mudança. O hash das extensões segue o de antes.
+  // Hashes regravados (099 D3b): base de de6a8953 para dd6787b1 e Acelerato de 20541e9d para
+  // b047a163, pelo dia útil de 528 min da Sustentação (Decisão 13) que o mock lê. O hash das
+  // extensões segue o de antes.
   it('os hashes da base, do Acelerato e das extensões seguem os de antes', () => {
     const base = mock.gerarBaseMock()
-    expect(mock.hashJson(base)).toBe('de6a8953')
-    expect(mock.hashJson(base.ac)).toBe('20541e9d')
+    expect(mock.hashJson(base)).toBe('dd6787b1')
+    expect(mock.hashJson(base.ac)).toBe('b047a163')
     expect(mock.hashJson(mock.gerarExtensaoTambemMock(base))).toBe('82329bc3')
   })
 
   it('a duração do boot é informada e a base do núcleo não altera a gerada (hash estável)', async () => {
     const { bootMs } = await new NucleoMock().iniciar()
     expect(bootMs).toBeGreaterThanOrEqual(0)
-    expect(mock.hashJson(mock.gerarBaseMock())).toBe('de6a8953')
+    expect(mock.hashJson(mock.gerarBaseMock())).toBe('dd6787b1')
   })
 })
