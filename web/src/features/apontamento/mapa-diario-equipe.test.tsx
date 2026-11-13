@@ -76,6 +76,14 @@ describe('mapa diário recortado pela Equipe (K-286, volta 1 da revisão de UX)'
     expect(grade).toHaveAccessibleName(/^Horas apontadas por pessoa e dia, da equipe Portal, de /)
   })
 
+  it('A4: com duas equipes, o nome da grade diz das equipes e lista as duas', async () => {
+    renderizar(`${URL_ABA}?equipe=integracoes,portal`, fonteDe(respostaFicticia))
+    const grade = await within(await screen.findByTestId('mapa-diario')).findByRole('grid')
+    expect(grade).toHaveAccessibleName(
+      /^Horas apontadas por pessoa e dia, das equipes Integrações, Portal, de /,
+    )
+  })
+
   it('A4: sem Equipe, o nome da grade não cita equipe', async () => {
     renderizar(URL_ABA, fonteDe(respostaFicticia))
     const grade = await within(await screen.findByTestId('mapa-diario')).findByRole('grid')
