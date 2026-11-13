@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: 047f9d609a9df1b947f5a78b888d2610030cd8ad
+commit: 57c74bc3707397b9d1d255969fd3b92b7752d4c0
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -59,4 +59,10 @@ Delta de código e testes desde fac4c624: 7 arquivos da web (catálogo: Catalogo
 - lint-alterados: 23 arquivos, sem erro. typecheck-alterados: mock, metricas, server e web verdes.
 - Mutação, desfeita (worktree limpa): `r.excecaoSla === null &&` trocado por `false &&` derrubou o teste da nota fixa do S12; `l.anotacao ?` trocado por `false ?` derrubou o teste do catálogo. Na rodada da primeira mutação, outros testes de complementares caíram por prazo sob carga; não são do diff e passam na rodada limpa acima.
 - A1 segue como estava (recomendado, sem bloqueio). Suíte inteira e `.pg`: check-run `bateria` do PR (I5).
+- Parecer: aprovado, sem bugs abertos.
+
+## Revalidação (integração da develop e C8a, 57c74bc3)
+Delta 047f9d60..57c74bc3 no domínio do QA: docs/api/metricas.md (linha do O25, só texto), packages/contratos/src/origem.ts e origem.test.ts (O25 em `METRICAS_ORIGEM_REAL`), server/tests/painel-real-f6.test.ts e qa-f6-painel.test.ts (O25 e S12 juntos na lista de reais; conflito do 8d8b4739 resolvido sem perder nenhum dos dois).
+- Testes rodados na worktree destacada: contratos origem.test.ts, 16 passaram; server painel-real-f6 e qa-f6-painel, 47 passaram.
+- Nenhum teste de S12 perdido na resolução; sem achado novo. A1 segue (recomendado). Suíte inteira e `.pg`: check-run `bateria` do PR (I5).
 - Parecer: aprovado, sem bugs abertos.
