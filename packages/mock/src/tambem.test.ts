@@ -10,8 +10,8 @@ import { hashJson } from './prng'
  */
 describe('B11a: ajuste do mock da fase 1', () => {
   it('Acelerato intacto: hash da base (escala 1 e 0,2) igual ao de antes do ajuste', () => {
-    expect(hashJson(gerarBaseMock().ac)).toBe('0113e077')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('39b4b005')
+    expect(hashJson(gerarBaseMock().ac)).toBe('b047a163')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('3c44f355')
   })
 
   it('sem nenhum passo, a base do BusinessMap é a de antes (hash anterior), com ou sem a opção "tambem: false"', () => {

@@ -61,8 +61,9 @@ const esquemaEnv = z.object({
 
 /** Valida o ambiente; as mensagens nomeiam a variável e nunca mostram valor. */
 export function lerConfig(env: Record<string, string | undefined>): ConfigDiagnostico {
-  for (const nome of OBRIGATORIAS) {
-    if (!env[nome]?.trim()) throw new ErroDiagnostico('formato', `variável obrigatória ausente: ${nome}`);
+  const ausentes = OBRIGATORIAS.filter((nome) => !env[nome]?.trim());
+  if (ausentes.length > 0) {
+    throw new ErroDiagnostico('formato', `${ausentes.length === 1 ? 'variável obrigatória ausente' : 'variáveis obrigatórias ausentes'}: ${ausentes.join(', ')}`);
   }
   const r = esquemaEnv.safeParse(env);
   if (!r.success) {

@@ -107,6 +107,9 @@ describe('Catálogo de métricas (/metricas)', () => {
     expect(within(tabela).getAllByRole('cell', { name: /^Sem dado real$/ })).toHaveLength(
       65 - reais,
     )
+    expect(within(tabela).getByRole('row', { name: /^S12 / })).toHaveTextContent(
+      'Parcial: volume por sistema; reincidência sem fonte',
+    )
     expect(within(tabela).queryByText(/fictíci|simulad|exemplo/i)).not.toBeInTheDocument()
     expect(within(tabela).getByRole('row', { name: /^O17 / })).toHaveTextContent('Sustentação')
     expect(within(tabela).getByRole('row', { name: /^PV1 / })).toHaveTextContent(

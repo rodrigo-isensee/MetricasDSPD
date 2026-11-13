@@ -67,7 +67,7 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
       // Como a API (pedido 060, P3): métrica fora do mapa real responde "sem dado real", sem resultado.
       obter: {
         value: (id: MetricaId, ...resto: unknown[]) => {
-          if (origemDaMetrica(id) === 'mock') {
+          if (origemDaMetrica(id) === 'sem-dado') {
             const c = corpoSemDadoReal(id)
             return Promise.reject(new SemDadoRealErro(c.metrica, c.motivo))
           }
