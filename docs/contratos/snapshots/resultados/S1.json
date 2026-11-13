@@ -175,6 +175,13 @@
               "alvoHoras": {
                 "type": "number"
               },
+              "unidade": {
+                "type": "string",
+                "enum": [
+                  "corrido",
+                  "util"
+                ]
+              },
               "n": {
                 "type": "number"
               },
@@ -327,6 +334,7 @@
             },
             "required": [
               "alvoHoras",
+              "unidade",
               "n",
               "estatistica",
               "razaoMediana",
@@ -341,6 +349,13 @@
               "alvoHoras": {
                 "type": "number"
               },
+              "unidade": {
+                "type": "string",
+                "enum": [
+                  "corrido",
+                  "util"
+                ]
+              },
               "n": {
                 "type": "number"
               },
@@ -493,6 +508,7 @@
             },
             "required": [
               "alvoHoras",
+              "unidade",
               "n",
               "estatistica",
               "razaoMediana",
