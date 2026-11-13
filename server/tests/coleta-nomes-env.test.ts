@@ -89,7 +89,9 @@ describe('carregarConfigColetaAcelerato no mesmo processo', () => {
   });
 
   it('NODE_TLS_REJECT_UNAUTHORIZED=0 com outras variáveis faltando: a lista sai completa, uma vez cada', () => {
-    const { ACELERATO_MYSQL_USER: _a, ACELERATO_MYSQL_HOST: _b, ...resto } = AC_VALIDAS;
+    const resto: NodeJS.ProcessEnv = { ...AC_VALIDAS };
+    delete resto.ACELERATO_MYSQL_USER;
+    delete resto.ACELERATO_MYSQL_HOST;
     expect(nomesDe({ ...resto, NODE_TLS_REJECT_UNAUTHORIZED: '0' }))
       .toEqual(['PG_COLETOR_URL', 'NODE_TLS_REJECT_UNAUTHORIZED', 'ACELERATO_MYSQL_HOST', 'ACELERATO_MYSQL_USER']);
   });
