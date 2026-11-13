@@ -336,8 +336,9 @@ describe('CA-4: filtros na URL', () => {
 
   it('CA-9: pessoa= na URL é ignorado, com aviso, e a página segue funcional', async () => {
     renderizar(`${URL_ABA}?pessoa=p1`)
-    const aviso = await screen.findByTestId('filtros-invalidos')
-    expect(aviso).toHaveTextContent('Valor inválido ignorado em: pessoa.')
+    const aviso = await screen.findByTestId('aviso-pessoa-retirada')
+    expect(aviso).toHaveTextContent(/^O filtro Pessoa foi retirado; use Equipe\.$/)
+    expect(screen.queryByTestId('filtros-invalidos')).toBeNull()
     expect(await screen.findByTestId('metrica-AP-KPIS')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Remover filtro Pessoa/ })).toBeNull()
   })

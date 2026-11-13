@@ -36,6 +36,13 @@ export const LINHA_NOMES_OCULTOS = "Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'
 export const NOTA_OUTRA_AREA =
   'Outra área: pessoas que não foram responsáveis por card do DSPD nos últimos 12 meses, somadas, sem nome.'
 
+/** Decisão 2a do dono (2026-11-12): link antigo com o filtro Pessoa, que saiu; não repete o valor recebido. */
+export const AVISO_PESSOA_RETIRADA = 'O filtro Pessoa foi retirado; use Equipe.'
+
+/** Capacidade por pessoa não mostra a linha Outra área (A-4); a frase explica a ausência (K-289, A2 da revisão de UX). */
+export const NOTA_OUTRA_AREA_FORA_CAPACIDADE =
+  'Outra área soma várias pessoas e por isso não entra na capacidade por pessoa.'
+
 export const PESSOA_NAO_IDENTIFICADA = 'Pessoa não identificada'
 export const DICA_NAO_IDENTIFICADA =
   'Não foi possível ligar este apontamento a uma pessoa. Ele não é somado a outra.'
