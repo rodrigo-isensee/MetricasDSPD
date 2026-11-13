@@ -34,9 +34,21 @@ describe('schemas de referência', () => {
     expect(opcoesFiltroSchema.safeParse({ ...base, setores: [o] }).success).toBe(true)
     expect(opcoesFiltroSchema.safeParse({ ...base, setores: [] }).success).toBe(true)
     expect(opcoesFiltroSchema.safeParse(base).success).toBe(true)
-    expect(opcoesFiltroSchema.safeParse({ ...base, setores: [{ ...o, quadro: 23 }] }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ ...base, setores: [{ id: '', nome: 'X' }] }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ dominio: 'acelerato', equipes: [], prioridades: [], setores: [o], historico }).success).toBe(false)
+    expect(opcoesFiltroSchema.safeParse({ ...base, setores: [{ ...o, quadro: 23 }] }).success).toBe(
+      false,
+    )
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, setores: [{ id: '', nome: 'X' }] }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({
+        dominio: 'acelerato',
+        equipes: [],
+        prioridades: [],
+        setores: [o],
+        historico,
+      }).success,
+    ).toBe(false)
   })
   it('valida a referência (datas e instantes com deslocamento) e rejeita campo extra', () => {
     const ok = {
