@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-k304-nomes-env
-commit: 3f2803e2192391aa8d3d72266379e09c3b5cde16
+commit: f77f3545dcb06ed7bdca043816791283d6cd072e
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -17,7 +17,7 @@ data: 2026-11-13
 Base 9bb72d1f, head 3f2803e2. Classe N, sem especificação de UX nem contrato de API (comando de linha). Obrigação: o cartão K-304 e a regra do CLAUDE.md (credenciais só em `.env`; nada de valor em saída ou log). Suíte inteira: check-run `bateria` do PR (I5).
 
 ## Achados
-- A1 (recomendado) server/tests/coleta-nomes-env.test.ts:1 · mutantes vivos: `.trim()` do diagnóstico (variável só com espaços) e `e.coluna.split(',')` do Acelerato (duas variáveis do MySQL inválidas juntas) não têm teste; ambos corretos na execução manual. Pede 2 testes do autor.
+- A1 (recomendado) server/tests/coleta-nomes-env.test.ts:1 · RESOLVIDO em f77f3545 (os dois mutantes morrem). Antes: mutantes vivos: `.trim()` do diagnóstico (variável só com espaços) e `e.coluna.split(',')` do Acelerato (duas variáveis do MySQL inválidas juntas) não têm teste; ambos corretos na execução manual. Pede 2 testes do autor.
 - A2 (recomendado) server/src/entradas/coleta.ts:21 · `DSPD_SCHEMA_PREFIXO` inválido sai como `erro-interno` (montarEsquemas lança Error fora do ErroConfiguracao), sem nome e sem valor. Só variável de teste: cartão baixo, sem bloqueio.
 
 ## Critério → teste → resultado
@@ -39,5 +39,10 @@ Base 9bb72d1f, head 3f2803e2. Classe N, sem especificação de UX nem contrato d
 
 ## Bugs
 - Baixo, aberto (vira cartão, sem aceite do usuário): `DSPD_SCHEMA_PREFIXO` inválido não é nomeado (A2).
+
+## Revalidação (f77f3545, E3.126)
+- `forge-check parecer delta`: só server/tests/coleta-nomes-env.test.ts mudou no domínio (testes no mesmo processo de carregarConfigColetaAcelerato, lerConfig({}) no plural, espaços como ausente); src intocado.
+- Mutantes do A1, aplicados na worktree e revertidos: `!env[nome]?.trim()` para `!env[nome]` morreu (1 teste caiu, "valor só com espaços conta como ausente"); `e.coluna.split(',')` para `e.coluna` morreu (1 teste caiu, duas variáveis do MySQL). Sem mutante: 13 passaram.
+- `gh pr checks 372` no head f77f3545: `testes` passou (push, 6m3s; PR, 7m42s). E2E ainda pendente quando o parecer foi escrito, fora deste escopo.
 
 Parecer: aprovado, sem bug crítico, alto ou médio.
