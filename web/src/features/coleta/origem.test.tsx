@@ -114,8 +114,8 @@ describe('origem do cartão (pedido 060)', () => {
     expect(origemDoCartao('XX9', 'mock').semDadoReal).toBe(false)
   })
 
-  it('Sustentação: S2, S3, S4, S8 e S10 têm dado real; S1, S5, S6, S7, S9, S11, S12 e a EI_SUST estão sem dado real com o motivo do Acelerato', () => {
-    for (const c of ['S2', 'S3', 'S4', 'S8', 'S10']) {
+  it('Sustentação: S2, S3, S4, S8, S10 e S12 têm dado real; S1, S5, S6, S7, S9, S11 e a EI_SUST estão sem dado real com o motivo do Acelerato', () => {
+    for (const c of ['S2', 'S3', 'S4', 'S8', 'S10', 'S12']) {
       expect(origemDoCartao(c, 'api').semDadoReal, c).toBe(false)
     }
     expect(origemDoCartao('S1', 'api').motivo).toBe('aguardando prazos de SLA por prioridade')
@@ -126,9 +126,6 @@ describe('origem do cartão (pedido 060)', () => {
     }
     expect(origemDoCartao('S9', 'api').motivo).toBe(
       'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
-    )
-    expect(origemDoCartao('S12', 'api').motivo).toBe(
-      'aguardando fonte do registro posterior de exceção de SLA',
     )
     expect(origemDoCartao('EI-SUST', 'api').semDadoReal).toBe(true)
     expect(origemDoCartao('S2', 'mock').semDadoReal).toBe(false)

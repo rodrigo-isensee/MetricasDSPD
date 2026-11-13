@@ -3,7 +3,9 @@ import { METRICA_IDS } from './comum'
 import {
   AJUSTE_PRIORIDADE_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
+  NOTA_S12_IDS,
   NOTA_SUSTENTACAO_IDS,
+  notaS12IdSchema,
   notaSustentacaoIdSchema,
   TEXTO_NOTA_QUALQUER,
   corpoSemDadoReal,
@@ -19,7 +21,7 @@ import {
   origemDaMetrica,
   TEXTO_NOTA_CARTAO,
 } from './origem'
-import { resultadoO1, resultadoO2, resultadoO3, resultadoO5 } from './schemas'
+import { resultadoO1, resultadoO2, resultadoO3, resultadoO5, resultadoS12 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
   it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, BLOQUEADOS, O5 e O19 (pedido 075, 6b), a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
@@ -30,13 +32,13 @@ describe('origemDaMetrica (H-13)', () => {
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['O25'], // pedido 099 (lote A3)
         ...['PV1'],
-        ...['S2', 'S3', 'S4', 'S8', 'S10'],
+        ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
       ].sort(),
     )
   })
 
-  it('sustentação: S1, S5, S6, S7, S9, S11, S12 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
+  it('sustentação: S1, S5, S6, S7, S9, S11 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
     expect(motivoDaOrigemSemDado('S1')).toBe('aguardando prazos de SLA por prioridade')
     for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
       expect(origemDaMetrica(id), id).toBe('sem-dado')
@@ -48,10 +50,9 @@ describe('origemDaMetrica (H-13)', () => {
     expect(motivoDaOrigemSemDado('S9')).toBe(
       'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
     )
-    expect(origemDaMetrica('S12')).toBe('sem-dado')
-    expect(motivoDaOrigemSemDado('S12')).toBe(
-      'aguardando fonte do registro posterior de exceção de SLA',
-    )
+    // Pedido 099 (D9): S12 é real só com o volume; sem motivo de dado fictício.
+    expect(origemDaMetrica('S12')).toBe('real')
+    expect(motivoDaOrigemSemDado('S12')).toBeNull()
     expect(origemDaMetrica('EI_SUST')).toBe('sem-dado')
     expect(motivoDaOrigemSemDado('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
   })
@@ -178,5 +179,14 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
     }
     expect(notaSustentacaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(false)
     expect(AJUSTE_PRIORIDADE_COM_FONTE).toBe(false)
+  })
+
+  it('pedido 099 (D9): a nota do S12 tem enum e texto próprios; o enum da sustentação não cresce', () => {
+    expect(notaS12IdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(true)
+    expect(notaSustentacaoIdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(false)
+    expect(notaCartaoIdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(false)
+    for (const id of NOTA_S12_IDS) expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
+    expect(resultadoS12.shape.notas.safeParse(['excecao-sla-s12-sem-fonte']).success).toBe(true)
+    expect(resultadoS12.shape.excecaoSla.safeParse(null).success).toBe(true)
   })
 })

@@ -115,7 +115,7 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
 | S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
 | S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `conversao:Taxa` | equipe, período (prioridade não atua) |
-| S12 | `campoDisponivel`, `cobertura{n,total}` (janela de 12 semanas), `parametros{janelaSemanas}`, `meses[{total,porSistema}]`, `reincidencia[{sistema,chamados,informados,reincidentes,proporcao:Taxa}]` (janela de 12 semanas; proporção = reincidentes ÷ informados), `excecaoSla:Taxa` | equipe, prioridade, período |
+| S12 | `campoDisponivel`, `cobertura{n,total}` (janela de 12 semanas), `parametros{janelaSemanas}`, `meses[{total,porSistema}]`, `reincidencia[{sistema,chamados,informados,reincidentes,proporcao:Taxa}]` (janela de 12 semanas; proporção = reincidentes ÷ informados), `excecaoSla:Taxa|null` (null = sem fonte; ver pedido 099, D9), `notas?` | equipe, prioridade, período |
 
 Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem estatística (`insuficiente`, com "k de n" nas taxas); T6 e E5 usam `core/montecarlo` com semente fixa (resposta reprodutível); BM e AC separados; nenhuma chave por pessoa.
 
@@ -429,3 +429,8 @@ Depois da prova do dono (`fato_bloqueio` com 172 linhas e `evt_bloqueio` `fim` c
 
 ## Pedido 075, lote 9b (K-204): contrato sem a nota de bloqueio
 `bloqueio-sem-dado-real` sai de `NOTA_CARTAO_IDS` e de `TEXTO_NOTA_CARTAO`: o enum de `notas` do O1, O2 e O3 fica com `sem-classe` e `sle-nao-definido`. **Incompatível** (valor de enum removido, `politica-de-mudanca.md:23`), aceito por `aceitas.json` (uso único, removido no mesmo PR); a API não emite a nota desde o 6b e o web não a consome desde o 9a. Saem de `origem.ts`: `METRICAS_COM_PARTE_DE_BLOQUEIO`, `MOTIVO_BLOQUEIOS_NAO_COLETADOS` e `MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS`. `BLOQUEIOS_COM_DADO_REAL` fica como interruptor de reversão: falso, o O1 sai com a parte de bloqueio `null`, sem nota. `bloqueados` do O1 segue `number | null` no contrato por causa da lacuna da série antes de 2026-11-01 (6a). `VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL` fica (história, T2.6).
+
+## Pedido 099, lote D9: S12 no mapa real só com o volume
+- `S12` entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK`: a base real devolve o volume por sistema (`meses`). Reincidência segue sem fonte (`campoDisponivel: false`, proporção insuficiente) e a exceção de SLA por registro posterior sai `excecaoSla: null` (nunca 0%), com a nota `excecao-sla-s12-sem-fonte` em `notas`. A coluna `excecao_sla_registro_posterior` nasce `false` e não distingue "não" de "sem fonte".
+- Contrato: `resultadoS12.excecaoSla` passa a `Taxa | null` e `resultadoS12.notas` (opcional, enum próprio `NOTA_S12_IDS` com o id `excecao-sla-s12-sem-fonte`; o enum de notas da sustentação, do S2, S3 e da tendência, não muda). **Incompatível** (campo antes obrigatório e não nulo passa a nulável), em `/api/v1/metricas/S12` apenas; a web já lê a exceção nula (d86d33d3). Decisão de `aceitas.json` ou v2: do tech-lead.
+- Versão de critério `criterio-2026-11-12-s12-volume-real` (data 2026-11-12, `afeta: ['S12']`) marca o gráfico (T2.6). Modo mock explícito: nada muda (taxa de exceção e sem nota).

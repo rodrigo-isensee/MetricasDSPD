@@ -250,6 +250,47 @@ describe('ramos dos componentes complementares', () => {
     expect(el).toHaveTextContent('Exceção de SLA por registro posterior')
   })
 
+  it('S12 sem meses e com exceção de SLA nula: a nota fixa aparece e o texto da reincidência não diz que nada é publicado', async () => {
+    const fonte = new FonteAjustada({
+      S12: (r: Qualquer) => {
+        r.meses = []
+        r.excecaoSla = null
+        r.notas = ['excecao-sla-s12-sem-fonte']
+        r.campoDisponivel = false
+      },
+    })
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    const el = await screen.findByTestId('metrica-S12')
+    expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
+      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+    )
+    const aviso = within(el).getByTestId('campo-sem-fonte-S12')
+    expect(aviso).toHaveTextContent('O volume por sistema acima é dado real')
+    expect(aviso).not.toHaveTextContent('nada é publicado')
+  })
+
+  it('S12 com exceção de SLA nula e sem notas na resposta mostra a nota fixa de campo sem fonte', async () => {
+    const fonte = new FonteAjustada({
+      S12: (r: Qualquer) => {
+        r.excecaoSla = null
+        r.notas = undefined
+      },
+    })
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    const el = await screen.findByTestId('metrica-S12')
+    expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
+      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+    )
+  })
+
+  it('S12 com exceção de SLA informada não mostra a nota de campo sem fonte', async () => {
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, {
+      fonte: new FonteAjustada({ S12: (r: Qualquer) => (r.notas = undefined) }),
+    })
+    const el = await screen.findByTestId('metrica-S12')
+    expect(within(el).queryByTestId('nota-S12-excecao-sla')).not.toBeInTheDocument()
+  })
+
   it('O17 não diz "mais frequente" quando todas as causas têm 0 incidentes', async () => {
     const zerado = new FonteAjustada({
       O17: (r: Qualquer) => {

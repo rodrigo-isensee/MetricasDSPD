@@ -33,7 +33,7 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaSustentacaoIdSchema } from './origem'
+import { notaCartaoIdSchema, notaS12IdSchema, notaSustentacaoIdSchema } from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -1177,7 +1177,10 @@ export const resultadoS12 = z.object({
       proporcao: taxaSchema,
     }),
   ),
-  excecaoSla: taxaSchema,
+  /** Pedido 099 (D9): null = o registro posterior de exceção de SLA não tem fonte (nunca 0%); vem com a nota `excecao-sla-s12-sem-fonte`. */
+  excecaoSla: taxaSchema.nullable(),
+  /** Notas da publicação sem dado (os textos vivem em `origem.ts`). */
+  notas: z.array(notaS12IdSchema).optional(),
 })
 
 /* ---------- Pesquisa de percepção (PV1) ---------- */
