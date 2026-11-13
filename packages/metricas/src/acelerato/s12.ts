@@ -91,9 +91,6 @@ export function calcularS12(
     excecaoSla:
       ext === undefined
         ? null
-        : taxa(
-            fechados.filter((x) => x.c.excecao_sla_registro_posterior).length,
-            fechados.length,
-          ),
+        : taxa(fechados.filter((x) => x.c.excecao_sla_registro_posterior).length, fechados.length),
   }
 }
