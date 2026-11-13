@@ -3,10 +3,10 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l10a-setor-dicionario
-commit: 977d1484196e59f0a587269b027f2862ef9cd036
-parecer: aprovado
+commit: 91403ece93906660884625279179c143ab209449
+parecer: reprovado
 revisor: tech-lead
-data: 2026-11-12
+data: 2026-11-13
 ---
 
 # Code review: L10a do 097 (E7), dicionário de setores e `opcoes.setores`
@@ -38,5 +38,17 @@ Volta 1. Lido: `forge-check parecer delta docs/reviews/097-l10a-setor-dicionario
 - **A2 fechado.** O teste novo manda o rótulo `???`, que passa pelo filtro de `lerSetoresBM` (código numérico, rótulo não vazio, sem sobrenome nem arroba) e chega à guarda `slug(nome) !== ''` de `servico.ts:49`. Sem a guarda, a resposta traria `{ id: '', nome: '???' }` e o `toEqual` falharia: o teste prende o ramo de falha.
 - **A3** segue como recomendação ao Jarvis, para o brief do L10b; não depende deste código.
 
+## Delta da junção com a develop (volta 2)
+Lido: `forge-check parecer delta docs/reviews/097-l10a-setor-dicionario.md`, intervalo `977d1484..91403ece`, e `git show --remerge-diff 91403ece`, com os pais `019ad4da` (ponta da branch) e `e5092e05` (develop). Houve conflito em 4 arquivos. O resto do intervalo é o `019ad4da` (prettier em `packages/contratos/src/referencia.test.ts`, só forma) e o que veio da develop.
+- `docs/architecture/fontes/businessmap-dominio.json`: a `regra` junta o texto de `setores` do L10a com o de `prioridade_severidade` do C8a e mantém `versao_criterio.afeta` (T2.6). As chaves ficam `versao, versao_criterio, schema, tabela, regra, campos, motivo_bloqueio, setores, prioridade_severidade`. `setores` segue vazio (P-097-9) e as 4 linhas de severidade continuam lá. O JSON é válido.
+- `server/src/modulos/businessmap/dominio-businessmap.ts`: o esquema tem `setores` (até 50) e `prioridade_severidade` (até 20), e `listasDoArquivo` grava `setor_quadro` e `prioridade_severidade`. As guardas de quadro e rótulo repetido (L10a) e a de priority repetido (C8a) seguem no `superRefine`.
+- `server/src/modulos/referencia/index.ts`: exporta `lerSetoresBM` (L10a) junto com `lerTurnosVigentes` e `TurnoDaReferencia` (D3 e D3b). As duas funções existem em `repositorio.ts`, nas linhas 36 e 120.
+- `server/tests/dominio-businessmap.test.ts`: as expectativas de `listasDoArquivo` e do `campo = ANY` passam a ter as 4 listas, na ordem do código. O bloco de setores do L10a e o bloco do C8a ficam inteiros, cada um com o próprio fechamento.
+- Nada do C8a, do D3 ou do D3b se perdeu, e os setores do L10a seguem completos. Não sobrou marcador de conflito em `server/`, `packages/`, `web/src` nem `docs/architecture`.
+- Teste rodado (`--maxWorkers=2`) em `server/`: `tests/dominio-businessmap.test.ts` deu `Tests 67 passed (67)`.
+- CI do head `91403ece` (run 43524246705, evento push; o PR ainda não existe): **falhou** no job `rapida`, passo `pnpm run lint`, com `8:1 error '../referencia/setor.js' import is restricted from being used by a pattern. Módulos se conhecem só pelo index.ts (ADR 0013 §9) no-restricted-imports` (`✖ 1 problem`). Os jobs `testes`, `openapi`, `banco`, `build`, `seguranca`, `filtro` e `imagem` passaram, e `e2e` e `perf` foram pulados por dependerem da `rapida`.
+- **A causa não é a junção.** A linha 8 de `dominio-businessmap.ts` já estava no `977d1484`, e a regra do `server/eslint.config.js:14` não mudou de `977d1484` a `e5092e05`. Os runs da branch nos heads `86a3808f` e `53da301f` também acabaram em falha, e os do meio foram cancelados. Na volta 1 eu aprovei sem o CI verde, porque o PR não existia. Esse foi um erro deste review, e o A4 o corrige.
+
 ## Achados
+- A4 (bloqueante) server/src/modulos/businessmap/dominio-businessmap.ts:8 · importa `../referencia/setor.js` direto (ADR 0013 §9); o lint do CI recusa e o CI fica vermelho. Autor: exportar pelo `referencia/index.ts` e importar de `../referencia/index.js`, sem ciclo; `pnpm run pronto` verde no PQ.
 - A3 (recomendado) docs/analises/097-plano-e5-e7.md:100 · FiltrosFluxo.setor e FiltroFluxoChave 'setor' saíram do L10a. O brief do L10b deve listá-los, para o contrato da entrada não se perder. Dono: Jarvis, no brief.
