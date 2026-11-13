@@ -6,7 +6,8 @@ import { lerConfig } from '../src/modulos/businessmap/diagnostico.js';
 import { ambienteFilho } from './ajuda-cli-filho.js';
 
 // K-304: sem as variáveis de ambiente, a coleta (BusinessMap e Acelerato) e o diagnóstico dizem QUAIS faltam, pelo NOME, e nunca mostram valor.
-// Nada aqui lê o `.env` da máquina: o ambiente é montado no teste (o processo filho recebe só PATH e TMPDIR, mais o que o teste define).
+// O processo filho recebe só PATH e TMPDIR, mais o que o teste define. A entrada `coleta ac` não lê o `.env`; a do BusinessMap lê (sem sobrescrever variável já
+// definida), por isso o teste dela fixa todas as variáveis da configuração, as opcionais vazias, e o resultado não varia com o `.env` da máquina.
 const entrada = (nome: string): string => new URL(`../src/entradas/${nome}.ts`, import.meta.url).pathname;
 const rodar = (nome: string, extra: Record<string, string> = {}) =>
   spawnSync(process.execPath, ['--import', 'tsx', entrada(nome), ...(nome === 'coleta' ? ['ac'] : nome === 'coleta-businessmap' ? ['incremental'] : [])], { encoding: 'utf8', env: ambienteFilho(extra), timeout: 60_000 });
@@ -86,6 +87,17 @@ describe('carregarConfigColetaAcelerato no mesmo processo', () => {
     expect(nomesDe({ ...AC_VALIDAS, PG_COLETOR_URL: PG, NODE_TLS_REJECT_UNAUTHORIZED: '0' })).toEqual(['NODE_TLS_REJECT_UNAUTHORIZED']);
   });
 
+  it('NODE_TLS_REJECT_UNAUTHORIZED=0 com outras variáveis faltando: a lista sai completa, uma vez cada', () => {
+    const { ACELERATO_MYSQL_USER: _a, ACELERATO_MYSQL_HOST: _b, ...resto } = AC_VALIDAS;
+    expect(nomesDe({ ...resto, NODE_TLS_REJECT_UNAUTHORIZED: '0' }))
+      .toEqual(['PG_COLETOR_URL', 'NODE_TLS_REJECT_UNAUTHORIZED', 'ACELERATO_MYSQL_HOST', 'ACELERATO_MYSQL_USER']);
+  });
+
+  it('DSPD_SCHEMA_PREFIXO inválido: nomeia a variável, sem eco do valor', () => {
+    expect(nomesDe({ ...AC_VALIDAS, PG_COLETOR_URL: PG, DSPD_SCHEMA_PREFIXO: `Invalido-${SEGREDO}` })).toEqual(['DSPD_SCHEMA_PREFIXO']);
+    expect(carregarConfigColetaAcelerato({ ...AC_VALIDAS, PG_COLETOR_URL: PG, DSPD_SCHEMA_PREFIXO: 't_ab' }).worker.DSPD_SCHEMA_PREFIXO).toBe('t_ab');
+  });
+
   it('erro que não é de configuração não é engolido (worker e MySQL)', () => {
     const quebra = (nome: string): NodeJS.ProcessEnv => Object.defineProperty({ ...AC_VALIDAS, PG_COLETOR_URL: PG }, nome, { enumerable: true, get: () => { throw new TypeError('falha-inesperada'); } });
     expect(() => carregarConfigColetaAcelerato(quebra('PG_COLETOR_URL'))).toThrow('falha-inesperada');
@@ -94,17 +106,30 @@ describe('carregarConfigColetaAcelerato no mesmo processo', () => {
 });
 
 describe('coleta do BusinessMap sem ambiente', () => {
-  // A entrada lê o `.env` da raiz sem sobrescrever variável já definida; por isso o teste define as variáveis (vazias ou inválidas) em vez de
-  // depender de ausência, e o resultado não varia com o `.env` da máquina.
+  // A entrada lê o `.env` da raiz sem sobrescrever variável já definida; por isso o teste define todas as variáveis da configuração (as opcionais
+  // vazias, que valem como não definidas) em vez de depender de ausência.
+  const OPCIONAIS_VAZIAS = {
+    BUSINESSMAP_QUADROS_IDS: '', BUSINESSMAP_LIMITE_POR_MINUTO: '', BUSINESSMAP_TIMEOUT_MS: '', BUSINESSMAP_PAGINA_TAMANHO: '',
+    PESSOA_ELIMINADA_SAL: '', DSPD_SCHEMA_PREFIXO: '', LOG_LEVEL: 'info',
+  };
   it('variáveis vazias ou inválidas: lista os nomes e nunca o valor', () => {
     const r = rodar('coleta-businessmap', {
       BUSINESSMAP_URL_BASE: `http://usuario:${SEGREDO}@bm.exemplo`, BUSINESSMAP_APIKEY: '', PG_COLETOR_URL: '',
-      PG_REF_URL: 'postgres://ref:x@db.exemplo:5432/dspd', DSPD_PWD_REF: '',
+      PG_REF_URL: 'postgres://ref:x@db.exemplo:5432/dspd', DSPD_PWD_REF: '', ...OPCIONAIS_VAZIAS,
     });
     expect(r.status).toBe(1);
     expect(r.stderr).toBe('bm:coleta falhou: configuração: BUSINESSMAP_URL_BASE, BUSINESSMAP_APIKEY, PG_COLETOR_URL\n');
     expect(r.stderr + r.stdout).not.toContain(SEGREDO);
     expect(r.stderr).not.toContain('erro-interno');
+  });
+});
+
+describe('coleta ac com DSPD_SCHEMA_PREFIXO inválido', () => {
+  it('a entrada nomeia a variável: nunca erro-interno nem o valor', () => {
+    const r = rodar('coleta', { ...AC_VALIDAS, PG_COLETOR_URL: `postgres://coletor:${SEGREDO}@db.exemplo:5432/dspd`, DSPD_SCHEMA_PREFIXO: `Invalido-${SEGREDO}` });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toBe('coleta ac falhou: configuração: DSPD_SCHEMA_PREFIXO\n');
+    expect(r.stderr + r.stdout).not.toContain(SEGREDO);
   });
 });
 
