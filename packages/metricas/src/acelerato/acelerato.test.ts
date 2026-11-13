@@ -117,7 +117,11 @@ describe('Acelerato', () => {
   })
 
   it('S1 escolhe a medida pela unidade do alvo da célula: P1 e P2 (primeiro atendimento) em tempo corrido, os demais em útil (Q-099-11)', () => {
-    const ctx = criarContextoAC(baseDe(25, (i) => ({ prioridade: i < 5 ? 'P1' : i < 10 ? 'P2' : 'P3' })), HOJE, CALENDARIO_PADRAO)
+    const ctx = criarContextoAC(
+      baseDe(25, (i) => ({ prioridade: i < 5 ? 'P1' : i < 10 ? 'P2' : 'P3' })),
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
     const r = calcularS1(ctx, F)
     const ps = (pr: string) => r.prioridades.find((p) => p.prioridade === pr)!
     expect(ps('P1').primeiroAtendimento.unidade).toBe('corrido')
@@ -125,16 +129,30 @@ describe('Acelerato', () => {
     expect(ps('P2').primeiroAtendimento.unidade).toBe('corrido')
     expect(ps('P2').restauracao.unidade).toBe('util')
     expect(ps('P3').restauracao.unidade).toBe('util')
-    expect(ALVOS_PADRAO.filter((a) => a.unidade_primeiro_atendimento === 'corrido').map((a) => a.prioridade)).toEqual(['P1', 'P2'])
-    expect(ALVOS_PADRAO.filter((a) => a.unidade_restauracao === 'corrido').map((a) => a.prioridade)).toEqual(['P1'])
+    expect(
+      ALVOS_PADRAO.filter((a) => a.unidade_primeiro_atendimento === 'corrido').map(
+        (a) => a.prioridade,
+      ),
+    ).toEqual(['P1', 'P2'])
+    expect(
+      ALVOS_PADRAO.filter((a) => a.unidade_restauracao === 'corrido').map((a) => a.prioridade),
+    ).toEqual(['P1'])
   })
 
   it('S1: a mesma amostra dá 10 h corridas (32 h menos 22 h de pausa no relógio corrido) ou 9 h úteis, conforme a unidade do alvo', () => {
     const med = (unidade: 'corrido' | 'util') => {
       const base = baseDe(25)
-      const alvos = ALVOS_PADRAO.map((a) => (a.prioridade === 'P3' ? { ...a, unidade_primeiro_atendimento: unidade, unidade_restauracao: unidade } : a))
-      const p3 = calcularS1(criarContextoAC({ ...base, config: { ...base.config, alvos } }, HOJE, CALENDARIO_PADRAO), F).prioridades.find((p) => p.prioridade === 'P3')!
-      const v = (x: typeof p3.restauracao) => (x.estatistica.status === 'ok' ? x.estatistica.valor.p50 : NaN)
+      const alvos = ALVOS_PADRAO.map((a) =>
+        a.prioridade === 'P3'
+          ? { ...a, unidade_primeiro_atendimento: unidade, unidade_restauracao: unidade }
+          : a,
+      )
+      const p3 = calcularS1(
+        criarContextoAC({ ...base, config: { ...base.config, alvos } }, HOJE, CALENDARIO_PADRAO),
+        F,
+      ).prioridades.find((p) => p.prioridade === 'P3')!
+      const v = (x: typeof p3.restauracao) =>
+        x.estatistica.status === 'ok' ? x.estatistica.valor.p50 : NaN
       return { r: v(p3.restauracao), pa: v(p3.primeiroAtendimento), u: p3.restauracao.unidade }
     }
     expect(med('corrido')).toEqual({ r: 10, pa: 0.5, u: 'corrido' })

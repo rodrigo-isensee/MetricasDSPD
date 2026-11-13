@@ -98,4 +98,11 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
       { prioridade: 'P2', primeiro_atendimento_horas: 0.5, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 8, unidade_restauracao: 'util' },
     ]);
   });
+
+  it('unidade de prazo fora de corrido e util em ref_alvo_prioridade: erro, nunca um padrão (a unidade muda o número da S1)', () => {
+    const base = { chamados: [], etapas: [], criterios: [] };
+    const alvo = (unidade_pa: string, unidade_r: string) => ({ prioridade: 'P1', prazo_pa_horas: '1.00', unidade_pa, prazo_r_horas: '4.00', unidade_r });
+    expect(() => montarBaseAC({ ...base, alvos: [alvo('semana', 'util')] })).toThrow('unidade de prazo desconhecida');
+    expect(() => montarBaseAC({ ...base, alvos: [alvo('util', 'semana')] })).toThrow('unidade de prazo desconhecida');
+  });
 });
