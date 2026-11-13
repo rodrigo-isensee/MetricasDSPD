@@ -97,7 +97,7 @@ describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
     const comp = ['O20', 'O21', 'O22', 'O23', 'O24', 'O25', 'O26'] as MetricaId[];
     for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('sem-dado'); expect(motivoDaOrigemSemDado(id), id).toBe('aguardando campo no quadro'); }
     for (const id of comp) expect(origemDaMetrica(id), id).toBe('sem-dado');
-    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'PV1', 'S2', 'S3', 'S4', 'S8', 'S10', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
+    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'PV1', 'S2', 'S3', 'S4', 'S8', 'S10', 'S12', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
     // FL2, FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
     for (const id of METRICA_IDS.filter((m) => /^(T|E)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('sem-dado');
   });

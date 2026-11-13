@@ -4,7 +4,9 @@
  * Não calcula nada: não soma, não refaz percentil, não muda `n`. É publicação, como a H-24.
  */
 import { DATA_BLOQUEIO_COM_DADO_REAL } from '@metricas-dspd/metricas';
-import type { MetricaId, NotaSustentacaoId } from '@metricas-dspd/contratos';
+import type { MetricaId, NotaS12Id, NotaSustentacaoId } from '@metricas-dspd/contratos';
+
+const NOTA_S12: NotaS12Id = 'excecao-sla-s12-sem-fonte';
 
 type Linha = Record<string, unknown>;
 
@@ -56,5 +58,7 @@ export function comCorteDaSerieO1(id: MetricaId, resultado: unknown, ligado: boo
 export function comNotaS12SemFonte(id: MetricaId, resultado: unknown): unknown {
   if (id !== 'S12') return resultado;
   const r = resultado as Linha;
-  return r.excecaoSla === null ? comNotaSust(r, 'excecao-sla-s12-sem-fonte') : resultado;
+  if (r.excecaoSla !== null) return resultado;
+  const atuais = (r.notas as NotaS12Id[] | undefined) ?? [];
+  return { ...r, notas: atuais.includes(NOTA_S12) ? atuais : [...atuais, NOTA_S12] };
 }

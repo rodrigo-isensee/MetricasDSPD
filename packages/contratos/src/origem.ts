@@ -142,20 +142,30 @@ export const TEXTO_NOTA_SUSTENTACAO = {
     'Ajustes manuais de prioridade: sem dado real (a coleta ainda não traz o campo "Prioridade ajustada manualmente?").',
   'excecao-sla-sem-fonte':
     'Exceção de SLA por registro posterior sem fonte: todo chamado fechado conta como apurável.',
-  'excecao-sla-s12-sem-fonte':
-    'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
 } as const
 export type NotaSustentacaoId = keyof typeof TEXTO_NOTA_SUSTENTACAO
 export const NOTA_SUSTENTACAO_IDS = [
   'ajuste-prioridade-sem-dado-real',
   'excecao-sla-sem-fonte',
-  'excecao-sla-s12-sem-fonte',
 ] as const satisfies readonly NotaSustentacaoId[]
 export const notaSustentacaoIdSchema = z.enum(NOTA_SUSTENTACAO_IDS)
-/** Texto de qualquer nota que o cartão mostra (as dos dois enums). */
-export const TEXTO_NOTA_QUALQUER: Readonly<Record<NotaCartaoId | NotaSustentacaoId, string>> = {
+/**
+ * Pedido 099 (D9): nota só do S12, em enum à parte para não mudar o contrato do S2, do S3 e da tendência (o enum da sustentação não cresce).
+ */
+export const TEXTO_NOTA_S12 = {
+  'excecao-sla-s12-sem-fonte':
+    'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+} as const
+export type NotaS12Id = keyof typeof TEXTO_NOTA_S12
+export const NOTA_S12_IDS = ['excecao-sla-s12-sem-fonte'] as const satisfies readonly NotaS12Id[]
+export const notaS12IdSchema = z.enum(NOTA_S12_IDS)
+/** Texto de qualquer nota que o cartão mostra (os dos três enums). */
+export const TEXTO_NOTA_QUALQUER: Readonly<
+  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id, string>
+> = {
   ...TEXTO_NOTA_CARTAO,
   ...TEXTO_NOTA_SUSTENTACAO,
+  ...TEXTO_NOTA_S12,
 }
 
 /** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */

@@ -3,7 +3,9 @@ import { METRICA_IDS } from './comum'
 import {
   AJUSTE_PRIORIDADE_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
+  NOTA_S12_IDS,
   NOTA_SUSTENTACAO_IDS,
+  notaS12IdSchema,
   notaSustentacaoIdSchema,
   TEXTO_NOTA_QUALQUER,
   corpoSemDadoReal,
@@ -19,7 +21,7 @@ import {
   origemDaMetrica,
   TEXTO_NOTA_CARTAO,
 } from './origem'
-import { resultadoO1, resultadoO2, resultadoO3, resultadoO5 } from './schemas'
+import { resultadoO1, resultadoO2, resultadoO3, resultadoO5, resultadoS12 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
   it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, BLOQUEADOS, O5 e O19 (pedido 075, 6b), a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
@@ -176,5 +178,14 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
     }
     expect(notaSustentacaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(false)
     expect(AJUSTE_PRIORIDADE_COM_FONTE).toBe(false)
+  })
+
+  it('pedido 099 (D9): a nota do S12 tem enum e texto próprios; o enum da sustentação não cresce', () => {
+    expect(notaS12IdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(true)
+    expect(notaSustentacaoIdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(false)
+    expect(notaCartaoIdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(false)
+    for (const id of NOTA_S12_IDS) expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
+    expect(resultadoS12.shape.notas.safeParse(['excecao-sla-s12-sem-fonte']).success).toBe(true)
+    expect(resultadoS12.shape.excecaoSla.safeParse(null).success).toBe(true)
   })
 })
