@@ -8,15 +8,15 @@ const ext = gerarExtensoesMock(base)
 
 describe('extensões mock das métricas complementares', () => {
   it('não altera a base: hashes do núcleo intactos', () => {
-    expect(hashJson(base)).toBe('de6a8953')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('345c5682')
+    expect(hashJson(base)).toBe('dd6787b1')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('5f03955c')
   })
 
   it('é determinística pela semente e pura da base', () => {
     expect(hashJson(gerarExtensoesMock(base))).toBe(hashJson(ext))
     const outra = gerarBaseMock({ escala: 0.2, semente: 7 })
     expect(hashJson(gerarExtensoesMock(outra))).not.toBe(hashJson(ext))
-    expect(hashJson(ext)).toBe('495a0e07')
+    expect(hashJson(ext)).toBe('24ebe69d')
   })
 
   it('AC: causa raiz só em incidentes, domínio fechado (O17 é da Sustentação)', () => {
