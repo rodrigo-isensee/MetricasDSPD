@@ -47,11 +47,13 @@ export type ConfigAcelerato = {
 
 /** `NODE_TLS_REJECT_UNAUTHORIZED=0` desligaria a verificação do certificado (M3): a partida é recusada. */
 export function carregarConfigAcelerato(env: NodeJS.ProcessEnv = process.env): ConfigAcelerato {
-  if (env.NODE_TLS_REJECT_UNAUTHORIZED === '0') throw new ErroColeta('configuracao-invalida', { coluna: 'NODE_TLS_REJECT_UNAUTHORIZED' });
+  const tlsDesligado = env.NODE_TLS_REJECT_UNAUTHORIZED === '0';
   const bruto: Record<string, string | undefined> = {};
   for (const nome of VARIAVEIS_ACELERATO) bruto[nome] = env[nome] === '' ? undefined : env[nome];
   const r = esquema.safeParse(bruto);
-  if (!r.success) throw new ErroColeta('configuracao-invalida', { coluna: variaveisInvalidas(r.error).join(',') });
+  // A recusa do TLS não interrompe a validação: a lista de nomes sai completa (K-311).
+  const nomes = [...(tlsDesligado ? ['NODE_TLS_REJECT_UNAUTHORIZED'] : []), ...(r.success ? [] : variaveisInvalidas(r.error))];
+  if (!r.success || nomes.length > 0) throw new ErroColeta('configuracao-invalida', { coluna: nomes.join(',') });
   const v = r.data;
   return {
     host: v.ACELERATO_MYSQL_HOST, porta: v.ACELERATO_MYSQL_PORT, banco: v.ACELERATO_MYSQL_DATABASE, usuario: v.ACELERATO_MYSQL_USER,

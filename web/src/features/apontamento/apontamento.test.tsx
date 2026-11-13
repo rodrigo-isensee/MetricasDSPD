@@ -352,10 +352,10 @@ describe('CA-4: filtros na URL', () => {
     ).toBeInTheDocument()
   })
 
-  it('o mapa diário não é afetado pela equipe e diz isso no rodapé', async () => {
+  it('o mapa diário é recortado pela equipe e o rodapé diz só o que não afeta (Tipo)', async () => {
     await cartao('AP-DIARIO', `${URL_ABA}?tipo=3&equipe=portal`)
     const diario = screen.getByTestId('metrica-AP-DIARIO')
-    expect(within(diario).getByText('Não afetado por: Equipe, Tipo')).toBeInTheDocument()
+    expect(within(diario).getByText('Não afetado por: Tipo')).toBeInTheDocument()
     const kpis = screen.getByTestId('metrica-AP-KPIS')
     expect(within(kpis).getAllByText(/Filtros aplicados: .*Equipe Portal/).length).toBeGreaterThan(
       0,
