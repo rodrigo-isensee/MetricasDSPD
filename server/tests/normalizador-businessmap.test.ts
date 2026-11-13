@@ -234,6 +234,32 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
   });
 });
 
+describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12-deadline §2)', () => {
+  it('forma válida AAAA-MM-DD vira o mesmo dia, sem nota', () => {
+    const p = proj(card({ deadline: '2026-10-30' }));
+    expect(p.dim.data_acordada).toBe('2026-10-30');
+    expect(p.notas).not.toContain('deadline_fora_da_forma');
+  });
+
+  it('ausente ou nulo fica nulo, sem nota', () => {
+    for (const c of [card(), card({ deadline: null })]) {
+      const p = proj(c);
+      expect(p.dim.data_acordada).toBeNull();
+      expect(p.notas).not.toContain('deadline_fora_da_forma');
+    }
+  });
+
+  it('data e hora, texto, número e data impossível viram nulo com a nota, sem converter e sem o valor', () => {
+    const ruins = ['2026-10-30T00:00:00Z', '2026-10-30 10:00:00', 'amanhã', '30/10/2026', '2026-02-30', '2026-13-01', '0000-01-01', '0000-12-31', 20261030, true, ''];
+    for (const deadline of ruins) {
+      const p = proj(card({ deadline }));
+      expect(p.dim.data_acordada).toBeNull();
+      expect(p.notas.filter((n) => n === 'deadline_fora_da_forma')).toHaveLength(1);
+      expect(JSON.stringify(p.notas)).not.toContain('2026-10-30');
+    }
+  });
+});
+
 describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id -> coluna', () => {
   const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'classe_servico'], ['502', 'sistema'], ['503', 'severidade']]) };
   const LISTA = ['classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
@@ -279,6 +305,25 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     for (const c of LISTA) expect(sem.dim[c]).toBeNull();
     const antes = Object.fromEntries(Object.entries(sem.dim).filter(([k]) => !(LISTA as readonly string[]).includes(k)));
     expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
-      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em']);
+      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada']);
+  });
+});
+
+describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de segurança)', () => {
+  // Entradas literais das sondas, gravadas no corpus: o JS aceita o ano 0 e o PostgreSQL recusa; por isso a guarda do normalizador exige ano >= 1.
+  const SONDAS = [
+    `docker exec metricasdspd-postgres-1 psql -U postgres -d postgres -Atc "select '0000-01-01'::date"`,
+    `node -e "const v='0000-01-01';const d=new Date(v+'T00:00:00Z');console.log(!Number.isNaN(d.getTime()), d.toISOString().slice(0,10)===v)"`,
+  ];
+  it('as duas condições do JS aceitam 0000-01-01 (S2), então a guarda própria é necessária; o normalizador o recusa', () => {
+    expect(SONDAS).toHaveLength(2);
+    const d = new Date('0000-01-01T00:00:00Z');
+    expect(!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === '0000-01-01').toBe(true);
+    const p = proj(card({ deadline: '0000-01-01' }));
+    expect(p.dim.data_acordada).toBeNull();
+    expect(p.notas.filter((n) => n === 'deadline_fora_da_forma')).toHaveLength(1);
+  });
+  it('ano 0001 é aceito', () => {
+    expect(proj(card({ deadline: '0001-01-01' })).dim.data_acordada).toBe('0001-01-01');
   });
 });

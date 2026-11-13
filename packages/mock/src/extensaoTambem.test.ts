@@ -18,10 +18,11 @@ const t11 = businessmap.calcularT11(ctx, F, ext)
  */
 describe('B11b: extensão do T11 (entradas sazonais)', () => {
   it('base intacta: hashes do núcleo e do Acelerato iguais aos de antes da extensão', () => {
-    expect(hashJson(base)).toBe('68a67741')
-    expect(hashJson(base.ac)).toBe('0113e077')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('824092e4')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('39b4b005')
+    expect(hashJson(base)).toBe('de6a8953')
+    // regravado no D3 do 099 (unidade dos prazos em config.alvos); ver docs/qa/evidencias/hash-base-fase-a.nota.md
+    expect(hashJson(base.ac)).toBe('20541e9d')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('345c5682')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('34151797')
   })
 
   it('hash próprio e determinístico: igual na repetição, outro com outra semente e com outra escala', () => {

@@ -256,7 +256,7 @@ async function projetarLote(
   // dim_card: projeção, refeita por card (a história fica no staging e em dim_card_versao); `responsaveis` nunca vem do staging
   await db.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [ok]);
   const COLUNAS_DIM = ['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em', 'motivo_descarte', 'titulo',
-    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', ...COLUNAS_LISTA] as const;
+    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', ...COLUNAS_LISTA] as const;
   await inserir(db, `${S.bm}.dim_card`, [...COLUNAS_DIM, 'responsaveis', 'coletado_em', 'atualizado_por_coleta_id'],
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
 
