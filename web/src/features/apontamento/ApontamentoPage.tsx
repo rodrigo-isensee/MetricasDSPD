@@ -89,8 +89,10 @@ export default function ApontamentoPage({
       diarioDe: uso.consulta.diarioDe,
       diarioAte: uso.consulta.diarioAte,
       definirDiario: uso.definirDiario,
+      equipes: ativos.filter((a) => a.chave === 'equipe').map((a) => a.valor),
+      removerEquipe: () => uso.remover('equipe'),
     }),
-    [dados.resposta, dados.erro, dados.atualizando, dados.tentarDeNovo, estado, uso],
+    [dados.resposta, dados.erro, dados.atualizando, dados.tentarDeNovo, estado, uso, ativos],
   )
   const vazio = dados.resposta !== undefined && dados.resposta.kpis.apontamentos === 0
   return (
