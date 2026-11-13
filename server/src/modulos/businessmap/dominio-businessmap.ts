@@ -4,8 +4,7 @@ import { z } from 'zod';
 import { METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, type MotivoBloqueio } from '@metricas-dspd/contratos';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
-import { ErroDominio, planejarDominio, textoSeguro, type LinhaVigente } from '../referencia/index.js';
-import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, rotuloDeSetorSeguro } from '../referencia/setor.js';
+import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, ErroDominio, planejarDominio, rotuloDeSetorSeguro, textoSeguro, type LinhaVigente } from '../referencia/index.js';
 import { CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
 
 /**
