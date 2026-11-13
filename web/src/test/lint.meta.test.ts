@@ -311,7 +311,7 @@ const MOCK = `${SRC}/data/mock`
 const APP = `${SRC}/app/App.tsx`
 const EH_TESTE = /\.test\.tsx?$|(^|\/)(test|testes)\//
 
-/** Cada `import`, `export ... from`, `import()` (aspas ou crase) e `new Worker(new URL(...))`, com o alvo como escrito. */
+/** Cada `import`, `export ... from`, `import()` (aspas ou crase) e `new Worker(new URL(...))` e `new SharedWorker(new URL(...))`, com o alvo como escrito. */
 type Especificador = { alvo: string; dinamico: boolean; worker: boolean }
 const especificadores = (codigo: string): Especificador[] => [
   ...[...codigo.matchAll(/(?:\bfrom\s*|\bimport\s*)['"]([^'"]+)['"]/g)].map((m) => ({
@@ -324,11 +324,13 @@ const especificadores = (codigo: string): Especificador[] => [
     dinamico: true,
     worker: false,
   })),
-  ...[...codigo.matchAll(/\bnew\s+Worker\(\s*new\s+URL\(\s*['"`]([^'"`]+)['"`]/g)].map((m) => ({
-    alvo: m[1]!,
-    dinamico: false,
-    worker: true,
-  })),
+  ...[...codigo.matchAll(/\bnew\s+(?:Shared)?Worker\(\s*new\s+URL\(\s*['"`]([^'"`]+)['"`]/g)].map(
+    (m) => ({
+      alvo: m[1]!,
+      dinamico: false,
+      worker: true,
+    }),
+  ),
 ]
 
 function violacoesDoMock(arquivo: string, codigo: string): string[] {
@@ -344,7 +346,7 @@ function violacoesDoMock(arquivo: string, codigo: string): string[] {
     const doMock = caminho === MOCK || caminho.startsWith(`${MOCK}/`) || alvo.includes('data/mock')
     if (!doMock) continue
     if (worker) {
-      achados.push(`${arquivo} carrega ${alvo} por new Worker`)
+      achados.push(`${arquivo} carrega ${alvo} por new Worker ou SharedWorker`)
       continue
     }
     if (arquivo === APP && dinamico) continue
@@ -401,6 +403,21 @@ describe('G2: o mock não entra em módulo de produção (ADR 0030)', () => {
       'new Worker do mock fora do App',
       'web/src/features/x/X.tsx',
       "export const w = new Worker(new URL('../../data/mock/nucleoMock.worker.ts', import.meta.url))",
+    ],
+    [
+      'new SharedWorker do mock fora do App',
+      'web/src/features/x/X.tsx',
+      "export const w = new SharedWorker(new URL('../../data/mock/nucleoMock.worker.ts', import.meta.url))",
+    ],
+    [
+      'new SharedWorker do mock no App',
+      APP,
+      "export const w = new SharedWorker(new URL('@/data/mock/nucleoMock.worker', import.meta.url))",
+    ],
+    [
+      'data/mock atrás de interpolação, só o trecho do alvo denuncia',
+      'web/src/features/x/X.tsx',
+      'export const m = (p: string) => import(`../${p}/data/mock/MockFonteMetricas`)',
     ],
     [
       'new Worker do mock no App',
