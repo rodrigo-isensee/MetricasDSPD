@@ -10,7 +10,7 @@ SELECT f.nome, f.tipo, COUNT(*) AS ocorrencias, SUM(f.valor IS NOT NULL AND f.va
          valor VARCHAR(255) PATH '$.valor' NULL ON ERROR)) f
  WHERE c.tipo_ticket = 'DSPD - SSSC' AND c.equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG')
    AND c.organizacao LIKE 'UNIFIQUE - DSPD%'
-   AND f.nome IN ('Motivo de Encerramento', 'Categoria de solução', 'Motivo da Escalação', 'Qual suporte foi acionado?',
+   AND f.nome IN ('Motivo de Encerramento', 'Categoria de solução', 'Motivo da Escalação:',
                   'Prioridade ajustada manualmente?', 'Classifique o chamado no Tipo de Prioridade corretamente!',
                   'Avaliação de Problema', 'Motivo de Pendência')
  GROUP BY f.nome, f.tipo;

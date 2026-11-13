@@ -5,7 +5,7 @@
  */
 export type Esquemas = { bm: string; ac: string; core: string };
 
-const PREFIXO_VALIDO = /^[a-z][a-z0-9_]{0,30}$/;
+export const PREFIXO_VALIDO = /^[a-z][a-z0-9_]{0,30}$/;
 
 export function montarEsquemas(prefixo = ''): Esquemas {
   if (prefixo !== '' && !PREFIXO_VALIDO.test(prefixo)) throw new Error(`DSPD_SCHEMA_PREFIXO inválido: ${prefixo}`);

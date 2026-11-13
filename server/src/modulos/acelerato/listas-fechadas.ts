@@ -38,15 +38,14 @@ export const NOMES_CAMPO_FATIA_F1 = [NOME_CAMPO_90_DIAS] as const;
  */
 export type TratamentoCampoEtapa = 'lista' | 'preenchido';
 export const CAMPOS_ETAPA_F3 = [
-  { nome: 'Motivo da Escalação', chave: 'motivo_escalacao', tratamento: 'lista' },
-  { nome: 'Qual suporte foi acionado?', chave: 'suporte_acionado', tratamento: 'lista' },
+  { nome: 'Motivo da Escalação:', chave: 'motivo_escalacao', tratamento: 'lista' },
   { nome: 'Motivo de Encerramento', chave: 'motivo_encerramento', tratamento: 'lista' },
   { nome: 'Classifique o chamado no Tipo de Prioridade corretamente!', chave: 'tipo_prioridade', tratamento: 'lista' },
   { nome: 'Motivo de Pendência', chave: 'motivo_pendencia', tratamento: 'lista' },
   { nome: 'Avaliação de Problema', chave: 'avaliacao_problema', tratamento: 'lista' },
   { nome: 'Prioridade ajustada manualmente?', chave: 'prioridade_ajustada', tratamento: 'lista' },
-  { nome: 'Se a prioridade foi ajustada, justifique', chave: 'justificativa_informada', tratamento: 'preenchido' },
-  { nome: 'Previsão de retorno', chave: 'previsao_retorno_informada', tratamento: 'preenchido' },
+  { nome: 'Se a prioridade foi ajustada, justifique:', chave: 'justificativa_informada', tratamento: 'preenchido' },
+  { nome: 'Previsão de retorno:', chave: 'previsao_retorno_informada', tratamento: 'preenchido' },
 ] as const satisfies readonly { nome: string; chave: string; tratamento: TratamentoCampoEtapa }[];
 export type CampoEtapa = (typeof CAMPOS_ETAPA_F3)[number];
 const nomesPor = (t: TratamentoCampoEtapa): string[] => CAMPOS_ETAPA_F3.filter((c) => c.tratamento === t).map((c) => c.nome);

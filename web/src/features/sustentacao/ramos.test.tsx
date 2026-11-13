@@ -37,6 +37,35 @@ describe('S1: tempo por prioridade', () => {
   })
 })
 
+describe('S1: dia útil da Sustentação (D3b)', () => {
+  it('mostra o dia útil do resultado e o alvo de P4 e P5 em dias úteis com 2 casas', async () => {
+    renderizarCartao(<CartaoS1 filtros={FILTROS_SUSTENTACAO} />, {
+      fonte: new FonteAjustada({
+        S1: (r: {
+          horasPorDiaUtil: number
+          prioridades: {
+            prioridade: string
+            primeiroAtendimento: { alvoHoras: number }
+            restauracao: { alvoHoras: number }
+          }[]
+        }) => {
+          r.horasPorDiaUtil = 8.8
+          for (const p of r.prioridades) {
+            if (p.prioridade === 'P4') p.primeiroAtendimento.alvoHoras = 4
+            if (p.prioridade === 'P5') p.restauracao.alvoHoras = 88
+          }
+        },
+      }),
+    })
+    const el = await pronto('S1')
+    expect(within(el).getByTestId('s1-dia-util')).toHaveTextContent(
+      'Dia útil da Sustentação: 8,8 h.',
+    )
+    expect(el.textContent).toContain('0,45 dia útil')
+    expect(el.textContent).toContain('10 dias úteis')
+  })
+})
+
 describe('S3: entrada de chamados', () => {
   it('último mês fechado sem proporção publicada (menos de 20 chamados)', async () => {
     renderizarCartao(<CartaoS3 filtros={FILTROS_SUSTENTACAO} />, {

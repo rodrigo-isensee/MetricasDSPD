@@ -2,8 +2,8 @@
   "versao": 1,
   "regra": "Calendário de referência por domínio (ADR 0027). Só datas de feriado e nomes de calendário: nenhum dado de pessoa. Feriado gravado nunca muda; para acrescentar, inclua a data aqui e rode o ref:sync-calendario com a data de vigência.",
   "versao_criterio": {
-    "descricao": "Calendário de feriados da referência (nacionais 2025-2026, BusinessMap e Acelerato em calendários separados)",
-    "motivo": "Pedido 069 (E5/L7-a): os feriados passam a vir da referência versionada, não só do código; muda os dias úteis a partir da vigência."
+    "descricao": "Calendário da referência (feriados nacionais 2025-2026 e, no Acelerato, a jornada do dia útil), BusinessMap e Acelerato em calendários separados",
+    "motivo": "Pedido 069 (E5/L7-a): os feriados passam a vir da referência versionada. Pedido 099 (D3b, Decisão 13 do dono): o dia útil da Sustentação passa a 8 h 48 (528 min), com turnos gravados no calendário do Acelerato; muda as horas úteis do Acelerato a partir da vigência, o BusinessMap segue os turnos padrão."
   },
   "calendarios": [
     {
@@ -149,6 +149,10 @@
       "dominio": "acelerato",
       "offset_minutos": -180,
       "descricao": "Calendário do Acelerato (sustentação)",
+      "turnos": [
+        { "inicio": "08:00", "fim": "12:00" },
+        { "inicio": "13:00", "fim": "17:48" }
+      ],
       "feriados": [
         {
           "data": "2025-01-01",

@@ -539,4 +539,11 @@ describe('outras telas', () => {
     for (const el of document.querySelectorAll('[data-testid^="metrica-"]'))
       expect(ids.has((el.getAttribute('data-testid') ?? '').replace('metrica-', ''))).toBe(true)
   })
+
+  it('a Ajuda diz o dia útil do fluxo (8 h) e o da Sustentação (8 h 48 min) (CA-4)', async () => {
+    renderizarApp('/ajuda')
+    const texto = await screen.findByText(/No fluxo de projeto o tempo é em dias úteis/)
+    expect(texto).toHaveTextContent('1 dia útil = 8 h')
+    expect(texto).toHaveTextContent('1 dia útil = 8 h 48 min')
+  })
 })

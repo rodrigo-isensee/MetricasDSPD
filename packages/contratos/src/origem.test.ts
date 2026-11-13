@@ -3,7 +3,9 @@ import { METRICA_IDS } from './comum'
 import {
   AJUSTE_PRIORIDADE_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
+  NOTA_S12_IDS,
   NOTA_SUSTENTACAO_IDS,
+  notaS12IdSchema,
   notaSustentacaoIdSchema,
   TEXTO_NOTA_QUALQUER,
   corpoSemDadoReal,
@@ -11,7 +13,7 @@ import {
   METRICAS_ORIGEM_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   MOTIVO_ORIGEM_MOCK,
-  motivoDaOrigemMock,
+  motivoDaOrigemSemDado,
   motivoSemDadoReal,
   semDadoRealSchema,
   NOTAS_FIXAS_DO_CARTAO,
@@ -19,7 +21,7 @@ import {
   origemDaMetrica,
   TEXTO_NOTA_CARTAO,
 } from './origem'
-import { resultadoO1, resultadoO2, resultadoO3, resultadoO5 } from './schemas'
+import { resultadoO1, resultadoO2, resultadoO3, resultadoO5, resultadoS12 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
   it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, BLOQUEADOS, O5 e O19 (pedido 075, 6b), a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
@@ -28,56 +30,56 @@ describe('origemDaMetrica (H-13)', () => {
       [
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
+        ...['O25'], // pedido 099 (lote A3)
         ...['PV1'],
-        ...['S2', 'S3', 'S4', 'S8', 'S10'],
+        ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
       ].sort(),
     )
   })
 
-  it('sustentação: S1, S5, S6, S7, S9, S11, S12 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
-    expect(motivoDaOrigemMock('S1')).toBe('aguardando prazos de SLA por prioridade')
+  it('sustentação: S1, S5, S6, S7, S9, S11 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
+    expect(motivoDaOrigemSemDado('S1')).toBe('aguardando prazos de SLA por prioridade')
     for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
-      expect(origemDaMetrica(id), id).toBe('mock')
-      expect(motivoDaOrigemMock(id), id).toBe(
+      expect(origemDaMetrica(id), id).toBe('sem-dado')
+      expect(motivoDaOrigemSemDado(id), id).toBe(
         'aguardando tipo e domínio do campo do chamado (P-DS-19)',
       )
     }
-    expect(origemDaMetrica('S9')).toBe('mock')
-    expect(motivoDaOrigemMock('S9')).toBe(
+    expect(origemDaMetrica('S9')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('S9')).toBe(
       'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
     )
-    expect(origemDaMetrica('S12')).toBe('mock')
-    expect(motivoDaOrigemMock('S12')).toBe(
-      'aguardando fonte do registro posterior de exceção de SLA',
-    )
-    expect(origemDaMetrica('EI_SUST')).toBe('mock')
-    expect(motivoDaOrigemMock('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
+    // Pedido 099 (D9): S12 é real só com o volume; sem motivo de dado fictício.
+    expect(origemDaMetrica('S12')).toBe('real')
+    expect(motivoDaOrigemSemDado('S12')).toBeNull()
+    expect(origemDaMetrica('EI_SUST')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
   })
 
   it('métrica de sustentação real não tem motivo de dado fictício', () => {
     for (const id of ['S2', 'S3', 'S4', 'S8', 'S10'] as const) {
       expect(origemDaMetrica(id), id).toBe('real')
-      expect(motivoDaOrigemMock(id), id).toBeNull()
+      expect(motivoDaOrigemSemDado(id), id).toBeNull()
     }
   })
 
   it('é mock, com o motivo, para O8, O12, O14, O15, O16, O17 e O18', () => {
     for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O17', 'O18'] as const) {
-      expect(origemDaMetrica(id)).toBe('mock')
-      expect(motivoDaOrigemMock(id)).toBe('aguardando campo no quadro')
+      expect(origemDaMetrica(id)).toBe('sem-dado')
+      expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
   })
 
   it('O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
     for (const id of ['O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
-      expect(origemDaMetrica(id)).toBe('mock')
-      expect(motivoDaOrigemMock(id)).toBeNull()
+      expect(origemDaMetrica(id)).toBe('sem-dado')
+      expect(motivoDaOrigemSemDado(id)).toBeNull()
     }
   })
 
   it('métrica real não tem motivo de dado fictício', () => {
-    expect(motivoDaOrigemMock('O1')).toBeNull()
+    expect(motivoDaOrigemSemDado('O1')).toBeNull()
   })
 })
 
@@ -131,20 +133,20 @@ describe('estado sem dado real (pedido 060, P3)', () => {
   })
 
   it('PV1 não tem motivo de dado fictício', () => {
-    expect(motivoDaOrigemMock('PV1')).toBeNull()
+    expect(motivoDaOrigemSemDado('PV1')).toBeNull()
   })
 
   it('C1/C2 (pedido 075, 6b): BLOQUEADOS, O5 e O19 são reais e sem motivo de mock; T10 e T12 seguem fora do mapa real, com o motivo genérico (SEG-A5)', () => {
     for (const id of ['BLOQUEADOS', 'O5', 'O19'] as const) {
       expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(true)
       expect(origemDaMetrica(id), id).toBe('real')
-      expect(motivoDaOrigemMock(id), id).toBeNull()
+      expect(motivoDaOrigemSemDado(id), id).toBeNull()
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
     }
     // T10 e T12 leem a mesma `fato_bloqueio`, mas esperam a WS1 (P-075-11 e P-075-12, "B"): nada muda para eles.
     for (const id of ['T10', 'T12'] as const) {
       expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(false)
-      expect(origemDaMetrica(id), id).toBe('mock')
+      expect(origemDaMetrica(id), id).toBe('sem-dado')
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
       expect(motivoSemDadoReal(id), id).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
     }
@@ -177,5 +179,14 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
     }
     expect(notaSustentacaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(false)
     expect(AJUSTE_PRIORIDADE_COM_FONTE).toBe(false)
+  })
+
+  it('pedido 099 (D9): a nota do S12 tem enum e texto próprios; o enum da sustentação não cresce', () => {
+    expect(notaS12IdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(true)
+    expect(notaSustentacaoIdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(false)
+    expect(notaCartaoIdSchema.safeParse('excecao-sla-s12-sem-fonte').success).toBe(false)
+    for (const id of NOTA_S12_IDS) expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
+    expect(resultadoS12.shape.notas.safeParse(['excecao-sla-s12-sem-fonte']).success).toBe(true)
+    expect(resultadoS12.shape.excecaoSla.safeParse(null).success).toBe(true)
   })
 })
