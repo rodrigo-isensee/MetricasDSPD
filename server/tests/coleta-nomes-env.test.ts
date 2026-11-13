@@ -31,7 +31,8 @@ describe('coleta ac sem ambiente', () => {
   });
 
   it('com valores presentes e um faltando: nomeia só o que falta e nunca imprime os valores', () => {
-    const { ACELERATO_MYSQL_USER: _fora, ...resto } = AC_VALIDAS;
+    const resto = { ...AC_VALIDAS };
+    delete resto.ACELERATO_MYSQL_USER;
     const r = rodar('coleta', { ...resto, PG_COLETOR_URL: `postgres://coletor:${SEGREDO}@db.exemplo:5432/dspd` });
     expect(r.status).toBe(1);
     expect(r.stderr).toBe('coleta ac falhou: configuração: ACELERATO_MYSQL_USER\n');
@@ -88,7 +89,9 @@ describe('carregarConfigColetaAcelerato no mesmo processo', () => {
   });
 
   it('NODE_TLS_REJECT_UNAUTHORIZED=0 com outras variáveis faltando: a lista sai completa, uma vez cada', () => {
-    const { ACELERATO_MYSQL_USER: _a, ACELERATO_MYSQL_HOST: _b, ...resto } = AC_VALIDAS;
+    const resto: NodeJS.ProcessEnv = { ...AC_VALIDAS };
+    delete resto.ACELERATO_MYSQL_USER;
+    delete resto.ACELERATO_MYSQL_HOST;
     expect(nomesDe({ ...resto, NODE_TLS_REJECT_UNAUTHORIZED: '0' }))
       .toEqual(['PG_COLETOR_URL', 'NODE_TLS_REJECT_UNAUTHORIZED', 'ACELERATO_MYSQL_HOST', 'ACELERATO_MYSQL_USER']);
   });
