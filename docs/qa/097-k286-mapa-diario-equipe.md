@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/k286-mapa-diario-equipe
-commit: 62a622abf9abecc9813c01e3a6ca015e21d21cb4
+commit: b0ba260bbe693ecce9aab29fb80673cbf6ec0ca0
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-12
+data: 2026-11-13
 ---
 
 # QA: K-286, mapa diário do Apontamento recortado pela Equipe (097, E3.3)
@@ -46,6 +46,26 @@ Revalidação da volta 1 (62a622ab), que atende à revisão de UX. O parecer ant
 | M5: `CartaoDiario.tsx`, o texto do vazio com Equipe vira "Nenhum apontamento nesta janela. Troque..." | morreu: "A2: equipe sem ninguém..." caiu (1 falhou, 6 passaram) |
 
 Vermelho antes do verde: os testes novos são de regra e M4 e M5 provam que falham sem a implementação.
+
+## Delta E4.15 (junção com a develop e correção do plural)
+
+`forge-check parecer delta`, `62a622ab..b0ba260b`: o que veio da base (develop) saiu igual (7 arquivos, garantia da catraca do CI). No domínio do QA entra só `web/src/features/apontamento/mapa-diario-equipe.test.tsx`: teste novo "A4: com duas equipes, o nome da grade diz das equipes e lista as duas" (fronteira: plural, 2 equipes), que fecha o vermelho de cobertura de `CartaoDiario.tsx:86`. Veredito: aprovado.
+
+| Critério | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| A4: com 2 equipes o nome da grade diz "das equipes Integrações, Portal" | "A4: com duas equipes..." | plural (2 itens) | passou |
+
+Execução: `vitest run --maxWorkers=2 src/features/apontamento`: 12 arquivos, 183 passaram. CI do PR 377 no head b0ba260b: todos os checks verdes (banco, build, filtro, imagem, openapi, rapida, seguranca, testes, e2e-parte 1/2 e 2/2; perf e o agregador e2e pulados pela própria CI).
+
+Mutação no teste novo (`CartaoDiario.tsx:86`, restaurada a cada uma):
+
+| Mutante | Resultado |
+|---|---|
+| M6: `equipes.length === 1 ?` vira `true ?` (sempre singular) | morreu: "A4: com duas equipes..." caiu |
+| M7: vira `false ?` (sempre plural) | morreu: "A4: o nome da grade e a legenda..." caiu |
+| M8: `=== 1` vira `=== 2` | morreu: os dois testes caíram |
+
+Vermelho antes do verde: M6 equivale à base sem o ramo plural exercitado; o teste novo falha sem ele.
 
 ## Achados
 
