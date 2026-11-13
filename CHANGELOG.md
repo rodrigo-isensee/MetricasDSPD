@@ -40,6 +40,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Fluxo (pedido 099, C8a): a severidade do card vem do campo de prioridade nativo do BusinessMap (1 Crítica, 2 Alta, 3 Média, 4 Baixa), por de-para versionado carregado pelo `bm:ref-sync`; card sem prioridade fica sem severidade e valor fora do mapa é recusado e contado, nunca vira Baixa (#369).
 - Fluxo (pedido 099, C2a): o prazo combinado do card (`data_acordada`) vem do deadline nativo do BusinessMap, com leitura estrita da data (#366).
 - Métricas com dado real (pedido 099): O25 Descarte (lote A3) (#367) e S12 só com o volume por sistema; a exceção de SLA por registro posterior e a reincidência aparecem sem fonte, com nota, nunca como 0% (D9) (#370).
+- Aba Apontamento (pedido 097, K-286): o mapa diário passa a ser recortado também pelo filtro Equipe (time do card), além de Pessoa; várias equipes valem como um só recorte, nunca comparação, e o dia atípico segue decidido sobre o dia inteiro da pessoa. Sem piso de pessoas por recorte, por decisão do dono (1c, confirmada na Decisão 28); a forma da resposta não muda (#377).
 
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
@@ -70,6 +71,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Consultas só de leitura (pedido 099): a Q-RO-1 lê as tabelas com o filtro da view, que o papel do coletor não lê (#365).
 - CI: o lint da CI e da homologação passa a cobrir o servidor, que antes só era lintado no `pnpm run pronto`; o `pronto` volta a verde na `develop` (K-315); teste no PostgreSQL do caminho prioridade até a severidade do card (K-306) (#378).
 - Guardas da ADR 0030: ajustes depois do L2d na G1 e na G2 (K-294) (#373); o E2E COMP-12 exige "Sem dado real" no O17 (K-290) (#361); o teste de tempo do `classificarApontamento` mede CPU e fica estável sob carga (K-316) (#379); a `develop` volta a verde depois do D3 (#364).
+- Guardas da ADR 0030: a G2 também recusa `new SharedWorker` do mock fora da escolha da fonte (K-313); teste de contraste dos tokens nos temas claro e escuro, e o S12 lê a exceção de SLA nula pelo tipo do contrato, sem tipo duplicado (K-307) (#380).
 - Contratos: o estado de origem `mock` passa a se chamar `sem-dado`, como já significava desde a ADR 0030; nenhum comportamento muda (K-296) (#362).
 
 ### Desempenho
