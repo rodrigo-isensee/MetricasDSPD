@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: 57c74bc3707397b9d1d255969fd3b92b7752d4c0
+commit: d9abb3098b9a958e18c4438250baea8f93a5005e
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-12
+data: 2026-11-13
 ---
 # QA: D9, S12 no mapa real com o volume (pedido 099)
 
@@ -65,4 +65,10 @@ Delta de código e testes desde fac4c624: 7 arquivos da web (catálogo: Catalogo
 Delta 047f9d60..57c74bc3 no domínio do QA: docs/api/metricas.md (linha do O25, só texto), packages/contratos/src/origem.ts e origem.test.ts (O25 em `METRICAS_ORIGEM_REAL`), server/tests/painel-real-f6.test.ts e qa-f6-painel.test.ts (O25 e S12 juntos na lista de reais; conflito do 8d8b4739 resolvido sem perder nenhum dos dois).
 - Testes rodados na worktree destacada: contratos origem.test.ts, 16 passaram; server painel-real-f6 e qa-f6-painel, 47 passaram.
 - Nenhum teste de S12 perdido na resolução; sem achado novo. A1 segue (recomendado). Suíte inteira e `.pg`: check-run `bateria` do PR (I5).
+- Parecer: aprovado, sem bugs abertos.
+
+## Revalidação (CI vermelho corrigido, d9abb309)
+Delta 57c74bc3..d9abb309 no domínio do QA: packages/metricas/src/acelerato/s12.ts (só prettier, sem mudança de lógica: a chamada de `taxa` numa linha) e web/src/features/coleta/origem.test.tsx (S12 passa à lista dos reais e sai a asserção do motivo, coerente com o mapa real do D9).
+- web origem.test.tsx: 18 passaram. prettier --check nos dois arquivos: limpo.
+- Sem achado novo. A1 segue (recomendado). Suíte inteira e `.pg`: check-run `bateria` do PR (I5), que o autor deve conferir no sha novo.
 - Parecer: aprovado, sem bugs abertos.
