@@ -366,7 +366,8 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     expect(await prazo(id)).toBe('2026-11-15');
     expect(await versoes(id)).toEqual(['2026-10-30', '2026-11-15']);
 
-    const { deadline: _removido, ...semPrazo } = base;
+    const semPrazo: Cartao = { ...base };
+    delete semPrazo.deadline;
     await staging(semPrazo, [], new Date(relogio.getTime() + 120_000));
     await projetar();
     expect(await prazo(id)).toBeNull();

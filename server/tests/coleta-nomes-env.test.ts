@@ -30,7 +30,8 @@ describe('coleta ac sem ambiente', () => {
   });
 
   it('com valores presentes e um faltando: nomeia só o que falta e nunca imprime os valores', () => {
-    const { ACELERATO_MYSQL_USER: _fora, ...resto } = AC_VALIDAS;
+    const resto = { ...AC_VALIDAS };
+    delete resto.ACELERATO_MYSQL_USER;
     const r = rodar('coleta', { ...resto, PG_COLETOR_URL: `postgres://coletor:${SEGREDO}@db.exemplo:5432/dspd` });
     expect(r.status).toBe(1);
     expect(r.stderr).toBe('coleta ac falhou: configuração: ACELERATO_MYSQL_USER\n');
