@@ -269,6 +269,20 @@ describe('ramos dos componentes complementares', () => {
     expect(aviso).not.toHaveTextContent('nada é publicado')
   })
 
+  it('S12 com exceção de SLA nula e sem notas na resposta mostra a nota fixa de campo sem fonte', async () => {
+    const fonte = new FonteAjustada({
+      S12: (r: Qualquer) => {
+        r.excecaoSla = null
+        r.notas = undefined
+      },
+    })
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    const el = await screen.findByTestId('metrica-S12')
+    expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
+      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+    )
+  })
+
   it('S12 com exceção de SLA informada não mostra a nota de campo sem fonte', async () => {
     renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, {
       fonte: new FonteAjustada({ S12: (r: Qualquer) => (r.notas = undefined) }),
