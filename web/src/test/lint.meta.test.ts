@@ -311,28 +311,42 @@ const MOCK = `${SRC}/data/mock`
 const APP = `${SRC}/app/App.tsx`
 const EH_TESTE = /\.test\.tsx?$|(^|\/)(test|testes)\//
 
-/** Cada `import`, `export ... from` e `import()` do código, com o alvo como está escrito. */
-const especificadores = (codigo: string): { alvo: string; dinamico: boolean }[] => [
+/** Cada `import`, `export ... from`, `import()` (aspas ou crase) e `new Worker(new URL(...))`, com o alvo como escrito. */
+type Especificador = { alvo: string; dinamico: boolean; worker: boolean }
+const especificadores = (codigo: string): Especificador[] => [
   ...[...codigo.matchAll(/(?:\bfrom\s*|\bimport\s*)['"]([^'"]+)['"]/g)].map((m) => ({
     alvo: m[1]!,
     dinamico: false,
+    worker: false,
   })),
-  ...[...codigo.matchAll(/\bimport\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => ({
+  ...[...codigo.matchAll(/\bimport\(\s*['"`]([^'"`]+)['"`]\s*\)/g)].map((m) => ({
     alvo: m[1]!,
     dinamico: true,
+    worker: false,
+  })),
+  ...[...codigo.matchAll(/\bnew\s+Worker\(\s*new\s+URL\(\s*['"`]([^'"`]+)['"`]/g)].map((m) => ({
+    alvo: m[1]!,
+    dinamico: false,
+    worker: true,
   })),
 ]
 
 function violacoesDoMock(arquivo: string, codigo: string): string[] {
   if (EH_TESTE.test(arquivo) || arquivo.startsWith(`${MOCK}/`)) return []
   const achados: string[] = []
-  for (const { alvo, dinamico } of especificadores(codigo)) {
+  for (const { alvo, dinamico, worker } of especificadores(codigo)) {
     const caminho = alvo.startsWith('@/')
       ? `${SRC}/${alvo.slice(2)}`
       : alvo.startsWith('.')
         ? join(dirname(arquivo), alvo)
         : alvo
-    if (caminho !== MOCK && !caminho.startsWith(`${MOCK}/`)) continue
+    // Crase com interpolação não resolve para um caminho: o trecho `data/mock` no alvo basta para recusar.
+    const doMock = caminho === MOCK || caminho.startsWith(`${MOCK}/`) || alvo.includes('data/mock')
+    if (!doMock) continue
+    if (worker) {
+      achados.push(`${arquivo} carrega ${alvo} por new Worker`)
+      continue
+    }
     if (arquivo === APP && dinamico) continue
     achados.push(`${arquivo} importa ${alvo}${arquivo === APP ? ' de forma estática' : ''}`)
   }
@@ -372,6 +386,26 @@ describe('G2: o mock não entra em módulo de produção (ADR 0030)', () => {
       'relativo de outra pasta',
       'web/src/features/x/X.tsx',
       "import { M } from '../../data/mock/MockFonteMetricas'\nexport const a = M",
+    ],
+    [
+      'import() com crase fora do App',
+      'web/src/features/x/X.tsx',
+      'export const m = () => import(`@/data/mock/MockFonteMetricas`)',
+    ],
+    [
+      'import() com crase e interpolação',
+      'web/src/features/x/X.tsx',
+      'export const m = (n: string) => import(`@/data/mock/${n}`)',
+    ],
+    [
+      'new Worker do mock fora do App',
+      'web/src/features/x/X.tsx',
+      "export const w = new Worker(new URL('../../data/mock/nucleoMock.worker.ts', import.meta.url))",
+    ],
+    [
+      'new Worker do mock no App',
+      APP,
+      "export const w = new Worker(new URL('@/data/mock/nucleoMock.worker', import.meta.url))",
     ],
   ]
   it.each(FIXTURES)('recusa: %s', (_nome, arquivo, codigo) => {
