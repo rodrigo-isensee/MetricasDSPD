@@ -4,10 +4,15 @@ import { describe, expect, it } from 'vitest'
 
 const css = readFileSync(resolve(__dirname, 'tokens.css'), 'utf8')
 
-/** Bloco de tokens de um tema: `:root` (claro) ou `[data-theme='dark']`. */
+const SELETORES = { claro: ':root {', escuro: "[data-theme='dark'] {" } as const
+
+/** Bloco de tokens de um tema, ancorado na regra: seletor no início da linha seguido de `{`. */
 const bloco = (abre: string): string => {
-  const i = css.indexOf(abre)
-  return css.slice(i, css.indexOf('}', i))
+  const linhas = css.split('\n')
+  const i = linhas.findIndex((linha) => linha === abre)
+  if (i < 0) throw new Error(`regra ${abre} ausente`)
+  const resto = linhas.slice(i + 1).join('\n')
+  return resto.slice(0, resto.indexOf('\n}'))
 }
 const token = (b: string, nome: string): string => {
   const m = new RegExp(`--${nome}:\\s*(#[0-9a-fA-F]{6})`).exec(b)
@@ -29,12 +34,21 @@ const contraste = (a: string, b: string): number => {
 /** WCAG AA para texto normal: 4,5:1. `text-atencao` aparece sobre a superfície, o fundo e a superfície 2. */
 describe('contraste do texto de atenção (cobertura-S12 e afins)', () => {
   it.each([
-    ['claro', ':root'],
-    ['escuro', "[data-theme='dark']"],
+    ['claro', SELETORES.claro],
+    ['escuro', SELETORES.escuro],
   ])('tema %s: --atencao sobre as superfícies passa de 4,5:1', (_tema, abre) => {
     const b = bloco(abre)
     for (const sobre of ['superficie', 'fundo', 'superficie-2']) {
       expect(contraste(token(b, 'atencao'), token(b, sobre))).toBeGreaterThanOrEqual(4.5)
     }
+  })
+
+  it('a âncora de cada tema pega a regra certa, não o @custom-variant da linha 3', () => {
+    const escuro = bloco(SELETORES.escuro)
+    const claro = bloco(SELETORES.claro)
+    expect(escuro).not.toContain('@custom-variant')
+    expect(escuro).not.toContain(':root')
+    expect(token(escuro, 'atencao')).not.toBe(token(claro, 'atencao'))
+    expect(token(escuro, 'fundo')).not.toBe(token(claro, 'fundo'))
   })
 })
