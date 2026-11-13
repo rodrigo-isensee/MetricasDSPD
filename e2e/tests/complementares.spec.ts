@@ -4,8 +4,8 @@ import type { Page } from '@playwright/test'
 // QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (65), preferências, axe AA a 375 e 1280.
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
-// Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios".
-const MOCK = new Set(['O17', 'O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12'])
+// Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios". O S12 saiu daqui no D9 (pedido 099): é real só com o volume.
+const MOCK = new Set(['O17', 'O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11'])
 
 const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 14, ids: ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16'] },
@@ -212,7 +212,8 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(s8.getByRole('columnheader', { name: 'Com resposta' })).toBeVisible()
     const s12 = page.getByTestId('metrica-S12')
     await expect(s12.getByRole('columnheader', { name: 'Com campo informado' })).toBeVisible()
-    // A base fictícia preenche o campo em todos os chamados (cobertura 100%): nenhum aviso de cobertura.
+    // Mock: a taxa de exceção segue (campo preenchido em todos os chamados, cobertura 100%): nenhum aviso de cobertura.
+    // Na API real o S12 traz a exceção de SLA nula, e o cartão mostra "campo sem fonte" (D9; provado nos testes de componente e do servidor).
     // O ramo parcial ("n de N" com n < N) é provado nos testes de componente, que ajustam a resposta.
     await expect(s8.getByTestId('cobertura-S8')).toHaveCount(0)
     await expect(s12.getByTestId('cobertura-S12')).toHaveCount(0)
