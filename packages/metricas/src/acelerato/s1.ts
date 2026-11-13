@@ -73,7 +73,12 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
       const a = alvos.find((x) => x.prioridade === p) as AlvoPrioridade
       return {
         prioridade: p,
-        primeiroAtendimento: classe(p, MEDIDAS.primeiroAtendimento, a.primeiro_atendimento_horas, a.unidade_primeiro_atendimento),
+        primeiroAtendimento: classe(
+          p,
+          MEDIDAS.primeiroAtendimento,
+          a.primeiro_atendimento_horas,
+          a.unidade_primeiro_atendimento,
+        ),
         restauracao: classe(p, MEDIDAS.restauracao, a.restauracao_horas, a.unidade_restauracao),
       }
     }),
