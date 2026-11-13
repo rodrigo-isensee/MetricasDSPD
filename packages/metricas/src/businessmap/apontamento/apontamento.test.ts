@@ -26,6 +26,7 @@ import {
   capacidadeMensal,
   capacidadePessoa,
   diasAtipicos,
+  type FiltrosApontamento,
   ehAtipico,
   faixaDoDia,
   filtrar,
@@ -311,15 +312,42 @@ describe('valor atípico e filtros', () => {
     expect(filtrar(base, { anomalos: 'ocultar' }, at)).toHaveLength(3)
   })
 
-  it('soPessoa (mapa diário): ignora todos os outros filtros', () => {
+  it("modo 'diario' (mapa diário): aplica pessoa e equipe e ignora os demais filtros", () => {
     const f = {
       anomalos: 'ocultar' as const,
       pessoa: ['p1'],
       tipo: ['8'],
       qualidade: ['sem-vinculo' as const],
     }
-    expect(filtrar(base, f, at, true)).toHaveLength(2)
-    expect(filtrar(base, { anomalos: 'ocultar' }, at, true)).toHaveLength(4)
+    expect(filtrar(base, f, at, 'diario')).toHaveLength(2)
+    expect(filtrar(base, { anomalos: 'ocultar' }, at, 'diario')).toHaveLength(4)
+  })
+
+  it("097 K-286: modo 'diario' recorta pela equipe (e 'sem-time'), junto com a pessoa, sem olhar projeto, tipo nem anômalos", () => {
+    const ls = [
+      linha({ pessoaRef: 'p1', equipe: TIME_A }),
+      linha({ pessoaRef: 'p1', equipe: TIME_B, segundos: 2 * H }),
+      linha({ pessoaRef: 'p2', equipe: TIME_B, segundos: 3 * H }),
+      linha({ pessoaRef: 'p2', equipe: SEM_TIME, segundos: 4 * H }),
+    ]
+    const d = (f: Partial<FiltrosApontamento>) =>
+      filtrar(ls, { anomalos: 'ocultar', ...f }, new Set(), 'diario').map((l) => l.segundos)
+    expect(d({ equipe: ['time-b'] })).toEqual([2 * H, 3 * H])
+    expect(d({ equipe: ['time-a', 'sem-time'] })).toHaveLength(2)
+    expect(d({ equipe: ['time-b'], pessoa: ['p1'] })).toEqual([2 * H])
+    expect(d({ equipe: ['time-b'], tipo: ['999'], projeto: ['999'] })).toHaveLength(2)
+    expect(d({ equipe: [] })).toHaveLength(4)
+  })
+
+  it('097 K-286: o atípico do mapa é decidido sobre o dia inteiro, antes do filtro de equipe', () => {
+    const ls = [
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_A, segundos: 6 * H }),
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_B, segundos: 6 * H }),
+    ]
+    const atip = diasAtipicos(ls, 10 * H)
+    const [so] = filtrar(ls, { anomalos: 'incluir', equipe: ['time-a'] }, atip, 'diario')
+    expect(so).toBeDefined()
+    expect(ehAtipico(so as LinhaApontamento, atip)).toBe(true)
   })
 })
 
