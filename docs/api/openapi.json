@@ -33032,6 +33032,9 @@
                         "excecoesForaDaApuracao": {
                           "type": "number"
                         },
+                        "horasPorDiaUtil": {
+                          "type": "number"
+                        },
                         "prioridades": {
                           "type": "array",
                           "items": {
@@ -33422,6 +33425,7 @@
                         "criterios",
                         "janelaPercentis",
                         "excecoesForaDaApuracao",
+                        "horasPorDiaUtil",
                         "prioridades"
                       ],
                       "additionalProperties": false

@@ -60,9 +60,9 @@ describe('determinismo', () => {
     expect(ms).toBeLessThan(1500 * fator)
   })
 
-  it('hash da base padrão e da escala 0,2: regravado no B11a, no ajuste do O23 (originais: 924448d4 e b2bfd4c0) e no D3 do 099 (unidade dos prazos em config.alvos; escala 0,2 era 824092e4)', () => {
-    expect(hashJson(base)).toBe('de6a8953')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('345c5682')
+  it('hash da base padrão e da escala 0,2: regravado no B11a, no ajuste do O23 (originais: 924448d4 e b2bfd4c0), no D3 do 099 (unidade dos prazos em config.alvos; escala 0,2 era 824092e4) e no D3b do 099 (dia útil da Sustentação de 528 min no calendário e nos alvos do mock; escala 0,2 era 345c5682)', () => {
+    expect(hashJson(base)).toBe('dd6787b1')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('5f03955c')
   })
 
   it('as duas bases usam o mesmo "hoje" (padrão e personalizado), e o contexto também', () => {

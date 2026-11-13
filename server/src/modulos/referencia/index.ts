@@ -1,5 +1,5 @@
 export { rotasReferencia, type DepsReferencia } from './rotas.js';
-export { lerEquipesBM, lerTimesAtivos, lerSistemasBM, lerInicioAC, lerInicioBM, lerVersaoCriterioVigente, lerCalendarioVigente, type CalendarioDaReferencia } from './repositorio.js';
+export { lerEquipesBM, lerTimesAtivos, lerSistemasBM, lerInicioAC, lerInicioBM, lerVersaoCriterioVigente, lerCalendarioVigente, lerTurnosVigentes, type CalendarioDaReferencia, type TurnoDaReferencia } from './repositorio.js';
 export { dataCivil } from './servico.js';
 export { CRITERIOS_ACELERATO, registrarCriteriosAcelerato } from './criterios-acelerato.js';
 export { CRITERIOS_APONTAMENTO, METRICA_ACHADOS_APONTAMENTO, METRICA_DICIONARIO_APONTAMENTO, registrarCriteriosApontamento } from './criterios-apontamento.js';

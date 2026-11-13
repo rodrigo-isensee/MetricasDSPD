@@ -9,6 +9,7 @@ import type {
   Prioridade,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
+import { criarCalendario, type Turno } from '../core/calendario'
 
 export type EtapaAcelerato =
   | 'Novo'
@@ -108,7 +109,19 @@ export const MATRIZ_PRIORIDADE: Record<
   Baixo: { Alta: 'P3', Média: 'P4', Baixa: 'P5' },
 }
 
-/** 8 h úteis por dia: 1 dia útil = 8 h. Unidades da Q-099-11: P1 (os dois prazos) e P2 (primeiro atendimento) em tempo corrido. */
+/**
+ * Expediente da Sustentação (Decisão 13 do dono, pedido 099, D3b): dia útil de 8 h 48 (528 min). A janela é a da Q-099-32, ainda com o dono
+ * (recomendação A: 08:00-12:00 e 13:00-17:48). Se o dono escolher outra janela, trocar só `fimMin`/`inicioMin` aqui e `turnos` do calendário
+ * `dspd-acelerato` em `docs/architecture/fontes/calendario.json` (o teste de paridade do servidor exige os dois iguais).
+ */
+export const TURNOS_SUSTENTACAO: readonly Turno[] = [
+  { inicioMin: 8 * 60, fimMin: 12 * 60 },
+  { inicioMin: 13 * 60, fimMin: 17 * 60 + 48 },
+]
+/** Calendário padrão da Sustentação (mock e padrão do servidor no domínio Acelerato quando a referência não tem calendário); o BusinessMap segue o `CALENDARIO_PADRAO`. */
+export const CALENDARIO_SUSTENTACAO_PADRAO = criarCalendario({ turnos: TURNOS_SUSTENTACAO })
+
+/** Dias úteis dos alvos do PROC em horas pelo dia útil de 8,8 h da Sustentação (Decisão 13). Unidades da Q-099-11: P1 (os dois prazos) e P2 (primeiro atendimento) em tempo corrido. */
 export const ALVOS_PADRAO: AlvoPrioridade[] = [
   {
     prioridade: 'P1',
@@ -128,21 +141,21 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
     prioridade: 'P3',
     primeiro_atendimento_horas: 2,
     unidade_primeiro_atendimento: 'util',
-    restauracao_horas: 16,
+    restauracao_horas: 17.6,
     unidade_restauracao: 'util',
   },
   {
     prioridade: 'P4',
     primeiro_atendimento_horas: 4,
     unidade_primeiro_atendimento: 'util',
-    restauracao_horas: 40,
+    restauracao_horas: 44,
     unidade_restauracao: 'util',
   },
   {
     prioridade: 'P5',
-    primeiro_atendimento_horas: 8,
+    primeiro_atendimento_horas: 8.8,
     unidade_primeiro_atendimento: 'util',
-    restauracao_horas: 80,
+    restauracao_horas: 88,
     unidade_restauracao: 'util',
   },
 ]
