@@ -46,7 +46,7 @@ function par(i: number): { c: Chamado; e: EtapaChamado[] } {
     excecao_sla_registro_posterior: false,
     incidente_critico_coordenado: false,
     nivel_resolucao: 'N1',
-  } as Chamado
+  }
   const e = (
     etapa: EtapaChamado['etapa'],
     a: string,
