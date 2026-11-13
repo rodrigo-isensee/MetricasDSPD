@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: fac4c624516c28d2b9d12358e13bbf9b7dc0d889
+commit: 047f9d609a9df1b947f5a78b888d2610030cd8ad
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
@@ -27,8 +27,19 @@ Diff lido: `git diff 4c4a7a33...fac4c624` (21 arquivos, 5 commits: `d86d33d3`, `
 - **Tamanho (M14):** 198 linhas de código e teste (`git diff --numstat --no-renames`, fora `.md`, `openapi.json` e a fotografia gerada); 503 com tudo. Um comportamento (S12 real só com o volume, ponta a ponta: biblioteca, contrato, servidor, web, catálogo). Acima de 150: o PR traz `teto: excedido, 198 linhas, contrato + biblioteca + servidor + web do mesmo campo nulável, indivisíveis sem quebrar o S12`.
 - **Commits:** Conventional Commits em português, um por passo; cada um com o cartão.
 
+## Revalidação por delta (E3.85, volta 1 da web)
+Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, intervalo `fac4c624..047f9d60`, no domínio só a web: `catalogo/CatalogoPage.tsx`, `catalogo/catalogo.test.tsx`, `catalogo/linhas.ts`, `complementares/comuns.tsx`, `complementares/notas.ts`, `complementares/ramos.test.tsx` e `complementares/sustentacao.tsx`. Contrato, biblioteca e servidor não mudaram.
+- **ALTO-1 (UX) e A1 deste parecer resolvidos:** com `excecaoSla === null` o `CartaoS12` mostra a nota em bloco fixo (`nota-S12-excecao-sla`), com o texto de `TEXTO_NOTA_S12` do contrato (fonte única), sem duplicar o texto na web. Os dois ramos têm teste de comportamento (nula com a nota; taxa informada sem a nota).
+- **ALTO-2:** `CampoSemFonte` ganha `texto` opcional, com o texto antigo como padrão (os outros cartões não mudam); o S12 diz que só a reincidência está sem fonte e que o volume é real. O teste afirma o texto novo e a ausência de "nada é publicado". O e2e COMP-12 (`campo-sem-fonte-S12` com contagem 0) roda no mock, onde `campoDisponivel` é verdadeiro: segue certo.
+- **MÉDIO-1 e MÉDIO-2:** cuidados do S12 em `notas.ts`; anotação "Parcial" como campo opcional `anotacao` em `LinhaCatalogo`, sem terceiro valor em `dados` (o tipo continua `'Real' | 'Sem dado real'`), provada na linha do S12 do catálogo.
+- **Regras invioláveis:** só texto e apresentação; nenhum cálculo, nenhum dado simulado, nada por pessoa.
+- **Ferramentas:** `vitest run src/features/catalogo/catalogo.test.tsx src/features/complementares/ramos.test.tsx src/features/complementares/leitura-s12.test.ts` em `web/`: 3 arquivos, 30 testes, passaram. `tsc -b` verde; `eslint src/features/catalogo src/features/complementares` sem saída. Suíte inteira e e2e no CI do PR.
+- **Tamanho:** o delta soma cerca de 50 linhas de código e teste ao lote; o teto do PR é recontado pelo `git diff --numstat` no corpo.
+- A2 a A4 seguem como estavam (recomendados, sem efeito no comportamento). A5 novo, recomendado.
+
 ## Achados
 - A1 (recomendado) web/src/features/complementares/sustentacao.tsx:315 · O `CartaoS12` não passa `notasDoCartao={d?.notas}` ao `CartaoComplementar` (como fazem `CartaoS2` e `CartaoS3`): o texto de `TEXTO_NOTA_S12` vai na API e nunca aparece; a pessoa só vê "campo sem fonte" na leitura. Passar as notas, ou registrar que a leitura basta e então a nota é só contrato.
 - A2 (recomendado) web/src/features/complementares/sustentacao.tsx:303 · `R12Leitura` ficou redundante: com o contrato nulável no head, `R12['excecaoSla']` já inclui `null`, e o comentário ("o tipo local já aceita antes da mudança") descreve um estado intermediário da branch. Tirar o tipo e usar `R12`.
 - A3 (recomendado) packages/metricas/src/acelerato/s12.ts:92 · A exceção nula depende da ausência da extensão da reincidência (`ext`), não de fonte própria da exceção; quando a coleta trouxer um campo sem o outro, a guarda erra calada. Cartão para separar as duas.
 - A4 (recomendado) docs/contratos/metricas/S12.md:271 · O exemplo gerado mostra `excecaoSla: null` e o mock da API devolve a taxa; o corpo do PR diz que é o ramo sem extensão e traz a linha de contrato incompatível de `resultados/S12` com o hash.
+- A5 (recomendado) web/src/features/complementares/sustentacao.tsx:368 · O padrão `['excecao-sla-s12-sem-fonte']` quando `notas` vem vazio não tem teste (o caso novo manda a nota). Um caso com `notas: undefined` e exceção nula fecha o ramo.
