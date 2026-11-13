@@ -50,7 +50,7 @@ const criarCampo = (tipos: readonly string[]) =>
   })
   .strict();
 
-// Só as 4 severidades do contrato; `priority` do BusinessMap é inteiro de 1 a 4 (sem zeros à esquerda).
+// Só as 4 severidades do contrato; `priority` do BusinessMap é inteiro positivo sem zeros à esquerda (código de 1 a 3 dígitos; o mapa usa 1 a 4).
 const valorPrioridade = z.object({ codigo: z.string().regex(/^[1-9]\d{0,2}$/), rotulo: z.enum(SEVERIDADES) }).strict();
 
 // Só os 7 do briefing: nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.

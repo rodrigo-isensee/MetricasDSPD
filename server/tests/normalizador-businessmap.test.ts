@@ -344,6 +344,12 @@ describe('C8a: severidade pelo priority nativo (1 Critical a 4 Low, escala decre
     expect(p.dim.sistema).toBe('sis');
     expect(projetarCard(entrada(c), { ...ref, prioridades: undefined })!.dim.severidade).toBe('x');
   });
+  it('priority nulo com mapa carregado apaga a severidade vinda de campo customizado, sem nota', () => {
+    const ref: Referencia = { ...COM_PRIORIDADE, camposLista: new Map([['503', 'severidade']]) };
+    const p = projetarCard(entrada(card({ priority: null, custom_fields: [{ field_id: '503', valor: 'x' }] })), ref)!;
+    expect(p.dim.severidade).toBeNull();
+    expect(p.notas).not.toContain('priority_fora_do_mapa');
+  });
 });
 
 describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de segurança)', () => {
