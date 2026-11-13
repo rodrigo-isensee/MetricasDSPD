@@ -1,5 +1,5 @@
 # 099-d3b-a6 - calibracao.test.tsx fixa o número do mock que o D3b mudou
-- Severidade: média (só teste; o produto não regrediu)
+- Severidade: média (só teste; o produto não regrediu). Estado: resolvido em 3084d59b
 - Responsável sugerido: react-frontend
 - Ambiente: feature/099-d3b-dia-528 em 8deaa7a2 (código igual a 09b21da3), run CI 43405362537, job `testes`, passo `pnpm run cobertura` (web)
 
