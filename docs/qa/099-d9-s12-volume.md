@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: d9abb3098b9a958e18c4438250baea8f93a5005e
+commit: f294aeb7324cf198c31363ee928c52d3318086b3
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -71,4 +71,17 @@ Delta 047f9d60..57c74bc3 no domínio do QA: docs/api/metricas.md (linha do O25, 
 Delta 57c74bc3..d9abb309 no domínio do QA: packages/metricas/src/acelerato/s12.ts (só prettier, sem mudança de lógica: a chamada de `taxa` numa linha) e web/src/features/coleta/origem.test.tsx (S12 passa à lista dos reais e sai a asserção do motivo, coerente com o mapa real do D9).
 - web origem.test.tsx: 18 passaram. prettier --check nos dois arquivos: limpo.
 - Sem achado novo. A1 segue (recomendado). Suíte inteira e `.pg`: check-run `bateria` do PR (I5), que o autor deve conferir no sha novo.
+- Parecer: aprovado, sem bugs abertos.
+
+## Revalidação (cobertura da web, f294aeb7)
+Delta d9abb309..f294aeb7 no domínio do QA: só web/src/features/complementares/ramos.test.tsx (teste novo, sem mudança de produção). O head da branch chegou a e0056fc6 com um commit só de docs/reviews, fora do domínio.
+
+| Correção | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| Ramo excecaoSla nula com notas ausente (sustentacao.tsx:368), que derrubou a cobertura de branches da web | ramos.test.tsx: S12 com exceção de SLA nula e sem notas na resposta mostra a nota fixa de campo sem fonte | excecaoSla null, notas undefined (texto fixo de fallback) | passou |
+
+- ramos.test.tsx local: 22 passaram.
+- Mutação, desfeita (worktree limpa): o fallback da nota fixa trocado por lista vazia derrubou só o teste novo (1 falhou, 21 passaram).
+- CI do head (e0056fc6, run 43425041119): testes success (cobertura global da web, o bloqueio que motivou a volta), banco, build, rapida, seguranca, openapi, imagem e filtro success; e2e-parte 1/2 e 2/2 ainda em andamento na hora do parecer, fora do delta (só teste de unidade mudou). O run anterior (43424080436) foi cancelado pela concorrência do push do review, não por falha.
+- Sem achado novo. A1 segue (recomendado). Suíte inteira e .pg: check-run bateria do PR (I5).
 - Parecer: aprovado, sem bugs abertos.
