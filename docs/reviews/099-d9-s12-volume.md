@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: 047f9d609a9df1b947f5a78b888d2610030cd8ad
+commit: 57c74bc3707397b9d1d255969fd3b92b7752d4c0
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
@@ -36,6 +36,13 @@ Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, inter
 - **Ferramentas:** `vitest run src/features/catalogo/catalogo.test.tsx src/features/complementares/ramos.test.tsx src/features/complementares/leitura-s12.test.ts` em `web/`: 3 arquivos, 30 testes, passaram. `tsc -b` verde; `eslint src/features/catalogo src/features/complementares` sem saída. Suíte inteira e e2e no CI do PR.
 - **Tamanho:** o delta soma cerca de 50 linhas de código e teste ao lote; o teto do PR é recontado pelo `git diff --numstat` no corpo.
 - A2 a A4 seguem como estavam (recomendados, sem efeito no comportamento). A5 novo, recomendado.
+
+## Revalidação por delta (E3.90, integração da develop)
+Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, intervalo `047f9d60..57c74bc3`, sem o que veio da base. No domínio: `docs/api/metricas.md`, `packages/contratos/src/origem.ts`, `packages/contratos/src/origem.test.ts`, `server/tests/painel-real-f6.test.ts` e `server/tests/qa-f6-painel.test.ts`. É só a resolução da integração (`8d8b4739`) e a atualização da fila (`57c74bc3`, C8a vindo da develop).
+- **Conflito resolvido certo:** o O25 do A3 (já aprovado em `docs/reviews/099-a3-o25-descarte.md`) entra em `METRICAS_ORIGEM_REAL` ao lado do S12 do D9, e nenhum dos dois se perdeu. Nos três testes, as listas de reais ficam com O25 e S12 juntos, e o O25 sai da lista de complementares sem dado em `qa-f6-painel.test.ts`. A linha do O25 em `docs/api/metricas.md` é a do A3, sem texto novo.
+- **Regras invioláveis:** nenhum cálculo novo, nenhuma métrica além das duas já revisadas; Acelerato e BusinessMap seguem separados (O25 só BusinessMap, S12 só Acelerato).
+- **Ferramentas:** `packages/contratos` `vitest run src/origem.test.ts` (16 testes) e `server` `vitest run tests/painel-real-f6.test.ts tests/qa-f6-painel.test.ts` (47 testes): passaram. Os `.pg`, a suíte inteira e o e2e ficam no CI do PR 370.
+- A1 a A5 seguem como estavam (recomendados). Nenhum achado novo.
 
 ## Achados
 - A1 (recomendado) web/src/features/complementares/sustentacao.tsx:315 · O `CartaoS12` não passa `notasDoCartao={d?.notas}` ao `CartaoComplementar` (como fazem `CartaoS2` e `CartaoS3`): o texto de `TEXTO_NOTA_S12` vai na API e nunca aparece; a pessoa só vê "campo sem fonte" na leitura. Passar as notas, ou registrar que a leitura basta e então a nota é só contrato.
