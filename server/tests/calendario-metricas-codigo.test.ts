@@ -14,7 +14,7 @@ const RAIZ = new URL('../../packages/metricas/src/', import.meta.url).pathname;
  * No Acelerato, `construir` (acelerato/indice.ts) chama `horasUteisEntre` uma vez e guarda o resultado nestes campos do índice; as
  * métricas leem o campo, não a função. Um teste abaixo confere que `construir` ainda alcança a biblioteca e que os campos existem.
  */
-const CAMPOS_DO_INDICE_AC = ['primeiroAtendimentoHU', 'restauracaoHU', 'vidaHU', 'porTotalizador', 'porEtapa'];
+const CAMPOS_DO_INDICE_AC = ['primeiroAtendimentoHU', 'restauracaoHU', 'primeiroAtendimentoHC', 'restauracaoHC', 'vidaHU', 'porTotalizador', 'porEtapa'];
 const SEMENTES = ['horasUteisEntre', 'diasUteis', 'diasUteisNoIntervalo', ...CAMPOS_DO_INDICE_AC];
 /** Séries e visões que não são métrica do catálogo da versão de critério (nem O17, que fica fora do calendário por não aparecer na lista). */
 const IGNORADAS_FORA_DO_FLUXO = new Set(['PV1', 'VISAO_GERAL', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST']);

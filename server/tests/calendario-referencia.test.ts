@@ -13,13 +13,15 @@ const S = montarEsquemas('');
 const AGORA = new Date('2026-11-04T12:00:00Z');
 const HOJE = '2026-11-04';
 
-type Cal = { nome: string; dominio: string; offset_minutos: number; descricao?: string; feriados: { data: string; escopo: string; descricao: string }[] };
+type Turno = { inicio: string; fim: string };
+type Cal = { nome: string; dominio: string; offset_minutos: number; descricao?: string; turnos?: Turno[]; feriados: { data: string; escopo: string; descricao: string }[] };
 const f = (data: string, escopo = 'nacional', descricao = 'Feriado'): { data: string; escopo: string; descricao: string } => ({ data, escopo, descricao });
 const bruto = (cals: Cal[], aplicacoes: Record<string, string>[]): Record<string, unknown> => ({
   versao: 1, regra: 'regra', versao_criterio: { descricao: 'Calendário', motivo: 'Teste' }, calendarios: cals, aplicacoes,
 });
 const BM: Cal = { nome: 'cal-bm', dominio: 'businessmap', offset_minutos: -180, descricao: 'BM', feriados: [f('2026-11-02'), f('2026-11-15')] };
 const AC: Cal = { nome: 'cal-ac', dominio: 'acelerato', offset_minutos: -180, feriados: [f('2026-11-02')] };
+const T528: Turno[] = [{ inicio: '08:00', fim: '12:00' }, { inicio: '13:00', fim: '17:48' }];
 const APL = [
   { dominio: 'businessmap', classe: 'fluxo', calendario: 'cal-bm' },
   { dominio: 'businessmap', classe: 'apontamento', calendario: 'cal-bm' },
@@ -40,6 +42,8 @@ describe('arquivo versionado do calendário (docs/architecture/fontes/calendario
       expect(c.feriados.map((x) => x.data)).toEqual([...FERIADOS_NACIONAIS]);
       expect(new Set(c.feriados.map((x) => x.escopo))).toEqual(new Set(['nacional']));
     }
+    // D3b (Decisão 13): só o calendário do Acelerato traz turnos (528 min); o do BusinessMap fica sem, nos turnos padrão do código.
+    expect(lido.arquivo.calendarios.map((c) => [c.nome, c.turnos ?? null])).toEqual([['dspd-businessmap', null], ['dspd-acelerato', T528]]);
     expect(lido.arquivo.aplicacoes.map((a) => `${a.dominio}/${a.classe}/${a.calendario}`)).toEqual([
       'businessmap/fluxo/dspd-businessmap', 'businessmap/apontamento/dspd-businessmap', 'acelerato/sustentacao/dspd-acelerato',
     ]);
@@ -47,6 +51,21 @@ describe('arquivo versionado do calendário (docs/architecture/fontes/calendario
   it('as métricas da versão de cada domínio não se misturam', () => {
     expect(METRICAS_CALENDARIO.businessmap.filter((m) => METRICAS_CALENDARIO.acelerato.includes(m))).toEqual([]);
     expect(METRICAS_CALENDARIO.acelerato.every((m) => m.startsWith('S') || m === 'EI_SUST')).toBe(true);
+  });
+  it.each([
+    ['hora fora do formato', [{ inicio: '8:00', fim: '12:00' }]],
+    ['hora inexistente', [{ inicio: '08:00', fim: '25:00' }]],
+    ['fim igual ao início', [{ inicio: '08:00', fim: '08:00' }]],
+    ['fim antes do início', [{ inicio: '13:00', fim: '12:00' }]],
+    ['início em 24:00', [{ inicio: '24:00', fim: '24:00' }]],
+    ['turnos sobrepostos', [{ inicio: '08:00', fim: '12:00' }, { inicio: '11:00', fim: '17:00' }]],
+    ['lista vazia', []],
+    ['campo a mais no turno', [{ inicio: '08:00', fim: '12:00', dia: 1 }]],
+  ])('recusa o arquivo inteiro: turnos com %s', (_n, turnos) => {
+    expect(() => analisarCalendario(texto([BM, { ...AC, turnos: turnos as Turno[] }]))).toThrow(/calendarios/);
+  });
+  it('aceita turno até 24:00 e turnos fora de ordem, sem sobreposição', () => {
+    expect(() => analisarCalendario(texto([BM, { ...AC, turnos: [{ inicio: '13:00', fim: '24:00' }, { inicio: '08:00', fim: '12:00' }] }]))).not.toThrow();
   });
   it('JSON inválido e formato fora do esquema são recusados', () => {
     expect(() => analisarCalendario('{')).toThrow(ErroCalendario);
@@ -126,11 +145,56 @@ describe('planejarCalendario (puro)', () => {
   });
 });
 
+describe('planejarCalendario com turnos (D3b, Decisão 13)', () => {
+  const ACT: Cal = { ...AC, turnos: T528 };
+  const base = (): EstadoCalendario => ({
+    calendarios: new Map([['cal-bm', { id: '1', offsetMinutos: -180 }], ['cal-ac', { id: '2', offsetMinutos: -180 }]]),
+    feriados: new Map([
+      ['cal-bm', new Map([['2026-11-02', { escopo: 'nacional', descricao: 'Feriado' }], ['2026-11-15', { escopo: 'nacional', descricao: 'Feriado' }]])],
+      ['cal-ac', new Map([['2026-11-02', { escopo: 'nacional', descricao: 'Feriado' }]])],
+    ]),
+    vigentes: new Map([
+      ['businessmap|fluxo', { calendarioId: '1', vigenteDe: '2026-11-03' }], ['businessmap|apontamento', { calendarioId: '1', vigenteDe: '2026-11-03' }],
+      ['acelerato|sustentacao', { calendarioId: '2', vigenteDe: '2026-11-03' }],
+    ]),
+    ultimas: new Map(), ultimaVersao: new Map(),
+  });
+  const gravados = (turnos: [number, number][], dias = [1, 2, 3, 4, 5]) => dias.flatMap((d) => turnos.map(([i, f]) => ({ diaSemana: d, inicioMin: i, fimMin: f })));
+  const T528G = gravados([[480, 720], [780, 1068]]);
+
+  it('sem turnos gravados: abre os turnos do calendário que os declara, e só dele (o BusinessMap sem `turnos` não é tocado)', () => {
+    const p = planejarCalendario(arquivo([BM, ACT]), base(), HOJE);
+    expect(p.dominios[0]!.turnos).toEqual([]);
+    expect(p.dominios[0]!.mudou).toBe(false);
+    expect(p.dominios[1]).toMatchObject({ turnos: [{ calendario: 'cal-ac', fechar: false, inserir: [{ inicioMin: 480, fimMin: 720 }, { inicioMin: 780, fimMin: 1068 }] }], mudou: true });
+  });
+  it('turnos iguais aos vigentes: nada a gravar (idempotente)', () => {
+    const e = { ...base(), turnos: new Map([['cal-ac', T528G]]), ultimasTurnos: new Map([['cal-ac', '2026-11-03']]) };
+    expect(planejarCalendario(arquivo([BM, ACT]), e, '2026-11-03').dominios.every((d) => !d.mudou)).toBe(true);
+  });
+  it('turnos diferentes (fim do dia 17:00): fecha os vigentes e abre os novos', () => {
+    const e = { ...base(), turnos: new Map([['cal-ac', gravados([[480, 720], [780, 1020]])]]), ultimasTurnos: new Map([['cal-ac', '2026-11-03']]) };
+    const p = planejarCalendario(arquivo([BM, ACT]), e, HOJE);
+    expect(p.dominios[1]).toMatchObject({ turnos: [{ calendario: 'cal-ac', fechar: true }], mudou: true });
+  });
+  it('turnos vigentes só em parte dos dias, ou com dia a mais (sábado): são trocados, não aceitos como iguais', () => {
+    for (const g of [gravados([[480, 720], [780, 1068]], [1, 2, 3]), [...T528G, { diaSemana: 6, inicioMin: 480, fimMin: 720 }]]) {
+      const e = { ...base(), turnos: new Map([['cal-ac', g]]) };
+      expect(planejarCalendario(arquivo([BM, ACT]), e, HOJE).dominios[1]!.turnos).toHaveLength(1);
+    }
+  });
+  it('data que não é posterior à última vigência dos turnos é recusada', () => {
+    const e = { ...base(), turnos: new Map([['cal-ac', gravados([[480, 720], [780, 1020]])]]), ultimasTurnos: new Map([['cal-ac', HOJE]]) };
+    expect(() => planejarCalendario(arquivo([BM, ACT]), e, HOJE)).toThrow(/turnos de cal-ac.*não é posterior à última vigência/);
+  });
+});
+
 describe('sincronizarCalendario (dublê de PostgreSQL)', () => {
   type Banco = {
     calendarios?: { calendario_id: string; nome: string; offset_minutos: number }[];
     feriados?: { nome: string; data: string; escopo: string; descricao: string }[];
     aplicacoes?: { dominio: string; classe: string; calendario_id: string; vigente_de: string; vigente_ate: string | null }[];
+    turnos?: { calendario_id: string; dia_semana: number; inicio_min: number; fim_min: number; vigente_de: string; vigente_ate: string | null }[];
     versoes?: { dominio: string; ultima: string }[];
     versaoExistente?: boolean;
   };
@@ -139,6 +203,7 @@ describe('sincronizarCalendario (dublê de PostgreSQL)', () => {
     const t = q.texto;
     if (t.includes('FROM dspd_core.ref_calendario WHERE nome = ANY')) return b.calendarios ?? [];
     if (t.includes('FROM dspd_core.ref_calendario WHERE nome = $1')) return (b.calendarios ?? []).filter((c) => c.nome === q.valores[0]);
+    if (t.includes('FROM dspd_core.ref_calendario_turno')) return b.turnos ?? [];
     if (t.includes('FROM dspd_core.ref_feriado')) return b.feriados ?? [];
     if (t.includes('FROM dspd_core.ref_calendario_aplicacao')) return b.aplicacoes ?? [];
     if (t.includes('max(vigente_desde)')) return b.versoes ?? [];
@@ -155,8 +220,8 @@ describe('sincronizarCalendario (dublê de PostgreSQL)', () => {
     const d = montar();
     const r = await sincronizarCalendario(d.pool, S, lido, HOJE, AGORA);
     expect(r.dominios).toEqual([
-      { dominio: 'businessmap', calendariosNovos: 1, feriadosNovos: 2, aplicacoesAbertas: 2, aplicacoesFechadas: 0, versaoRegistrada: true },
-      { dominio: 'acelerato', calendariosNovos: 1, feriadosNovos: 1, aplicacoesAbertas: 1, aplicacoesFechadas: 0, versaoRegistrada: true },
+      { dominio: 'businessmap', calendariosNovos: 1, feriadosNovos: 2, aplicacoesAbertas: 2, aplicacoesFechadas: 0, turnosAbertos: 0, turnosFechados: 0, versaoRegistrada: true },
+      { dominio: 'acelerato', calendariosNovos: 1, feriadosNovos: 1, aplicacoesAbertas: 1, aplicacoesFechadas: 0, turnosAbertos: 0, turnosFechados: 0, versaoRegistrada: true },
     ]);
     const g = gravacoes(d);
     const versoes = g.filter((c) => c.texto.includes('ref_versao_criterio ('));
@@ -234,6 +299,44 @@ describe('sincronizarCalendario (dublê de PostgreSQL)', () => {
     expect(up.texto).toMatch(/^UPDATE dspd_core\.ref_calendario_aplicacao SET vigente_ate = \$1 WHERE vigente_ate IS NULL/);
     expect(up.valores).toEqual([HOJE, 'businessmap', 'fluxo']);
     expect(g.some((c) => c.texto.includes('ref_versao_criterio'))).toBe(false);
+  });
+  it('D3b: calendário com turnos grava 5 dias x turnos na transação (sem fechar na carga inicial), só dele e sem UPDATE de valor', async () => {
+    const d = montar();
+    const r = await sincronizarCalendario(d.pool, S, analisarCalendario(texto([BM, { ...AC, turnos: T528 }])), HOJE, AGORA);
+    expect(r.dominios.map((x) => [x.dominio, x.turnosAbertos, x.turnosFechados])).toEqual([['businessmap', 0, 0], ['acelerato', 10, 0]]);
+    const g = gravacoes(d).filter((c) => c.texto.includes('ref_calendario_turno'));
+    expect(g).toHaveLength(1);
+    expect(g[0]!.texto).toMatch(/^INSERT INTO dspd_core\.ref_calendario_turno/);
+    expect(g[0]!.valores.slice(1)).toEqual([[1, 1, 2, 2, 3, 3, 4, 4, 5, 5], [480, 780, 480, 780, 480, 780, 480, 780, 480, 780], [720, 1068, 720, 1068, 720, 1068, 720, 1068, 720, 1068], HOJE]);
+    expect(typeof g[0]!.valores[0]).toBe('string');
+    expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');
+  });
+  it('D3b: turnos diferentes dos vigentes fecham os vigentes antes de inserir os novos; turnos iguais não escrevem nada', async () => {
+    const cals = [{ calendario_id: '1', nome: 'cal-bm', offset_minutos: -180 }, { calendario_id: '2', nome: 'cal-ac', offset_minutos: -180 }];
+    const feriados = [
+      { nome: 'cal-bm', data: '2026-11-02', escopo: 'nacional', descricao: 'Feriado' }, { nome: 'cal-bm', data: '2026-11-15', escopo: 'nacional', descricao: 'Feriado' },
+      { nome: 'cal-ac', data: '2026-11-02', escopo: 'nacional', descricao: 'Feriado' },
+    ];
+    const aplicacoes = [
+      { dominio: 'businessmap', classe: 'fluxo', calendario_id: '1', vigente_de: '2026-11-01', vigente_ate: null },
+      { dominio: 'businessmap', classe: 'apontamento', calendario_id: '1', vigente_de: '2026-11-01', vigente_ate: null },
+      { dominio: 'acelerato', classe: 'sustentacao', calendario_id: '2', vigente_de: '2026-11-01', vigente_ate: null },
+    ];
+    const linha = (dia: number, i: number, f: number) => ({ calendario_id: '2', dia_semana: dia, inicio_min: i, fim_min: f, vigente_de: '2026-11-01', vigente_ate: null });
+    const turnos480 = [1, 2, 3, 4, 5].flatMap((d) => [linha(d, 480, 720), linha(d, 780, 1020)]);
+    // vigências antigas já fechadas contam só para a data (a última, inclusive a fechada no próprio dia em que abriu); não são turnos vigentes
+    const fechadas = [{ ...linha(1, 480, 720), vigente_de: '2026-10-01', vigente_ate: '2026-10-15' }, { ...linha(1, 480, 700), vigente_de: '2026-10-15', vigente_ate: '2026-10-15' }];
+    const novo = analisarCalendario(texto([BM, { ...AC, turnos: T528 }]));
+    const d = montar({ calendarios: cals, feriados, aplicacoes, turnos: [...fechadas, ...turnos480], versoes: [{ dominio: 'acelerato', ultima: '2026-11-01' }] });
+    const r = await sincronizarCalendario(d.pool, S, novo, HOJE, AGORA);
+    expect(r.dominios[1]).toMatchObject({ turnosAbertos: 10, turnosFechados: 1, versaoRegistrada: true });
+    const g = gravacoes(d).filter((c) => c.texto.includes('ref_calendario_turno'));
+    expect(g.map((c) => c.texto.split(' ')[0])).toEqual(['UPDATE', 'INSERT']);
+    expect(g[0]!.texto).toMatch(/SET vigente_ate = \$1 WHERE vigente_ate IS NULL AND calendario_id = \$2::smallint$/);
+    expect(g[0]!.valores).toEqual([HOJE, '2']);
+    const igual = montar({ calendarios: cals, feriados, aplicacoes, turnos: [1, 2, 3, 4, 5].flatMap((x) => [linha(x, 480, 720), linha(x, 780, 1068)]) });
+    await sincronizarCalendario(igual.pool, S, novo, HOJE, AGORA);
+    expect(gravacoes(igual)).toEqual([]);
   });
   it('arquivo recusado ou vigência recusada: ROLLBACK e nada gravado', async () => {
     const d = montar({

@@ -7,7 +7,6 @@ import type {
 } from '@metricas-dspd/contratos'
 import { MOTIVOS_ENCERRAMENTO, MOTIVOS_ESCALACAO } from '@metricas-dspd/contratos'
 import {
-  CALENDARIO_PADRAO as cal,
   diaLocal,
   ehDiaUtil,
   instanteDe,
@@ -18,6 +17,7 @@ import {
 } from '@metricas-dspd/metricas/core'
 import {
   ALVOS_PADRAO,
+  CALENDARIO_SUSTENTACAO_PADRAO as cal,
   MATRIZ_PRIORIDADE,
   type BaseAC,
   type Chamado,

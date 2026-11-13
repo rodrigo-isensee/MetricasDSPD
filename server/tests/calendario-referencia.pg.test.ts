@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ErroCalendario, METRICAS_CALENDARIO, analisarCalendario, lerCalendario, referenciaDaVersaoCalendario, sincronizarCalendario,
 } from '../src/modulos/referencia/calendario.js';
+import { lerTurnosVigentes } from '../src/modulos/referencia/index.js';
 import type { PoolLike } from '../src/plataforma/db/pool.js';
 import { poolDe, S, url } from './pg/ctx.js';
 
@@ -57,9 +58,14 @@ d('ref:sync-calendario contra PostgreSQL (papel dspd_ref)', () => {
       const lido = lerCalendario();
       const antes = await totais(c);
       const r = await sincronizarCalendario(pool, S, lido, D1, AGORA);
-      expect(r.dominios.map((x) => [x.dominio, x.calendariosNovos, x.feriadosNovos, x.aplicacoesAbertas, x.versaoRegistrada])).toEqual([
-        ['businessmap', 1, 26, 2, true], ['acelerato', 1, 26, 1, true],
+      expect(r.dominios.map((x) => [x.dominio, x.calendariosNovos, x.feriadosNovos, x.aplicacoesAbertas, x.turnosAbertos, x.versaoRegistrada])).toEqual([
+        ['businessmap', 1, 26, 2, 0, true], ['acelerato', 1, 26, 1, 10, true],
       ]);
+      // D3b (Decisão 13): só o calendário do Acelerato grava turnos (5 dias x 2 turnos = 528 min por dia); o do BusinessMap fica sem
+      expect(await n(c, 'ref_calendario_turno', `calendario_id IN (SELECT calendario_id FROM ${S.core}.ref_calendario WHERE nome = 'dspd-acelerato')`)).toBe(10);
+      expect(await n(c, 'ref_calendario_turno', `calendario_id IN (SELECT calendario_id FROM ${S.core}.ref_calendario WHERE nome = 'dspd-businessmap')`)).toBe(0);
+      expect(await lerTurnosVigentes(pool, S, 'acelerato', 'sustentacao')).toEqual([{ inicioMin: 480, fimMin: 720 }, { inicioMin: 780, fimMin: 1068 }]);
+      expect(await lerTurnosVigentes(pool, S, 'businessmap', 'fluxo')).toEqual([]);
       const depois = await totais(c);
       expect(depois.map((v, i) => v - antes[i]!)).toEqual([2, 3, 52, 2, METRICAS_CALENDARIO.businessmap.length + METRICAS_CALENDARIO.acelerato.length]);
       for (const dom of ['businessmap', 'acelerato'] as const) {
@@ -96,6 +102,31 @@ d('ref:sync-calendario contra PostgreSQL (papel dspd_ref)', () => {
       ]);
       expect(await n(c, 'ref_calendario_aplicacao', `vigente_ate IS NOT NULL AND calendario_id IN (SELECT calendario_id FROM ${S.core}.ref_calendario WHERE nome LIKE 'teste-%')`)).toBe(0);
     });
+  });
+
+  it('D3b: turnos novos fecham os vigentes (vigente_ate) e abrem os novos; a história fica, o mesmo arquivo não muda nada e a mesma data é recusada', async () => {
+    await comoRef(ref, async (pool, c) => {
+      const comTurnos = (fim: string): ReturnType<typeof analisarCalendario> => {
+        const b = JSON.parse(texto([['2031-03-03', 'Um']])) as { calendarios: { nome: string; turnos?: unknown }[] };
+        b.calendarios.find((x) => x.nome === 'teste-ac')!.turnos = [{ inicio: '08:00', fim: '12:00' }, { inicio: '13:00', fim }];
+        return analisarCalendario(JSON.stringify(b));
+      };
+      const t17 = comTurnos('17:00');
+      const t1748 = comTurnos('17:48');
+      await sincronizarCalendario(pool, S, t17, D1, AGORA);
+      expect(await lerTurnosVigentes(pool, S, 'acelerato', 'sustentacao')).toEqual([{ inicioMin: 480, fimMin: 720 }, { inicioMin: 780, fimMin: 1020 }]);
+      expect((await sincronizarCalendario(pool, S, t17, D2, AGORA)).dominios[1]).toMatchObject({ turnosAbertos: 0, turnosFechados: 0, versaoRegistrada: false });
+      await expect(sincronizarCalendario(pool, S, t1748, D1, AGORA)).rejects.toThrow(/não é posterior à última vigência/);
+      const r = await sincronizarCalendario(pool, S, t1748, D2, AGORA);
+      expect(r.dominios[1]).toMatchObject({ turnosAbertos: 10, turnosFechados: 1, versaoRegistrada: true });
+      expect(await lerTurnosVigentes(pool, S, 'acelerato', 'sustentacao')).toEqual([{ inicioMin: 480, fimMin: 720 }, { inicioMin: 780, fimMin: 1068 }]);
+      const nome = `calendario_id = (SELECT calendario_id FROM ${S.core}.ref_calendario WHERE nome = 'teste-ac')`;
+      expect(await n(c, 'ref_calendario_turno', nome)).toBe(20);
+      expect(await n(c, 'ref_calendario_turno', `${nome} AND vigente_ate = '${D2}' AND vigente_de = '${D1}'`)).toBe(10);
+    });
+    for (const sql of [`UPDATE ${S.core}.ref_calendario_turno SET fim_min = 1`, `DELETE FROM ${S.core}.ref_calendario_turno`]) {
+      await expect(ref.query(sql), sql).rejects.toMatchObject({ code: '42501' });
+    }
   });
 
   it('arquivo inválido ou offset divergente recusa tudo sem gravar nada', async () => {
