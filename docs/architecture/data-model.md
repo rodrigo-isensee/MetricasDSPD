@@ -184,7 +184,7 @@ Views do recorte (T5.1), `security_invoker`, colunas explícitas, sobre a nossa 
 | Tabela | Chave | Campos |
 |---|---|---|
 | `ref_calendario` | `calendario_id` | `nome`, `offset_minutos` (−180), `descricao` |
-| `ref_calendario_turno` | (`calendario_id`, `dia_semana`, `inicio_min`, `vigente_de`) | `fim_min`, `vigente_ate` |
+| `ref_calendario_turno` | (`calendario_id`, `dia_semana`, `inicio_min`, `vigente_de`) | `fim_min`, `vigente_ate`. Gravada pelo `ref:sync-calendario` só para o calendário do Acelerato (D3b do pedido 099, Decisão 13: dia útil de 528 min, dias 1 a 5; troca = fecha `vigente_ate` e insere, nunca UPDATE de valor); o BusinessMap não tem linhas e usa os turnos padrão do código; só as métricas leem (`lerTurnosVigentes`) |
 | `ref_feriado` | (`calendario_id`, `data`) | `escopo CHECK IN ('nacional','estadual','municipal','ponto_facultativo')`, `descricao`, `incluido_por_versao_id` |
 | `ref_calendario_aplicacao` | (`dominio`, `classe`, `vigente_de`) | qual calendário vale para cada classe (4.2; P2/N-6) |
 | `ref_versao_criterio` (T2.6) | `versao_id` | `vigente_desde date`, `dominio CHECK IN ('businessmap','acelerato','pesquisa')` (a 0013 acrescentou `pesquisa`), `descricao`, `motivo`, `referencia` (PR/ata), `registrado_em`. Mudança que afeta os dois domínios = duas linhas |

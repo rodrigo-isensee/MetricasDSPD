@@ -8,15 +8,15 @@ const ext = gerarExtensoesMock(base)
 
 describe('extensões mock das métricas complementares', () => {
   it('não altera a base: hashes do núcleo intactos', () => {
-    expect(hashJson(base)).toBe('de6a8953')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('345c5682')
+    expect(hashJson(base)).toBe('dd6787b1')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('5f03955c')
   })
 
   it('é determinística pela semente e pura da base', () => {
     expect(hashJson(gerarExtensoesMock(base))).toBe(hashJson(ext))
     const outra = gerarBaseMock({ escala: 0.2, semente: 7 })
     expect(hashJson(gerarExtensoesMock(outra))).not.toBe(hashJson(ext))
-    expect(hashJson(ext)).toBe('495a0e07')
+    expect(hashJson(ext)).toBe('24ebe69d')
   })
 
   it('AC: causa raiz só em incidentes, domínio fechado (O17 é da Sustentação)', () => {
@@ -52,5 +52,14 @@ describe('extensões mock das métricas complementares', () => {
       expect(a?.aberto_em).toBeGreaterThan(b?.data_finalizado as number)
     }
     expect(Object.values(ext.ac.registroProblema).some(Boolean)).toBe(true)
+  })
+
+  it('AC: sem chamado posterior na categoria, o incidente concluído não gera reabertura (base reduzida)', () => {
+    const pequena = gerarBaseMock({ escala: 0.05 })
+    const reabertoDe = gerarExtensoesMock(pequena).ac.reabertoDe
+    const porId = new Map(pequena.ac.chamados.map((c) => [c.chamado_id, c]))
+    for (const [novo, orig] of Object.entries(reabertoDe)) {
+      expect(porId.get(novo)?.aberto_em).toBeGreaterThan(porId.get(orig)?.data_finalizado as number)
+    }
   })
 })

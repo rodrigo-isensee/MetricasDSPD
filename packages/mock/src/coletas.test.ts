@@ -18,7 +18,7 @@ describe('gerarColetasMock', () => {
   it('é determinístico e não altera a base', () => {
     expect(hashJson(gerarColetasMock(base))).toBe(hashJson(c))
     expect(hashJson(base)).toBe(antes)
-    expect(hashJson(gerarBaseMock())).toBe('de6a8953')
+    expect(hashJson(gerarBaseMock())).toBe('dd6787b1')
   })
   it('valida pelos schemas e BM falha em 09/10 com selo falha', () => {
     for (const e of [...c.businessmap, ...c.acelerato])

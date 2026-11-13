@@ -29,12 +29,14 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
   'BLOQUEADOS',
   'PV1',
-  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 e S12 voltaram a mock: dependem de campo que a base real não tem.
+  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 voltou a mock: depende de campo que a base real não tem. S12 entrou no pedido 099 (D9) só com o volume.
   'S2',
   'S3',
   'S4',
   'S8',
   'S10',
+  // Pedido 099 (D9): S12 real só com o volume por sistema; reincidência e exceção de SLA por registro posterior saem sem fonte (nulas, com nota).
+  'S12',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -47,8 +49,6 @@ export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
 export const MOTIVO_S9_MOTIVO_PENDENCIA =
   'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'
-export const MOTIVO_S12_REGISTRO_POSTERIOR =
-  'aguardando fonte do registro posterior de exceção de SLA'
 export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por prioridade'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
@@ -62,8 +62,7 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
  * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); S9 espera o motivo de
- * pendência (P-DS-19) e S12 o registro posterior de exceção de SLA, sem fonte (decisão do dono de 2026-11-01 17:30: se faltar campo,
- * segue fictícia); S1 espera os prazos de SLA por
+ * pendência (P-DS-19); S1 espera os prazos de SLA por
  * prioridade (`ref_alvo_prioridade`, sem fonte na base real); a EI_SUST não consta do plano 056, então não se calcula por inferência.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
@@ -80,7 +79,6 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   S7: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S9: MOTIVO_S9_MOTIVO_PENDENCIA,
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
-  S12: MOTIVO_S12_REGISTRO_POSTERIOR,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
@@ -153,10 +151,23 @@ export const NOTA_SUSTENTACAO_IDS = [
   'excecao-sla-sem-fonte',
 ] as const satisfies readonly NotaSustentacaoId[]
 export const notaSustentacaoIdSchema = z.enum(NOTA_SUSTENTACAO_IDS)
-/** Texto de qualquer nota que o cartão mostra (as dos dois enums). */
-export const TEXTO_NOTA_QUALQUER: Readonly<Record<NotaCartaoId | NotaSustentacaoId, string>> = {
+/**
+ * Pedido 099 (D9): nota só do S12, em enum à parte para não mudar o contrato do S2, do S3 e da tendência (o enum da sustentação não cresce).
+ */
+export const TEXTO_NOTA_S12 = {
+  'excecao-sla-s12-sem-fonte':
+    'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+} as const
+export type NotaS12Id = keyof typeof TEXTO_NOTA_S12
+export const NOTA_S12_IDS = ['excecao-sla-s12-sem-fonte'] as const satisfies readonly NotaS12Id[]
+export const notaS12IdSchema = z.enum(NOTA_S12_IDS)
+/** Texto de qualquer nota que o cartão mostra (os dos três enums). */
+export const TEXTO_NOTA_QUALQUER: Readonly<
+  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id, string>
+> = {
   ...TEXTO_NOTA_CARTAO,
   ...TEXTO_NOTA_SUSTENTACAO,
+  ...TEXTO_NOTA_S12,
 }
 
 /** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */

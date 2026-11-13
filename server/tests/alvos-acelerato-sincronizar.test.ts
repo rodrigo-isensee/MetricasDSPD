@@ -18,9 +18,15 @@ const gravadas = (de: string): LinhaEstado[] =>
     prazo_r_horas: a.restauracao.horas.toFixed(2), unidade_r: a.restauracao.unidade,
   }));
 
-function montar(estado: LinhaEstado[], ultimaVersao: string | null, versaoExiste = false) {
+type LinhaTurno = { dia_semana: number; inicio_min: number; fim_min: number };
+/** Expediente vigente da Sustentação (turnos de segunda a sexta): o que a guarda da Decisão 13 confere contra `horas_por_dia_util`. */
+const turnosDe = (...fatias: [number, number][]): LinhaTurno[] => [1, 2, 3, 4, 5].flatMap((d) => fatias.map(([i, f]) => ({ dia_semana: d, inicio_min: i, fim_min: f })));
+const T528 = turnosDe([480, 720], [780, 1068]);
+
+function montar(estado: LinhaEstado[], ultimaVersao: string | null, versaoExiste = false, turnos: LinhaTurno[] = T528) {
   return criarDublePg((c: Chamada) => {
     if (c.texto.includes('FROM ' + S.ac + '.ref_alvo_prioridade')) return estado;
+    if (c.texto.includes('ref_calendario_turno')) return turnos;
     if (c.texto.includes('max(vigente_desde)')) return [{ ultima: ultimaVersao }];
     if (c.texto.includes('SELECT versao_id')) return versaoExiste ? [{ versao_id: '7' }] : [];
     if (c.texto.includes('INSERT INTO ' + S.core + '.ref_versao_criterio ')) return [{ versao_id: '9' }];
@@ -87,6 +93,25 @@ describe('sincronizarAlvos (pool falso)', () => {
     const invalida = montar([], null);
     await expect(sincronizarAlvos(invalida.pool, S, lido, '2031-02-30', AGORA)).rejects.toThrow(/data de vigência inválida/);
     expect(invalida.estado.conexoes).toBe(0);
+  });
+
+  it('Decisão 13: expediente gravado diferente de horas_por_dia_util (480 min, ou sem turnos) recusa e desfaz, sem gravar nada', async () => {
+    for (const turnos of [turnosDe([480, 720], [780, 1020]), []]) {
+      const d = montar([], null, false, turnos);
+      await expect(sincronizarAlvos(d.pool, S, lido, '2031-01-10', AGORA)).rejects.toThrow(/8\.8 h\) difere do expediente gravado da Sustentação \(\d+ min\); rode o ref:sync-calendario antes/);
+      expect(d.chamadas.map((c) => c.texto).at(-1)).toBe('ROLLBACK');
+      expect(escritas(d.chamadas)).toEqual([]);
+    }
+  });
+
+  it('Decisão 13: a guarda lê só o calendário da Sustentação e não pede o expediente quando nada muda', async () => {
+    const d = montar([], null);
+    await sincronizarAlvos(d.pool, S, lido, '2031-01-10', AGORA);
+    const q = d.chamadas.find((c) => c.texto.includes('ref_calendario_turno'))!;
+    expect(q.valores).toEqual(['acelerato', 'sustentacao']);
+    const igual = montar(gravadas('2031-01-01'), '2031-01-01');
+    await sincronizarAlvos(igual.pool, S, lido, '2031-02-01', AGORA);
+    expect(igual.chamadas.some((c) => c.texto.includes('ref_calendario_turno'))).toBe(false);
   });
 
   it('arquivo que não é um objeto: o erro aponta a raiz, sem vazar o conteúdo', () => {

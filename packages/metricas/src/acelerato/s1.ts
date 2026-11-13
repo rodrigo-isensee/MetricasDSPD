@@ -69,6 +69,7 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
     criterios: criterios('S1', periodo, janela, ctx),
     janelaPercentis: janela,
     excecoesForaDaApuracao: fechados.length - apuraveis.length,
+    horasPorDiaUtil: ctx.cal.horasPorDia,
     prioridades: prioridadesAlvo(f).map((p) => {
       const a = alvos.find((x) => x.prioridade === p) as AlvoPrioridade
       return {

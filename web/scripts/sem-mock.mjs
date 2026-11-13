@@ -3,12 +3,13 @@
 // Uso: node scripts/sem-mock.mjs [pasta do build]   (padrão: dist, o build sem VITE_FONTE, que é `api`)
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+// Importada, não copiada: o script e o mock partilham a mesma cadeia, sem deriva (o Node tira os tipos do .ts).
+import { SENTINELA_MOCK as SENTINELA } from '../src/data/mock/sentinela.ts'
 
-// Mantida igual a web/src/data/mock/sentinela.ts.
-const SENTINELA = 'METRICAS_DSPD_SENTINELA_MOCK_ADR0030'
 const raiz = process.argv[2]
   ? resolve(process.argv[2])
-  : new URL('../dist/', import.meta.url).pathname
+  : fileURLToPath(new URL('../dist/', import.meta.url))
 const dir = join(raiz, 'assets')
 
 // Chunk do núcleo (`nucleoMock*`), do pacote (`mock-*`) ou da fonte (`MockFonteMetricas-*`): qualquer nome com "mock".

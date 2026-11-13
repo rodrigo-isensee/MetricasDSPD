@@ -33,7 +33,7 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaSustentacaoIdSchema } from './origem'
+import { notaCartaoIdSchema, notaS12IdSchema, notaSustentacaoIdSchema } from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -630,6 +630,8 @@ export const resultadoS1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
   excecoesForaDaApuracao: z.number(),
+  /** Horas do dia útil do calendário usado no cálculo (Decisão 13: 8,8 na Sustentação). Aditivo: a web converte horas em dias úteis por este número, nunca por constante. */
+  horasPorDiaUtil: z.number(),
   /** Tempos em horas úteis (calendário de expediente) para todas as prioridades. */
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),
@@ -1177,7 +1179,10 @@ export const resultadoS12 = z.object({
       proporcao: taxaSchema,
     }),
   ),
-  excecaoSla: taxaSchema,
+  /** Pedido 099 (D9): null = o registro posterior de exceção de SLA não tem fonte (nunca 0%); vem com a nota `excecao-sla-s12-sem-fonte`. */
+  excecaoSla: taxaSchema.nullable(),
+  /** Notas da publicação sem dado (os textos vivem em `origem.ts`). */
+  notas: z.array(notaS12IdSchema).optional(),
 })
 
 /* ---------- Pesquisa de percepção (PV1) ---------- */
