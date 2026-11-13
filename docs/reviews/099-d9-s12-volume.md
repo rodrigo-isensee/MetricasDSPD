@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d9-s12-volume
-commit: d9abb3098b9a958e18c4438250baea8f93a5005e
+commit: f294aeb7324cf198c31363ee928c52d3318086b3
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-13
@@ -51,9 +51,15 @@ Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, inter
 - **Ferramentas:** `web` `vitest run src/features/coleta/origem.test.tsx` (18 testes) e `packages/metricas` `vitest run src/complementares.test.ts` (21): passaram; `prettier --check` nos dois arquivos: verde. Suíte inteira e e2e no CI do PR 370.
 - A1 a A5 seguem como estavam (recomendados). Nenhum achado novo.
 
+## Revalidação por delta (E3.105, cobertura de ramos da web)
+Delta lido: `forge-check parecer delta docs/reviews/099-d9-s12-volume.md`, intervalo `d9abb309..f294aeb7`. No domínio só `web/src/features/complementares/ramos.test.tsx` (commit `f294aeb7`, E3.103); nenhum código de produção mudou.
+- **Teste novo:** S12 com `excecaoSla: null` e `notas: undefined` afirma o texto fixo de `TEXTO_NOTA_S12['excecao-sla-s12-sem-fonte']` no bloco `nota-S12-excecao-sla`. Cobre o ramo de padrão de `sustentacao.tsx:368`, o que faltava no check `testes` do CI de `2e4efd42`, e fecha o A5.
+- **Ferramentas:** `web` `vitest run src/features/complementares/ramos.test.tsx`: 22 testes, passaram. Mutante rodado: o padrão `['excecao-sla-s12-sem-fonte']` trocado por `[]` na linha 368 derruba o teste novo (1 falha); fonte restaurada. A cobertura global de ramos da web é do check `testes` do CI do PR 370 no head `f294aeb7` (em andamento nesta revalidação).
+- A1 a A4 seguem como estavam (recomendados). A5 resolvido. Nenhum achado novo.
+
 ## Achados
 - A1 (recomendado) web/src/features/complementares/sustentacao.tsx:315 · O `CartaoS12` não passa `notasDoCartao={d?.notas}` ao `CartaoComplementar` (como fazem `CartaoS2` e `CartaoS3`): o texto de `TEXTO_NOTA_S12` vai na API e nunca aparece; a pessoa só vê "campo sem fonte" na leitura. Passar as notas, ou registrar que a leitura basta e então a nota é só contrato.
 - A2 (recomendado) web/src/features/complementares/sustentacao.tsx:303 · `R12Leitura` ficou redundante: com o contrato nulável no head, `R12['excecaoSla']` já inclui `null`, e o comentário ("o tipo local já aceita antes da mudança") descreve um estado intermediário da branch. Tirar o tipo e usar `R12`.
 - A3 (recomendado) packages/metricas/src/acelerato/s12.ts:92 · A exceção nula depende da ausência da extensão da reincidência (`ext`), não de fonte própria da exceção; quando a coleta trouxer um campo sem o outro, a guarda erra calada. Cartão para separar as duas.
 - A4 (recomendado) docs/contratos/metricas/S12.md:271 · O exemplo gerado mostra `excecaoSla: null` e o mock da API devolve a taxa; o corpo do PR diz que é o ramo sem extensão e traz a linha de contrato incompatível de `resultados/S12` com o hash.
-- A5 (recomendado) web/src/features/complementares/sustentacao.tsx:368 · O padrão `['excecao-sla-s12-sem-fonte']` quando `notas` vem vazio não tem teste (o caso novo manda a nota). Um caso com `notas: undefined` e exceção nula fecha o ramo.
+- A5 (recomendado) web/src/features/complementares/sustentacao.tsx:368 · Resolvido em `f294aeb7` (E3.105). O padrão `['excecao-sla-s12-sem-fonte']` quando `notas` vem vazio não tem teste (o caso novo manda a nota). Um caso com `notas: undefined` e exceção nula fecha o ramo.
