@@ -38,11 +38,6 @@ const vazioSeEquipe = fonteDe((c) => (c.equipe ? respostaVaziaComMapa() : respos
 const vazioComMapa = fonteDe(() => respostaVaziaComMapa())
 const sobDemanda = (id: string) => document.getElementById(id)
 
-const semPessoas = (r: RespostaApontamento): RespostaApontamento => ({
-  ...r,
-  diario: { ...r.diario, linhas: [] },
-})
-
 describe('K-303: o vazio da aba vale só para os cartões do período', () => {
   it('CA-1: com kpis.apontamentos 0, o Dia a dia fica e as cinco seções do período saem', async () => {
     renderizar(URL_ABA, vazioComMapa)
@@ -236,6 +231,5 @@ describe('K-303: o vazio da aba vale só para os cartões do período', () => {
   it('CA-12: os textos antigos do vazio não existem mais em textos.ts', () => {
     expect(JSON.stringify(VAZIO)).not.toContain('Nenhum apontamento encontrado')
     expect(VAZIO.texto).not.toBe('Nenhum apontamento atende aos filtros atuais.')
-    expect(semPessoas(RESPOSTA_FICTICIA).diario.linhas).toHaveLength(0)
   })
 })

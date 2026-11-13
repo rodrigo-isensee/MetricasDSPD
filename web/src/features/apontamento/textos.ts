@@ -102,6 +102,13 @@ export const VAZIO = {
   anuncio: 'Nenhum apontamento no período dos filtros. O mapa dia a dia tem janela própria.',
 } as const
 
+/** Vazio do próprio mapa diário (K-286): a janela dele é a escolhida no cartão, não o período dos filtros. */
+export const DIARIO_VAZIO = {
+  semEquipe: 'Nenhum apontamento nesta janela. Troque as datas do mapa.',
+  comEquipe:
+    'Nenhum apontamento da equipe escolhida nesta janela. Troque as datas do mapa ou remova o filtro Equipe.',
+} as const
+
 export const CARREGANDO = 'Carregando apontamentos'
 
 export const SECOES = {
