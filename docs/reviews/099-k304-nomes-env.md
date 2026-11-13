@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-k304-nomes-env
-commit: f77f3545dcb06ed7bdca043816791283d6cd072e
+commit: e623a45aac6901e1328d9cbea8b8913d0f88f16d
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-13
@@ -36,5 +36,11 @@ Diff lido: `git diff 9bb72d1f...3f2803e2` (6 arquivos, 1 commit: `3f2803e2`), co
 - A1: coberto pelo caso do TLS 0 no mesmo processo (o nome da variável sai na lista). A3: espaço removido. A2 segue recomendado, sem mudança (não bloqueia).
 - Ferramentas (citadas, não refeitas): CI do PR 372 no head `f77f3545`, check `testes` verde nos dois runs (`gh pr checks 372`: `testes pass 6m3s` e `testes pass 7m42s`; `rapida` e `banco` verdes). Cobertura do server em 100% nas quatro medidas pelo autor (E3.124, 2064 testes).
 
+## Revalidação 2 (E3.131, `e623a45a`)
+- Delta lido: `forge-check parecer delta docs/reviews/099-k304-nomes-env.md`, intervalo `f77f3545..e623a45a`, escopo sem o que veio da base: "nenhum arquivo do domínio mudou".
+- Junção (`gh pr update-branch 372`, merge de `28bf8a14`, K-294): traz só `web/scripts/sem-mock.mjs`, `web/src/test/lint.meta.test.ts`, `docs/architecture/features/front-via-api.md` e os três pareceres `099-k294-pos-l2d`. Conferido: os seis arquivos em `e623a45a` são idênticos aos de `28bf8a14` (`git diff 28bf8a14 e623a45a` vazio neles), o K-304 não toca nenhum deles (`git diff --name-only 28bf8a14...7c81ee96`) e nada mais mudou entre `7c81ee96` e `e623a45a`. Sem conflito nem mudança de patch.
+- Ferramentas (citadas, não refeitas): CI do PR 372 no head `e623a45a` todo verde (`gh pr checks 372`, laço da skill `esperar-estado`, `fim=checks:0`): `testes pass 10m5s` e `testes pass 7m17s`, `e2e-parte (1/2) pass 13m12s`, `e2e-parte (2/2) pass 20m17s`, `e2e pass`; `rapida`, `banco`, `build`, `openapi`, `seguranca`, `imagem` e `filtro` verdes.
+- Achados: sem mudança (A2 segue recomendado).
+
 ## Conclusão
-Parecer: aprovado no `f77f3545`.
+Parecer: aprovado no `e623a45a`.
