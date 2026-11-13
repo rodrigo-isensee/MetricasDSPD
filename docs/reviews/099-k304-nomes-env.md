@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-k304-nomes-env
-commit: 3f2803e2192391aa8d3d72266379e09c3b5cde16
+commit: f77f3545dcb06ed7bdca043816791283d6cd072e
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-13
@@ -29,5 +29,12 @@ Diff lido: `git diff 9bb72d1f...3f2803e2` (6 arquivos, 1 commit: `3f2803e2`), co
 - A2 (recomendado) server/tests/coleta-nomes-env.test.ts:9 · O cabeçalho diz que nada lê o `.env`, mas a entrada do BusinessMap o lê (linhas 62 e 63). Opcionais não definidas (`PESSOA_ELIMINADA_SAL`, `LOG_LEVEL` e afins) vêm dele e mudam o `toBe` da linha 70. Corrigir o texto e defini-las como `''`.
 - A3 (recomendado) server/tests/coleta-nomes-env.test.ts:67 · Espaço sobrando no fim da linha; o `format:check` não cobre `server/`, então nada o pega.
 
+## Revalidação 1 (E3.125, `f77f3545`)
+- Delta lido: `forge-check parecer delta docs/reviews/099-k304-nomes-env.md`, intervalo `3f2803e2..f77f3545`, no domínio só `server/tests/coleta-nomes-env.test.ts` (+44/-1, só teste; nada em `server/src/`).
+- Motivo da volta: o CI de `4f6b947d` caiu por cobertura do server abaixo de 100%. Os casos novos rodam `carregarConfigColetaAcelerato` no mesmo processo: ambiente completo (devolve worker e MySQL), duas variáveis do MySQL inválidas (as duas nomeadas, sem o `SEGREDO` na mensagem), `NODE_TLS_REJECT_UNAUTHORIZED=0` nomeado e erro que não é de configuração relançado nos dois ramos (`server/src/modulos/acelerato/config.ts:77` e `:83`).
+- Conferido na fonte: o `z.object` lê só as chaves declaradas, então o getter que lança em `PG_COLETOR_URL` dispara só em `carregarConfigWorker` e o de `ACELERATO_MYSQL_HOST` só em `carregarConfigAcelerato`; cada caso exercita a guarda que diz exercitar. `lerConfig({})` fixa o plural, e o valor só com espaços conta como ausente.
+- A1: coberto pelo caso do TLS 0 no mesmo processo (o nome da variável sai na lista). A3: espaço removido. A2 segue recomendado, sem mudança (não bloqueia).
+- Ferramentas (citadas, não refeitas): CI do PR 372 no head `f77f3545`, check `testes` verde nos dois runs (`gh pr checks 372`: `testes pass 6m3s` e `testes pass 7m42s`; `rapida` e `banco` verdes). Cobertura do server em 100% nas quatro medidas pelo autor (E3.124, 2064 testes).
+
 ## Conclusão
-Parecer: aprovado no `3f2803e2`.
+Parecer: aprovado no `f77f3545`.
