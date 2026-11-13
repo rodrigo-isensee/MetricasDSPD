@@ -318,6 +318,19 @@ describe('D1a: nomes exatos da fonte (B5-b), com dois-pontos, e texto livre fora
     try { camposEtapa([lista('Qual suporte foi acionado?', MARCADORES[0]!)], [], dom, new Map(), new Contadores()); } catch (e) { msg = String(e); }
     expect(msg).not.toContain(MARCADORES[0]);
   });
+  it('nomes sem os dois-pontos falham fechado (dados-invalidos, coluna nome), sem o valor', () => {
+    const casos: [string, () => unknown][] = [
+      ['Motivo da Escalação', () => camposEtapa([lista('Motivo da Escalação', MARCADORES[1]!)], [], dom, new Map(), new Contadores())],
+      ['Previsão de retorno', () => camposEtapa([], [preench('Previsão de retorno', 1)], dom, new Map(), new Contadores())],
+      ['Se a prioridade foi ajustada, justifique', () => camposEtapa([], [preench('Se a prioridade foi ajustada, justifique', 1)], dom, new Map(), new Contadores())],
+    ];
+    for (const [, f] of casos) {
+      expect(f).toThrowError(expect.objectContaining({ codigo: 'dados-invalidos', coluna: 'nome' }));
+      let msg = '';
+      try { f(); } catch (e) { msg = String(e); }
+      expect(msg).not.toContain(MARCADORES[1]);
+    }
+  });
   it('as consultas Q6 e Q7 recebem só os nomes com dois-pontos, sem o campo de texto livre', async () => {
     const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware')] });
     const mysql = criarMysqlFalso([etapa([{ nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware' }])]);
@@ -325,5 +338,17 @@ describe('D1a: nomes exatos da fonte (B5-b), com dois-pontos, e texto livre fora
     ok(await coletarAcelerato(d, 'incremental'));
     expect(banco.estado.stgChamado[0]!.payload.campos).toMatchObject({ motivo_escalacao: 'Hardware' });
     expect(Object.keys(banco.estado.stgChamado[0]!.payload.campos as object)).not.toContain('suporte_acionado');
+  });
+  it('campo TEXT com marcador na origem: a coleta termina, o valor não chega ao staging nem aos logs (Q6 e Q7)', async () => {
+    const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware')] });
+    const mysql = criarMysqlFalso([etapa([
+      { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware' },
+      { nome: 'Qual suporte foi acionado?', tipo: 'texto', valor: MARCADORES[2] },
+    ])]);
+    const { d, logs } = deps(banco, mysql);
+    ok(await coletarAcelerato(d, 'incremental'));
+    expect(banco.estado.stgChamado[0]!.payload.campos).toMatchObject({ motivo_escalacao: 'Hardware' });
+    expect(JSON.stringify([banco.estado, logs])).not.toContain(MARCADORES[2]);
+    expect(JSON.stringify([banco.estado, logs])).not.toContain('Qual suporte foi acionado?');
   });
 });
