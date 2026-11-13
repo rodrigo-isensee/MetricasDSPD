@@ -12,7 +12,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
-import { comCorteDaSerieO1, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
+import { comCorteDaSerieO1, comNotaS12SemFonte, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
@@ -223,6 +223,8 @@ export class ServicoMetricas {
       ...(leitura === null ? {} : { pesq: pesquisa.criarContextoPesquisa(leitura.base, dataReferencia) }),
     };
     const resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, {}, ctx);
+    // Pedido 099 (D9): o S12 real sem a fonte da exceção de SLA sai `excecaoSla: null` da biblioteca; aqui só a nota. Só publicação.
+    if (real) resultado = comNotaS12SemFonte(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };

@@ -51,3 +51,10 @@ export function comCorteDaSerieO1(id: MetricaId, resultado: unknown, ligado: boo
   const serie = (r.serie as Linha[]).map((p) => ((p.data as string) < desde ? { ...p, bloqueados: null } : p));
   return { ...r, serie };
 }
+
+/** Pedido 099 (D9): o S12 sem fonte da exceção de SLA (`excecaoSla: null`) traz a nota. Só publicação: nada é recalculado. */
+export function comNotaS12SemFonte(id: MetricaId, resultado: unknown): unknown {
+  if (id !== 'S12') return resultado;
+  const r = resultado as Linha;
+  return r.excecaoSla === null ? comNotaSust(r, 'excecao-sla-s12-sem-fonte') : resultado;
+}

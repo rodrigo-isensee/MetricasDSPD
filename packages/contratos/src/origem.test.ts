@@ -29,13 +29,13 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['PV1'],
-        ...['S2', 'S3', 'S4', 'S8', 'S10'],
+        ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
       ].sort(),
     )
   })
 
-  it('sustentação: S1, S5, S6, S7, S9, S11, S12 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
+  it('sustentação: S1, S5, S6, S7, S9, S11 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
     expect(motivoDaOrigemSemDado('S1')).toBe('aguardando prazos de SLA por prioridade')
     for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
       expect(origemDaMetrica(id), id).toBe('sem-dado')
@@ -47,10 +47,9 @@ describe('origemDaMetrica (H-13)', () => {
     expect(motivoDaOrigemSemDado('S9')).toBe(
       'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
     )
-    expect(origemDaMetrica('S12')).toBe('sem-dado')
-    expect(motivoDaOrigemSemDado('S12')).toBe(
-      'aguardando fonte do registro posterior de exceção de SLA',
-    )
+    // Pedido 099 (D9): S12 é real só com o volume; sem motivo de dado fictício.
+    expect(origemDaMetrica('S12')).toBe('real')
+    expect(motivoDaOrigemSemDado('S12')).toBeNull()
     expect(origemDaMetrica('EI_SUST')).toBe('sem-dado')
     expect(motivoDaOrigemSemDado('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
   })
