@@ -189,7 +189,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % com exceção de SLA por registro posterior.',
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
-    cuidados: 'Reincidência depende do preenchimento do campo.',
+    cuidados:
+      'Reincidência depende do preenchimento do campo. Hoje só o volume por sistema vem da base real. Reincidência e exceção de SLA por registro posterior ficam sem fonte até a coleta trazer os campos; sem fonte não é zero.',
   },
   O19: {
     oQueE: 'Quantos dias úteis de bloqueio cada causa somou e quantas vezes ela travou o trabalho.',

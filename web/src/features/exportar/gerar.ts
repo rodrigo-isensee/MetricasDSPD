@@ -78,7 +78,7 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
     acelerato: await estadoDe('acelerato'),
   }
   const mock = fonte.tipo === 'mock'
-  const ficticioDaVisaoGeral = mock || origemDaMetrica('VISAO_GERAL') === 'mock'
+  const ficticioDaVisaoGeral = mock || origemDaMetrica('VISAO_GERAL') === 'sem-dado'
   const dominioDaFonte = (f: 'BusinessMap' | 'Acelerato'): Dominio =>
     f === 'Acelerato' ? 'acelerato' : 'businessmap'
   let blocos: BlocoExportacao[] = []

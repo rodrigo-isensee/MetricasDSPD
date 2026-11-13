@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PREFIXO_VALIDO } from './db/esquemas.js';
 import { urlDoPapel } from './db/pool.js';
 import { ErroConfiguracao } from './categoria-erro.js';
 
@@ -11,7 +12,8 @@ const urlPg = z.string().regex(/^postgres(ql)?:\/\/\S+$/, 'URL postgres inválid
 /** Variável presente mas vazia (Compose sem o valor) = não definida. */
 const vazioIndefinido = <T extends z.ZodType>(esquema: T) => z.preprocess((v) => (v === '' ? undefined : v), esquema);
 const comum = {
-  DSPD_SCHEMA_PREFIXO: z.string().default(''),
+  // Prefixo inválido recusa a partida pelo NOME da variável (K-311); o valor nunca vai à mensagem.
+  DSPD_SCHEMA_PREFIXO: z.string().regex(new RegExp(`^(?:${PREFIXO_VALIDO.source})?$`)).default(''),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 };
 

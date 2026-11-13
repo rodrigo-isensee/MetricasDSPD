@@ -11,8 +11,8 @@ import { poolDe, url } from './pg/ctx.js';
 // base REAL do Acelerato e que as demais da sustentação seguem a base do seed. Falha se o mapa de origem ou o roteamento voltar atrás.
 const d = describe.skipIf(!url);
 const AGORA = new Date('2026-10-10T15:00:00Z');
-const REAIS = ['S2', 'S3', 'S4', 'S8', 'S10'] as const;
-const MOCK = ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'S12', 'EI_SUST'] as const;
+const REAIS = ['S2', 'S3', 'S4', 'S8', 'S10', 'S12'] as const;
+const MOCK = ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'EI_SUST'] as const;
 
 d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
   const base = gerarBaseMock({ escala: 0.15 });
@@ -36,7 +36,7 @@ d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
     await mig.end();
   });
 
-  it('com a base real do Acelerato vazia, S2, S3, S4, S8 e S10 mudam (leem a real) e as demais respondem sem dado real (nunca o número do seed)', async () => {
+  it('com a base real do Acelerato vazia, S2, S3, S4, S8, S10 e S12 mudam (leem a real) e as demais respondem sem dado real (nunca o número do seed)', async () => {
     const unica = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const antes = await buildApp({ db: api, S: R, agora: () => AGORA, nivelLog: 'silent' });
     const corpoAntes: Record<string, string> = {};

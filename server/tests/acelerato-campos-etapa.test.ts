@@ -17,10 +17,10 @@ const HASHES_VAZIOS = hashesDasListas([], []);
 
 /** Escrita à mão, não derivada da constante (B-1 da ADR 0020): é o que o código tem de ler e nada além. */
 const NOMES_ESPERADOS_LISTA = [
-  'Motivo da Escalação', 'Qual suporte foi acionado?', 'Motivo de Encerramento', 'Classifique o chamado no Tipo de Prioridade corretamente!',
+  'Motivo da Escalação:', 'Motivo de Encerramento', 'Classifique o chamado no Tipo de Prioridade corretamente!',
   'Motivo de Pendência', 'Avaliação de Problema', 'Prioridade ajustada manualmente?',
 ];
-const NOMES_ESPERADOS_PREENCHIDO = ['Se a prioridade foi ajustada, justifique', 'Previsão de retorno'];
+const NOMES_ESPERADOS_PREENCHIDO = ['Se a prioridade foi ajustada, justifique:', 'Previsão de retorno:'];
 const NOMES_PROIBIDOS = [
   'Acelerato - Atendente', 'Acelerato - Solicitante', 'Cargo', 'Bairro', 'Complemento do Problema', 'USUARIO_LOGIN', 'ACELERATO_LOGIN',
   'Campo Inventado Para O Teste', 'Categoria de solução', 'Número do ticket anterior',
@@ -42,12 +42,12 @@ const ok = (r: ResultadoColeta): Extract<ResultadoColeta, { estado: 'ok' }> => {
 const vazio: DominiosEtapa = new Map();
 
 describe('constante de nomes (A1)', () => {
-  it('traz exatamente os nove nomes da fatia F3, cada um com o tratamento fixo, sem Categoria de solução nem Número do ticket anterior', () => {
+  it('traz exatamente os oito nomes da fatia F3, cada um com o tratamento fixo, sem Categoria de solução nem Número do ticket anterior', () => {
     expect([...NOMES_ETAPA_LISTA]).toEqual(NOMES_ESPERADOS_LISTA);
     expect([...NOMES_ETAPA_PREENCHIDO]).toEqual(NOMES_ESPERADOS_PREENCHIDO);
-    expect(CAMPOS_ETAPA_F3).toHaveLength(9);
+    expect(CAMPOS_ETAPA_F3).toHaveLength(8);
     for (const n of NOMES_PROIBIDOS) expect([...NOMES_ETAPA_LISTA, ...NOMES_ETAPA_PREENCHIDO]).not.toContain(n);
-    expect(new Set(CAMPOS_ETAPA_F3.map((c) => c.chave)).size).toBe(9);
+    expect(new Set(CAMPOS_ETAPA_F3.map((c) => c.chave)).size).toBe(8);
     for (const c of CAMPOS_ETAPA_F3) expect(campoDominioEtapa(c.chave).length).toBeLessThanOrEqual(40); // ref_dominio.campo é varchar(40)
   });
   it('o hash dos nomes inclui o tratamento: trocar lista por preenchido muda campos_sha256', () => {
@@ -136,8 +136,8 @@ describe('fronteira pela coleta (CA-069-6, 7, 8, 11)', () => {
   it('A2 (CA-069-7): justificativa com texto marcador e tipo lista: só o booleano; o texto não chega ao staging', async () => {
     const banco = criarBancoMemoria();
     const mysql = criarMysqlFalso([etapa([
-      { nome: 'Se a prioridade foi ajustada, justifique', tipo: 'lista', valor: MARCADORES[0] },
-      { nome: 'Previsão de retorno', tipo: 'data', valor: MARCADORES[1] },
+      { nome: 'Se a prioridade foi ajustada, justifique:', tipo: 'lista', valor: MARCADORES[0] },
+      { nome: 'Previsão de retorno:', tipo: 'data', valor: MARCADORES[1] },
     ])]);
     const { d, logs } = deps(banco, mysql);
     await coletarAcelerato(d, 'incremental');
@@ -159,7 +159,7 @@ describe('fronteira pela coleta (CA-069-6, 7, 8, 11)', () => {
   it('CA-069-10: no domínio grava o valor; fora do domínio e domínio vazio ficam nulos com fora_dominio_<campo>, sem o valor', async () => {
     const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware', 'Software')] });
     const mysql = criarMysqlFalso([etapa([
-      { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Hardware' },
+      { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware' },
       { nome: 'Motivo de Pendência', tipo: 'lista', valor: MARCADORES[3] },
       { nome: 'Avaliação de Problema', tipo: 'lista', valor: 'Qualquer' },
     ])]);
@@ -191,22 +191,22 @@ describe('zod strict (CA-069-9)', () => {
   };
   it('linha válida passa; sem linha, lista nula e preenchido falso', () => {
     const c = new Contadores();
-    expect(camposEtapa([lista('Motivo da Escalação', 'A')], [preench('Previsão de retorno', 1), preench('Se a prioridade foi ajustada, justifique', 0)], dom, new Map(), c)).toMatchObject({ motivo_escalacao: 'A', previsao_retorno_informada: true, justificativa_informada: false });
+    expect(camposEtapa([lista('Motivo da Escalação:', 'A')], [preench('Previsão de retorno:', 1), preench('Se a prioridade foi ajustada, justifique:', 0)], dom, new Map(), c)).toMatchObject({ motivo_escalacao: 'A', previsao_retorno_informada: true, justificativa_informada: false });
     expect(camposEtapa([], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: null, justificativa_informada: false });
   });
   it.each([
-    ['chave extra na lista', [{ ...lista('Motivo da Escalação', 'A'), extra: 'MARCADOR-069-X' }], [], 'extra'],
+    ['chave extra na lista', [{ ...lista('Motivo da Escalação:', 'A'), extra: 'MARCADOR-069-X' }], [], 'extra'],
     ['nome fora da constante na lista', [lista('Acelerato - Atendente', 'MARCADOR-069-X')], [], 'nome'],
-    ['nome de preenchido na Q6', [lista('Previsão de retorno', 'A')], [], 'nome'],
-    ['valor de 81 caracteres', [lista('Motivo da Escalação', 'x'.repeat(81))], [], 'valor'],
-    ['booleano em campo de lista', [{ ticket_key: 1, nome: 'Motivo da Escalação', tipo: 'lista', valor: true, kanban_status_key: 1 }], [], 'valor'],
-    ['coluna valor na Q7', [], [{ ticket_key: 1, nome: 'Previsão de retorno', preenchido: 1, valor: 'MARCADOR-069-X' }], 'valor'],
-    ['texto no lugar do booleano na Q7', [], [preench('Previsão de retorno', 'MARCADOR-069-X')], 'preenchido'],
-    ['nome de lista na Q7', [], [preench('Motivo da Escalação', 1)], 'nome'],
-    ['kanban_status_key texto (L9-c)', [lista('Motivo da Escalação', 'A', 'lista', 'MARCADOR-069-X' as never)], [], 'kanban_status_key'],
-    ['kanban_status_key decimal', [lista('Motivo da Escalação', 'A', 'lista', 1.5)], [], 'kanban_status_key'],
-    ['kanban_status_key negativo', [lista('Motivo da Escalação', 'A', 'lista', -3)], [], 'kanban_status_key'],
-    ['kanban_status_key ausente da linha', [{ ticket_key: 1, nome: 'Motivo da Escalação', tipo: 'lista', valor: 'A' }], [], 'kanban_status_key'],
+    ['nome de preenchido na Q6', [lista('Previsão de retorno:', 'A')], [], 'nome'],
+    ['valor de 81 caracteres', [lista('Motivo da Escalação:', 'x'.repeat(81))], [], 'valor'],
+    ['booleano em campo de lista', [{ ticket_key: 1, nome: 'Motivo da Escalação:', tipo: 'lista', valor: true, kanban_status_key: 1 }], [], 'valor'],
+    ['coluna valor na Q7', [], [{ ticket_key: 1, nome: 'Previsão de retorno:', preenchido: 1, valor: 'MARCADOR-069-X' }], 'valor'],
+    ['texto no lugar do booleano na Q7', [], [preench('Previsão de retorno:', 'MARCADOR-069-X')], 'preenchido'],
+    ['nome de lista na Q7', [], [preench('Motivo da Escalação:', 1)], 'nome'],
+    ['kanban_status_key texto (L9-c)', [lista('Motivo da Escalação:', 'A', 'lista', 'MARCADOR-069-X' as never)], [], 'kanban_status_key'],
+    ['kanban_status_key decimal', [lista('Motivo da Escalação:', 'A', 'lista', 1.5)], [], 'kanban_status_key'],
+    ['kanban_status_key negativo', [lista('Motivo da Escalação:', 'A', 'lista', -3)], [], 'kanban_status_key'],
+    ['kanban_status_key ausente da linha', [{ ticket_key: 1, nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'A' }], [], 'kanban_status_key'],
   ])('%s: falha fechado dados-invalidos, erro sem o valor', (_n, l, p, coluna) => {
     const e = falha(l, p);
     expect(e).toMatchObject({ codigo: 'dados-invalidos', coluna });
@@ -215,14 +215,14 @@ describe('zod strict (CA-069-9)', () => {
   });
   it('tipo ausente não recusa (só o domínio decide); valor vazio ou nulo é sem resposta, sem contagem', () => {
     const c = new Contadores();
-    expect(camposEtapa([lista('Motivo da Escalação', 'A', null)], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: 'A' });
-    expect(camposEtapa([lista('Motivo da Escalação', '')], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: null });
-    expect(camposEtapa([lista('Motivo da Escalação', null)], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: null });
+    expect(camposEtapa([lista('Motivo da Escalação:', 'A', null)], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: 'A' });
+    expect(camposEtapa([lista('Motivo da Escalação:', '')], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: null });
+    expect(camposEtapa([lista('Motivo da Escalação:', null)], [], dom, new Map(), c)).toMatchObject({ motivo_escalacao: null });
     expect(c.entradas()).toEqual([]);
   });
   it('vazio e fora do mapa de domínios: nada passa sem domínio', () => {
     const c = new Contadores();
-    expect(camposEtapa([lista('Motivo da Escalação', 'A')], [], vazio, new Map(), c)).toMatchObject({ motivo_escalacao: null });
+    expect(camposEtapa([lista('Motivo da Escalação:', 'A')], [], vazio, new Map(), c)).toMatchObject({ motivo_escalacao: null });
     expect(c.obter('fora_dominio_motivo_escalacao')).toBe(1);
   });
 });
@@ -256,9 +256,9 @@ describe('coleta com a ordem do fluxo (L9-c)', () => {
     linha({ campos_personalizados_etapa: JSON.stringify(campos.map((c) => ({ ...c, obrigatorio: false }))) });
   const etapaFluxo = (...itens: [string, number][]) => itens.map(([codigo, ordem]) => ({ campo: 'etapa_fluxo', codigo, rotulo: `Etapa ${codigo}`, ordem }));
   const repetido = [
-    { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Software', kanbanStatusKey: 30 },
-    { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 10 },
-    { nome: 'Motivo da Escalação', tipo: 'lista', valor: null, kanbanStatusKey: 40 },
+    { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Software', kanbanStatusKey: 30 },
+    { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 10 },
+    { nome: 'Motivo da Escalação:', tipo: 'lista', valor: null, kanbanStatusKey: 40 },
   ];
   it('com a lista carregada, vale o valor da etapa de maior posição e nada de chave de etapa chega ao staging', async () => {
     const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware', 'Software'), ...etapaFluxo(['10', 0], ['30', 2], ['40', 3])] });
@@ -278,11 +278,11 @@ describe('coleta com a ordem do fluxo (L9-c)', () => {
   });
   it('chave de etapa em texto na origem vira nula no MySQL: valores iguais seguem; diferentes ficam nulos com contagem', async () => {
     const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware', 'Software'), ...etapaFluxo(['10', 0])] });
-    const igual = comChaves([{ nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 'MARCADOR-069-A' }, { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 10 }]);
+    const igual = comChaves([{ nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 'MARCADOR-069-A' }, { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 10 }]);
     const { d, logs } = deps(banco, criarMysqlFalso([igual]));
     expect(ok(await coletarAcelerato(d, 'incremental')).contagens.etapa_fora_do_fluxo_motivo_escalacao).toBeUndefined();
     expect(banco.estado.stgChamado[0]!.payload.campos).toMatchObject({ motivo_escalacao: 'Hardware' });
-    const diferente = comChaves([{ nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Software', kanbanStatusKey: 'MARCADOR-069-A' }, { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 10 }]);
+    const diferente = comChaves([{ nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Software', kanbanStatusKey: 'MARCADOR-069-A' }, { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware', kanbanStatusKey: 10 }]);
     const b2 = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware', 'Software'), ...etapaFluxo(['10', 0])] });
     const m2 = deps(b2, criarMysqlFalso([diferente]));
     expect(ok(await coletarAcelerato(m2.d, 'incremental')).contagens.etapa_fora_do_fluxo_motivo_escalacao).toBe(1);
@@ -295,5 +295,60 @@ describe('coleta com a ordem do fluxo (L9-c)', () => {
     const outro = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...etapaFluxo(['10', 1])] });
     outro.estado.ctl.push(...banco.estado.ctl);
     await expect(coletarAcelerato(deps(outro, mysql).d, 'incremental')).rejects.toMatchObject({ codigo: 'parametros-mudaram', coluna: 'fluxo_sha256' });
+  });
+});
+
+describe('D1a: nomes exatos da fonte (B5-b), com dois-pontos, e texto livre fora da lista', () => {
+  const dom: DominiosEtapa = new Map([['motivo_escalacao', new Set(['Hardware'])]]);
+  it('os três nomes com dois-pontos na fonte são lidos: lista pelo domínio, preenchido só o booleano', () => {
+    const c = new Contadores();
+    const r = camposEtapa(
+      [lista('Motivo da Escalação:', 'Hardware')],
+      [preench('Previsão de retorno:', 1), preench('Se a prioridade foi ajustada, justifique:', 1)],
+      dom, new Map(), c,
+    );
+    expect(r).toMatchObject({ motivo_escalacao: 'Hardware', previsao_retorno_informada: true, justificativa_informada: true });
+    expect(c.entradas().filter(([k]) => k.startsWith('nome_variante_'))).toEqual([]);
+  });
+  it('"Qual suporte foi acionado?" (TEXT, texto livre) não está na lista e a linha dele falha fechado, sem o valor', () => {
+    expect([...NOMES_ETAPA_LISTA, ...NOMES_ETAPA_PREENCHIDO]).not.toContain('Qual suporte foi acionado?');
+    expect(CAMPOS_ETAPA_F3.map((c) => c.chave)).not.toContain('suporte_acionado');
+    expect(() => camposEtapa([lista('Qual suporte foi acionado?', MARCADORES[0]!)], [], dom, new Map(), new Contadores())).toThrowError(expect.objectContaining({ codigo: 'dados-invalidos', coluna: 'nome' }));
+    let msg = '';
+    try { camposEtapa([lista('Qual suporte foi acionado?', MARCADORES[0]!)], [], dom, new Map(), new Contadores()); } catch (e) { msg = String(e); }
+    expect(msg).not.toContain(MARCADORES[0]);
+  });
+  it('nomes sem os dois-pontos falham fechado (dados-invalidos, coluna nome), sem o valor', () => {
+    const casos: [string, () => unknown][] = [
+      ['Motivo da Escalação', () => camposEtapa([lista('Motivo da Escalação', MARCADORES[1]!)], [], dom, new Map(), new Contadores())],
+      ['Previsão de retorno', () => camposEtapa([], [preench('Previsão de retorno', 1)], dom, new Map(), new Contadores())],
+      ['Se a prioridade foi ajustada, justifique', () => camposEtapa([], [preench('Se a prioridade foi ajustada, justifique', 1)], dom, new Map(), new Contadores())],
+    ];
+    for (const [, f] of casos) {
+      expect(f).toThrowError(expect.objectContaining({ codigo: 'dados-invalidos', coluna: 'nome' }));
+      let msg = '';
+      try { f(); } catch (e) { msg = String(e); }
+      expect(msg).not.toContain(MARCADORES[1]);
+    }
+  });
+  it('as consultas Q6 e Q7 recebem só os nomes com dois-pontos, sem o campo de texto livre', async () => {
+    const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware')] });
+    const mysql = criarMysqlFalso([etapa([{ nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware' }])]);
+    const { d } = deps(banco, mysql);
+    ok(await coletarAcelerato(d, 'incremental'));
+    expect(banco.estado.stgChamado[0]!.payload.campos).toMatchObject({ motivo_escalacao: 'Hardware' });
+    expect(Object.keys(banco.estado.stgChamado[0]!.payload.campos as object)).not.toContain('suporte_acionado');
+  });
+  it('campo TEXT com marcador na origem: a coleta termina, o valor não chega ao staging nem aos logs (Q6 e Q7)', async () => {
+    const banco = criarBancoMemoria({ listas: [...LISTAS_BANCO, ...dominio('motivo_escalacao', 'Hardware')] });
+    const mysql = criarMysqlFalso([etapa([
+      { nome: 'Motivo da Escalação:', tipo: 'lista', valor: 'Hardware' },
+      { nome: 'Qual suporte foi acionado?', tipo: 'texto', valor: MARCADORES[2] },
+    ])]);
+    const { d, logs } = deps(banco, mysql);
+    ok(await coletarAcelerato(d, 'incremental'));
+    expect(banco.estado.stgChamado[0]!.payload.campos).toMatchObject({ motivo_escalacao: 'Hardware' });
+    expect(JSON.stringify([banco.estado, logs])).not.toContain(MARCADORES[2]);
+    expect(JSON.stringify([banco.estado, logs])).not.toContain('Qual suporte foi acionado?');
   });
 });

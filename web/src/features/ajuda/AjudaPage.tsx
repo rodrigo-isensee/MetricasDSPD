@@ -96,8 +96,9 @@ export default function AjudaPage() {
         <h2 className="text-lg font-bold">Como lemos os números</h2>
         <p>
           Percentis 50/85/95, janela móvel de {textoJanela(JANELA_PERCENTIS_PADRAO)}, mínimo de 20
-          itens, tempo em dias úteis e média nunca sozinha. Na Sustentação o tempo é em horas úteis
-          (1 dia útil = 8 horas úteis).
+          itens e média nunca sozinha. No fluxo de projeto o tempo é em dias úteis (1 dia útil = 8
+          h). Na Sustentação o tempo é em horas úteis, e P4 e P5 em dias úteis (1 dia útil = 8 h 48
+          min).
         </p>
       </section>
       <section id="resumo" tabIndex={-1} className="outline-none">

@@ -96,3 +96,31 @@ export async function lerCalendarioVigente(
   const f = await db.query<{ data: string }>(`SELECT data FROM ${E.core}.ref_feriado WHERE calendario_id = $1::smallint ORDER BY data`, [cal.calendario_id]);
   return { feriados: f.rows.map((x) => x.data), offsetMinutos: cal.offset_minutos };
 }
+
+export type TurnoDaReferencia = { inicioMin: number; fimMin: number };
+
+/**
+ * Turnos vigentes do calendário de um domínio e classe (pedido 099, D3b, Decisão 13): lista única para os dias úteis (segunda a sexta).
+ * `[]` = o calendário aplicado não tem turnos gravados (quem chama usa o padrão do domínio). Função separada de `lerCalendarioVigente` de
+ * propósito: a aba Apontamento (papel que não lê `ref_calendario_turno`) chama só aquela. Recusa (erro) se os dias 1 a 5 tiverem turnos
+ * diferentes ou se houver turno em sábado ou domingo: a biblioteca tem um só conjunto de turnos.
+ */
+export async function lerTurnosVigentes(
+  db: Consultavel, S: Esquemas | undefined, dominio: 'businessmap' | 'acelerato', classe: string,
+): Promise<TurnoDaReferencia[]> {
+  const E = S ?? esquemasDoAmbiente();
+  const r = await db.query<{ dia_semana: number; inicio_min: number; fim_min: number }>(
+    `SELECT t.dia_semana, t.inicio_min, t.fim_min FROM ${E.core}.ref_calendario_aplicacao a
+     JOIN ${E.core}.ref_calendario_turno t ON t.calendario_id = a.calendario_id AND t.vigente_ate IS NULL
+     WHERE a.dominio = $1 AND a.classe = $2 AND a.vigente_ate IS NULL ORDER BY t.dia_semana, t.inicio_min`, [dominio, classe]);
+  if (r.rows.length === 0) return [];
+  const porDia = new Map<number, string>();
+  for (const t of r.rows) {
+    const d = Number(t.dia_semana);
+    if (d < 1 || d > 5) throw new Error(`calendário ${dominio}/${classe}: turno em dia ${d} (só segunda a sexta é aceito)`);
+    porDia.set(d, `${porDia.get(d) ?? ''}${Number(t.inicio_min)}-${Number(t.fim_min)};`);
+  }
+  const assinaturas = new Set(porDia.values());
+  if (porDia.size !== 5 || assinaturas.size !== 1) throw new Error(`calendário ${dominio}/${classe}: os turnos de segunda a sexta não são iguais`);
+  return r.rows.filter((t) => Number(t.dia_semana) === 1).map((t) => ({ inicioMin: Number(t.inicio_min), fimMin: Number(t.fim_min) }));
+}
