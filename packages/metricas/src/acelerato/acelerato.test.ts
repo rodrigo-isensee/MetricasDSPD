@@ -119,21 +119,32 @@ describe('Acelerato', () => {
   })
 
   it('D3b (Decisão 13): o dia útil da Sustentação tem 528 min (08:00-12:00 e 13:00-17:48), o BusinessMap segue com 480, e os alvos em dias são dias x 8,8 h', () => {
-    expect(TURNOS_SUSTENTACAO).toEqual([{ inicioMin: 480, fimMin: 720 }, { inicioMin: 780, fimMin: 1068 }])
+    expect(TURNOS_SUSTENTACAO).toEqual([
+      { inicioMin: 480, fimMin: 720 },
+      { inicioMin: 780, fimMin: 1068 },
+    ])
     expect(CALENDARIO_SUSTENTACAO_PADRAO.horasPorDia).toBe(8.8)
     expect(CALENDARIO_PADRAO.horasPorDia).toBe(8)
-    const restauracao = (p: string) => ALVOS_PADRAO.find((a) => a.prioridade === p)!.restauracao_horas
+    const restauracao = (p: string) =>
+      ALVOS_PADRAO.find((a) => a.prioridade === p)!.restauracao_horas
     expect([restauracao('P3'), restauracao('P4'), restauracao('P5')]).toEqual([17.6, 44, 88])
     expect(ALVOS_PADRAO.find((a) => a.prioridade === 'P5')!.primeiro_atendimento_horas).toBe(8.8)
     // prazos escritos em horas no PROC não mudam
-    expect(ALVOS_PADRAO.map((a) => a.primeiro_atendimento_horas).slice(0, 4)).toEqual([0.25, 0.5, 2, 4])
+    expect(ALVOS_PADRAO.map((a) => a.primeiro_atendimento_horas).slice(0, 4)).toEqual([
+      0.25, 0.5, 2, 4,
+    ])
     expect(restauracao('P1')).toBe(4)
     expect(restauracao('P2')).toBe(8)
   })
 
   it('S1 informa as horas do dia útil do calendário usado, para a web converter horas em dias (8,8 na Sustentação, 8 no calendário padrão)', () => {
-    expect(calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_SUSTENTACAO_PADRAO), F).horasPorDiaUtil).toBe(8.8)
-    expect(calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO), F).horasPorDiaUtil).toBe(8)
+    expect(
+      calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_SUSTENTACAO_PADRAO), F)
+        .horasPorDiaUtil,
+    ).toBe(8.8)
+    expect(
+      calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO), F).horasPorDiaUtil,
+    ).toBe(8)
   })
 
   it('S1 escolhe a medida pela unidade do alvo da célula: P1 e P2 (primeiro atendimento) em tempo corrido, os demais em útil (Q-099-11)', () => {

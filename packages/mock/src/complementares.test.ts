@@ -53,4 +53,13 @@ describe('extensões mock das métricas complementares', () => {
     }
     expect(Object.values(ext.ac.registroProblema).some(Boolean)).toBe(true)
   })
+
+  it('AC: sem chamado posterior na categoria, o incidente concluído não gera reabertura (base reduzida)', () => {
+    const pequena = gerarBaseMock({ escala: 0.05 })
+    const reabertoDe = gerarExtensoesMock(pequena).ac.reabertoDe
+    const porId = new Map(pequena.ac.chamados.map((c) => [c.chamado_id, c]))
+    for (const [novo, orig] of Object.entries(reabertoDe)) {
+      expect(porId.get(novo)?.aberto_em).toBeGreaterThan(porId.get(orig)?.data_finalizado as number)
+    }
+  })
 })
