@@ -58,13 +58,48 @@ describe('coleta ac sem ambiente', () => {
   });
 });
 
+describe('carregarConfigColetaAcelerato no mesmo processo', () => {
+  const PG = `postgres://coletor:${SEGREDO}@db.exemplo:5432/dspd`;
+  const nomesDe = (env: NodeJS.ProcessEnv): readonly string[] => {
+    try {
+      carregarConfigColetaAcelerato(env);
+    } catch (e) {
+      expect(e).toBeInstanceOf(ErroConfiguracao);
+      expect((e as Error).message).not.toContain(SEGREDO);
+      return (e as ErroConfiguracao).nomes;
+    }
+    return expect.unreachable();
+  };
+
+  it('ambiente completo: devolve a configuração do worker e a do MySQL', () => {
+    const r = carregarConfigColetaAcelerato({ ...AC_VALIDAS, PG_COLETOR_URL: PG });
+    expect(r.worker.PG_COLETOR_URL).toBe(PG);
+    expect(r.config).toMatchObject({ host: 'host-acelerato.exemplo', porta: 3306, banco: 'banco', usuario: 'usuario-ac', senha: SEGREDO, maxExecMs: 120_000, margemHoras: 24 });
+  });
+
+  it('duas variáveis do MySQL inválidas juntas: nomeia as duas, uma a uma', () => {
+    expect(nomesDe({ ...AC_VALIDAS, PG_COLETOR_URL: PG, ACELERATO_MYSQL_PORT: `porta-${SEGREDO}`, ACELERATO_MYSQL_HOST: `host invalido ${SEGREDO}` }))
+      .toEqual(['ACELERATO_MYSQL_HOST', 'ACELERATO_MYSQL_PORT']);
+  });
+
+  it('NODE_TLS_REJECT_UNAUTHORIZED=0: a recusa nomeia a variável', () => {
+    expect(nomesDe({ ...AC_VALIDAS, PG_COLETOR_URL: PG, NODE_TLS_REJECT_UNAUTHORIZED: '0' })).toEqual(['NODE_TLS_REJECT_UNAUTHORIZED']);
+  });
+
+  it('erro que não é de configuração não é engolido (worker e MySQL)', () => {
+    const quebra = (nome: string): NodeJS.ProcessEnv => Object.defineProperty({ ...AC_VALIDAS, PG_COLETOR_URL: PG }, nome, { enumerable: true, get: () => { throw new TypeError('falha-inesperada'); } });
+    expect(() => carregarConfigColetaAcelerato(quebra('PG_COLETOR_URL'))).toThrow('falha-inesperada');
+    expect(() => carregarConfigColetaAcelerato(quebra('ACELERATO_MYSQL_HOST'))).toThrow('falha-inesperada');
+  });
+});
+
 describe('coleta do BusinessMap sem ambiente', () => {
   // A entrada lê o `.env` da raiz sem sobrescrever variável já definida; por isso o teste define as variáveis (vazias ou inválidas) em vez de
   // depender de ausência, e o resultado não varia com o `.env` da máquina.
   it('variáveis vazias ou inválidas: lista os nomes e nunca o valor', () => {
     const r = rodar('coleta-businessmap', {
       BUSINESSMAP_URL_BASE: `http://usuario:${SEGREDO}@bm.exemplo`, BUSINESSMAP_APIKEY: '', PG_COLETOR_URL: '',
-      PG_REF_URL: 'postgres://ref:x@db.exemplo:5432/dspd', DSPD_PWD_REF: '', 
+      PG_REF_URL: 'postgres://ref:x@db.exemplo:5432/dspd', DSPD_PWD_REF: '',
     });
     expect(r.status).toBe(1);
     expect(r.stderr).toBe('bm:coleta falhou: configuração: BUSINESSMAP_URL_BASE, BUSINESSMAP_APIKEY, PG_COLETOR_URL\n');
@@ -79,6 +114,14 @@ describe('diagnóstico do BusinessMap sem ambiente', () => {
     expect(r.status).toBe(2);
     expect(r.stderr).toBe('variáveis obrigatórias ausentes: BUSINESSMAP_URL_BASE, BUSINESSMAP_APIKEY\n');
     expect(r.stdout).toBe('');
+  });
+
+  it('as duas ausentes: lista as duas no plural', () => {
+    expect(() => lerConfig({})).toThrow(/^variáveis obrigatórias ausentes: BUSINESSMAP_URL_BASE, BUSINESSMAP_APIKEY$/);
+  });
+
+  it('valor só com espaços conta como ausente', () => {
+    expect(() => lerConfig({ BUSINESSMAP_URL_BASE: 'https://bm.exemplo', BUSINESSMAP_APIKEY: '   ' })).toThrow(/^variável obrigatória ausente: BUSINESSMAP_APIKEY$/);
   });
 
   it('uma ausente: nomeia só ela e não ecoa o valor da outra', () => {
