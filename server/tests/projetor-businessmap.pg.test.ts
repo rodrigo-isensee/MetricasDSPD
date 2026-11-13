@@ -347,4 +347,35 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'campo_customizado' AND codigo = ANY($1::text[])`, [['91201', '91202']]);
     }
   });
+
+  it('C2a: o deadline nativo preenche data_acordada em dim_card e dim_card_versao; segunda projeção sem mudança não cria versão; prazo mudado gera versão; prazo removido volta a nulo sem apagar versão', async () => {
+    const versoes = (id: string) => dono.query<{ data_acordada: string | null }>(`SELECT data_acordada::text AS data_acordada FROM ${E.bm}.dim_card_versao WHERE card_id = $1 ORDER BY vigente_de`, [id]).then((r) => r.rows.map((x) => x.data_acordada));
+    const prazo = async (id: string): Promise<string | null> => (await unico<{ d: string | null }>(`SELECT data_acordada::text AS d FROM ${E.bm}.dim_card WHERE card_id = $1`, [id])).d;
+    const base = novo({ deadline: '2026-10-30' });
+    const id = await staging(base);
+    await projetar();
+    expect(await prazo(id)).toBe('2026-10-30');
+    expect(await versoes(id)).toEqual(['2026-10-30']);
+
+    const r = await projetar();
+    expect(r.versoes).toBe(0);
+    expect(await versoes(id)).toEqual(['2026-10-30']);
+
+    await staging({ ...base, deadline: '2026-11-15' }, [], new Date(relogio.getTime() + 60_000));
+    await projetar();
+    expect(await prazo(id)).toBe('2026-11-15');
+    expect(await versoes(id)).toEqual(['2026-10-30', '2026-11-15']);
+
+    const { deadline: _removido, ...semPrazo } = base;
+    await staging(semPrazo, [], new Date(relogio.getTime() + 120_000));
+    await projetar();
+    expect(await prazo(id)).toBeNull();
+    expect(await versoes(id)).toEqual(['2026-10-30', '2026-11-15', null]);
+
+    const ruim = novo({ deadline: '2026-10-30T00:00:00Z' });
+    await staging(ruim);
+    const rr = await projetar();
+    expect(await prazo(String(ruim.card_id))).toBeNull();
+    expect(rr.notas.deadline_fora_da_forma).toBeGreaterThanOrEqual(1);
+  });
 });
