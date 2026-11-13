@@ -103,7 +103,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
 
   it('as origens do mapa decidem: as reais calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'O19', 'BLOQUEADOS', 'EI_FL1'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'O19', 'O25', 'BLOQUEADOS', 'EI_FL1'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.headers['x-estado-dado'], id).toBeUndefined();
@@ -170,9 +170,9 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(d.chamadas).toHaveLength(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S2, S3, S4, S8 e S10 leem só a base real do Acelerato; S1, S5, S6, S7, S9, S11, S12 e EI_SUST respondem sem dado real; nunca o seed', async () => {
+  it('sustentação (E2.115): S2, S3, S4, S8, S10 e S12 leem só a base real do Acelerato; S1, S5, S6, S7, S9, S11 e EI_SUST respondem sem dado real; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
-    for (const id of ['S2', 'S3', 'S4', 'S8', 'S10'] as MetricaId[]) {
+    for (const id of ['S2', 'S3', 'S4', 'S8', 'S10', 'S12'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -182,7 +182,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
-    for (const id of ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'S12', 'EI_SUST'] as MetricaId[]) {
+    for (const id of ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'EI_SUST'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -526,6 +526,28 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(r.notas).toEqual([NOTA_S2]);
     expect(r.prioridades.length).toBeGreaterThan(0);
     expect(SCHEMAS_RESULTADO.S2.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('D9: S12 real traz o volume, exceção de SLA null (nunca 0%) com a nota própria, e valida no contrato', async () => {
+    const { app } = await montar({ chamados: [chamado('1'), chamado('2')] });
+    const r = (await app.inject('/api/v1/metricas/S12')).json() as { notas: string[]; excecaoSla: unknown; campoDisponivel: boolean; meses: { total: number }[] };
+    expect(r.excecaoSla).toBeNull();
+    expect(r.notas).toEqual(['excecao-sla-s12-sem-fonte']);
+    expect(r.campoDisponivel).toBe(false);
+    expect(r.meses.some((m) => m.total > 0)).toBe(true);
+    expect(SCHEMAS_RESULTADO.S12.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('D9: modo mock mantém a taxa de exceção de SLA do S12 e não traz nota; a função pura não repete a nota nem toca outra métrica', async () => {
+    const m = (await (await mock()).inject('/api/v1/metricas/S12')).json() as { notas?: string[]; excecaoSla: { status: string } | null };
+    expect(m.notas).toBeUndefined();
+    expect(m.excecaoSla).not.toBeNull();
+    const { comNotaS12SemFonte } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const nula = { meses: [], excecaoSla: null, notas: ['excecao-sla-s12-sem-fonte'] };
+    expect(comNotaS12SemFonte('S12', nula)).toEqual(nula);
+    const viva = { excecaoSla: { status: 'ok' } };
+    expect(comNotaS12SemFonte('S12', viva)).toBe(viva);
+    expect(comNotaS12SemFonte('S3', { excecaoSla: null })).toEqual({ excecaoSla: null });
   }, 60_000);
 
   it('L3: modo mock mantém o número do S3 e não traz nota; S4 real não ganha nota', async () => {

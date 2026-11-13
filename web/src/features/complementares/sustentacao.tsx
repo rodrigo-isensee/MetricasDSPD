@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
+import { TEXTO_NOTA_S12, type FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { Barras, Histograma } from '@/components/charts'
 import {
   AmostraInsuficiente,
@@ -296,8 +296,15 @@ const totaisPorSistema = (d: R12): [string, number][] => {
   return [...totais.entries()].sort((a, b) => b[1] - a[1])
 }
 
-const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
-  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${textoTaxa(d.excecaoSla)}.`
+/** O contrato passa a aceitar `excecaoSla` nula (sem fonte); o tipo local já aceita antes da mudança. */
+type R12Leitura = Omit<R12, 'excecaoSla'> & { excecaoSla: R12['excecaoSla'] | null }
+
+/** Exceção de SLA sem fonte mostra "campo sem fonte" (padrão do painel), nunca 0%. */
+export const leituraS12 = (d: R12Leitura, [sistema, n]: [string, number]) =>
+  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${d.excecaoSla ? textoTaxa(d.excecaoSla) : 'campo sem fonte'}.`
+
+const TEXTO_S12_REINCIDENCIA_SEM_FONTE =
+  'Reincidência: campo sem fonte. O campo de reincidência ainda não vem da coleta, por isso a proporção não é publicada. Isto não significa zero. O volume por sistema acima é dado real.'
 
 /** S12: volume por sistema, reincidência e exceção de SLA por registro posterior. */
 export function CartaoS12({ filtros }: P) {
@@ -351,7 +358,14 @@ export function CartaoS12({ filtros }: P) {
               )}
             </>
           ) : (
-            <CampoSemFonte codigo="S12" />
+            <CampoSemFonte codigo="S12" texto={TEXTO_S12_REINCIDENCIA_SEM_FONTE} />
+          )}
+          {r.excecaoSla === null && (
+            <p className="text-sm text-texto-2" data-testid="nota-S12-excecao-sla">
+              {(r.notas?.length ? r.notas : (['excecao-sla-s12-sem-fonte'] as const))
+                .map((id) => TEXTO_NOTA_S12[id])
+                .join(' ')}
+            </p>
           )}
           <Leia>
             Por sistema, nunca por pessoa. Reincidente é o chamado com ticket anterior informado.
