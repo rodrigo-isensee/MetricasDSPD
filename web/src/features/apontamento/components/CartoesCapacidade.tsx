@@ -113,7 +113,7 @@ function CapacidadePessoa({ r }: { r: RespostaApontamento }) {
           {LINHA_NOMES_OCULTOS}
         </p>
       )}
-      {capacidade.porPessoa.some((l) => l.pessoaRef === PESSOA_OUTRA_AREA) && (
+      {pessoas.length < capacidade.porPessoa.length && (
         <p className="text-xs text-texto-2" data-testid="nota-outra-area-capacidade">
           {NOTA_OUTRA_AREA_FORA_CAPACIDADE}
         </p>

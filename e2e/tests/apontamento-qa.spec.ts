@@ -189,9 +189,8 @@ test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
     const chamadas = await semear(page)
     await abrir(page, `${ABA}?pessoa=Ana%20Exemplo&tipo=%3Cscript%3E&nivelMatriz=xyz`)
     await expect(page.getByTestId('filtros-invalidos')).toBeVisible()
-    await expect(page.getByTestId('filtros-invalidos')).toContainText(
-      /em: Tipo, pessoa, Agrupar por\./,
-    )
+    await expect(page.getByTestId('filtros-invalidos')).toContainText(/em: Tipo, Agrupar por\./)
+    await expect(page.getByTestId('aviso-pessoa-retirada')).toBeVisible()
     await expect(aba(page)).not.toContainText('Ana Exemplo')
     await expect(aba(page)).not.toContainText('<script>')
     for (const c of chamadas) {
@@ -272,7 +271,9 @@ test.describe('Outra área (decisão do dono de 2026-11-02)', () => {
       cartao(page, 'AP-CAPACIDADE-PESSOA').getByRole('rowheader', { name: /Outra área/ }),
     ).toHaveCount(0)
     // a nota mora junto do cartão de capacidade (097, Q-3), não na barra de filtros, que não tem mais Pessoa
-    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).toContainText(/Outra área: pessoas que não/)
+    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).toContainText(
+      /Outra área soma várias pessoas e por isso não entra na capacidade por pessoa/,
+    )
     await expect(page.getByTestId('barra-filtros-apontamento')).not.toContainText('Outra área')
     await expect(page.getByRole('button', { name: /^Pessoa/ })).toHaveCount(0)
   })
