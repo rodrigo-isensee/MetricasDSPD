@@ -31,4 +31,4 @@ Revalidação incremental do parecer anterior (aprovado em 68d5e1ee). Delta lido
 ## Achados
 - A1 (recomendado) web/src/features/operacional/resumo/modelo.ts:308 · segue do parecer anterior: a frase da SLA na sustentação fica sem ponto final; alinhar o texto do ponto de SLA no Lote 4b.
 - A2 (recomendado) web/src/features/operacional/resumo/SerieMensal.tsx:59 · segue do parecer anterior: a sustentação deve passar o texto próprio de `vazioJanela` no Lote 4b.
-- A3 (recomendado) PR 261, corpo, seção Teto · falta a linha "teto: 150 em web + 2 em e2e (DECISÃO TÉCNICA de 09:35)"; é pré-condição do merge (E2.4), não da entrega do autor (M14).
+- A3 (recomendado) PR#261:1 · corpo do PR 261, seção Teto: falta a linha "teto: 150 em web + 2 em e2e (DECISÃO TÉCNICA de 09:35)"; é pré-condição do merge (E2.4), não da entrega do autor (M14).
