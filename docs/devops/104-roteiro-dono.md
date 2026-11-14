@@ -35,14 +35,14 @@ O Compose da VM constrói as imagens a partir do código que está em `/opt/metr
    sudo git fetch origin; echo "rc=$?"
    sudo git checkout main; echo "rc=$?"
    sudo git pull --ff-only origin main; echo "rc=$?"
-   git log -1 --oneline
+   sudo git log -1 --oneline
    ```
    Conferir: os três com rc=0 e o último commit mostrado é o do merge da release 104 (o Jarvis informa o texto; compare com o topo da `main` no GitHub). Se o `pull` recusar (`not possible to fast-forward`), pare e avise: não force.
 2. Refazer as imagens (leva alguns minutos):
    ```
    sudo docker compose --profile coleta build; echo "rc=$?"
    ```
-   Conferir: rc=0. Quais imagens mudam e por quê: **servidor** (uma imagem só, usada por `migrate`, `api`, `worker` e `coleta`): traz o código novo, as migrações 0036 e 0037 e os comandos dos passos 2 a 6. **web**: o painel é construído dentro da imagem, então as telas novas só aparecem depois de refazê-la. O banco (`postgres`) não muda. As imagens novas só passam a valer nos contêineres quando você roda o passo 1 (migração) e a seção 2 (recriar `api` e `web`).
+   Conferir: rc=0. Quais imagens mudam e por quê: **servidor** (o mesmo `server/Dockerfile` para `migrate`, `api`, `worker` e `coleta`): traz o código novo, as migrações 0036 e 0037 e os comandos dos passos 2 a 6. **web**: o painel é construído dentro da imagem, então as telas novas só aparecem depois de refazê-la. O banco (`postgres`) não muda. As imagens novas só passam a valer nos contêineres quando você roda o passo 1 (migração) e a seção 2 (recriar `api` e `web`).
 
 ## 1. Os 7 passos da base real
 
