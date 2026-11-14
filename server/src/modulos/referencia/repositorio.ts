@@ -1,6 +1,7 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, rotuloDeSetorSeguro } from './setor.js';
+import { textoSeguro } from './dominio-acelerato.js';
 import { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
 
 export type OpcaoLinha = { id: string; nome: string };
@@ -38,6 +39,22 @@ export async function lerSetoresBM(db: Consultavel, S: Esquemas = esquemasDoAmbi
     `SELECT codigo, rotulo FROM ${S.bm}.ref_dominio
      WHERE campo = $1 AND vigente_ate IS NULL ORDER BY ordem, codigo`, [CAMPO_SETOR_QUADRO]);
   return r.rows.filter((x) => CODIGO_QUADRO.test(x.codigo) && x.rotulo.trim().length > 0 && rotuloDeSetorSeguro(x.rotulo)).map((x) => ({ id: x.codigo, nome: x.rotulo }));
+}
+
+const ROTULO_RECORTE = textoSeguro(120);
+
+/**
+ * Recorte vigente da Sustentação (K-215): rótulos de `organizacao_recorte`, `tipo_recorte` e `equipe` do `ref_dominio` do Acelerato, em ordem (ordem, codigo).
+ * Lê só `campo` e `rotulo` (chave numérica e pessoa nunca saem). Rótulo que não passa em `textoSeguro` (controle, formatação invisível, arroba) é ignorado.
+ * Qualquer lista vazia: `null` (nunca lista vazia no contrato).
+ */
+export async function lerRecorteAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<{ organizacoes: string[]; tipos: string[]; equipes: string[] } | null> {
+  const r = await db.query<{ campo: string; rotulo: string }>(
+    `SELECT campo, rotulo FROM ${S.ac}.ref_dominio
+     WHERE campo = ANY($1::text[]) AND vigente_ate IS NULL ORDER BY campo, ordem, codigo`, [['organizacao_recorte', 'tipo_recorte', 'equipe']]);
+  const lista = (campo: string): string[] => r.rows.filter((x) => x.campo === campo && ROTULO_RECORTE.safeParse(x.rotulo).success).map((x) => x.rotulo);
+  const recorte = { organizacoes: lista('organizacao_recorte'), tipos: lista('tipo_recorte'), equipes: lista('equipe') };
+  return recorte.organizacoes.length > 0 && recorte.tipos.length > 0 && recorte.equipes.length > 0 ? recorte : null;
 }
 
 /** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */

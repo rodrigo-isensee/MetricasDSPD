@@ -5,7 +5,7 @@ import { isoLocal, slug } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { marcaDagua, ultimaColetaOk } from '../operacao/index.js';
-import { lerEquipesAC, lerEquipesBM, lerPrioridadesAC, lerTiposBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerSetoresBM, lerVersaoCriterioVigente } from './repositorio.js';
+import { lerEquipesAC, lerEquipesBM, lerPrioridadesAC, lerTiposBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerSetoresBM, lerRecorteAC, lerVersaoCriterioVigente } from './repositorio.js';
 import type { OpcoesFiltroDto, ReferenciaDto } from './schemas.js';
 
 /** Data civil de hoje em America/Sao_Paulo (o relógio é sempre parâmetro). */
@@ -34,11 +34,14 @@ export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Dat
   }
   const inicio = await lerInicioAC(db, S);
   const prioridadesPresentes = new Set(await lerPrioridadesAC(db, S));
+  const recorte = await lerRecorteAC(db, S);
   return {
     dominio,
     // L7a do 097 (E4): equipes do dado real (corte de lerChamados); id = slug do nome, sem repetir id.
     equipes: equipesPorSlug(await lerEquipesAC(db, S)),
     prioridades: PRIORIDADES.filter((p) => prioridadesPresentes.has(p)).map((p) => ({ id: p.toLowerCase(), nome: p })),
+    // K-215: listas vigentes do recorte (ref_dominio); omitido se alguma estiver vazia.
+    ...(recorte === null ? {} : { recorte }),
     historico: { inicio: inicio ?? fim, fim },
   };
 }
