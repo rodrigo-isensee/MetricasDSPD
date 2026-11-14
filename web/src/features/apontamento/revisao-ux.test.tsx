@@ -264,3 +264,21 @@ describe('A-13: datas no formato do painel', () => {
     )
   })
 })
+
+describe('K-320 (A3): linha de nomes ocultos onde a tela lista Pessoa n', () => {
+  const LINHA = "Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'..."
+  const LUGARES = ['AP-MATRIZ', 'AP-QUALIDADE-PESSOA', 'AP-CAPACIDADE-PESSOA', 'AP-DIARIO'] as const
+
+  it.each(LUGARES)('%s mostra a linha uma vez quando os nomes estão ocultos', async (codigo) => {
+    renderizar(URL_ABA)
+    const c = await cartao(codigo)
+    expect(within(c).getAllByTestId('linha-nomes-ocultos')).toHaveLength(1)
+    expect(within(c).getByTestId('linha-nomes-ocultos')).toHaveTextContent(LINHA)
+  })
+
+  it.each(LUGARES)('%s não mostra a linha com nomes reais', async (codigo) => {
+    renderizar(URL_ABA, () => respostaComNomesReais())
+    const c = await cartao(codigo)
+    expect(within(c).queryByTestId('linha-nomes-ocultos')).toBeNull()
+  })
+})

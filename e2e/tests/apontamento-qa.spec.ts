@@ -792,7 +792,7 @@ test.describe('regras invioláveis na tela', () => {
     await semear(page)
     await abrir(page)
     await expect(page.getByTestId('aviso-nome-real')).toHaveCount(0)
-    await expect(page.getByTestId('linha-nomes-ocultos')).toBeVisible()
+    await expect(page.getByTestId('linha-nomes-ocultos').first()).toBeVisible()
     await expect(aba(page)).toContainText('Pessoa 1')
     await expect(page.getByTestId('legenda-finalidade')).toContainText(
       'Não medem esforço de entrega',
