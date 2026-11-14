@@ -249,21 +249,17 @@ describe('T11 Sazonalidade da chegada', () => {
 
 /** Fonte com tipos escolhidos nas opções do BusinessMap (dado real), para provar de onde vêm as abas do T11. */
 class FonteTipos extends FonteEspia {
-  constructor(
-    dto: unknown,
-    private readonly tipos: { id: string; nome: string }[] | 'nunca',
-  ) {
+  private readonly tipos: { id: string; nome: string }[] | 'nunca'
+  constructor(dto: unknown, tipos: { id: string; nome: string }[] | 'nunca') {
     super({ T11: dto })
+    this.tipos = tipos
   }
   override async opcoesFiltro<D extends Dominio>(
     dominio: D,
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.tipos === 'nunca') return new Promise(() => {})
     const real = await super.opcoesFiltro(dominio)
-    return (real.dominio === 'businessmap' ? { ...real, tipos: this.tipos } : real) as Extract<
-      OpcoesFiltro,
-      { dominio: D }
-    >
+    return real.dominio === 'businessmap' ? { ...real, tipos: this.tipos } : real
   }
 }
 

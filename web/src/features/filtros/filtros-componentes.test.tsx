@@ -657,8 +657,10 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
 
 /** Fonte cujas opções de Tipo, Sistema e Prioridade vêm vazias (recorte sem dado) ou nunca chegam (carregando). */
 class FonteOpcoes extends MockFonteMetricas {
-  constructor(private readonly modo: 'vazias' | 'carregando') {
+  private readonly modo: 'vazias' | 'carregando'
+  constructor(modo: 'vazias' | 'carregando') {
     super({ latenciaMs: 0 })
+    this.modo = modo
   }
   override async opcoesFiltro<D extends Dominio>(
     dominio: D,
