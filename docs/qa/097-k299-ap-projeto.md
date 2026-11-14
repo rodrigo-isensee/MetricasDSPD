@@ -54,4 +54,3 @@ Nenhum sobrevivente.
 Nenhum aberto.
 
 ## Achados
-Nenhum.
