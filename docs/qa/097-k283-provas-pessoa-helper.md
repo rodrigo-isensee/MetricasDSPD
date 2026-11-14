@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: test/k283-provas-pessoa-helper
-commit: df78e1a65fe2646b5b7653b208b608679454743f
+commit: affd76f5a660a1c538c2f4f4b8f74030a0e0fb9f
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-12
+data: 2026-11-14
 ---
 
 # QA: pedido 097, K-283 (demais provas de pessoa passam ao helper de COLUNAS_PESSOA)
@@ -37,4 +37,12 @@ Mesma tabela, mesmo papel (`api`), mesmo 42501 em todas; nenhuma ficou mais frou
 ## Observação (não bloqueia)
 Uma coluna nova em `COLUNAS_PESSOA` para essas tabelas passa a ser provada sem editar o teste, e coluna renomeada derruba a prova com mensagem clara (era 42703 mudo). Risco: a prova depende do esquema migrado no CI; se o job `banco` falhar por isso, a causa é o esquema, não o teste.
 
+## Revalidação (14/11, delta sobre a junção da develop, E4.58)
+`forge-check parecer delta`: no domínio do QA entra um só arquivo, `server/tests/apontamento.pg.test.ts` (2 linhas: o `down` passa de `quantas: 4` para `5`). A causa é a migração `0036_ac_alvo_prioridade_unidade` vinda da develop; os cinco downs (0036, 0035, 0034, 0033, 0032) levam ao estado da 0031, como o comentário diz. Nenhum `.pg` de provas de pessoa mudou; o helper `provarSemPessoa` está igual ao aprovado.
+
+**Job `banco`:** NÃO confirmado. No PR 391 (head 2ec4af26) o run 43550919563 estava na fila (`banco`, `testes`, `build`, `e2e-parte` pendentes; `filtro`, `openapi`, `seguranca`, `imagem` passaram). Sem o `banco` verde com os quatro `.pg` tocados, a prova de banco fica pendente: o tech-lead confere o check-run antes de mesclar.
+
+**Mutante à mão** (lista de colunas vazia em `provarSemPessoa`: `const colunas: string[] = [];`). Os testes do repositório que usam o helper são todos `.pg` (pulados sem banco) e não há teste do helper em si. Com um teste descartável (pools falsos, apagado depois), o mutante cai (`promise resolved "undefined" instead of rejecting`), mas esse teste não está na branch. Pela leitura, o mutante passaria nos `.pg` do CI: o loop vazio não afirma nada, e a guarda `colunas.length === 0` fica em `colunasDePessoa`, não em `provarSemPessoa`. Restaurado por `git show HEAD:server/tests/pg/colunas-pessoa.ts`; árvore limpa.
+
 ## Achados
+- A1 (recomendado) server/tests/pg/colunas-pessoa.ts:22 · `provarSemPessoa` não afirma que percorreu ao menos uma coluna nem tem teste próprio sem banco; lista vazia ali passaria verde. Guarda de tamanho após o filtro ou teste unitário com pool falso.
