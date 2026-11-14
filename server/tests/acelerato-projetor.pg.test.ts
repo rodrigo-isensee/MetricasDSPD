@@ -1,3 +1,5 @@
+import { acelerato } from '@metricas-dspd/metricas';
+import { CALENDARIO_PADRAO, horasUteisEntre } from '@metricas-dspd/metricas/core';
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { coletarAcelerato, projetarAcelerato } from '../src/modulos/acelerato/index.js';
@@ -76,5 +78,28 @@ d('projetor do Acelerato (pg)', () => {
     await expect(insere('nao')).resolves.toBeDefined();
     await expect(insere('sem_resposta')).resolves.toBeDefined();
     expect(DOMINIO_FIXTURE.categoria).toBeTruthy();
+  });
+  it('K-308 (ADR 0027, item 7.3): sem a versão 099:D-7-528 a projeção da coleta monta em 8 h; com ela, em 8 h 48 (o coletor lê a referência)', async () => {
+    const estatisticas = JSON.stringify({ workflow: { etapas: [{ etapaKey: 100, descricao: 'Aguardando atribuicao', descricaoWorkflow: 'Fluxo Ficticio', tempoSla: 16 * 3600, tempoSlaHoras: 16, quantidadeDeVezes: 1 }] } });
+    const nova = (k: number) => linha({ ticket_key: k, data_pronto: '2026-09-16 15:00:00', estatisticas });
+    const intervaloDe = async (id: string) => {
+      const r = (await dono.query<{ entrada: Date; saida: Date }>(`SELECT entrada, saida FROM ${E.ac}.fato_etapa_chamado WHERE chamado_id = $1`, [id])).rows[0]!;
+      return { e: r.entrada.getTime(), s: r.saida.getTime() };
+    };
+    relogio = new Date('2026-10-30T14:00:00Z');
+    await coletar([...tabela, nova(84)]);
+    await projetarAcelerato(coletor, E, agora);
+    const em8 = await intervaloDe('84');
+    expect(horasUteisEntre(em8.e, em8.s, CALENDARIO_PADRAO)).toBeCloseTo(16, 6);
+
+    await dono.query(
+      `INSERT INTO ${E.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+       VALUES ('2026-10-30', 'acelerato', 'teste', 'teste', '099:D-7-528', now())`);
+    relogio = new Date('2026-10-30T15:00:00Z');
+    await coletar([...tabela, nova(84), nova(85)]);
+    await projetarAcelerato(coletor, E, agora);
+    const em848 = await intervaloDe('85');
+    expect(horasUteisEntre(em848.e, em848.s, acelerato.CALENDARIO_SUSTENTACAO_PADRAO)).toBeCloseTo(16, 6);
+    expect(em848.e).not.toBe(em8.e);
   });
 });
