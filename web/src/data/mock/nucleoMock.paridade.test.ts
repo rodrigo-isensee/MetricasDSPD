@@ -166,10 +166,11 @@ describe.each(SEMENTES)('paridade do núcleo, semente %s', (semente) => {
 })
 
 describe('determinismo da base', () => {
-  // Hashes regravados (099 D3b): base de de6a8953 para 52378641 e Acelerato de 20541e9d para
-  // 930570e9, pelo dia útil de 528 min da Sustentação (Decisão 13) que o mock lê. O hash das
-  // extensões segue o de antes. Regravados de novo no K-314 (099): exibir_primeiro_atendimento e exibir_restauracao em config.alvos
-  // (base de dd6787b1 para 52378641, Acelerato de b047a163 para 930570e9).
+  // Hashes regravados (099 D3b): base de de6a8953 para dd6787b1 e Acelerato de 20541e9d para
+  // b047a163, pelo dia útil de 528 min da Sustentação (Decisão 13) que o mock lê. O hash das
+  // extensões segue o de antes.
+  // Regravados de novo (099 K-314 B1): exibir_primeiro_atendimento e exibir_restauracao em
+  // config.alvos (base de dd6787b1 para 52378641, Acelerato de b047a163 para 930570e9).
   it('os hashes da base, do Acelerato e das extensões seguem os de antes', () => {
     const base = mock.gerarBaseMock()
     expect(mock.hashJson(base)).toBe('52378641')

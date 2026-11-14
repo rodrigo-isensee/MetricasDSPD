@@ -78,8 +78,9 @@ export const esquemaAlvos = z.object({
       try {
         unidadeDeExibicao(p.texto_proc, p.horas, d.horas_por_dia_util, p.unidade);
       } catch (e) {
-        // só `ErroAlvos` sai da função pura; a mensagem fixa já diz a regra violada
-        ctx.addIssue({ code: 'custom', path: ['alvos', i, campo], message: (e as ErroAlvos).message });
+        // só `ErroAlvos` vira issue do arquivo; erro inesperado sobe visível
+        if (!(e instanceof ErroAlvos)) throw e;
+        ctx.addIssue({ code: 'custom', path: ['alvos', i, campo], message: e.message });
       }
     }
   }
