@@ -4,10 +4,10 @@ Pedido 102-forge-0460, E1.37 e E3. Decisão 5a do dono (2026-11-14 08:47): o arq
 
 ## Resumo
 - Mantém tudo o que o atual faz: bloqueio de envio para a `main` (mesma mensagem), lint e typecheck dos alterados (K-317 e K-322, com a regra da árvore suja) e o desvio spec e código do Siegard.
-- Acrescenta, do modelo do Forge 0.46.0 (`templates/projeto/.githooks/pre-push`): recusa de envio que não é fast-forward (branch e tag movida), recusa quando o commit remoto não existe aqui (pede `git fetch`), só `refs/heads/` e `refs/tags/` (barra `refs/notes/`, `refs/remotes/` e o envio espelho), no máximo uma branch com código e uma remoção por envio (PREPUSH-REFS e PREPUSH-DELETE).
-- Divergência declarada do modelo: o modelo do Forge não tem lista de nomes de branch. A lista pedida pelo brief (branch com código só em `feature/*`, `fix/*`, `docs/*`, `chore/*`, `develop` e `homolog`, mais as correções A1 e A2 do review; tags liberadas; apagar não passa pela lista) foi acrescentada num bloco à parte, "PREPUSH-REFS (nomes)", que o dono pode apagar sem afetar o resto. A lista aceita também `hotfix/*`, `forge/upgrade-*` e `refactor/*` (previstos no fluxo do projeto, no `fluxo-homologacao.md` §6 e no R-FLUXO). Um envio de `melhoria/*` fica recusado por esse bloco. `test/*` e `integracao/*` estão em uso no remoto e ficam aceitos num bloco à parte, comentado, que depende da resposta do dono (ver "Pergunta ao dono" na seção 3).
+- Acrescenta, do modelo do Forge 0.46.0 (`templates/projeto/.githooks/pre-push`): recusa de envio que não é fast-forward (branch) e de toda tag existente movida (A3), recusa a remoção de `develop` e `homolog` (A2), recusa tag com nome de branch (A4), recusa quando o commit remoto não existe aqui (pede `git fetch`), só `refs/heads/` e `refs/tags/` (barra `refs/notes/`, `refs/remotes/` e o envio espelho), no máximo uma branch com código e uma remoção por envio (PREPUSH-REFS e PREPUSH-DELETE).
+- Divergência declarada do modelo: o modelo do Forge não tem lista de nomes de branch. A lista pedida pelo brief (branch com código só em `feature/*`, `fix/*`, `docs/*`, `chore/*`, `develop` e `homolog`, mais as correções A1 e A2 do review; tags novas liberadas, menos as que têm nome de branch; apagar não passa pela lista) foi acrescentada num bloco à parte, "PREPUSH-REFS (nomes)", que o dono pode apagar sem afetar o resto. A lista aceita também `hotfix/*`, `forge/upgrade-*` e `refactor/*` (previstos no fluxo do projeto, no `fluxo-homologacao.md` §6 e no R-FLUXO). Um envio de `melhoria/*` fica recusado por esse bloco. `test/*` e `integracao/*` estão em uso no remoto e ficam aceitos numa linha à parte, ativa (aceita hoje) e marcada por comentário como dependente da resposta do dono (ver "Pergunta ao dono" na seção 3).
 - O modelo do Forge traz também a fila e a trava de `pre-push.local` (flock, timeout, prioridade, `so_docs`). Não foram trazidas: este projeto não usa `pre-push.local`, o lint e o typecheck rápidos já rodam direto, e o ganho não paga a complexidade. Se o dono quiser a trava completa, é outra proposta.
-- Validado numa cópia descartável (remoto bare, envios reais pelo `git push` com `core.hooksPath` apontando para a cópia): casos do roteiro verdes (seção 2), `shellcheck` do hook sem avisos.
+- Validado numa cópia descartável (remoto bare, envios reais pelo `git push` com `core.hooksPath` apontando para a cópia): casos do roteiro verdes (seção 2), `shellcheck` do hook sem avisos. O hook usa `git --no-replace-objects` nas checagens de ancestralidade (A5), e o comando de aplicar nunca deixa o hook vazio (A1, caso 30).
 
 ## 1. Arquivo proposto (`.githooks/pre-push` inteiro)
 
@@ -24,15 +24,18 @@ while read -r _ local_sha remote_ref remote_sha; do
   case "$local_sha" in *[!0]*)
     case "$remote_sha" in *[!0]*)
       ref_nome="${remote_ref#refs/heads/}"; ref_nome="${ref_nome#refs/tags/}"
-      if ! git cat-file -e "$remote_sha" 2>/dev/null; then
+      # Tag existente nunca é movida, nem para commit descendente: ela identifica uma versão (apagar não passa por aqui).
+      case "$remote_ref" in
+        refs/tags/*) echo "pre-push: R-VERIFY: mover a tag ${ref_nome} para outro commit bloqueado; uma tag existente não se move, crie outra (reescrever histórico é decisão do usuário)." >&2
+                     exit 1 ;;
+      esac
+      # --no-replace-objects: refs/replace (git replace --graft) não pode fazer um force passar por fast-forward.
+      if ! git --no-replace-objects cat-file -e "$remote_sha" 2>/dev/null; then
         echo "pre-push: o commit atual de ${ref_nome} no remoto não existe aqui, então não dá para saber se o envio é fast-forward; rode 'git fetch' e tente de novo." >&2
         exit 1
       fi
-      if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
-        case "$remote_ref" in
-          refs/tags/*) echo "pre-push: R-VERIFY: mover a tag ${ref_nome} para outro commit (histórico reescrito) bloqueado; reescrever histórico é decisão do usuário." >&2 ;;
-          *) echo "pre-push: R-VERIFY: envio não fast-forward para ${ref_nome} (histórico reescrito) bloqueado; traga a remota (git pull --rebase ou git merge) e envie normalmente; reescrever histórico é decisão do usuário." >&2 ;;
-        esac
+      if ! git --no-replace-objects merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+        echo "pre-push: R-VERIFY: envio não fast-forward para ${ref_nome} (histórico reescrito) bloqueado; traga a remota (git pull --rebase ou git merge) e envie normalmente; reescrever histórico é decisão do usuário." >&2
         exit 1
       fi ;;
     esac ;;
@@ -41,6 +44,15 @@ while read -r _ local_sha remote_ref remote_sha; do
     echo "pre-push: envio para a main bloqueado. Abra um pull request; o usuário valida e faz o merge." >&2
     exit 1
   fi
+  # PREPUSH-REFS: develop e homolog não se apagam (apagar e recriar reescreveria a história sem passar pela recusa
+  # de não fast-forward). Apagar e recriar uma branch de trabalho fica fora do alcance deste hook (ver "Limites").
+  case "$local_sha" in *[!0]*) ;; *)
+    case "$remote_ref" in
+      refs/heads/develop|refs/heads/homolog)
+        echo "pre-push: R-FLUXO: apagar ${remote_ref#refs/heads/} bloqueado; as branches de integração não se removem pelo envio local." >&2
+        exit 1 ;;
+    esac ;;
+  esac
   # PREPUSH-REFS: a política vale para as refs reais do envio, qualquer que seja a sintaxe (--branches, mirror,
   # refspec com curinga, --prune): só branch (refs/heads/) e tag (refs/tags/).
   case "$remote_ref" in
@@ -51,7 +63,13 @@ while read -r _ local_sha remote_ref remote_sha; do
   # PREPUSH-REFS (nomes): branch com código só em feature/*, fix/*, docs/*, chore/*, hotfix/*, refactor/*, forge/upgrade-*,
   # develop e homolog; nunca main.
   # Apagar ref e tag não passam por esta lista.
+  # Tag com nome de branch (refs/tags/develop, refs/tags/feature/x...) faria o nome curto resolver para a tag num clone novo.
   case "$local_sha" in *[!0]*)
+    case "$remote_ref" in
+      refs/tags/main|refs/tags/develop|refs/tags/homolog|refs/tags/HEAD|refs/tags/feature/*|refs/tags/fix/*|refs/tags/docs/*|refs/tags/chore/*|refs/tags/hotfix/*|refs/tags/refactor/*|refs/tags/forge/upgrade-*|refs/tags/test/*|refs/tags/integracao/*)
+        echo "pre-push: R-FLUXO: a tag '${remote_ref#refs/tags/}' tem nome de branch (main, develop, homolog, HEAD ou prefixo de branch); envio bloqueado." >&2
+        exit 1 ;;
+    esac
     case "$remote_ref" in
       refs/heads/feature/?*|refs/heads/fix/?*|refs/heads/docs/?*|refs/heads/chore/?*|refs/heads/hotfix/?*|refs/heads/refactor/?*|refs/heads/forge/upgrade-?*|refs/heads/develop|refs/heads/homolog|refs/tags/?*) ;;
       # PREPUSH-REFS (nomes, depende do dono): test/* e integracao/* estão em uso no remoto. Apague a linha abaixo
@@ -101,7 +119,7 @@ exit 0
 
 ## 2. Roteiro de teste
 
-A proposta perdida tinha 11 casos (os dois do K-317 já estão em `scripts/pre-push.test.sh`). Esta refeita tem 25, cobrindo as quatro frentes do hook: fast-forward, política de refs, nomes e o que o atual já fazia. O roteiro automático está no bloco 2.1; ele monta o repositório descartável, empurra de verdade para um remoto bare e confere o SHA remoto depois de cada recusa.
+A proposta perdida tinha 11 casos (os dois do K-317 já estão em `scripts/pre-push.test.sh`). Esta refeita tem 30, cobrindo as quatro frentes do hook: fast-forward, política de refs, nomes e o que o atual já fazia. O roteiro automático está no bloco 2.1; ele monta o repositório descartável, empurra de verdade para um remoto bare e confere o SHA remoto depois de cada recusa.
 
 | # | Caso | Comando (no repositório descartável) | Resultado esperado |
 |---|---|---|---|
@@ -130,8 +148,13 @@ A proposta perdida tinha 11 casos (os dois do K-317 já estão em `scripts/pre-p
 | 23 | Feature com merge da develop (S6) | feature enviada, develop avança no remoto, `git merge --no-edit origin/develop` na feature e `git push origin feature/f` | rc 0 |
 | 24 | Remoto avançou por outro clone (S7) | commit local e `git push` sem fetch | rc 1 (pede `git fetch`) |
 | 25 | Depois do `git pull --rebase` (S7) | `git pull --rebase` e `git push` | rc 0 |
+| 26 | Apagar `develop` e `homolog` (A2) | `git push origin --delete develop` e `--delete homolog` | rc 1, "apagar ... bloqueado"; as duas continuam no remoto |
+| 27 | Tag movida para commit descendente (A3) | `git tag -f` (leve) e `git tag -a -f` (anotada) para um descendente e `git push --force origin <tag>` | rc 1, "mover a tag"; as tags no SHA anterior |
+| 28 | Tag com nome de branch (A4) | `git push origin HEAD:refs/tags/<main, develop, homolog, HEAD, feature/t, test/t, forge/upgrade-9>` | rc 1, "tem nome de branch"; as tags não nascem |
+| 29 | `refs/replace` (A5) | `git replace --graft HEAD <commit remoto>` num commit reescrito e `git push --force origin feature/g` | rc 1, "não fast-forward"; remoto no SHA anterior |
+| 30 | Comando de aplicar sem o documento (S1, A1) | repositório com o hook atual e sem o documento; comando de aplicar (seção 3); `git push origin HEAD:refs/heads/main` | comando rc diferente de 0; hook byte a byte intacto; sem `.novo`; envio recusado e `main` não nasce. Com o documento presente, o hook vira o bloco revisado |
 
-Resultado na cópia descartável (saída do roteiro): `ok` nos casos 01 a 25, "TUDO OK". Não coberto: bloco do Siegard (depende de plugin instalado na máquina, trecho inalterado) e a trava do `pre-push.local` (não existe neste projeto).
+Resultado na cópia descartável (saída do roteiro): `ok` nos casos 01 a 30, "TUDO OK". Não coberto: bloco do Siegard (depende de plugin instalado na máquina, trecho inalterado) e a trava do `pre-push.local` (não existe neste projeto).
 
 ### 2.1 Roteiro automático
 
@@ -140,10 +163,12 @@ Para rodar: salvar o bloco como `prop.test.sh` fora do repositório e executar `
 ```bash prop.test.sh
 #!/bin/bash
 # Roteiro do pre-push proposto (K-309): repositório descartável com remoto bare, envios reais pelo git.
-# Uso: bash prop.test.sh CAMINHO_DO_PRE_PUSH RAIZ_DO_PROJETO
+# Uso: bash prop.test.sh CAMINHO_DO_PRE_PUSH RAIZ_DO_PROJETO [DOCUMENTO]
+# Com DOCUMENTO (este arquivo .md), roda também o caso 30 (comando de aplicar).
 set -uo pipefail
 HOOK="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 RAIZ="$2"
+DOC="${3:-}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/bin"
@@ -328,22 +353,119 @@ envia origin feature/f
 [ "$rc" -eq 0 ] && [ "$(topo refs/heads/feature/f)" = "$(git rev-parse HEAD)" ]
 verifica "25 depois do pull --rebase segue (S7)" $?
 
+# 26) A2: develop e homolog não se apagam
+envia origin --delete develop
+[ "$rc" -ne 0 ] && grep -q 'apagar develop bloqueado' <<<"$saida" && [ -n "$(topo refs/heads/develop)" ]
+verifica "26a apagar develop recusado" $?
+envia origin --delete homolog
+[ "$rc" -ne 0 ] && grep -q 'apagar homolog bloqueado' <<<"$saida" && [ -n "$(topo refs/heads/homolog)" ]
+verifica "26b apagar homolog recusado" $?
+
+# 27) A3: tag existente não se move, nem para descendente (leve e anotada)
+git switch -q -c feature/t "$BASE"
+git tag v0.0.2 "$BASE"
+git tag -a -m anotada v0.0.3 "$BASE"
+git push -q origin v0.0.2 v0.0.3 2>/dev/null
+echo t >>server/src/s.ts
+git commit -qam t1
+git tag -f v0.0.2 HEAD >/dev/null
+git tag -a -f -m anotada v0.0.3 HEAD >/dev/null
+envia --force origin v0.0.2
+[ "$rc" -ne 0 ] && grep -q 'mover a tag' <<<"$saida" && [ "$(topo refs/tags/v0.0.2)" = "$BASE" ]
+verifica "27a tag leve movida para descendente recusada" $?
+envia --force origin v0.0.3
+[ "$rc" -ne 0 ] && grep -q 'mover a tag' <<<"$saida" && [ "$(topo refs/tags/v0.0.3)" != "$(git rev-parse v0.0.3)" ]
+verifica "27b tag anotada movida para descendente recusada" $?
+
+# 28) A4: tag com nome de branch
+for nome in main develop homolog HEAD feature/t test/t forge/upgrade-9; do
+  envia origin "HEAD:refs/tags/$nome"
+  [ "$rc" -ne 0 ] && grep -q 'tem nome de branch' <<<"$saida" && [ -z "$(topo "refs/tags/$nome")" ]
+  verifica "28 tag $nome recusada" $?
+done
+
+# 29) A5: refs/replace não faz force virar fast-forward
+git switch -q -c feature/g "$BASE"
+echo g1 >>server/src/s.ts
+git commit -qam g1
+envia origin feature/g
+ANTES_G="$(topo refs/heads/feature/g)"
+git commit -q --amend -m g1-reescrito
+git replace --graft HEAD "$ANTES_G"
+envia --force origin feature/g
+[ "$rc" -ne 0 ] && grep -q 'não fast-forward' <<<"$saida" && [ "$(topo refs/heads/feature/g)" = "$ANTES_G" ]
+verifica "29 refs/replace não esconde o não fast-forward" $?
+git replace -d "$(git rev-parse --no-replace-objects HEAD)" >/dev/null 2>&1
+
+# 30) S1 e A1: o comando de aplicar nunca deixa o hook vazio nem troca por arquivo errado
+if [ -n "$DOC" ]; then
+  APLICAR="$(awk '/^```bash aplicar$/{f=1;next} /^```$/{f=0} f' "$DOC")"
+  [ -n "$APLICAR" ]
+  verifica "30 comando de aplicar encontrado no documento" $?
+  git init -q --bare -b develop "$TMP/remoto-s1.git"
+  git clone -q "$TMP/remoto-s1.git" "$TMP/s1" 2>/dev/null
+  ( cd "$TMP/s1" || exit 1
+    mkdir -p .githooks docs/devops scripts
+    cp "$RAIZ"/scripts/lint-alterados.sh "$RAIZ"/scripts/typecheck-alterados.sh scripts/
+    cat >.githooks/pre-push <<'EOS'
+#!/usr/bin/env bash
+while read -r _ _ r _; do [ "$r" = refs/heads/main ] && { echo "envio para a main bloqueado" >&2; exit 1; }; done
+exit 0
+EOS
+    chmod +x .githooks/pre-push
+    git config core.hooksPath .githooks
+    echo a >f.txt
+    git add -A
+    git commit -qm base
+    cp .githooks/pre-push "$TMP/hook-atual"
+    # 30a: sem o documento na árvore
+    bash -c "$APLICAR" >"$TMP/s1-saida" 2>&1
+    echo $? >"$TMP/s1-rc"
+    git push origin HEAD:refs/heads/main >"$TMP/s1-envio" 2>&1
+    echo $? >"$TMP/s1-envio-rc"
+  )
+  saida="$(cat "$TMP/s1-saida")"
+  [ "$(cat "$TMP/s1-rc")" -ne 0 ] && cmp -s "$TMP/hook-atual" "$TMP/s1/.githooks/pre-push" && [ -x "$TMP/s1/.githooks/pre-push" ] && [ ! -e "$TMP/s1/.githooks/pre-push.novo" ]
+  verifica "30a sem o documento: comando falha, hook atual intacto, sem sobra" $?
+  saida="$(cat "$TMP/s1-envio")"
+  [ "$(cat "$TMP/s1-envio-rc")" -ne 0 ] && [ -z "$(git ls-remote "$TMP/remoto-s1.git" refs/heads/main)" ]
+  verifica "30b sem o documento: envio para a main segue recusado" $?
+  # 30c: bloco adulterado no documento (hash não confere): hook atual intacto
+  sed 's/^exit 0$/exit 0 # adulterado/' "$DOC" >"$TMP/s1/docs/devops/102-k309-pre-push-proposto.md"
+  ( cd "$TMP/s1" && bash -c "$APLICAR" >"$TMP/s1-saida" 2>&1; echo $? >"$TMP/s1-rc" )
+  saida="$(cat "$TMP/s1-saida")"
+  [ "$(cat "$TMP/s1-rc")" -ne 0 ] && cmp -s "$TMP/hook-atual" "$TMP/s1/.githooks/pre-push" && [ ! -e "$TMP/s1/.githooks/pre-push.novo" ]
+  verifica "30c documento adulterado: hash recusa, hook atual intacto" $?
+  # 30d: documento revisado presente: o hook vira o bloco revisado
+  cp "$DOC" "$TMP/s1/docs/devops/102-k309-pre-push-proposto.md"
+  ( cd "$TMP/s1" && bash -c "$APLICAR" >"$TMP/s1-saida" 2>&1; echo $? >"$TMP/s1-rc" )
+  saida="$(cat "$TMP/s1-saida")"
+  [ "$(cat "$TMP/s1-rc")" -eq 0 ] && cmp -s "$HOOK" "$TMP/s1/.githooks/pre-push" && [ -x "$TMP/s1/.githooks/pre-push" ] && [ ! -e "$TMP/s1/.githooks/pre-push.novo" ]
+  verifica "30d com o documento revisado: hook vira o bloco revisado" $?
+else
+  echo "pulado - 30 (sem o argumento DOCUMENTO)"
+fi
+
 [ "$falhas" -eq 0 ] && echo "TUDO OK" || echo "FALHAS: $falhas"
 [ "$falhas" -eq 0 ]
 ```
 
 ## 3. Aplicar e voltar atrás
 
-O dono roda, na raiz do repositório, numa branch dele (por exemplo `chore/k309-pre-push`, que a própria política aceita). O comando extrai o bloco da seção 1 deste documento, dá permissão de execução, confere sintaxe e mostra o diff:
+O dono roda, na raiz do repositório, numa branch dele (por exemplo `chore/k309-pre-push`, que a própria política aceita). O comando extrai o bloco da seção 1 para um arquivo novo (`.githooks/pre-push.novo`), confere o sha256 publicado aqui, confere a sintaxe e só então troca o hook e mostra o diff. Se qualquer passo falhar (documento ausente na árvore, marcador renomeado, bloco alterado), o hook atual fica intacto e o arquivo novo é apagado: o comando nunca deixa o hook vazio.
 
-```bash
-awk '/^```bash pre-push$/{f=1;next} /^```$/{f=0} f' docs/devops/102-k309-pre-push-proposto.md > .githooks/pre-push && chmod +x .githooks/pre-push && bash -n .githooks/pre-push && git diff --stat -- .githooks/pre-push
+sha256 do bloco da seção 1 (o do hook revisado): `5910bcc1ec0e2c8cef49654bdfd30a7d2c9f7344b465d1e0cc7cd16e8b2a5744`. Quem revisa confere o hash publicado contra o bloco; quem aplica confere que o comando abaixo traz o mesmo valor.
+
+```bash aplicar
+awk '/^```bash pre-push$/{f=1;next} /^```$/{f=0} f' docs/devops/102-k309-pre-push-proposto.md > .githooks/pre-push.novo && echo "5910bcc1ec0e2c8cef49654bdfd30a7d2c9f7344b465d1e0cc7cd16e8b2a5744  .githooks/pre-push.novo" | sha256sum -c - && bash -n .githooks/pre-push.novo && chmod +x .githooks/pre-push.novo && mv .githooks/pre-push.novo .githooks/pre-push && git diff --stat -- .githooks/pre-push || { rm -f .githooks/pre-push.novo; false; }
 ```
+
+Na falha o comando termina com rc diferente de 0 e apaga o arquivo novo; o `sha256sum -c` imprime `FAILED` (ou o `awk` reclama do documento) e o `.githooks/pre-push` original segue como estava; confira com `git status --short .githooks`.
 
 Depois, commit e PR pelo fluxo normal. Para conferir antes de commitar, extraia o roteiro da seção 2.1 e rode contra o arquivo aplicado:
 
 ```bash
-awk '/^```bash prop.test.sh$/{f=1;next} /^```$/{f=0} f' docs/devops/102-k309-pre-push-proposto.md > "$TMPDIR/prop.test.sh" && bash "$TMPDIR/prop.test.sh" .githooks/pre-push "$PWD"
+awk '/^```bash prop.test.sh$/{f=1;next} /^```$/{f=0} f' docs/devops/102-k309-pre-push-proposto.md > "$TMPDIR/prop.test.sh" && bash "$TMPDIR/prop.test.sh" .githooks/pre-push "$PWD" docs/devops/102-k309-pre-push-proposto.md
 ```
 
 Voltar atrás, antes de commitar:
@@ -354,9 +476,10 @@ git restore --source=HEAD --staged --worktree -- .githooks/pre-push
 
 Depois de commitado e mesclado, voltar atrás é reverter o commit da aplicação (`git revert <sha>`) por PR, como qualquer mudança.
 
-Pergunta ao dono (A3, não inferida): `test/*` e `integracao/*` estão em uso no remoto (`origin/test/k283-provas-pessoa-helper`, `origin/integracao/2026-11-07`). Esta proposta os aceita num bloco separado e comentado (as duas linhas "PREPUSH-REFS (nomes, depende do dono)"); apagar a linha recusa os dois e os casos 21 e 22 do roteiro passam a esperar rc 1. A resposta é do dono.
+Pergunta ao dono (A3, não inferida): `test/*` e `integracao/*` estão em uso no remoto (`origin/test/k283-provas-pessoa-helper`, `origin/integracao/2026-11-07`). Esta proposta os aceita numa linha separada e ativa do `case` (a linha `refs/heads/test/?*|refs/heads/integracao/?*`, sob o comentário "PREPUSH-REFS (nomes, depende do dono)"); só o comentário está comentado, a linha vale. Para recusá-los, apague essa linha e tire `test/*` e `integracao/*` do texto da mensagem de recusa (a que lista `feature/*, fix/*, ...`); os casos 21 e 22 do roteiro passam a esperar rc 1. A resposta é do dono.
 
 Observações para o dono:
 - O pre-push local não vale como única barreira: a proteção de `develop`, `homolog` e `main` no GitHub continua sendo a trava de verdade.
-- Para tirar só a lista de nomes, apague o bloco "PREPUSH-REFS (nomes)" (do comentário até o `esac ;;` e `esac` que o fecham); o resto não depende dele.
-- As promoções `develop` → `homolog` e `homolog` → `main` são merges de PR feitos no GitHub, sem envio local, e não passam por este hook; o envio de tag de release local, se existir, passa (tag nova ou fast-forward).
+- Para tirar só a lista de nomes, apague o bloco "PREPUSH-REFS (nomes)" (do comentário até o `esac ;;` e o `esac` que o fecham, o que inclui a recusa de tag com nome de branch); o resto não depende dele.
+- As promoções `develop` → `homolog` e `homolog` → `main` são merges de PR feitos no GitHub, sem envio local, e não passam por este hook; o envio de tag de release local, se existir, passa só como tag nova (tag existente não se move).
+- Limites do hook (sem estado): apagar e recriar uma branch de trabalho (`feature/*` e afins) em dois envios reescreve a história sem passar pela recusa de não fast-forward; só `develop` e `homolog` têm a remoção recusada. O mesmo vale para apagar e recriar uma tag. `git --no-verify` e `core.hooksPath` apontando para outra pasta desligam o hook; a proteção de branch no GitHub é a barreira que sobra.
