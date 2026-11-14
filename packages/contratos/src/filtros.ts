@@ -58,6 +58,8 @@ export interface OpcoesFiltroFluxo {
   equipes: OpcaoFiltro[]
   tipos: OpcaoFiltro[]
   sistemas: OpcaoFiltro[]
+  /** Setores (id = slug do nome sem sobrenome), ordem alfabética; vazio até o dono mapear os quadros (097, L10a). */
+  setores?: OpcaoFiltro[] | undefined
   /** Datas limite para o período personalizado (AAAA-MM-DD). */
   historico: { inicio: string; fim: string }
 }
