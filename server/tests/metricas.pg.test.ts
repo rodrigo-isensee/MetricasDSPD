@@ -44,7 +44,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
   it('as 50 métricas: resultado idêntico ao do mock em memória', async () => {
     const mem = mockComoNoBanco(base, ids);
     const ctx: ContextosMetricas = {
-      bm: businessmap.criarContextoBM(mem.bm, CORTE, CALENDARIO_PADRAO), ac: acelerato.criarContextoAC(mem.ac, CORTE, CALENDARIO_PADRAO),
+      bm: businessmap.criarContextoBM(mem.bm, CORTE, CALENDARIO_PADRAO), ac: acelerato.criarContextoAC(mem.ac, CORTE, acelerato.CALENDARIO_SUSTENTACAO_PADRAO),
       ext: gerarExtensoesMock(base),
     };
     const s = new ServicoMetricas({ modoMock: true, db: api, S: E, extensoes: () => gerarExtensoesMock(base) });

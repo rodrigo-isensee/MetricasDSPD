@@ -241,7 +241,7 @@ describe('CA-2: vazio', () => {
   it('recorte sem apontamento mostra o estado vazio com limpar e remover cada filtro ativo', async () => {
     const { roteador } = renderizar(`${URL_ABA}?equipe=portal&tipo=3`, fonteCom(respostaVazia()))
     const vazio = await screen.findByTestId('estado-vazio-AP')
-    expect(vazio).toHaveTextContent('Nenhum apontamento encontrado')
+    expect(vazio).toHaveTextContent('Nenhum apontamento no período dos filtros')
     expect(vazio).toHaveTextContent('Nenhum apontamento atende aos filtros atuais.')
     expect(within(vazio).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument()
     expect(within(vazio).getByRole('button', { name: 'Remover filtro Equipe' })).toBeInTheDocument()
@@ -336,8 +336,9 @@ describe('CA-4: filtros na URL', () => {
 
   it('CA-9: pessoa= na URL é ignorado, com aviso, e a página segue funcional', async () => {
     renderizar(`${URL_ABA}?pessoa=p1`)
-    const aviso = await screen.findByTestId('filtros-invalidos')
-    expect(aviso).toHaveTextContent('Valor inválido ignorado em: pessoa.')
+    const aviso = await screen.findByTestId('aviso-pessoa-retirada')
+    expect(aviso).toHaveTextContent(/^O filtro Pessoa foi retirado; use Equipe\.$/)
+    expect(screen.queryByTestId('filtros-invalidos')).toBeNull()
     expect(await screen.findByTestId('metrica-AP-KPIS')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Remover filtro Pessoa/ })).toBeNull()
   })
@@ -352,10 +353,10 @@ describe('CA-4: filtros na URL', () => {
     ).toBeInTheDocument()
   })
 
-  it('o mapa diário não é afetado pela equipe e diz isso no rodapé', async () => {
+  it('o mapa diário é recortado pela equipe e o rodapé diz só o que não afeta (Tipo)', async () => {
     await cartao('AP-DIARIO', `${URL_ABA}?tipo=3&equipe=portal`)
     const diario = screen.getByTestId('metrica-AP-DIARIO')
-    expect(within(diario).getByText('Não afetado por: Equipe, Tipo')).toBeInTheDocument()
+    expect(within(diario).getByText('Não afetado por: Tipo')).toBeInTheDocument()
     const kpis = screen.getByTestId('metrica-AP-KPIS')
     expect(within(kpis).getAllByText(/Filtros aplicados: .*Equipe Portal/).length).toBeGreaterThan(
       0,

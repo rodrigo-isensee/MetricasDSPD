@@ -39,7 +39,7 @@ export function LinkO15() {
  * Estado explícito de "campo sem fonte": o campo de origem da métrica ainda não vem de nenhuma coleta.
  * Não é zero, não é vazio e não é "amostra insuficiente" (que fala de poucos itens): é ausência de fonte.
  */
-export function CampoSemFonte({ codigo }: { codigo: string }) {
+export function CampoSemFonte({ codigo, texto }: { codigo: string; texto?: string }) {
   return (
     <div
       className="rounded-md border border-borda bg-superficie-2 p-3 text-sm text-texto"
@@ -50,8 +50,8 @@ export function CampoSemFonte({ codigo }: { codigo: string }) {
         Campo sem fonte
       </p>
       <p className="mt-1 text-texto-2">
-        O campo que alimenta esta métrica ainda não vem de nenhuma coleta, por isso nada é
-        publicado. Isto não significa zero.
+        {texto ??
+          'O campo que alimenta esta métrica ainda não vem de nenhuma coleta, por isso nada é publicado. Isto não significa zero.'}
       </p>
     </div>
   )

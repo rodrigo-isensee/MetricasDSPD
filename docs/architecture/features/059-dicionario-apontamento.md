@@ -1,12 +1,18 @@
 ---
-tipo: apoio-plano-tecnico
+tipo: plano-tecnico
+contrato: 1
 pedido: 059-aba-apontamento
 etapa: E2.10 (trilha G2 do §7.2)
-estado: proposta (aguarda conferência do dono, PE-5, 02/11 12:00)
+estado: proposta
 plano: docs/architecture/features/059-aba-apontamento.md (§3.4 e §3.6)
+ux: docs/ux/059-aba-apontamento.md
+adrs: [0011, 0014, 0015, 0016, 0020, 0022, 0025]
+agentes: [node-backend, react-frontend, qa-engineer, tech-lead, security-engineer, software-architect, ux-designer]
 ---
 
 # Dicionário de classificação do apontamento (subgrupo e subtarefa)
+
+Anexo de apoio do plano (era `tipo: apoio-plano-tecnico`); `ux`, `adrs` e `agentes` são os do plano. Estado: proposta (aguarda conferência do dono, PE-5, 02/11 12:00).
 
 Fonte: seção 4 da especificação do dono (regra de subgrupo). Este arquivo só reescreve a regra na forma que o `ref:sync` carrega (`ref_apontamento_subgrupo`, `ref_apontamento_termo`, `ref_apontamento_regra_tipo`, §3.3 do plano). Nenhum termo foi acrescentado nem removido; o que é inferência do arquiteto está marcado em "Para o dono conferir".
 

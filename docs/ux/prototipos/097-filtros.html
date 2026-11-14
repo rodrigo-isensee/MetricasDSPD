@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo 097 (2ª rodada) - Equipe, Setor, busca e recolher cartão</title>
+<style>
+  :root { --fundo:#f6f7f9; --sup:#fff; --borda:#d0d5dd; --texto:#1d2939; --texto2:#475467; --acento:#175cd3; --aviso:#b54708; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.4 system-ui, sans-serif; color:var(--texto); background:var(--fundo); }
+  .proto { background:#fef0c7; border-bottom:1px solid #f79009; padding:8px 16px; font-weight:600; }
+  nav.abas { display:flex; gap:8px; padding:12px 16px; flex-wrap:wrap; }
+  nav.abas button, .btn { min-height:32px; min-width:32px; padding:4px 12px; border:1px solid var(--borda); border-radius:6px; background:var(--sup); color:var(--texto); font:inherit; cursor:pointer; }
+  nav.abas button[aria-pressed="true"] { background:var(--acento); color:#fff; border-color:var(--acento); }
+  :focus-visible { outline:3px solid #7a5af8; outline-offset:2px; }
+  main { padding:0 16px 48px; max-width:1100px; }
+  section.bloco { background:var(--sup); border:1px solid var(--borda); border-radius:8px; padding:16px; margin-bottom:16px; }
+  h1 { font-size:18px; margin:8px 0; } h2 { font-size:16px; margin:0 0 4px; } h3 { font-size:14px; margin:0; }
+  .fonte { color:var(--texto2); font-size:13px; margin:0 0 8px; }
+  .barra { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; border-block:1px solid var(--borda); padding:8px 0; }
+  .filtro { position:relative; }
+  .gatilho { display:inline-flex; gap:4px; align-items:center; max-width:280px; }
+  .gatilho .v { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gatilho[disabled] { opacity:.7; cursor:not-allowed; }
+  .pop { position:absolute; z-index:10; top:38px; left:0; width:288px; background:var(--sup); border:1px solid var(--borda); border-radius:6px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,.15); }
+  .pop[hidden] { display:none; }
+  .pop input[type=search] { width:100%; min-height:32px; padding:4px 8px; border:1px solid var(--borda); border-radius:6px; font:inherit; margin-bottom:4px; }
+  .pop ul { list-style:none; margin:0; padding:0; max-height:256px; overflow:auto; }
+  .pop li label { display:flex; gap:8px; align-items:flex-start; min-height:32px; padding:4px; border-radius:4px; cursor:pointer; overflow-wrap:anywhere; }
+  .pop li label:hover { background:#f2f4f7; }
+  .pop .rod { display:flex; justify-content:space-between; margin-top:8px; gap:8px; }
+  .msg { font-size:13px; color:var(--texto2); margin:4px 0; }
+  .msg.aviso { color:var(--aviso); }
+  .avisos p { margin:4px 0; font-size:13px; color:var(--aviso); }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+  .chip { border:1px solid var(--borda); border-radius:999px; padding:2px 10px; background:#eff4ff; }
+  .cartoes { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; margin-top:8px; }
+  .cartao { border:1px solid var(--borda); border-radius:6px; padding:8px; }
+  .cartao b { font-size:20px; display:block; }
+  .esq { height:20px; width:120px; background:linear-gradient(90deg,#eaecf0,#f2f4f7,#eaecf0); border-radius:4px; }
+  .painel-estado { background:#f9fafb; border:1px dashed var(--borda); padding:8px 12px; border-radius:6px; margin:8px 0 16px; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  table { border-collapse:collapse; width:100%; } td, th { border-bottom:1px solid var(--borda); padding:4px 8px; text-align:left; }
+  /* cartão de gráfico recolhível (E5) */
+  .graf { background:var(--sup); border:1px solid var(--borda); border-radius:8px; padding:12px 16px; margin:12px 0; }
+  .graf-cab { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .graf-corpo { margin-top:8px; }
+  .graf-corpo[hidden], .graf-resumo[hidden] { display:none; }
+  .graf-resumo { margin:4px 0 0; font-size:13px; color:var(--texto2); }
+  .graf-resumo.erro { color:var(--aviso); }
+  .barras { list-style:none; margin:0; padding:0; }
+  .barras li { display:grid; grid-template-columns:minmax(120px,220px) 1fr 80px; gap:8px; align-items:center; padding:2px 0; }
+  .barras .trilho { background:#eaecf0; border-radius:3px; height:12px; }
+  .barras .enchi { background:var(--acento); height:12px; border-radius:3px; }
+  .barras .val { text-align:right; font-variant-numeric:tabular-nums; }
+  .rolagem { max-height:360px; overflow:auto; border:1px solid var(--borda); border-radius:6px; padding:4px 8px; }
+  .acoes { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+  .colunas { display:flex; align-items:flex-end; gap:4px; height:120px; border-bottom:1px solid var(--borda); }
+  .colunas .col { flex:1; background:var(--acento); min-width:12px; position:relative; }
+  .colunas .col span { position:absolute; top:-16px; left:0; right:0; text-align:center; font-size:11px; color:var(--texto2); }
+  .eixo { display:flex; gap:4px; font-size:11px; color:var(--texto2); } .eixo span { flex:1; text-align:center; min-width:12px; }
+  @media (prefers-reduced-motion: no-preference) { .esq { animation:p 1.2s infinite; } @keyframes p { 50% { opacity:.5; } } }
+</style>
+</head>
+<body>
+<div class="proto">PROTÓTIPO descartável (pedido 097, 2ª rodada). Dados de exemplo; nada aqui é medição real. Não é a interface final.</div>
+<nav class="abas" aria-label="Telas do protótipo">
+  <button data-tela="resumo" aria-pressed="true">Resumo (E1, E7)</button>
+  <button data-tela="apontamento" aria-pressed="false">Apontamento (E2, E5)</button>
+  <button data-tela="painel" aria-pressed="false">Painel do fluxo (E5, E7)</button>
+  <button data-tela="estados" aria-pressed="false">Busca e estados da lista (E3, E4)</button>
+</nav>
+<main>
+
+<!-- RESUMO -->
+<div id="t-resumo">
+  <h1>Resumo</h1>
+  <section class="bloco" aria-labelledby="h-fluxo">
+    <h2 id="h-fluxo">Fluxo de projetos</h2>
+    <p class="fonte">Fonte: BusinessMap · Dados até 10/11/2026 · últimas 12 semanas</p>
+    <div class="barra" role="group" aria-label="Filtros do Fluxo" id="barra-fluxo"></div>
+    <div class="avisos" id="aviso-fluxo"></div>
+    <div class="chips" id="chips-fluxo"></div>
+    <div class="cartoes" id="num-fluxo"></div>
+  </section>
+  <section class="bloco" aria-labelledby="h-sust">
+    <h2 id="h-sust">Sustentação</h2>
+    <p class="fonte">Fonte: Acelerato · Dados até 10/11/2026 · últimas 12 semanas</p>
+    <div class="barra" role="group" aria-label="Filtros da Sustentação" id="barra-sust"></div>
+    <p class="msg">Sem filtro Setor aqui: o Acelerato não tem setor. O Setor vale só para o fluxo (BusinessMap).</p>
+    <div class="avisos" id="aviso-sust"></div>
+    <div class="chips" id="chips-sust"></div>
+    <div class="cartoes" id="num-sust"></div>
+  </section>
+  <p class="msg">Cada bloco tem os seus filtros, com as opções da sua fonte. Mexer em um não muda o outro. Os números nunca são somados entre blocos, nem comparados entre equipes ou entre setores.</p>
+</div>
+
+<!-- APONTAMENTO -->
+<div id="t-apontamento" hidden>
+  <h1>Apontamento</h1>
+  <section class="bloco" aria-label="Filtros do Apontamento">
+    <div class="barra" id="barra-apont">
+      <label class="msg">De <input type="date" value="2026-09-01"></label>
+      <label class="msg">Até <input type="date" value="2026-11-10"></label>
+    </div>
+    <p class="msg">Antes: filtro "Pessoa". Agora: filtro "Equipe". No protótipo, só a tabela de capacidade reage ao filtro; os gráficos têm dados fixos.</p>
+    <div class="chips" id="chips-apont"></div>
+  </section>
+  <p><button class="btn" id="rest-apont" hidden>Restaurar cartões recolhidos</button></p>
+  <div id="cards-apont"></div>
+</div>
+
+<!-- PAINEL DO FLUXO -->
+<div id="t-painel" hidden>
+  <h1>Painel tático do fluxo (exemplo)</h1>
+  <section class="bloco" aria-labelledby="h-tat">
+    <h2 id="h-tat">Fluxo de projetos</h2>
+    <p class="fonte">Fonte: BusinessMap · Dados até 10/11/2026 · últimas 12 semanas</p>
+    <div class="barra" role="group" aria-label="Filtros do painel do fluxo" id="barra-tat"></div>
+    <div class="avisos" id="aviso-tat"></div>
+    <div class="chips" id="chips-tat"></div>
+    <div class="cartoes" id="num-tat"></div>
+  </section>
+  <p><button class="btn" id="rest-painel" hidden>Restaurar cartões recolhidos</button></p>
+  <div id="cards-painel"></div>
+</div>
+
+<!-- ESTADOS -->
+<div id="t-estados" hidden>
+  <h1>Busca digitando e estados da lista</h1>
+  <p class="msg">Escolha o cenário da lista e abra o filtro. Digite para achar a opção; setas, Esc e Enter funcionam.</p>
+  <div class="painel-estado" role="group" aria-label="Cenário da lista">
+    <button class="btn" data-cen="normal">Lista normal (5 opções)</button>
+    <button class="btn" data-cen="muitos">Muitos itens (60)</button>
+    <button class="btn" data-cen="longos">Nomes longos</button>
+    <button class="btn" data-cen="vazia">Lista vazia (sem dado)</button>
+    <button class="btn" data-cen="carregando">Carregando</button>
+    <button class="btn" data-cen="erro">Erro ao carregar</button>
+  </div>
+  <div class="barra" id="barra-estados"></div>
+  <div class="chips" id="chips-estados"></div>
+</div>
+</main>
+
+<script>
+'use strict';
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const fmt = n => n.toLocaleString('pt-BR', { minimumFractionDigits:1, maximumFractionDigits:1 });
+const EQUIPES_BM = ['Atendimento ao Cliente','Engenharia de Plataforma','Integrações','Mobile','Qualidade'];
+const EQUIPES_AC = ['SSSC TOTVS','SSSC SENIOR','SSSC FLUIG','Infraestrutura N2'];
+/* 7 setores, sem o sobrenome do responsável; AI Iniciatives fora. Nº de itens de exemplo por setor. */
+const SETORES = {
+  'Ciência de Dados':14, 'Desenv Sistemas Plataformas Digitais - Gerencial':22, 'Escritório de Processos e Projetos':31,
+  'Marketing e Vendas':19, 'Plataformas':27, 'Sistemas Corporativos':40, 'Sistemas de Vendas e Operações':36
+};
+
+/* Persistência do recolher (E5): só no navegador, nunca na URL */
+const memoria = {};
+const guarda = {
+  ler: k => { try { return localStorage.getItem(k); } catch (e) { return memoria[k] || null; } },
+  gravar: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { memoria[k] = v; } },
+  apagar: k => { try { localStorage.removeItem(k); } catch (e) { delete memoria[k]; } }
+};
+
+/* Filtro multi com busca. cfg: {id, rotulo, genero, estado, opcoes, sel:Set, onChange} */
+function filtro(cfg) {
+  const raiz = document.createElement('div'); raiz.className = 'filtro';
+  const todas = cfg.genero === 'f' ? 'Todas' : 'Todos';
+  const idPop = 'pop-' + cfg.id;
+  const gat = document.createElement('button'); gat.className = 'btn gatilho'; gat.setAttribute('aria-haspopup','dialog'); gat.setAttribute('aria-expanded','false'); gat.setAttribute('aria-controls', idPop);
+  const pop = document.createElement('div'); pop.className = 'pop'; pop.id = idPop; pop.hidden = true; pop.setAttribute('role','dialog'); pop.setAttribute('aria-label', cfg.rotulo);
+  raiz.append(gat, pop);
+
+  const resumo = () => {
+    const sel = [...cfg.sel];
+    if (cfg.estado === 'carregando') return 'carregando…';
+    if (cfg.estado === 'erro') return 'indisponível';
+    if (cfg.estado === 'vazia') return 'sem opções';
+    if (!sel.length) return todas;
+    if (sel.length === 1) return sel[0];
+    return sel.length + (cfg.genero === 'f' ? ' selecionadas' : ' selecionados');
+  };
+  const pintaGatilho = () => {
+    gat.innerHTML = '';
+    const r = document.createElement('span'); r.textContent = cfg.rotulo + ':'; r.style.color = 'var(--texto2)';
+    const v = document.createElement('span'); v.className = 'v'; v.textContent = resumo();
+    gat.append(r, v, document.createTextNode(' ▾'));
+    gat.title = cfg.rotulo + ': ' + resumo();
+    gat.setAttribute('aria-label', cfg.rotulo + ': ' + resumo());
+    gat.disabled = ['carregando','vazia'].includes(cfg.estado);
+    gat.setAttribute('aria-busy', cfg.estado === 'carregando');
+  };
+
+  const montaPop = () => {
+    pop.innerHTML = '';
+    if (cfg.estado === 'erro') {
+      pop.innerHTML = '<p class="msg aviso" role="alert">Não foi possível carregar as opções de ' + cfg.rotulo + '.</p>';
+      const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'Tentar de novo';
+      b.onclick = () => { cfg.estado = 'ok'; pintaGatilho(); montaPop(); };
+      pop.append(b); return;
+    }
+    const lab = document.createElement('label'); lab.className = 'sr'; lab.htmlFor = idPop + '-busca'; lab.textContent = 'Buscar em ' + cfg.rotulo;
+    const busca = document.createElement('input'); busca.type = 'search'; busca.id = idPop + '-busca'; busca.placeholder = 'Digite para buscar'; busca.autocomplete = 'off';
+    const vis = document.createElement('label'); vis.htmlFor = busca.id; vis.className = 'msg'; vis.style.display = 'block'; vis.textContent = 'Buscar';
+    const status = document.createElement('p'); status.className = 'msg'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
+    const oculta = document.createElement('p'); oculta.className = 'msg';
+    const ul = document.createElement('ul');
+    const rod = document.createElement('div'); rod.className = 'rod';
+    const limpar = document.createElement('button'); limpar.className = 'btn'; limpar.textContent = 'Limpar seleção';
+    const fechar = document.createElement('button'); fechar.className = 'btn'; fechar.textContent = 'Fechar';
+    rod.append(limpar, fechar);
+    pop.append(lab, vis, busca, status, oculta, ul, rod);
+
+    const q = () => busca.value.trim() !== '';
+    const contagem = achadas => {
+      status.textContent = q() ? (achadas.length === 0 ? 'Nenhuma opção encontrada.' : achadas.length + (achadas.length === 1 ? ' opção encontrada' : ' opções encontradas') + ' de ' + cfg.opcoes.length + '.') : (cfg.opcoes.length > 12 ? cfg.opcoes.length + ' opções.' : '');
+      const escondidas = [...cfg.sel].filter(s => !achadas.includes(s)).length;
+      oculta.textContent = escondidas ? escondidas + (escondidas === 1 ? ' selecionada fora da busca (continua aplicada).' : ' selecionadas fora da busca (continuam aplicadas).') : '';
+    };
+    const lista = () => {
+      const t = norm(busca.value.trim());
+      ul.innerHTML = '';
+      const achadas = cfg.opcoes.filter(o => norm(o).includes(t));
+      achadas.forEach(o => {
+        const li = document.createElement('li');
+        const l = document.createElement('label'); const c = document.createElement('input'); c.type = 'checkbox'; c.checked = cfg.sel.has(o);
+        c.onchange = () => { c.checked ? cfg.sel.add(o) : cfg.sel.delete(o); cfg.onChange(); pintaGatilho(); contagem(achadas); };
+        l.append(c, document.createTextNode(o)); li.append(l); ul.append(li);
+      });
+      if (!achadas.length) {
+        const li = document.createElement('li'); li.className = 'msg';
+        li.textContent = 'Nenhuma opção com "' + busca.value.trim() + '".'; ul.append(li);
+      }
+      contagem(achadas);
+    };
+    busca.addEventListener('input', lista);
+    busca.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { const c = ul.querySelector('input'); if (c) { c.focus(); e.preventDefault(); } }
+      if (e.key === 'Enter') { const cs = ul.querySelectorAll('input'); if (cs.length === 1) { cs[0].click(); e.preventDefault(); } }
+      if (e.key === 'Escape' && busca.value) { busca.value = ''; lista(); e.stopPropagation(); e.preventDefault(); }
+    });
+    ul.addEventListener('keydown', e => {
+      const cs = [...ul.querySelectorAll('input')]; const i = cs.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' && i < cs.length - 1) { cs[i+1].focus(); e.preventDefault(); }
+      if (e.key === 'ArrowUp') { (i > 0 ? cs[i-1] : busca).focus(); e.preventDefault(); }
+    });
+    limpar.onclick = () => { cfg.sel.clear(); cfg.onChange(); pintaGatilho(); lista(); };
+    fechar.onclick = () => fecha(true);
+    lista(); pop._busca = busca;
+  };
+
+  const abre = () => { montaPop(); pop.hidden = false; gat.setAttribute('aria-expanded','true'); (pop._busca || pop.querySelector('button')).focus(); };
+  const fecha = devolve => { pop.hidden = true; gat.setAttribute('aria-expanded','false'); if (devolve) gat.focus(); };
+  gat.onclick = () => pop.hidden ? abre() : fecha(true);
+  raiz.addEventListener('keydown', e => { if (e.key === 'Escape' && !pop.hidden) fecha(true); });
+  document.addEventListener('click', e => { if (!raiz.contains(e.target) && !pop.hidden) fecha(false); });
+  pintaGatilho();
+  raiz.refresh = pintaGatilho;
+  return raiz;
+}
+
+function chips(alvo, grupos) {
+  alvo.innerHTML = '';
+  grupos.forEach(([rot, set, onRem]) => set.forEach(v => {
+    const s = document.createElement('span'); s.className = 'chip'; s.textContent = rot + ': ' + v + ' ';
+    const b = document.createElement('button'); b.className = 'btn'; b.style.minHeight = '24px'; b.style.padding = '0 6px'; b.textContent = '×'; b.setAttribute('aria-label', 'Remover filtro ' + rot + ': ' + v);
+    b.onclick = () => { set.delete(v); onRem(); }; s.append(b); alvo.append(s);
+  }));
+}
+
+/* Bloco de números do Resumo/Painel. opts: {setor:boolean, equipes, base, rotItens, rotMediana, onChange} */
+function bloco(sufixo, opts) {
+  const selS = new Set(), selE = new Set();
+  const barra = document.getElementById('barra-' + sufixo);
+  const aviso = document.getElementById('aviso-' + sufixo);
+  const num = document.getElementById('num-' + sufixo);
+  const calcN = () => {
+    let n = opts.base;
+    if (opts.setor && selS.size) n = [...selS].reduce((s, k) => s + SETORES[k], 0);
+    if (selE.size) n = Math.round(n * Math.min(1, 0.35 * selE.size));
+    return n;
+  };
+  const atual = () => {
+    const n = calcN();
+    const msgs = [];
+    if (opts.setor && selS.size > 1) msgs.push('Resultado consolidado de ' + selS.size + ' setores. O sistema não compara setores.');
+    if (selE.size > 1) msgs.push('Resultado consolidado de ' + selE.size + ' equipes. O sistema não compara equipes.');
+    if (n < 20) msgs.push('Menos de 20 itens na janela (' + n + '). Os percentis não são publicados.');
+    aviso.innerHTML = msgs.map(m => '<p>' + m + '</p>').join('');
+    const med = 5 + (n % 3);
+    const dados = [[opts.rotItens, String(n)],
+      [opts.rotMediana, n < 20 ? 'Não publicada' : med + ' dias úteis'],
+      ['P85', n < 20 ? 'Não publicado' : (med * 2 + 2) + ' dias úteis']];
+    num.innerHTML = dados.map(([t, v]) => '<div class="cartao">' + t + '<b>' + v + '</b></div>').join('');
+    chips(document.getElementById('chips-' + sufixo), [['Setor', selS, atual], ['Equipe', selE, atual]]);
+    barra.querySelectorAll('.filtro').forEach(f => f.refresh());
+    if (opts.onChange) opts.onChange(n);
+  };
+  if (opts.setor) barra.append(filtro({ id: 'setor-' + sufixo, rotulo: 'Setor', genero: 'm', estado: 'ok', opcoes: Object.keys(SETORES), sel: selS, onChange: atual }));
+  barra.append(filtro({ id: 'equipe-' + sufixo, rotulo: 'Equipe', genero: 'f', estado: 'ok', opcoes: opts.equipes, sel: selE, onChange: atual }));
+  atual();
+}
+
+/* Cartão de gráfico recolhível (E5). Cada cartão tem chave estável. */
+const REGISTRO = { apontamento:[], painel:[] };
+function cartaoRec(tela, chave, titulo, monta, resumoFn) {
+  const id = 'g-' + chave;
+  const sec = document.createElement('section'); sec.className = 'graf'; sec.setAttribute('aria-labelledby', id + '-t');
+  const cab = document.createElement('div'); cab.className = 'graf-cab';
+  const h = document.createElement('h3'); h.id = id + '-t'; h.textContent = titulo;
+  const btn = document.createElement('button'); btn.className = 'btn'; btn.setAttribute('aria-controls', id + '-c');
+  cab.append(h, btn);
+  const corpo = document.createElement('div'); corpo.className = 'graf-corpo'; corpo.id = id + '-c';
+  const resumo = document.createElement('p'); resumo.className = 'graf-resumo';
+  sec.append(cab, corpo, resumo);
+  const chaveLS = 'proto097:rec:' + chave;
+  const aplica = rec => {
+    corpo.hidden = rec; resumo.hidden = !rec;
+    btn.setAttribute('aria-expanded', String(!rec));
+    btn.textContent = rec ? 'Expandir' : 'Recolher';
+    btn.setAttribute('aria-label', (rec ? 'Expandir' : 'Recolher') + ' cartão: ' + titulo);
+    resumo.textContent = resumoFn();
+    atualizaRestaurar(tela);
+  };
+  btn.onclick = () => { const rec = guarda.ler(chaveLS) !== '1'; guarda.gravar(chaveLS, rec ? '1' : '0'); aplica(rec); };
+  const api = { chave, chaveLS, recolhido: () => guarda.ler(chaveLS) === '1', render: () => { corpo.innerHTML = ''; monta(corpo, () => api.render()); resumo.textContent = resumoFn(); }, aplica: () => aplica(guarda.ler(chaveLS) === '1') };
+  REGISTRO[tela].push(api);
+  api.render(); aplica(guarda.ler(chaveLS) === '1');
+  sec.api = api;
+  return sec;
+}
+function atualizaRestaurar(tela) {
+  const b = document.getElementById(tela === 'apontamento' ? 'rest-apont' : 'rest-painel');
+  if (b) b.hidden = !REGISTRO[tela].some(c => c.recolhido());
+}
+['apontamento','painel'].forEach(t => {
+  const b = document.getElementById(t === 'apontamento' ? 'rest-apont' : 'rest-painel');
+  b.onclick = () => { REGISTRO[t].forEach(c => { guarda.apagar(c.chaveLS); c.aplica(); }); b.hidden = true; };
+});
+
+function barras(lista, max) {
+  const ul = document.createElement('ul'); ul.className = 'barras';
+  lista.forEach(([nome, h]) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span></span><span class="trilho"><span class="enchi" style="display:block;width:' + Math.round(h / max * 100) + '%"></span></span><span class="val">' + fmt(h) + ' h</span>';
+    li.firstChild.textContent = nome; ul.append(li);
+  });
+  return ul;
+}
+
+/* Resumo */
+bloco('fluxo', { setor:true, equipes:EQUIPES_BM, base:217, rotItens:'Itens entregues', rotMediana:'Mediana do tempo de ciclo' });
+bloco('sust', { setor:false, equipes:EQUIPES_AC, base:302, rotItens:'Chamados atendidos', rotMediana:'Mediana do tempo de resolução' });
+
+/* Apontamento */
+(function () {
+  const barra = document.getElementById('barra-apont');
+  const sel = new Set();
+  const PESSOAS = [['Pessoa A','Mobile',112],['Pessoa B','Mobile',98],['Pessoa C','Integrações',120],['Pessoa D','Qualidade',87],['Pessoa E','Integrações',105],['Pessoa F','Sem equipe',20]];
+  const PROJ = [['Portal do Cliente',412.5],['Integração ERP',388],['App Mobile v3',301.2],['Migração de Dados',280],['Painel Gerencial',254.8],['Automação Fiscal',233],['Cadastro Unificado',201.5],['Gestão de Contratos',190],['Relatórios Legais',172.4],['Fluxo de Aprovação',160],['Central de Notificações',141.3],['Catálogo de Produtos',128],['API Parceiros',117.5],['Conciliação',104],['Onboarding Digital',96.2],['Auditoria',88],['Agenda de Entregas',75.5],['Mensageria',70],['Portal do Fornecedor',61.8],['BI Comercial',55],['Controle de Acesso',48.5],['Assinatura Eletrônica',40],['Documentação Técnica',32.4],['Treinamentos',18]]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'));
+  const TIPOS = [['Trabalho de produto',421.4],['Reunião',230],['Teste',188.5],['Suporte interno',96]];
+  let verTodos = false;
+  const alvo = document.getElementById('cards-apont');
+
+  alvo.append(
+    cartaoRec('apontamento', 'AP-PROJETO', 'Horas por projeto', (corpo, rerender) => {
+      const lista = verTodos ? PROJ : PROJ.slice(0, 10);
+      const max = PROJ[0][1];
+      const msg = document.createElement('p'); msg.className = 'msg';
+      msg.textContent = PROJ.length > 10 && !verTodos ? 'Mostrando os 10 projetos com mais horas, de ' + PROJ.length + '.' : 'Mostrando os ' + PROJ.length + ' projetos.';
+      corpo.append(msg);
+      const bars = barras(lista, max);
+      if (verTodos) { const r = document.createElement('div'); r.className = 'rolagem'; r.tabIndex = 0; r.setAttribute('role','region'); r.setAttribute('aria-label','Lista completa de projetos, com rolagem'); r.append(bars); corpo.append(r); }
+      else corpo.append(bars);
+      if (PROJ.length > 10) {
+        const demais = PROJ.slice(10).reduce((s, p) => s + p[1], 0);
+        const ac = document.createElement('div'); ac.className = 'acoes';
+        if (!verTodos) { const p = document.createElement('span'); p.className = 'msg'; p.textContent = 'Demais ' + (PROJ.length - 10) + ' projetos: ' + fmt(demais) + ' h'; ac.append(p); }
+        const b = document.createElement('button'); b.className = 'btn'; b.setAttribute('aria-expanded', String(verTodos));
+        b.textContent = verTodos ? 'Ver só os 10 maiores' : 'Ver todos os ' + PROJ.length + ' projetos';
+        b.onclick = () => { verTodos = !verTodos; rerender(); const nb = corpo.querySelector('.acoes button'); if (nb) nb.focus(); };
+        ac.append(b); corpo.append(ac);
+      }
+    }, () => 'Recolhido. ' + PROJ.length + ' projetos, ' + fmt(PROJ.reduce((s, p) => s + p[1], 0)) + ' h no total.'),
+
+    cartaoRec('apontamento', 'AP-TIPO', 'Horas por tipo', corpo => { corpo.append(barras(TIPOS, 421.4)); },
+      () => 'Recolhido. ' + TIPOS.length + ' tipos, ' + fmt(TIPOS.reduce((s, t) => s + t[1], 0)) + ' h no total.'),
+
+    cartaoRec('apontamento', 'AP-CAPACIDADE-PESSOA', 'Capacidade por pessoa', corpo => {
+      const nota = document.createElement('p'); nota.className = 'msg'; nota.textContent = 'Mostra as pessoas das equipes filtradas; sem ranking e sem meta por pessoa. Ordem alfabética.';
+      const t = document.createElement('table'); t.setAttribute('aria-label','Capacidade por pessoa, exemplo');
+      const linhas = PESSOAS.filter(p => sel.size === 0 || sel.has(p[1]));
+      t.innerHTML = '<thead><tr><th>Pessoa</th><th>Horas apontadas</th><th>Equipe</th></tr></thead><tbody>' + linhas.map(p => '<tr><td>' + p[0] + '</td><td>' + p[2] + ' h</td><td>' + p[1] + '</td></tr>').join('') + '</tbody>';
+      corpo.append(nota, t);
+    }, () => 'Recolhido. Capacidade por pessoa das equipes filtradas.')
+  );
+  const cap = () => REGISTRO.apontamento.find(c => c.chave === 'AP-CAPACIDADE-PESSOA');
+  const atual = () => { cap().render(); chips(document.getElementById('chips-apont'), [['Equipe', sel, atual]]); barra.querySelectorAll('.filtro').forEach(f => f.refresh()); };
+  barra.append(
+    filtro({ id: 'equipe-apont', rotulo: 'Equipe', genero: 'f', estado: 'ok', opcoes: ['Integrações','Mobile','Qualidade','Sem equipe'], sel, onChange: atual }),
+    filtro({ id: 'proj', rotulo: 'Projeto', genero: 'm', estado: 'ok', opcoes: PROJ.map(p => p[0]).sort((a, b) => a.localeCompare(b, 'pt-BR')), sel: new Set(), onChange: () => {} }),
+    filtro({ id: 'tipo-ap', rotulo: 'Tipo', genero: 'm', estado: 'ok', opcoes: TIPOS.map(t => t[0]).sort((a, b) => a.localeCompare(b, 'pt-BR')), sel: new Set(), onChange: () => {} })
+  );
+  atual();
+})();
+
+/* Painel do fluxo */
+(function () {
+  let nAtual = 217;
+  const alvo = document.getElementById('cards-painel');
+  const base = [4, 9, 14, 17, 12, 9, 6, 4, 2, 1];
+  const vaz = [18, 22, 15, 20, 24, 19, 17, 23, 21, 16, 20, 22];
+  const colunas = (vals, maxRef, rot) => {
+    const c = document.createElement('div'); c.className = 'colunas'; c.setAttribute('role','img'); c.setAttribute('aria-label', rot + ': ' + vals.join(', '));
+    vals.forEach(v => { const d = document.createElement('div'); d.className = 'col'; d.style.height = Math.max(4, Math.round(v / maxRef * 100)) + '%'; d.innerHTML = '<span>' + v + '</span>'; c.append(d); });
+    return c;
+  };
+  const esc = v => Math.round(v * nAtual / 217);
+  alvo.append(
+    cartaoRec('painel', 'FL2-HISTOGRAMA', 'Histograma do tempo de ciclo', corpo => {
+      const v = base.map(esc); corpo.append(colunas(v, Math.max(...v, 1), 'Itens por faixa de dias úteis'));
+      const e = document.createElement('div'); e.className = 'eixo'; e.innerHTML = base.map((_, i) => '<span>' + (i * 3 + 1) + '-' + (i * 3 + 3) + '</span>').join(''); corpo.append(e);
+    }, () => 'Recolhido. ' + nAtual + ' itens na janela.'),
+    cartaoRec('painel', 'FL2-VAZAO', 'Vazão semanal', corpo => {
+      const v = vaz.map(esc); corpo.append(colunas(v, Math.max(...v, 1), 'Itens entregues por semana'));
+      const e = document.createElement('div'); e.className = 'eixo'; e.innerHTML = vaz.map((_, i) => '<span>S' + (i + 1) + '</span>').join(''); corpo.append(e);
+    }, () => 'Recolhido. ' + nAtual + ' itens na janela.')
+  );
+  bloco('tat', { setor:true, equipes:EQUIPES_BM, base:217, rotItens:'Itens entregues', rotMediana:'Mediana do tempo de ciclo', onChange: n => { nAtual = n; REGISTRO.painel.forEach(c => c.render()); } });
+})();
+
+/* Estados */
+(function () {
+  const barra = document.getElementById('barra-estados');
+  const CEN = {
+    normal: { estado:'ok', opcoes:['Bug','Melhoria','Tarefa técnica','Solicitação','Incidente'] },
+    muitos: { estado:'ok', opcoes:Array.from({length:60},(_, i) => 'Sistema ' + String(i+1).padStart(2,'0') + (i % 7 === 0 ? ' Financeiro' : i % 5 === 0 ? ' Fiscal' : ' Comercial')) },
+    longos: { estado:'ok', opcoes:['Plataforma de Integração com Parceiros e Marketplaces da Região Sul e Sudeste','Equipe de Atendimento Especializado a Clientes Corporativos de Grande Porte','Mobile'] },
+    vazia: { estado:'vazia', opcoes:[] },
+    carregando: { estado:'carregando', opcoes:[] },
+    erro: { estado:'erro', opcoes:[] }
+  };
+  const monta = k => {
+    barra.innerHTML = '';
+    const sel = new Set();
+    const c = CEN[k];
+    barra.append(filtro({ id: 'est-' + k, rotulo: 'Sistema', genero: 'm', estado: c.estado, opcoes: c.opcoes, sel, onChange: () => chips(document.getElementById('chips-estados'), [['Sistema', sel, () => monta(k)]]) }));
+    if (c.estado === 'vazia') { const p = document.createElement('p'); p.className = 'msg'; p.textContent = 'Ainda não há sistemas na base para este período. O filtro aparece quando houver dados.'; barra.append(p); }
+    document.getElementById('chips-estados').innerHTML = '';
+  };
+  document.querySelectorAll('[data-cen]').forEach(b => b.onclick = () => monta(b.dataset.cen));
+  monta('normal');
+})();
+
+/* Abas */
+document.querySelectorAll('nav.abas button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav.abas button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  ['resumo','apontamento','painel','estados'].forEach(t => document.getElementById('t-' + t).hidden = (t !== b.dataset.tela));
+});
+</script>
+</body>
+</html>

@@ -40,7 +40,7 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     await db.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('sistema', 'REAL', '2026-02-02', 'Real', 0)`);
     await db.query(`INSERT INTO ${E.ac}.dim_chamado (chamado_id, aberto_em, coletado_em, atualizado_por_coleta_id) VALUES ('A9001', now(), now(), $1)`, [realAc]);
     await db.query(`INSERT INTO ${E.ac}.fato_etapa_chamado (chamado_id, etapa, entrada, coletado_em, atualizado_por_coleta_id) VALUES ('A9001', 'aberto', now(), now(), $1)`, [realAc]);
-    await db.query(`INSERT INTO ${E.ac}.ref_alvo_prioridade (prioridade, vigente_de, prazo_pa_horas_uteis, prazo_r_horas_uteis) VALUES ('REAL', '2026-03-03', 1, 2)`);
+    await db.query(`INSERT INTO ${E.ac}.ref_alvo_prioridade (prioridade, vigente_de, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r) VALUES ('REAL', '2026-03-03', 1, 'util', 2, 'util')`);
     // versão de critério real (BusinessMap e Acelerato) com métrica: não pode sair
     for (const dominio of ['businessmap', 'acelerato']) {
       const v = await db.query<{ versao_id: string }>(`INSERT INTO ${E.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)

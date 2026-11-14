@@ -11,13 +11,14 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "size": "node scripts/size.mjs",
+    "sem-mock": "node scripts/sem-mock.mjs",
     "typecheck": "tsc -b",
     "test": "TZ=UTC vitest run",
     "test:paridade": "vitest run --config vitest.paridade.config.ts",
     "test:watch": "TZ=UTC vitest",
     "check": "pnpm run typecheck && npm test",
     "cobertura": "TZ=UTC vitest run --coverage",
-    "pronto": "pnpm run typecheck && pnpm run cobertura && pnpm run build && pnpm run size"
+    "pronto": "pnpm run typecheck && pnpm run cobertura && pnpm run build && pnpm run sem-mock && pnpm run size"
   },
   "dependencies": {
     "@metricas-dspd/contratos": "workspace:*",

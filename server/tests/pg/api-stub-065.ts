@@ -25,7 +25,7 @@ http
       let m: RegExpMatchArray | null
       if ((m = p.match(/^\/metricas\/([A-Za-z0-9_]+)$/))) {
         const id = m[1] as MetricaId
-        if (origemDaMetrica(id) === 'mock') return json(res, corpoSemDadoReal(id), { 'x-estado-dado': 'sem-dado-real' })
+        if (origemDaMetrica(id) === 'sem-dado') return json(res, corpoSemDadoReal(id), { 'x-estado-dado': 'sem-dado-real' })
         const periodo = u.searchParams.get('periodo') ?? (SUST.test(id) ? '6m' : '12s')
         const filtros = SUST.test(id)
           ? { equipe: [], prioridade: [], periodo: { tipo: periodo } }
