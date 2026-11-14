@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
-import { CRITERIOS_ACELERATO, registrarCriteriosAcelerato } from '../src/modulos/referencia/criterios-acelerato.js';
+import { CRITERIOS_ACELERATO, CRITERIO_D7_528, registrarCriterioD7528, registrarCriteriosAcelerato } from '../src/modulos/referencia/criterios-acelerato.js';
 import { criarDublePg } from './duble-pg.js';
 
 const S = montarEsquemas('');
@@ -26,5 +26,28 @@ describe('CT-49: marcas da D-7, da D-10 do 066 e do 069 em ref_versao_criterio (
   it('descrição e motivo cabem nas colunas (300 e 500) e as referências são únicas', () => {
     for (const c of CRITERIOS_ACELERATO) { expect(c.descricao.length).toBeLessThanOrEqual(300); expect(c.motivo.length).toBeLessThanOrEqual(500); }
     expect(new Set(CRITERIOS_ACELERATO.map((c) => c.referencia)).size).toBe(CRITERIOS_ACELERATO.length);
+  });
+});
+
+describe('K-308: critério 099:D-7-528 (ADR 0027, item 7.2)', () => {
+  it('fica fora de CRITERIOS_ACELERATO: só o comando de reprojeção o grava', () => {
+    expect(CRITERIOS_ACELERATO.map((c) => c.referencia)).not.toContain('099:D-7-528');
+    expect(CRITERIO_D7_528.metricas).toEqual(['S1', 'S4', 'S9', 'S10', 'EI_SUST']);
+    expect(CRITERIO_D7_528.descricao.length).toBeLessThanOrEqual(300);
+    expect(CRITERIO_D7_528.motivo.length).toBeLessThanOrEqual(500);
+  });
+  it('grava a versão do domínio acelerato com a data e as cinco métricas; devolve true', async () => {
+    const d = criarDublePg((q) => (q.texto.startsWith('SELECT 1') ? [] : q.texto.includes('RETURNING versao_id') ? [{ versao_id: '9' }] : []));
+    expect(await registrarCriterioD7528(d.pool, S, '2026-11-14', AGORA)).toBe(true);
+    const v = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio ('))!;
+    expect([v.valores[0], v.valores[3]]).toEqual(['2026-11-14', '099:D-7-528']);
+    expect(v.texto).toContain("'acelerato'");
+    expect(d.chamadas.filter((c) => c.texto.includes('ref_versao_criterio_metrica')).map((c) => c.valores)).toEqual(
+      [['9', 'S1'], ['9', 'S4'], ['9', 'S9'], ['9', 'S10'], ['9', 'EI_SUST']]);
+  });
+  it('idempotente: existindo a referência, não grava e devolve false', async () => {
+    const d = criarDublePg((q) => (q.texto.startsWith('SELECT 1') ? [{ x: 1 }] : []));
+    expect(await registrarCriterioD7528(d.pool, S, '2026-11-14', AGORA)).toBe(false);
+    expect(d.chamadas.some((c) => c.texto.includes('INSERT'))).toBe(false);
   });
 });

@@ -6,7 +6,7 @@ import { useDadosAba, useRotulos } from '../dados'
 import { diaMes, fmtHoras } from '../formatar'
 import { ordenarPorTotal } from '../ordem'
 import { rolarCelulaParaVista } from '../rolagem'
-import { ANOMALIA, CARTOES, FAIXAS } from '../textos'
+import { ANOMALIA, CARTOES, DIARIO_VAZIO, FAIXAS } from '../textos'
 import {
   PESSOA_OUTRA_AREA,
   type DiarioApontamento,
@@ -277,11 +277,7 @@ function Diario({ r }: { r: RespostaApontamento }) {
       </p>
       {linhas.length === 0 ? (
         <div className="flex flex-col items-start gap-2 text-sm" data-testid="diario-sem-pessoas">
-          <p>
-            {equipes.length > 0
-              ? 'Nenhum apontamento da equipe escolhida nesta janela. Troque as datas do mapa ou remova o filtro Equipe.'
-              : 'Nenhum apontamento nesta janela. Troque as datas do mapa.'}
-          </p>
+          <p>{equipes.length > 0 ? DIARIO_VAZIO.comEquipe : DIARIO_VAZIO.semEquipe}</p>
           {equipes.length > 0 && (
             <button
               type="button"

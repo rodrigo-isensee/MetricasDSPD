@@ -140,11 +140,13 @@ export default function ApontamentoPage({
               className="sr-only"
               data-testid="anuncio-carregando"
             >
-              {estado === 'carregando' ? CARREGANDO : ''}
+              {estado === 'carregando' ? CARREGANDO : vazio ? VAZIO.anuncio : ''}
             </div>
-            <IndiceDeSecoes secoes={INDICE} />
+            {!vazio && <IndiceDeSecoes secoes={INDICE} />}
             {vazio ? (
-              <EstadoVazio codigo="AP" titulo={VAZIO.titulo} texto={VAZIO.texto} />
+              <Secao id="secao-periodo" titulo={VAZIO.secao}>
+                <EstadoVazio codigo="AP" titulo={VAZIO.titulo} texto={VAZIO.texto} />
+              </Secao>
             ) : (
               <>
                 <Secao id="secao-kpis" titulo={SECOES.kpis}>
@@ -167,11 +169,11 @@ export default function ApontamentoPage({
                 <Secao id="secao-achados" titulo={SECOES.achados}>
                   <CartaoAchados />
                 </Secao>
-                <Secao id="secao-diario" titulo={SECOES.diario}>
-                  <CartaoDiario />
-                </Secao>
               </>
             )}
+            <Secao id="secao-diario" titulo={SECOES.diario}>
+              <CartaoDiario />
+            </Secao>
           </section>
         </ProvedorDadosAba>
       </ProvedorOrigemCartoes>
