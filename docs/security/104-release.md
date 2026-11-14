@@ -1,0 +1,45 @@
+---
+tipo: revisao-seguranca
+contrato: 1
+pedido: 104-release-2026-11-14
+branch: docs/104-release
+commit: 71f9ff8ef7c9e5075e623966806b0cb7b8f315b2
+parecer: aprovado
+revisor: forge:security-engineer
+data: 2026-11-14
+---
+# Review de segurança: release 104 (develop b544000d contra main 8fe42306, PRs 383, 384, 386 a 401 e 403 a 409)
+
+Propósito: parecer de segurança da release de 14/11 (E1.2). Li `git diff origin/main...origin/develop` (234 arquivos) por amostragem dos gatilhos: `server/`, `packages/contratos`, `packages/metricas/src/acelerato`, `scripts/`, `.github/`, `.githooks/`, manifestos e lockfile, e as partes da web que tocam armazenamento do navegador e dado de pessoa. A branch `docs/104-release` em `71f9ff8e` (Revisar-sha) só soma à develop o CHANGELOG; `af0c930d` soma o review da release (documentação). Os lotes com parecer próprio (L10a `86a3808f`, K-308 `58f4f927`, K-314 B1 `a3d95914`, K-319 `c316e690`, K-322 `95a65933`, FORGE0442-001 `bdb6669e`, todos `aprovado`) foram conferidos no estado final pelo diff entre o commit do parecer e a develop, sem refazer as sondas. Nada rodou contra a base real e nenhum `.env*` foi lido.
+
+## Gatilhos
+- Migração nova: `server/migrations/0037_ac_alvo_prioridade_exibicao.ts` (colunas `exibir_pa` e `exibir_r` em `ref_alvo_prioridade`).
+- GRANTs: `server/src/plataforma/db/grants.ts` sem mudança; os GRANTs da `dspd_api` derivam do catálogo e de `COLUNAS_PESSOA`.
+- Contratos com campo novo: O17 (`porCausa` anulável, `motivoCausaRaiz`), `setores` em `OpcoesFiltroFluxo` (L10a), `exibirEm` no S1 (K-314), filtro `equipe` da sustentação só slug (K-287).
+- Entrada nova com credencial do migrador: `server/src/entradas/reprojetar-etapas-ac.ts` (K-308, K-321).
+- Hook pre-push e scripts dos alterados: `scripts/lint-alterados.sh`, `scripts/typecheck-alterados.sh`, `scripts/suite-unica.sh` (K-317, K-319, K-322, FORGE0442-001/K-256).
+- Manifestos: `package.json:12` e `:15`, `server/package.json:23`.
+
+## Resultado
+- **Migração 0037: conforme.** DDL fixa, só o esquema interpolado (prefixo validado na partida); colunas `text NULL` com `CHECK` fechado em `min|h|dia`, par obrigatório e "dia corrido" barrado; sem `DEFAULT` e sem reescrever vigência gravada (histórico intocado). Nenhuma coluna de pessoa. Checksum em `server/migrations/checksums.json:38`.
+- **GRANTs e `dspd_api` sem coluna de pessoa: conforme.** `grants.ts` não muda; as colunas novas não são de pessoa e entram pelo GRANT derivado (`grants.ts:79-113`); `lerAlvos` (`server/src/modulos/metricas/repositorio.ts:168`) lê só colunas de prazo e unidade, e `exibirDe` (`server/src/modulos/metricas/mapa.ts:182`) recusa valor fora do domínio em vez de assumir padrão.
+- **Allow-list do Acelerato: conforme, sem mudança.** `listas-fechadas.ts`, `allow-list.ts` e o normalizador do Acelerato não mudam; nome, e-mail, `usuarioKey`, título e descrição seguem fora. A reprojeção do K-308 lê só `dim_chamado` e as etapas do staging (sem coluna de pessoa, ADR 0020) e grava só `fato_etapa_chamado`, `ctl_coleta` e a versão de critério, numa transação.
+- **Contratos: conforme.** O17: `porSistema` é `categoria_sistema` (não é pessoa) e `motivoCausaRaiz` é constante (`packages/contratos/src/origem.ts:54`), sem texto do chamado. K-287: o filtro `equipe` passa a exigir slug `^[a-z0-9][a-z0-9-]{0,59}$` (`packages/contratos/src/filtros.ts:11`), mais estrito, e os apelidos antigos saem. Setores (L10a): rótulo do dicionário versionado (hoje vazio, `docs/architecture/fontes/businessmap-dominio.json:17`), nunca do nome do quadro; a leitura do banco refiltra código e rótulo (`server/src/modulos/referencia/repositorio.ts:40`). `exibirEm` é enum de exibição.
+- **Entrada `ac:reprojetar-etapas`: conforme.** Imprime só contagens; o erro sai por `categoriaDoErro` ou pela mensagem fixa de `ErroReprojecao` (lista de turnos e feriados, sem URL, senha ou texto do banco) (`server/src/entradas/reprojetar-etapas-ac.ts:19-21`); o teste do K-321 cobre com sentinela `postgres://segredo@...`. Desde o parecer do K-308 só mudaram imports (K-318) e `dataCivil` da referência.
+- **Hook pre-push e scripts: conforme os pareceres próprios.** `.githooks/` não muda; `git diff 95a65933 origin/develop -- scripts .githooks` só traz o `suite-unica.sh` do FORGE0442-001, que é idêntico ao do parecer dele (`git diff bdb6669e origin/develop -- scripts/suite-unica.sh package.json` vazio). `package.json:12` só fixa o heap do eslint (`--max-old-space-size=4096`) e `:15` soma `pre-push.test.sh` ao `test:trava`; `server/eslint.config.js` só estreita imports (K-318).
+- **Web: conforme.** A memória de "Recolher cartão" (`web/src/components/ui/Recolhidos.tsx:14-45`) guarda só códigos de cartão no `localStorage`, lida com zod, regex de painel e cartão (barra `__proto__`), teto de 100 e falha fechada; nada vai à URL nem ao servidor. As telas do Apontamento só reorganizam o que a API já entrega (`pessoaRef`, "Pessoa n"); nenhum campo de pessoa novo e nenhum `dangerouslySetInnerHTML`.
+- **Workflows, dependências e lockfile: sem mudança.** Nenhum arquivo em `.github/` nem `pnpm-lock.yaml`; nenhuma dependência nova nos manifestos.
+- **Nenhum segredo: conforme.** Busca nas linhas adicionadas fora de `docs/` por apikey, token, senha, password, secret, chave privada, URL com credencial, `ghp_`, `AKIA`, e-mail e `usuarioKey`: só sentinelas fictícias de teste (`chave-de-teste-0123456789`, `postgres://segredo@host/db`, `t@t` de repositório descartável) e comentários.
+- **Regras invioláveis:** BusinessMap e Acelerato seguem separados (setores só no BusinessMap; o O17 e o S1 só no Acelerato); nenhuma visão nova por pessoa nem comparação entre equipes.
+- **Suíte:** não rodei suíte; o QA da release roda o `pnpm run pronto` na ponta da develop (E1.3) e o portão da `homolog` roda a suíte completa e a migração a partir da main (E1.5). Este parecer não substitui esses portões.
+- **Lacunas de ferramenta:** `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH; não rodei nenhum. Sem dependência nova e sem workflow alterado, fica com o CI.
+
+## Achados
+- A1 (recomendado) .github/workflows/ci.yml:186 · herdado das releases 101 e 103, ainda aberto: a guarda G1 (web/scripts/sem-mock.mjs) não roda na CI; os jobs com pnpm run build (ci.yml:186, ci.yml:266, homolog.yml:82, homolog.yml:195) não chamam sem-mock. Dono: devops-engineer.
+- A2 (recomendado) server/src/modulos/referencia/setor.ts:11 · herdado do A1 de docs/security/097-l10a-setor-dicionario.md: o guarda de sobrenome é lista negativa; hoje sem efeito, porque o dicionário de setores está vazio até a P-097-9. Fechar antes de o dono preencher os setores. Dono: node-backend.
+
+## Plano em cartões
+Nenhum bloqueante. A1 segue com o devops-engineer (envio de workflow é do dono, escopo `workflow`). A2 entra no lote que preencher `setores` (P-097-9), com o review de segurança desse lote. Os recomendados dos pareceres próprios (K-308 A1, K-319 A1 a A3, FORGE0442-001 A1 e A2) seguem com os seus donos e não seguram a release.
+
+## Riscos aceitos
+- Reidentificação de "Pessoa n" em equipe pequena no Apontamento (A1 de `docs/security/097-k286-mapa-diario-equipe.md`): aceito pelo dono em 2026-11-12 e confirmado na Decisão 28a (pedido 097), como registrado no parecer da release 103. Nenhuma mudança desta release o amplia.
