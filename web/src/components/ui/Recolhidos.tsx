@@ -118,10 +118,11 @@ export interface EstadoRecolhido {
 }
 
 /** `null` fora de um provedor: o cartão não mostra o botão (testes isolados, Visão geral). */
-export function useRecolhido(codigo: string): EstadoRecolhido | null {
+export function useRecolhido(codigo: string, ativo = true): EstadoRecolhido | null {
   const v = useContext(Ctx)
   const registrar = v?.registrar
-  useEffect(() => registrar?.(codigo), [registrar, codigo])
+  // Cartão que não recolhe não entra em `montados`: a memória dele não faz o "Restaurar" aparecer.
+  useEffect(() => (ativo ? registrar?.(codigo) : undefined), [registrar, codigo, ativo])
   return v ? { recolhido: v.recolhidos.has(codigo), alternar: () => v.alternar(codigo) } : null
 }
 

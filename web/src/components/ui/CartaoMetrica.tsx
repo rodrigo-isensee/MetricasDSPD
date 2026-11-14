@@ -19,6 +19,7 @@ import { fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
+import { Botao } from './Botao'
 import {
   ProvedorCartaoCalibracao,
   SeloCalibracao,
@@ -149,7 +150,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const idLeitura = useId()
   const idNota = useId()
   const idCorpo = useId()
-  const recolher = useRecolhido(p.codigo)
+  const recolher = useRecolhido(p.codigo, p.recolhivel !== false)
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
   const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
@@ -313,9 +314,16 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
 
       <div id={idCorpo}>
         {recolhido ? (
-          <p className="mt-2 text-sm text-texto-2" data-testid={`resumo-recolhido-${p.codigo}`}>
-            {resumo}
-          </p>
+          <>
+            <p className="mt-2 text-sm text-texto-2" data-testid={`resumo-recolhido-${p.codigo}`}>
+              {resumo}
+            </p>
+            {estado === 'erro' && p.onTentarDeNovo && (
+              <div className="mt-2">
+                <Botao onClick={p.onTentarDeNovo}>Tentar de novo</Botao>
+              </div>
+            )}
+          </>
         ) : (
           <>
             <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
