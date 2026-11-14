@@ -307,6 +307,14 @@ describe('ramos dos componentes complementares', () => {
     expect(await screen.findByText(/A causa raiz mais frequente é/)).toBeInTheDocument()
   })
 
+  it('O17 mostra os subtítulos Por causa raiz e Por sistema como títulos do cartão', async () => {
+    renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: fonteDeTeste })
+    const el = await screen.findByTestId('metrica-O17')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
+    expect(within(el).getByRole('heading', { name: 'Por causa raiz' })).toBeInTheDocument()
+    expect(within(el).getByRole('heading', { name: 'Por sistema' })).toBeInTheDocument()
+  })
+
   it('O17 sem causa raiz mostra Sem dado real com o motivo e mantém o por sistema', async () => {
     const semCausa = new FonteAjustada({
       O17: (r: Qualquer) => {
