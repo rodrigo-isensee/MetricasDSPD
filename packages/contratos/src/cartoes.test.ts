@@ -85,7 +85,7 @@ describe('catálogo de cartões', () => {
       for (const p of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(p)?.grupo).toBe('nucleo')
   })
 
-  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, E6, E8, O22, O26, T13, T14, S8, S11; o S12 é real só com o volume)', () => {
+  it('classifica os cartões: mock só onde falta fonte real (T8, E4, E6, E8, O22, O26, T13, T14, S8, S11; o O17 é real por sistema e o S12 só com o volume)', () => {
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
     expect(compl.map((c) => c.codigo).sort()).toEqual(
       [
@@ -124,7 +124,7 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    const mock = ['O17', 'T8', 'E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8', 'S11']
+    const mock = ['T8', 'E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8', 'S11']
     for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')

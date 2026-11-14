@@ -10,6 +10,7 @@ import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js
 import { migrar } from '../src/plataforma/db/migrar.js';
 import { cenarioWorklogVazio, registroWorklog, subirServidorWorklog, type CenarioWorklog, type Registro, type ServidorWorklog } from './apontamento-duble.js';
 import { novaColeta, poolDe, S, unico, url } from './pg/ctx.js';
+import { provarSemPessoa } from './pg/colunas-pessoa.js';
 
 // Pedido 059, A1 a A3 contra o PostgreSQL local: migrações, papéis (CA-AP-1), CHECKs, gatilhos, idempotência da staging e dos eventos,
 // coleta ponta a ponta (servidor falso do worklog, nenhuma chamada real), supressão, hierarquia e atomicidade (CT-79).
@@ -88,8 +89,8 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
     for (const t of ['stg_apontamento', 'evt_apontamento', 'fato_apontamento', 'dim_card_raiz', 'cfg_pessoa_eliminada', 'ref_apontamento_subgrupo', 'ref_apontamento_termo', 'ref_apontamento_regra_tipo', 'dim_responsavel']) {
       expect((await falha(api, `SELECT count(*) FROM ${S.bm}.${t}`)).code, t).toBe('42501');
     }
-    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.dim_responsavel`)).code).toBe('42501');
-    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.fato_apontamento`)).code).toBe('42501');
+    await provarSemPessoa(api, dono, 'dspd_bm.dim_responsavel', S.bm);
+    await provarSemPessoa(api, dono, 'dspd_bm.fato_apontamento', S.bm);
     const coleta = await novaColeta(dono, S.bm);
     const [sql, params] = linhaStg('9599000001', SHA('a'), { card_id: '9599000002' });
     params[9] = coleta;
@@ -302,7 +303,7 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
     const e = montarEsquemas(p);
     try {
       await migrar(url!, { prefixo: p });
-      await migrar(url!, { prefixo: p, direcao: 'down', quantas: 5 }); // desfaz a 0036 (unidade do alvo), a 0035 (previsão), a 0034 (cobertura), a 0033 (view do time) e a 0032: volta ao estado da 0031 (chave por hash)
+      await migrar(url!, { prefixo: p, direcao: 'down', quantas: 6 }); // desfaz a 0037 (exibição do alvo), a 0036 (unidade do alvo), a 0035 (previsão), a 0034 (cobertura), a 0033 (view do time) e a 0032: volta ao estado da 0031 (chave por hash)
       const col = async (): Promise<string[]> => (await dono.query<{ column_name: string }>(`SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'stg_apontamento'`, [e.bm])).rows.map((r) => r.column_name);
       expect(await col()).not.toContain('versao');
       const coleta = (await dono.query<{ coleta_id: string }>(`INSERT INTO ${e.bm}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('reconciliacao', now(), 'em_andamento', 'teste') RETURNING coleta_id`)).rows[0]!.coleta_id;
@@ -322,7 +323,7 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
       // volta ao valor antigo na chave nova, e então o down recusa e nada muda
       await dono.query(`INSERT INTO ${e.bm}.stg_apontamento (logged_time_id, card_id, data_apontamento, segundos, subgrupo_codigo, flags_qualidade, qtd_palavras, versao_dicionario, registro_sha256, coletado_em, coleta_id, versao)
         VALUES ('100', '1', '2026-10-20', 60, 'x', 0, 1, 'v', decode($1, 'hex'), now(), $2, 4)`, [SHA('a'), coleta]);
-      await expect(migrar(url!, { prefixo: p, direcao: 'down', quantas: 5 })).rejects.toThrow(/down da 0032 recusado/);
+      await expect(migrar(url!, { prefixo: p, direcao: 'down', quantas: 6 })).rejects.toThrow(/down da 0032 recusado/);
       expect(await col()).toContain('versao');
       expect((await dono.query(`SELECT count(*) AS n FROM ${e.bm}.stg_apontamento`)).rows[0]).toEqual({ n: '6' });
     } finally {

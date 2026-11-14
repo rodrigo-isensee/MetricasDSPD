@@ -25,6 +25,10 @@ interface Props {
   /** Frase acrescentada ao "Como ler" (063: só com o sinal de registro incompleto). */
   comoLerExtra?: string | undefined
   semTabela?: boolean
+  /** `false` nos cartões de número único (Q-8). */
+  recolhivel?: boolean
+  /** Linha do cartão recolhido quando há um total melhor que o padrão (CA-32: nunca por pessoa, equipe ou setor). */
+  resumoRecolhido?: string | undefined
   className: string
   /** Corpo do cartão: só é chamado quando a resposta existe (estado `ok`). */
   children: (r: RespostaApontamento) => ReactNode
@@ -47,6 +51,8 @@ export function CartaoApontamento({
   acoes,
   comoLerExtra,
   semTabela,
+  recolhivel,
+  resumoRecolhido,
   className,
   children,
 }: Props) {
@@ -91,6 +97,8 @@ export function CartaoApontamento({
         : {})}
       {...(acoes ? { acoes } : {})}
       {...(semTabela ? { semTabela } : {})}
+      {...(recolhivel === false ? { recolhivel } : {})}
+      {...(resumoRecolhido ? { resumoRecolhido } : {})}
       className={className}
       erro={d.erro}
       onTentarDeNovo={d.tentarDeNovo}

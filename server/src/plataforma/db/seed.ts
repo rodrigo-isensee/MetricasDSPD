@@ -153,6 +153,7 @@ export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquema
   const refAlvo = base.ac.config.alvos.map((a): Linha => ({
     prioridade: a.prioridade, vigente_de: vigenteDe, prazo_pa_horas: a.primeiro_atendimento_horas,
     unidade_pa: a.unidade_primeiro_atendimento, prazo_r_horas: a.restauracao_horas, unidade_r: a.unidade_restauracao,
+    exibir_pa: a.exibir_primeiro_atendimento, exibir_r: a.exibir_restauracao,
   }));
   return [
     { tabela: `${S.ac}.dim_chamado`, linhas: dimChamado },

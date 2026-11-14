@@ -33,3 +33,13 @@ Hashes da escala 0,2 (só nos testes do mock, fora da linha de base): base 82409
 | hashAcelerato | 20541e9d | b047a163 |
 
 Motivo: o D3b (Decisão 13) passa o dia útil da Sustentação a 528 min (08:00-12:00 e 13:00-17:48) e os alvos em dias a dias x 8,8 h; o mock do Acelerato mede pelo calendário novo. BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `npm run hash-base -- --salvar` (e2e), como no D3 do PR 364. Consequência legítima do D3b (achado A1 do QA).
+
+## Regravação de 2026-11-13 (pedido 099, K-314 B1, E3.180)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | dd6787b1 | 52378641 |
+| hashBusinessMap | 4540bc56 | 4540bc56 (intacto) |
+| hashAcelerato | b047a163 | 930570e9 |
+
+Motivo: o K-314 B1 acrescenta `exibir_primeiro_atendimento` e `exibir_restauracao` (min, h ou dia) a `config.alvos` do mock do Acelerato. BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar`. Consequência legítima do K-314 B1 (achado A1 do review 63aeca3).

@@ -171,7 +171,7 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
 
   test('CA-11 /sustentacao redireciona com os filtros convertidos, hash intacto, cartão focado e sem laço no Voltar', async ({ page }) => {
     await page.goto('/ajuda');
-    await page.goto('/sustentacao?prioridade=P1&periodo=12m&equipe=totvs&tipo=Bug#s2');
+    await page.goto('/sustentacao?prioridade=P1&periodo=12m&equipe=sssc-totvs&tipo=Bug#s2');
     await expect(page).toHaveURL(/\/operacional\?/);
     const p = busca(page);
     expect(p.get('cadencia')).toBe('sustentacao');

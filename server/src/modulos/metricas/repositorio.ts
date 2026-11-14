@@ -126,7 +126,7 @@ export const lerEtapas = async (db: Consultavel, S: Esquemas = esquemasDoAmbient
 export type LinhaDominio = { codigo: string; rotulo: string };
 export type LinhaGlobal = { classe: string; valor: string; desde: string };
 export type LinhaFicha = { card_id: string; ficha: Record<string, unknown> };
-export type LinhaAlvo = { prioridade: string; prazo_pa_horas: string; unidade_pa: string; prazo_r_horas: string; unidade_r: string };
+export type LinhaAlvo = { prioridade: string; prazo_pa_horas: string; unidade_pa: string; prazo_r_horas: string; unidade_r: string; exibir_pa: string | null; exibir_r: string | null };
 
 /** Valor global (não por equipe) é gravado com equipe = '*' (convenção provisória; ver docs/architecture/server.md). */
 export const EQUIPE_GLOBAL = '*';
@@ -165,7 +165,7 @@ export const lerFichas = async (db: Consultavel, S: Esquemas = esquemasDoAmbient
 
 export const lerAlvos = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaAlvo[]> =>
   (await db.query<LinhaAlvo>(
-    `SELECT prioridade, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r FROM ${S.ac}.ref_alvo_prioridade
+    `SELECT prioridade, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r, exibir_pa, exibir_r FROM ${S.ac}.ref_alvo_prioridade
       WHERE vigente_ate IS NULL ORDER BY prioridade`)).rows;
 
 /** Mesmo formato do `ParametrosCarga` da coleta (`businessmap/coleta.ts`): só o `inicio_carga` interessa aqui. */

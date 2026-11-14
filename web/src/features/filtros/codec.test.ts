@@ -158,11 +158,21 @@ describe('leitura e escrita da sustentação', () => {
     expect(r.invalidos).toEqual([])
   })
 
-  it('id antigo na URL vira o slug novo, sem duplicar', () => {
+  it('id antigo na URL não vira slug: é inválido e anotado (K-287)', () => {
     const r = lerSustentacao(P('equipe=totvs,sssc-totvs,fluig'), opcoesSust, '6m')
-    expect(r.filtros.equipe).toEqual(['sssc-totvs', 'sssc-fluig'])
-    expect(r.invalidos).toEqual([])
-    expect(escreverSustentacao(P(''), r.filtros, '6m').get('equipe')).toBe('sssc-totvs,sssc-fluig')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs'])
+    expect(r.invalidos).toEqual(['equipe "totvs"', 'equipe "fluig"'])
+  })
+
+  it('slug repetido na URL entra uma vez só', () => {
+    const r = lerSustentacao(P('equipe=sssc-totvs,sssc-totvs'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs'])
+  })
+
+  it('nome do protótipo de objeto na URL é inválido, nunca vira texto de função (A6)', () => {
+    const r = lerSustentacao(P('equipe=constructor,tostring,__proto__'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual([])
+    expect(r.invalidos).toEqual(['equipe "constructor"', 'equipe "tostring"', 'equipe "__proto__"'])
   })
 
   it('slug que não está nas opções é ignorado e anotado', () => {

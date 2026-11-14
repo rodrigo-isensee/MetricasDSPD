@@ -38,12 +38,12 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
     expect(chamadas.join()).not.toMatch(/Maria|nome/)
   })
 
-  it('pessoa= na URL nunca vai à rota: aviso "Valor inválido ignorado em: pessoa." e a página segue (CA-9)', async () => {
+  it('pessoa= na URL nunca vai à rota: aviso "O filtro Pessoa foi retirado; use Equipe." e a página segue (CA-9)', async () => {
     const { chamadas } = abrir(`${URL_ABA}?pessoa=p2,Maria`)
     await pronto()
     expect(chamadas.every((c) => !c.includes('pessoa'))).toBe(true)
-    expect(screen.getByTestId('filtros-invalidos')).toHaveTextContent(
-      'Valor inválido ignorado em: pessoa.',
+    expect(screen.getByTestId('aviso-pessoa-retirada')).toHaveTextContent(
+      'O filtro Pessoa foi retirado; use Equipe.',
     )
     expect(document.body).not.toHaveTextContent('Maria')
   })
@@ -81,7 +81,7 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
   it('vazio: período sem apontamento mostra o estado vazio com orientação', async () => {
     abrir(URL_ABA, { resposta: () => respostaVazia() })
     expect(await screen.findByTestId('estado-vazio-AP')).toHaveTextContent(
-      'Nenhum apontamento encontrado',
+      'Nenhum apontamento no período dos filtros',
     )
   })
 
@@ -136,7 +136,7 @@ describe('filtro por tipo (id de opcoes.tipos, type_id em dígitos)', () => {
   it('id inexistente (dígitos que a rota não conhece): vai à rota, volta o recorte vazio com orientação, e o chip sai pelo X', async () => {
     const { chamadas, roteador } = abrir(`${URL_ABA}?tipo=999`)
     expect(await screen.findByTestId('estado-vazio-AP')).toHaveTextContent(
-      'Nenhum apontamento encontrado',
+      'Nenhum apontamento no período dos filtros',
     )
     expect(chamadas.some((c) => /[?&]tipo=999(&|$)/.test(c))).toBe(true)
     await userEvent.click(screen.getAllByRole('button', { name: /^Remover filtro Tipo/ })[0]!)
@@ -162,14 +162,14 @@ describe('Outra área', () => {
     expect(screen.getByTestId('aba-apontamento').textContent).not.toMatch(/outra-area/)
   })
 
-  it('a barra de filtros não tem Pessoa, e a nota "Outra área" fica junto da capacidade (CA-7, Q-3)', async () => {
+  it('a barra de filtros não tem Pessoa, e a explicação de Outra área fica junto da capacidade (CA-7, Q-3, K-289)', async () => {
     abrir(URL_ABA, { resposta: () => respostaComOutraArea() })
     await pronto()
     const barra = screen.getByTestId('barra-filtros-apontamento')
     expect(within(barra).queryByRole('button', { name: /^Pessoa/ })).toBeNull()
     expect(within(barra).queryByTestId('nota-outra-area')).toBeNull()
     const capacidade = await screen.findByTestId('metrica-AP-CAPACIDADE-PESSOA')
-    expect(within(capacidade).getByTestId('nota-outra-area')).toBeInTheDocument()
+    expect(within(capacidade).getByTestId('nota-outra-area-capacidade')).toBeInTheDocument()
   })
 })
 

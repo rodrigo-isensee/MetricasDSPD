@@ -62,7 +62,7 @@ export function NumeroChave({
         <span className="flex items-center gap-1">
           <Icone nome="info" /> Sem dado real
         </span>
-        <span className="text-xs">
+        <span className="text-sm">
           <span className="font-semibold">Motivo:</span> {motivoSemDadoReal(erro)}
         </span>
       </div>

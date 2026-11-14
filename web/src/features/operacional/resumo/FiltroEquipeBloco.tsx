@@ -39,13 +39,15 @@ export function FiltroEquipeBloco({
     )
   else if (opcoes.isPending)
     controle = (
-      <Botao disabled data-testid={`equipe-${bloco}-carregando`}>
-        {ROTULO}: carregando…
-      </Botao>
+      <div role="status">
+        <Botao disabled data-testid={`equipe-${bloco}-carregando`}>
+          {ROTULO}: carregando…
+        </Botao>
+      </div>
     )
   else if (equipes.length === 0)
     controle = (
-      <div className="flex flex-wrap items-center gap-2 text-sm">
+      <div role="status" className="flex flex-wrap items-center gap-2 text-sm">
         <Botao disabled data-testid={`equipe-${bloco}-vazio`}>
           {ROTULO}: sem opções
         </Botao>
@@ -68,6 +70,7 @@ export function FiltroEquipeBloco({
           <Botao
             variante="fantasma"
             onClick={() => definir({ equipe: [] })}
+            aria-label={`Limpar filtros de ${ROTULO} do bloco ${bloco === 'fluxo' ? 'Fluxo' : 'Sustentação'}`}
             data-testid={`limpar-equipe-${bloco}`}
           >
             Limpar filtros
@@ -80,7 +83,10 @@ export function FiltroEquipeBloco({
     <div className="flex min-h-10 flex-col gap-2" data-testid={`filtro-bloco-${bloco}`}>
       {controle}
       {selecionadas.length >= 2 && (
-        <p className="flex items-center gap-2 text-sm text-texto-2" data-testid="aviso-consolidado">
+        <p
+          className="flex items-center gap-2 text-sm text-texto-2"
+          data-testid={`aviso-consolidado-${bloco}`}
+        >
           <Icone nome="info" className="size-4" />
           Resultado consolidado de {selecionadas.length} equipes. O sistema não compara equipes.
         </p>

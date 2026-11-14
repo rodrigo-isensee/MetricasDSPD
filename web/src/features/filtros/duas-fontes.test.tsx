@@ -185,7 +185,7 @@ describe('os dois conjuntos de filtros na mesma URL (4.1)', () => {
   it('chips, limpar e remover agem só no conjunto da visão', async () => {
     const r = montar(
       'sustentacao',
-      '/operacional?cadencia=sustentacao&equipe=fluig&sust_prioridade=p1&sust_equipe=totvs',
+      '/operacional?cadencia=sustentacao&equipe=fluig&sust_prioridade=p1&sust_equipe=sssc-totvs',
       'sust_',
     )
     await waitFor(() => expect(r.result.current.uso.opcoes).toBeDefined())

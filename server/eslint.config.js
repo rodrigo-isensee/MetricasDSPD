@@ -11,6 +11,8 @@ const SQL = [
   { selector: `Literal[value=${re}]`, message },
   { selector: `TemplateElement[value.raw=${re}]`, message },
 ]);
+const MSG_RAIZ = 'A raiz de @metricas-dspd/metricas só entra em modulos/metricas; fora dele use o subcaminho (/core, /businessmap, /acelerato) ou o index do módulo (ADR 0013 §9).';
+const PATH_RAIZ = { name: '@metricas-dspd/metricas', message: MSG_RAIZ };
 const MSG_INDEX = 'Módulos se conhecem só pelo index.ts (ADR 0013 §9).';
 // Fora dos módulos, o módulo da aba (e por ele o pool do papel da aba) só entra em quem monta a API: app, entrada api e a geração do OpenAPI (A1 do parecer 059-rota-apontamento).
 const FORA_DOS_MODULOS = [
@@ -31,6 +33,7 @@ export default tseslint.config(
     files: [`src/modulos/${m}/**/*.ts`],
     rules: {
       'no-restricted-imports': ['error', {
+        ...(m !== 'metricas' ? { paths: [PATH_RAIZ] } : {}),
         patterns: [
           { regex: `(modulos/|^\\.\\./)(${MODULOS.filter((x) => x !== m).join('|')})/(?!index\\.js$)`, message: MSG_INDEX },
           ...(m !== 'businessmap' ? [{ group: ['@metricas-dspd/metricas/coletor', '**/metricas/src/coletor', '**/metricas/src/coletor/*'], message: 'A biblioteca do coletor (identidade e comentário em memória) só entra em modulos/businessmap (ADR 0020, item 3).' }] : []),
@@ -46,9 +49,11 @@ export default tseslint.config(
   { files: ['**/*.ts'], linterOptions: { noInlineConfig: true } },
   // Fora dos módulos: todo src/** (pasta nova entra sem lista; o teste fronteira-eslint.test.ts quebra se uma escapar): nada de arquivo interno de módulo, e o módulo da aba só entra em app, entrada api e openapi.
   { files: ['src/**/*.ts'], ignores: ['src/modulos/**', 'src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts', ...MONTAM_A_API], rules: {
-    'no-restricted-imports': ['error', { patterns: [...FORA_DOS_MODULOS, { regex: IMPORTA_O_MODULO_DA_ABA, message: MSG_POOL_APONTAMENTO }] }],
+    'no-restricted-imports': ['error', { paths: [PATH_RAIZ], patterns: [...FORA_DOS_MODULOS, { regex: IMPORTA_O_MODULO_DA_ABA, message: MSG_POOL_APONTAMENTO }] }],
   } },
-  { files: MONTAM_A_API, rules: { 'no-restricted-imports': ['error', { patterns: FORA_DOS_MODULOS }] } },
+  { files: MONTAM_A_API, rules: { 'no-restricted-imports': ['error', { paths: [PATH_RAIZ], patterns: FORA_DOS_MODULOS }] } },
+  // Seed e extensões mock ficam fora das regras de padrão acima, mas a raiz da biblioteca de métricas também lhes é vedada (ADR 0013 §9).
+  { files: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts'], rules: { 'no-restricted-imports': ['error', { paths: [PATH_RAIZ] }] } },
   // Serviço e repositório não leem o relógio nem sorteiam.
   { files: ['src/modulos/**/servico.ts', 'src/modulos/**/repositorio.ts'], rules: {
     'no-restricted-syntax': ['error', ...SQL,

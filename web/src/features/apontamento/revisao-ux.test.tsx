@@ -52,18 +52,52 @@ describe('A-1: tabelas por pessoa rolam só no bloco, com a coluna Pessoa fixa',
 })
 
 describe('A-3: nota fixa de quem é Outra área', () => {
-  it('aparece nas listas por pessoa e junto da capacidade, uma vez por cartão, e não na barra de filtros', async () => {
+  it('aparece nas listas que mostram a linha Outra área, uma vez por cartão, e não na barra de filtros', async () => {
     renderizar(URL_ABA, () => respostaComOutraArea())
-    for (const codigo of ['AP-MATRIZ', 'AP-QUALIDADE-PESSOA', 'AP-CAPACIDADE-PESSOA']) {
+    for (const codigo of ['AP-MATRIZ', 'AP-QUALIDADE-PESSOA']) {
       const c = await cartao(codigo)
       expect(within(c).getAllByTestId('nota-outra-area')).toHaveLength(1)
     }
-    expect(screen.getAllByText(NOTA_OUTRA_AREA)).toHaveLength(3) // matriz, qualidade por pessoa e capacidade (Q-3)
+    expect(screen.getAllByText(NOTA_OUTRA_AREA)).toHaveLength(2) // matriz e qualidade por pessoa (K-289, A2)
     const barra = screen.getByTestId('barra-filtros-apontamento')
     expect(within(barra).queryByText(NOTA_OUTRA_AREA)).toBeNull()
     expect(NOTA_OUTRA_AREA).toBe(
       'Outra área: pessoas que não foram responsáveis por card do DSPD nos últimos 12 meses, somadas, sem nome.',
     )
+  })
+
+  it('K-289 A2: a capacidade, que não mostra a linha Outra área, explica a exclusão em vez da nota da linha', async () => {
+    renderizar(URL_ABA, () => respostaComOutraArea())
+    const c = await cartao('AP-CAPACIDADE-PESSOA')
+    expect(within(c).queryByTestId('nota-outra-area')).toBeNull()
+    expect(within(c).queryByText('Outra área')).toBeNull()
+    expect(within(c).getByTestId('nota-outra-area-capacidade')).toHaveTextContent(
+      'Outra área soma várias pessoas e por isso não entra na capacidade por pessoa.',
+    )
+  })
+
+  it('K-289 A2: sem Outra área, a capacidade não traz a frase de exclusão', async () => {
+    renderizar(URL_ABA)
+    const c = await cartao('AP-CAPACIDADE-PESSOA')
+    expect(within(c).queryByTestId('nota-outra-area-capacidade')).toBeNull()
+  })
+
+  it('K-289 A4: o cartão mensal não se chama "equipe", que agora é o filtro que recorta', async () => {
+    renderizar(URL_ABA)
+    const c = await cartao('AP-CAPACIDADE-MENSAL')
+    expect(within(c).getByText('Capacidade mensal (total do recorte)')).toBeInTheDocument()
+    expect(within(c).queryByText(/\(equipe\)/)).toBeNull()
+    expect(within(c).queryByText(/utilização da equipe/i)).toBeNull()
+  })
+
+  it('K-289 A1: pessoa= com outro valor inválido mostra o aviso da Pessoa sem a chave crua e o outro aviso à parte', async () => {
+    renderizar(`${URL_ABA}?pessoa=p1&tipo=zzz`)
+    expect(await screen.findByTestId('aviso-pessoa-retirada')).toHaveTextContent(
+      /^O filtro Pessoa foi retirado; use Equipe\.$/,
+    )
+    const outro = screen.getByTestId('filtros-invalidos')
+    expect(outro).toHaveTextContent('Valor inválido ignorado em: Tipo.')
+    expect(outro).not.toHaveTextContent(/pessoa/i)
   })
 
   it('sem Outra área, a nota não aparece', async () => {
@@ -228,5 +262,23 @@ describe('A-13: datas no formato do painel', () => {
     expect(screen.getByTestId('periodo-dos-dados')).toHaveTextContent(
       /^Dados de \d{2}\/\d{2}\/\d{4} a \d{2}\/\d{2}\/\d{4}$/,
     )
+  })
+})
+
+describe('K-320 (A3): linha de nomes ocultos onde a tela lista Pessoa n', () => {
+  const LINHA = "Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'..."
+  const LUGARES = ['AP-MATRIZ', 'AP-QUALIDADE-PESSOA', 'AP-CAPACIDADE-PESSOA', 'AP-DIARIO'] as const
+
+  it.each(LUGARES)('%s mostra a linha uma vez quando os nomes estão ocultos', async (codigo) => {
+    renderizar(URL_ABA)
+    const c = await cartao(codigo)
+    expect(within(c).getAllByTestId('linha-nomes-ocultos')).toHaveLength(1)
+    expect(within(c).getByTestId('linha-nomes-ocultos')).toHaveTextContent(LINHA)
+  })
+
+  it.each(LUGARES)('%s não mostra a linha com nomes reais', async (codigo) => {
+    renderizar(URL_ABA, () => respostaComNomesReais())
+    const c = await cartao(codigo)
+    expect(within(c).queryByTestId('linha-nomes-ocultos')).toBeNull()
   })
 })

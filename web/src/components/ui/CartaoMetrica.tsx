@@ -15,7 +15,7 @@ import {
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
 import { SemDadoRealErro } from '@/data/http/SemDadoRealErro'
-import { fmtIntervalo } from '@/lib/formatar'
+import { fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
@@ -45,6 +45,7 @@ import { EstadoVazio } from './EstadoVazio'
 import { Icone } from './Icone'
 import { ModoTabelaContext, type ModoVisual } from './ModoTabela'
 import { BlocoNota, BotaoNota, type TextoNota } from './NotaMetodologica'
+import { useRecolhido } from './Recolhidos'
 import { SeloJanela } from './SeloJanela'
 import { StatusMeta } from './StatusMeta'
 import type { StatusMeta as Status } from '@metricas-dspd/contratos'
@@ -92,6 +93,10 @@ export interface CartaoMetricaProps {
   /** Sem alternativa em tabela (listas que já são tabelas). */
   semTabela?: boolean
   variante?: 'padrao' | 'compacto'
+  /** Mostra o botão "Recolher" (só dentro de um `ProvedorRecolhidos`); `false` nos cartões de número único (Q-8). */
+  recolhivel?: boolean
+  /** Linha do cartão recolhido quando há um total melhor que o padrão ("Recolhido. 24 projetos, ..."). Nunca por pessoa, equipe ou setor (CA-32). */
+  resumoRecolhido?: string
   onTentarDeNovo?: () => void
   erro?: Error | null
   className?: string
@@ -121,12 +126,30 @@ function notasDoCartaoVisiveis(
   return [...new Set([...fixas, ...(doResultado ?? [])])]
 }
 
+/** Linha do cartão recolhido: o estado (erro, carregando, sem dado real, vazio) nunca some atrás de um "Recolhido." calmo (M1, M2). */
+function resumoDoRecolhido(
+  estado: EstadoCartao,
+  atualizando: boolean,
+  resumoRecolhido: string | undefined,
+  base: CartaoMetricaProps['base'],
+): string {
+  if (estado === 'erro') return 'Não foi possível carregar este cartão.'
+  if (estado === 'carregando') return 'Recolhido. Carregando...'
+  if (estado === 'sem-dado-real') return 'Recolhido. Sem dado real nesta fonte.'
+  if (estado === 'vazio') return 'Recolhido. Sem dados no período.'
+  const total =
+    resumoRecolhido ?? `Recolhido.${base ? ` ${fmtInteiro(base.n)} ${base.unidade}.` : ''}`
+  return atualizando ? `${total} Atualizando...` : total
+}
+
 function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const [modo, setModo] = useState<ModoVisual>('grafico')
   const [notaAberta, setNotaAberta] = useState(false)
   const idTitulo = useId()
   const idLeitura = useId()
   const idNota = useId()
+  const idCorpo = useId()
+  const recolher = useRecolhido(p.codigo)
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
   const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
@@ -148,6 +171,9 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const alturaCorpo = p.alturaEsqueleto ?? ALTURAS_ESQUELETO[p.codigo] ?? ALTURA_ESQUELETO_PADRAO
   const alturaMobile = p.alturaEsqueleto ?? ALTURAS_ESQUELETO_MOBILE[p.codigo] ?? alturaCorpo
   const atualizando = ok && !!p.atualizando
+  const recolhivel = recolher !== null && p.recolhivel !== false
+  const recolhido = recolhivel && recolher.recolhido
+  const resumo = resumoDoRecolhido(estado, atualizando, p.resumoRecolhido, p.base)
 
   useEffect(() => {
     reportarAtualizando(id, atualizando)
@@ -209,13 +235,15 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <BotaoNota
-              aberta={notaAberta}
-              onAlternar={() => setNotaAberta((a) => !a)}
-              controla={idNota}
-            />
-            {p.acoes}
-            {ok && !p.semTabela && (
+            {!recolhido && (
+              <BotaoNota
+                aberta={notaAberta}
+                onAlternar={() => setNotaAberta((a) => !a)}
+                controla={idNota}
+              />
+            )}
+            {!recolhido && p.acoes}
+            {ok && !recolhido && !p.semTabela && (
               <AlternarTabela
                 modo={modo}
                 onAlternar={() => setModo((m) => (m === 'grafico' ? 'tabela' : 'grafico'))}
@@ -233,11 +261,33 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
                 Ocultar
               </button>
             )}
+            {recolhivel && (
+              <button
+                type="button"
+                onClick={recolher.alternar}
+                aria-expanded={!recolhido}
+                aria-controls={idCorpo}
+                aria-label={`${recolhido ? 'Expandir' : 'Recolher'} cartão: ${p.titulo}`}
+                data-testid={`recolher-${p.codigo}`}
+                className="alvo inline-flex items-center gap-1 rounded border border-borda-controle px-2 text-sm text-texto hover:bg-superficie-2"
+              >
+                <Icone nome="chevron" className={clsx('size-4', !recolhido && 'rotate-180')} />
+                {recolhido ? 'Expandir' : 'Recolher'}
+              </button>
+            )}
           </div>
         </div>
-        {/* Base e selos na linha do título; a altura é reservada para não saltar ao carregar. */}
-        <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
-          {p.base && (
+        {/* Base e selos na linha do título; a altura só é reservada quando há base (não salta ao carregar), sem faixa vazia.
+            Recolhido, ficam a origem e a calibração: o cartão calmo não pode esconder "sem dado real" (M1). */}
+        <div
+          className={clsx(
+            'mt-1 flex flex-wrap items-center gap-2',
+            !recolhido && p.base && 'min-h-6',
+            esmaece,
+          )}
+          data-testid={`selos-${p.codigo}`}
+        >
+          {!recolhido && p.base && (
             <BadgeBase
               base={p.base}
               variante={p.baseVariante ?? 'ok'}
@@ -245,116 +295,136 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
               data-testid={`base-${p.codigo}`}
             />
           )}
-          {janelaFixa && <SeloJanela janela={janelaTxt} />}
+          {!recolhido && janelaFixa && <SeloJanela janela={janelaTxt} />}
           {calibrando && !semDadoReal && <SeloCalibracao />}
-          {p.selos}
+          {!recolhido && p.selos}
           <SeloOrigem origem={origem} />
         </div>
-        <BlocoNota
-          id={idNota}
-          aberta={notaAberta}
-          nota={p.nota}
-          nestaTela={nesta}
-          testid={`nota-${p.codigo}`}
-        />
+        {!recolhido && (
+          <BlocoNota
+            id={idNota}
+            aberta={notaAberta}
+            nota={p.nota}
+            nestaTela={nesta}
+            testid={`nota-${p.codigo}`}
+          />
+        )}
       </header>
 
-      <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
-      {notas.length > 0 && (
-        <ul
-          className="mt-1 flex flex-col gap-0.5 text-xs text-texto-2"
-          data-testid={`notas-cartao-${p.codigo}`}
-        >
-          {notas.map((n) => (
-            <li key={n} className="flex items-start gap-1">
-              <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
-              {TEXTO_NOTA_QUALQUER[n]}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div id={idCorpo}>
+        {recolhido ? (
+          <p className="mt-2 text-sm text-texto-2" data-testid={`resumo-recolhido-${p.codigo}`}>
+            {resumo}
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
+            {notas.length > 0 && (
+              <ul
+                className="mt-1 flex flex-col gap-0.5 text-xs text-texto-2"
+                data-testid={`notas-cartao-${p.codigo}`}
+              >
+                {notas.map((n) => (
+                  <li key={n} className="flex items-start gap-1">
+                    <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
+                    {TEXTO_NOTA_QUALQUER[n]}
+                  </li>
+                ))}
+              </ul>
+            )}
 
-      {estado === 'carregando' && (
-        <div className="mt-3">
-          <EsqueletoCartao
-            codigo={p.codigo}
-            titulo={p.titulo}
-            altura={alturaCorpo}
-            alturaMobile={alturaMobile}
-            brilho={esq.brilho}
-          />
-        </div>
-      )}
-      {estado === 'erro' && (
-        <div className="mt-3">
-          <EstadoErro
-            codigo={p.codigo}
-            erro={p.erro ?? null}
-            {...(p.onTentarDeNovo ? { onTentarDeNovo: p.onTentarDeNovo } : {})}
-          />
-        </div>
-      )}
-      {semDadoReal && (
-        <div className="mt-3">
-          <EstadoSemDadoReal codigo={p.codigo} motivo={motivoSemDadoReal} />
-        </div>
-      )}
-      {estado === 'vazio' && (
-        <div className="mt-3">
-          <EstadoVazio codigo={p.codigo} />
-        </div>
-      )}
+            {estado === 'carregando' && (
+              <div className="mt-3">
+                <EsqueletoCartao
+                  codigo={p.codigo}
+                  titulo={p.titulo}
+                  altura={alturaCorpo}
+                  alturaMobile={alturaMobile}
+                  brilho={esq.brilho}
+                />
+              </div>
+            )}
+            {estado === 'erro' && (
+              <div className="mt-3">
+                <EstadoErro
+                  codigo={p.codigo}
+                  erro={p.erro ?? null}
+                  {...(p.onTentarDeNovo ? { onTentarDeNovo: p.onTentarDeNovo } : {})}
+                />
+              </div>
+            )}
+            {semDadoReal && (
+              <div className="mt-3">
+                <EstadoSemDadoReal codigo={p.codigo} motivo={motivoSemDadoReal} />
+              </div>
+            )}
+            {estado === 'vazio' && (
+              <div className="mt-3">
+                <EstadoVazio codigo={p.codigo} />
+              </div>
+            )}
 
-      {ok && (
-        <ModoTabelaContext.Provider
-          value={{
-            modo,
-            idLeitura,
-            legenda: `${p.codigo} ${p.titulo}. ${p.pergunta}`,
-            codigo: p.codigo,
-          }}
-        >
-          <ProvedorCartaoCalibracao ativo={calibrando}>
-            <div className="mt-1">
-              {p.leitura && (
-                <p
-                  id={idLeitura}
-                  className={clsx('mt-2 text-sm font-medium [overflow-wrap:anywhere]', esmaece)}
-                  data-testid={`leitura-${p.codigo}`}
-                >
-                  {p.leitura}
-                </p>
-              )}
-              {p.criterios && (
-                <div className="mt-2 flex flex-col gap-2">
-                  <AvisoCriterio marcacoes={p.criterios.serie} />
-                  <AvisoCriterio
-                    marcacoes={p.criterios.janela.filter(
-                      (m) => !p.criterios?.serie.some((s) => s.id === m.id),
+            {ok && (
+              <ModoTabelaContext.Provider
+                value={{
+                  modo,
+                  idLeitura,
+                  legenda: `${p.codigo} ${p.titulo}. ${p.pergunta}`,
+                  codigo: p.codigo,
+                }}
+              >
+                <ProvedorCartaoCalibracao ativo={calibrando}>
+                  <div className="mt-1">
+                    {p.leitura && (
+                      <p
+                        id={idLeitura}
+                        className={clsx(
+                          'mt-2 text-sm font-medium [overflow-wrap:anywhere]',
+                          esmaece,
+                        )}
+                        data-testid={`leitura-${p.codigo}`}
+                      >
+                        {p.leitura}
+                      </p>
                     )}
-                    tipo="janela"
-                    janela={janelaTxt}
-                  />
-                </div>
-              )}
-              <div className={clsx('relative mt-3', esmaece)}>{p.children}</div>
-            </div>
-          </ProvedorCartaoCalibracao>
-        </ModoTabelaContext.Provider>
-      )}
+                    {p.criterios && (
+                      <div className="mt-2 flex flex-col gap-2">
+                        <AvisoCriterio marcacoes={p.criterios.serie} />
+                        <AvisoCriterio
+                          marcacoes={p.criterios.janela.filter(
+                            (m) => !p.criterios?.serie.some((s) => s.id === m.id),
+                          )}
+                          tipo="janela"
+                          janela={janelaTxt}
+                        />
+                      </div>
+                    )}
+                    <div className={clsx('relative mt-3', esmaece)}>{p.children}</div>
+                  </div>
+                </ProvedorCartaoCalibracao>
+              </ModoTabelaContext.Provider>
+            )}
+          </>
+        )}
+      </div>
 
-      <footer className="mt-3 flex flex-wrap items-center gap-2">
-        {p.meta && <ChipMeta>{p.meta}</ChipMeta>}
-        {calibrando && ok && (
-          <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
-        )}
-        {p.statusMeta && ok && !calibrando && (
-          <StatusMeta status={p.statusMeta} {...(p.textoStatus ? { texto: p.textoStatus } : {})} />
-        )}
-        <ChipFonte fonte={p.fonte} />
-        <ChipGranularidade granularidade={p.granularidade} />
-        <ChipFiltros aplicados={textoAplicados} naoAfetam={naoAfetam} />
-      </footer>
+      {!recolhido && (
+        <footer className="mt-3 flex flex-wrap items-center gap-2">
+          {p.meta && <ChipMeta>{p.meta}</ChipMeta>}
+          {calibrando && ok && (
+            <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
+          )}
+          {p.statusMeta && ok && !calibrando && (
+            <StatusMeta
+              status={p.statusMeta}
+              {...(p.textoStatus ? { texto: p.textoStatus } : {})}
+            />
+          )}
+          <ChipFonte fonte={p.fonte} />
+          <ChipGranularidade granularidade={p.granularidade} />
+          <ChipFiltros aplicados={textoAplicados} naoAfetam={naoAfetam} />
+        </footer>
+      )}
     </div>
   )
 }

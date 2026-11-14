@@ -28,6 +28,28 @@ describe('schemas de referência', () => {
         .success,
     ).toBe(false)
   })
+  it('opcoes de fluxo aceitam setores (id e nome) e continuam válidas sem eles; setor fora da forma recusa', () => {
+    const o = { id: 'plataformas', nome: 'Plataformas' }
+    const base = { dominio: 'businessmap', equipes: [], tipos: [], sistemas: [], historico }
+    expect(opcoesFiltroSchema.safeParse({ ...base, setores: [o] }).success).toBe(true)
+    expect(opcoesFiltroSchema.safeParse({ ...base, setores: [] }).success).toBe(true)
+    expect(opcoesFiltroSchema.safeParse(base).success).toBe(true)
+    expect(opcoesFiltroSchema.safeParse({ ...base, setores: [{ ...o, quadro: 23 }] }).success).toBe(
+      false,
+    )
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, setores: [{ id: '', nome: 'X' }] }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({
+        dominio: 'acelerato',
+        equipes: [],
+        prioridades: [],
+        setores: [o],
+        historico,
+      }).success,
+    ).toBe(false)
+  })
   it('valida a referência (datas e instantes com deslocamento) e rejeita campo extra', () => {
     const ok = {
       dataReferencia: '2025-06-01',

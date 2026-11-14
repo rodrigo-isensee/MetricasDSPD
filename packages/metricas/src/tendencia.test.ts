@@ -251,12 +251,13 @@ describe('TENDENCIA_SUST com equipe (pedido 097)', () => {
     expect(acelerato.calcularTendenciaSust(ctxAC(mista(), H), [])).toEqual(todos)
     const volume = (r: typeof todos) => r.meses.find((m) => m.mes === '2026-08')!.volume
     expect(volume(todos)).toBe(25)
-    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['totvs']))).toBe(20)
-    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['senior']))).toBe(5)
+    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['sssc-totvs']))).toBe(20)
+    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['sssc-senior']))).toBe(5)
+    expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['totvs']))).toBe(0)
     expect(volume(acelerato.calcularTendenciaSust(ctxAC(mista(), H), ['nao-existe']))).toBe(0)
   })
 
-  it('097 L7a: compara pelo slug do nome (sssc-totvs) e o id antigo (totvs) dá o mesmo recorte; equipe nova funciona sem código novo', () => {
+  it('097 L7a: compara pelo slug do nome (sssc-totvs) e o id antigo (totvs) não seleciona mais nada; equipe nova funciona sem código novo', () => {
     const base = () =>
       baseAC([
         ...chamados(20, '2026-08-12'),
@@ -268,7 +269,7 @@ describe('TENDENCIA_SUST com equipe (pedido 097)', () => {
       acelerato.calcularTendenciaSust(ctxAC(base(), H), eq).meses.find((m) => m.mes === '2026-08')!
         .volume
     expect(volume(['sssc-totvs'])).toBe(20)
-    expect(volume(['totvs'])).toBe(20)
+    expect(volume(['totvs'])).toBe(0)
     expect(volume(['time-novo'])).toBe(3)
     expect(volume(['sssc-totvs', 'time-novo'])).toBe(23)
   })
