@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-release
-commit: 71f9ff8ef7c9e5075e623966806b0cb7b8f315b2
+commit: a881630bd20e900f258137f50ed42d24753d0561
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-14
@@ -33,6 +33,15 @@ Propósito: parecer de segurança da release de 14/11 (E1.2). Li `git diff origi
 - **Regras invioláveis:** BusinessMap e Acelerato seguem separados (setores só no BusinessMap; o O17 e o S1 só no Acelerato); nenhuma visão nova por pessoa nem comparação entre equipes.
 - **Suíte:** não rodei suíte; o QA da release roda o `pnpm run pronto` na ponta da develop (E1.3) e o portão da `homolog` roda a suíte completa e a migração a partir da main (E1.5). Este parecer não substitui esses portões.
 - **Lacunas de ferramenta:** `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH; não rodei nenhum. Sem dependência nova e sem workflow alterado, fica com o CI.
+
+## Delta (develop b544000d até 61286dac, branch em a881630b)
+Desde o parecer em `71f9ff8e` (develop `b544000d`) entrou só o PR 402 (K-295, `61286dac`, filtros da web); a branch soma `3867cccb` (merge da develop) e `a881630b` (CHANGELOG). Li `git diff b544000d 61286dac` (14 arquivos) inteiro, por ser pequeno.
+- **Contratos: conforme.** `TIPO_POR_ID` (`packages/contratos/src/filtros.ts:28`) é o inverso de `TIPO_ID`, derivado dele, sem campo novo na API nem no DTO; o servidor não o usa (`git grep TIPO_POR_ID 61286dac -- server packages` só acha a definição). O mapa local de `web/src/features/filtros/codec.ts` sai em favor deste, sem mudar a validação da URL.
+- **Web: conforme.** As abas do T11 (`web/src/features/complementares/taticas.tsx:265`) e a lista de tipos (`web/src/features/filtros/BarraFiltros.tsx:39`) aceitam só ids que o contrato conhece e mostram o rótulo do contrato, não o `nome` vindo da API (mais estrito que antes); o texto de lista vazia (`web/src/features/filtros/FiltroMulti.tsx`) é constante interpolada pelo React. Sem `dangerouslySetInnerHTML`, sem armazenamento do navegador, sem dado de pessoa.
+- **Dependências, lockfile, `.github/`, `.githooks/`, `scripts/` e `server/`: sem mudança** no delta.
+- **Segredos: nenhum.** A mesma busca do parecer nas linhas adicionadas não acha nada fora de texto de documentação.
+- **Regras invioláveis:** o mock e a lista de tipos do fluxo deixam de oferecer "Incidente" (que é do Acelerato), o que reforça a separação entre BusinessMap e Acelerato.
+- **Suíte:** não rodei; vale o QA da release (E1.3) e o portão da `homolog` (E1.5). Os achados A1 e A2 seguem como estão; nenhum achado novo.
 
 ## Achados
 - A1 (recomendado) .github/workflows/ci.yml:186 · herdado das releases 101 e 103, ainda aberto: a guarda G1 (web/scripts/sem-mock.mjs) não roda na CI; os jobs com pnpm run build (ci.yml:186, ci.yml:266, homolog.yml:82, homolog.yml:195) não chamam sem-mock. Dono: devops-engineer.
