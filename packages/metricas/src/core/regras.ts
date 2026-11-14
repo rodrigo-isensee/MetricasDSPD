@@ -511,7 +511,7 @@ export const REGRAS_METRICA = {
     status: 'ok',
   },
   O17: {
-    // Decisão do usuário (2026-10-11): vem do Acelerato (campo causa raiz via Metabase), painel Sustentação.
+    // Acelerato, painel Sustentação. Por sistema: dado real. Causa raiz: sem dado real (Registro de Problemas; pedido 099, B' da Q-099-7).
     dominio: 'acelerato',
     segmentacao: ['causa-raiz', 'sistema'],
     ordem: 'neutra',
