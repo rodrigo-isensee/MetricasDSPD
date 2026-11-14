@@ -4,7 +4,7 @@ import { opcoesFiltro } from '../src/modulos/referencia/servico.js';
 import type { Consultavel } from '../src/plataforma/db/pool.js';
 
 // K-332 (097 E4.82): do arquivo versionado real até opcoes.setores. Os 6 nomes são escritos AQUI (dados do dono), não lidos do código.
-const NOMES = ['Ciência de Dados', 'Escritório de Projetos', 'Marketing e Vendas', 'Plataformas', 'Sistemas Corporativos', 'Sistemas de Vendas e Operações'];
+const NOMES = ['Ciência de Dados', 'Escritório de Processos e Projetos', 'Marketing e Vendas', 'Plataformas', 'Sistemas Corporativos', 'Sistemas de Vendas e Operações'];
 const AGORA = new Date('2026-11-14T12:00:00-03:00');
 const dbCom = (linhas: { codigo: string; rotulo: string }[]): Consultavel => ({
   query: async (texto: string, valores?: unknown[]) => {

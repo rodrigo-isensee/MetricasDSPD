@@ -221,7 +221,7 @@ describe('bm:ref-sync: lista setores (097 L10a)', () => {
   it('o arquivo versionado traz os 6 quadros que o dono nomeou (o 35 fica fora até a P-097-10)', () => {
     expect(lerDominioBm().arquivo.setores).toEqual([
       { codigo: '23', rotulo: 'Sistemas Corporativos' },
-      { codigo: '24', rotulo: 'Escritório de Projetos' },
+      { codigo: '24', rotulo: 'Escritório de Processos e Projetos' },
       { codigo: '25', rotulo: 'Sistemas de Vendas e Operações' },
       { codigo: '27', rotulo: 'Plataformas' },
       { codigo: '31', rotulo: 'Ciência de Dados' },
