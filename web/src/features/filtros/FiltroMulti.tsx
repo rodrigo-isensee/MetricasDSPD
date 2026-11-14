@@ -71,14 +71,27 @@ export function escLimpaBuscaFocada(alvo: EventTarget | null): boolean {
  * (N1 da UX do K-295). Um componente próprio monta o `<p>` sempre que a lista fica sem opções (S1 do review
  * do K-323), e o texto chega como `string`, sem escape de tipo.
  */
-function RegiaoVazia({ id, texto }: { id: string; texto: string }) {
-  const ref = useRef<HTMLParagraphElement>(null)
+function RegiaoVazia({
+  id,
+  texto,
+  regiaoRef,
+}: {
+  id: string
+  texto: string
+  regiaoRef: RefObject<HTMLParagraphElement | null>
+}) {
   useEffect(() => {
     // O efeito roda depois da montagem: o `<p>` já existe.
-    ;(ref.current as HTMLParagraphElement).textContent = texto
-  }, [texto])
+    ;(regiaoRef.current as HTMLParagraphElement).textContent = texto
+  }, [texto, regiaoRef])
   return (
-    <p ref={ref} className="py-1 text-sm text-texto-2" role="status" data-testid={`${id}-vazio`} />
+    <p
+      ref={regiaoRef}
+      tabIndex={-1}
+      className="py-1 text-sm text-texto-2"
+      role="status"
+      data-testid={`${id}-vazio`}
+    />
   )
 }
 
@@ -110,14 +123,19 @@ function Lista({
   // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
   const [retorno, setRetorno] = useState('')
-  // Ao terminar uma nova tentativa, o foco volta ao botão (que segue montado e com aria-disabled);
-  // se deu certo o botão sai e o foco vai ao campo de busca, para não cair no body.
+  // Ao terminar uma nova tentativa, o foco só se move se estava nesta lista (as quatro listas da folha
+  // terminam juntas; sem isso todas puxariam o foco e abririam o teclado, D1 do K-338): volta ao botão
+  // (que segue montado e com aria-disabled); se deu certo o botão sai e o foco vai ao campo de busca; se
+  // a lista segue vazia e sem botão, vai à região de vazio, para não cair no body (D3 e A7).
   const tentarRef = useRef<HTMLButtonElement>(null)
+  const regiaoRef = useRef<HTMLParagraphElement>(null)
   const estavaTentando = useRef(false)
+  const focoNaLista = useRef(false)
   useEffect(() => {
-    if (estavaTentando.current && !tentando) (tentarRef.current ?? buscaRef.current)?.focus()
+    if (estavaTentando.current && !tentando && focoNaLista.current)
+      (tentarRef.current ?? buscaRef.current ?? regiaoRef.current)?.focus()
     estavaTentando.current = tentando
-  }, [tentando])
+  }, [tentando, buscaRef])
   const alternar = (opcaoId: string, marcado: boolean) => {
     // O retorno vale só até a próxima ação; o Enter o redefine logo depois (N1 da revisão de UX do K-278).
     setRetorno('')
@@ -183,9 +201,22 @@ function Lista({
   }
   if (vazio && opcoes.length === 0)
     return (
-      <fieldset className="m-0 min-w-0 border-0 p-0">
+      <fieldset
+        className="m-0 min-w-0 border-0 p-0"
+        onFocus={() => (focoNaLista.current = true)}
+        onBlur={(e) => {
+          // Sem destino (clique no vazio ou botão removido) o foco segue contado como desta lista.
+          if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget))
+            focoNaLista.current = false
+        }}
+      >
         <legend className="sr-only">{rotulo}</legend>
-        <RegiaoVazia id={id} texto={vazio} />
+        <RegiaoVazia id={id} texto={vazio} regiaoRef={regiaoRef} />
+        {aoTentar && (
+          <p className="sr-only" role="status" data-testid={`${id}-tentando`}>
+            {tentando ? 'Tentando de novo...' : ''}
+          </p>
+        )}
         {aoTentar && (
           <Botao
             ref={tentarRef}
