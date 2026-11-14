@@ -273,7 +273,7 @@ export function CartaoT11({ filtros }: P) {
             codigo="T11"
             rotulo="Tipo de demanda"
             valor={tipo ? TIPO_ID[tipo] : ''}
-            onChange={(v) => setTipo(TIPO_POR_ID.get(v) ?? '')}
+            onChange={(v) => setTipo(v === '' ? '' : (TIPO_POR_ID.get(v) as TipoFiltro))}
             anuncio={tipo ? `Tipo ${tipo}.` : 'Todos os tipos.'}
             itens={[{ valor: '', rotulo: 'Todos os tipos' }, ...tiposAba]}
           >

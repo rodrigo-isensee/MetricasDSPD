@@ -18,9 +18,9 @@ const TEXTO_ESTRATEGICO =
 const TEXTO_TIPO =
   'Aqui são cards do BusinessMap. Chamados do Acelerato estão na visão Sustentação do Operacional.'
 
-/** Ids da URL/lista viram os rótulos do contrato (o servidor só entrega ids de TIPO_ID). */
+/** Ids da lista viram os rótulos do contrato (a lista só oferece ids de TIPO_ID). */
 const tiposDe = (ids: readonly string[]): FiltrosFluxo['tipo'] =>
-  ids.flatMap((id) => TIPO_POR_ID.get(id) ?? [])
+  ids.map((id) => TIPO_POR_ID.get(id) as FiltrosFluxo['tipo'][number])
 
 /** Texto da lista sem opções: ainda carregando, ou nada no recorte (ou erro; a lista não distingue). */
 const semOpcoes = (carregando: boolean, plural: string, genero: 'm' | 'f' = 'm'): string =>
@@ -35,7 +35,8 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
   const definir = uso.definir
   const bm = opcoes?.dominio === 'businessmap' ? opcoes : undefined
   const ac = opcoes?.dominio === 'acelerato' ? opcoes : undefined
-  const tiposOpc: OpcaoFiltro[] = bm?.tipos ?? []
+  // Só ids que o contrato conhece (como o codec): uma opção estranha não vira caixa que não marca.
+  const tiposOpc: OpcaoFiltro[] = (bm?.tipos ?? []).filter((t) => TIPO_POR_ID.has(t.id))
   return (
     <>
       {config.filtros.includes('equipe') && (

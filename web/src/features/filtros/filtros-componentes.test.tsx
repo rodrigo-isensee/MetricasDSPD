@@ -657,8 +657,8 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
 
 /** Fonte cujas opções de Tipo, Sistema e Prioridade vêm vazias (recorte sem dado) ou nunca chegam (carregando). */
 class FonteOpcoes extends MockFonteMetricas {
-  private readonly modo: 'vazias' | 'carregando'
-  constructor(modo: 'vazias' | 'carregando') {
+  private readonly modo: 'vazias' | 'carregando' | 'estranha'
+  constructor(modo: 'vazias' | 'carregando' | 'estranha') {
     super({ latenciaMs: 0 })
     this.modo = modo
   }
@@ -667,6 +667,11 @@ class FonteOpcoes extends MockFonteMetricas {
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.modo === 'carregando') return new Promise(() => {})
     const real = await super.opcoesFiltro(dominio)
+    if (this.modo === 'estranha' && real.dominio === 'businessmap')
+      return { ...real, tipos: [{ id: 'xyz', nome: 'Xyz' }, ...real.tipos] } as Extract<
+        OpcoesFiltro,
+        { dominio: D }
+      >
     const vazio: OpcoesFiltro =
       real.dominio === 'businessmap'
         ? { ...real, tipos: [], sistemas: [] }
@@ -708,6 +713,13 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     await userEvent.click(await screen.findByTestId('filtro-tipo'))
     expect(await screen.findByTestId('tipo-busca')).toBeInTheDocument()
     expect(screen.queryByTestId('tipo-vazio')).toBeNull()
+  })
+
+  it('opção com id que o contrato não conhece não aparece na lista', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('estranha'))
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    expect(await screen.findByTestId('tipo-opcao-melhoria')).toBeInTheDocument()
+    expect(screen.queryByTestId('tipo-opcao-xyz')).toBeNull()
   })
 
   it('o mock não oferece Incidente (a API não devolve, A3), só os tipos do BusinessMap', async () => {
