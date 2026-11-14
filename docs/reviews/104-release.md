@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-release
-commit: b544000dd65bf6df1f1c840602c29743e69138e8
+commit: 61286dac966797ba93e6cb8b80a89e81ad3cbeaa
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-14
@@ -28,6 +28,16 @@ Escopo: `git log --first-parent origin/main..origin/develop`, 25 PRs (#383, #384
 - A1 (recomendado) CHANGELOG.md:147 · Nenhum PR da 104 muda os parâmetros comparados pela coleta; o `--reconhecer-mudanca` só vale se o da 103 (D1a, K-305) não rodou. Fica na lista pelo pedido (E3), com o motivo escrito.
 - A2 (recomendado) CHANGELOG.md:105 · O K-287 faz link antigo com `equipe=totvs` (e os outros dois) deixar de filtrar; a validação manual da release (E1.6) inclui um link antigo da Sustentação para ver o aviso de equipe inválida.
 
+## Delta: b544000d até 61286dac (#402)
+
+- **Diff lido:** `git diff b544000d 61286dac` (ponta da `origin/develop`), um PR só, o #402 (097 K-295, squash 61286dac): 14 arquivos, +408 −33; 273 linhas de código e teste, cerca de 170 de teste novo. Review próprio em `docs/reviews/097-k295.md` (aprovado, sobre d1ea2991), QA em `docs/qa/097-k295-ajustes-l6-web.md` e UX em `docs/ux/097-revisao-k295.md`; cito, não refaço.
+- **Contrato:** `packages/contratos/src/filtros.ts` ganha só a exportação `TIPO_POR_ID`, derivada de `TIPO_ID` e retirada do `codec.ts` da web; nenhum tipo de resposta, rota ou OpenAPI muda. Não é mudança que quebra.
+- **Migração e base real:** nenhuma migração, nenhum comando novo; as ações do dono da release 104 não mudam.
+- **Critério de cálculo:** nenhum; o PR só mexe em listas de opção, abas do T11, mensagens de lista vazia, mock e testes (unitários e e2e de filtros). Regras invioláveis mantidas: BusinessMap e Acelerato separados, sem pessoa nem comparação.
+- **CI:** `gh run list --branch develop`: push na `develop` em 61286dac, workflow CI, run 43587005536 `completed success` (rapida, testes, build, banco, openapi, seguranca, filtro, imagem; e2e e perf pulados, push sem PR).
+- **CHANGELOG:** linha do #402 em `### Corrigido` da seção [Não publicado], com "sem migração, sem mudança no contrato da API e sem ação do dono". O #412 (K-326) e o lote K-236/K-243 não entram na 104.
+- **Achados:** nenhum novo; A1 e A2 seguem como estão.
+
 ## Parecer
 
-Aprovado sobre a develop em b544000d. Se o #402 ou o lote K-236/K-243 entrarem antes da E1.4, a develop vem por merge para esta branch e este parecer ganha a atualização do delta. A release segue para a homolog com os pareceres de segurança (E1.2) e QA (E1.3) gravados; o meu não depende deles.
+Aprovado sobre a develop em 61286dac (delta abaixo). Na primeira leitura, sobre b544000d: se o #402 ou o lote K-236/K-243 entrarem antes da E1.4, a develop vem por merge para esta branch e este parecer ganha a atualização do delta. A release segue para a homolog com os pareceres de segurança (E1.2) e QA (E1.3) gravados; o meu não depende deles.
