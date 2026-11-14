@@ -51,6 +51,7 @@ export const SELO_LEITURA_RELATIVA = 'Comparação relativa; não é jornada tot
 export const DICA_LEITURA_RELATIVA =
   'O apontamento cobre só parte da jornada. Por isso a utilização serve para comparar períodos, não para medir quanto alguém trabalhou. Pode passar de 100%.'
 
+export const ROTULO_FILTRO_SETOR = 'Setor'
 export const ROTULO_FILTRO_EQUIPE = 'Equipe'
 
 /** O servidor chama a opção sem equipe de "Sem time"; na tela o rótulo é "Equipe" (097, UX), então a opção se chama assim. */
