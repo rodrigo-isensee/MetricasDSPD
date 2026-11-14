@@ -57,8 +57,9 @@ interface ShapeProps {
 }
 
 /** Marca por forma: círculo, losango, triângulo e anel duplo (a forma carrega o significado, não a cor). */
-function Marca({ cx = 0, cy = 0, payload }: ShapeProps) {
-  const forma = <Forma cx={cx} cy={cy} payload={payload} />
+function Marca(props: ShapeProps) {
+  const { cx = 0, cy = 0, payload } = props
+  const forma = <Forma {...props} />
   if (!payload?.bloqueado) return forma
   return (
     <g>
