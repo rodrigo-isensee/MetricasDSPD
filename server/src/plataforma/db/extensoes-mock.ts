@@ -1,5 +1,5 @@
 import { gerarBaseMock, gerarExtensaoTambemMock, gerarExtensoesMock } from '@metricas-dspd/mock';
-import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
+import type { ExtensoesMetricas } from '../../modulos/metricas/index.js';
 import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 
 let base: ReturnType<typeof gerarBaseMock> | undefined;

@@ -18,6 +18,9 @@ import {
  * nada em `localStorage`. Valor fora do formato é descartado sem eco (o nome que alguém digitar na URL não volta à tela).
  */
 
+/** Marca interna em `invalidos` do link antigo com `pessoa=`; a barra mostra o aviso próprio, não a chave. */
+export const CHAVE_PESSOA_RETIRADA = 'pessoa'
+
 const CHAVES_LISTA = ['equipe', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qualidade'] as const
 export type ChaveLista = (typeof CHAVES_LISTA)[number]
 
@@ -80,7 +83,7 @@ export function lerFiltros(params: URLSearchParams): FiltrosLidos {
       (consulta as unknown as Record<string, string[]>)[chave] = validos
   }
   // `pessoa` saiu dos filtros (097, CA-9): link antigo é ignorado, avisado e a página segue (nunca vai para a consulta).
-  if (params.has('pessoa')) invalidos.push('pessoa')
+  if (params.has('pessoa')) invalidos.push(CHAVE_PESSOA_RETIRADA)
   const periodo = lerPar(params, 'de', 'ate')
   if (periodo === 'invalido') invalidos.push(ROTULOS.periodo)
   else if (periodo) [consulta.de, consulta.ate] = periodo

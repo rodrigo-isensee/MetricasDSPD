@@ -7,3 +7,4 @@ export { agregadosDoPainel, dentroDaTolerancia, esquemaDash, reconciliar, resumi
 export { comSessaoMysql, type SessaoMysql } from './cliente-mysql.js';
 export { NOMES_ETAPA_LISTA } from './listas-fechadas.js';
 export { expandir } from './sql.js';
+export { reprojetarEtapasAcelerato, ErroReprojecao, type ResultadoReprojecao } from './reprojecao-etapas.js';

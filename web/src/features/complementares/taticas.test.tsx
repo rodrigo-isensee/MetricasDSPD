@@ -1,7 +1,13 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
+import type {
+  Dominio,
+  FiltrosDe,
+  MetricaId,
+  OpcoesFiltro,
+  ResultadoDe,
+} from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { COMUM, FILTROS_FLUXO, FonteFixa, JANELA, insuf } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
@@ -238,6 +244,98 @@ describe('T11 Sazonalidade da chegada', () => {
       'aria-selected',
       'true',
     )
+  })
+})
+
+/** Fonte com tipos escolhidos nas opções do BusinessMap (dado real), para provar de onde vêm as abas do T11. */
+class FonteTipos extends FonteEspia {
+  private readonly tipos: { id: string; nome: string }[] | 'nunca'
+  constructor(dto: unknown, tipos: { id: string; nome: string }[] | 'nunca') {
+    super({ T11: dto })
+    this.tipos = tipos
+  }
+  override async opcoesFiltro<D extends Dominio>(
+    dominio: D,
+  ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
+    if (this.tipos === 'nunca') return new Promise(() => {})
+    const real = await super.opcoesFiltro(dominio)
+    return real.dominio === 'businessmap' ? { ...real, tipos: this.tipos } : real
+  }
+}
+
+describe('T11: abas de tipo vêm das opções (097 K-295, E4.35)', () => {
+  const meses = [30, 12, 14, 9, 10, 11, 38, 12, 9, 10, 11, 8].map((entradas, i) => ({
+    mes: i + 1,
+    entradas,
+    emAndamento: false,
+  }))
+  const dto = {
+    ...COMUM,
+    anos: [{ ano: 2025, meses }],
+    marcacoes: [],
+    mesesComDado: 24,
+    mediaMensal: 14.5,
+    historicoCurto: false,
+  }
+
+  it('só aparecem as abas dos tipos que as opções trazem, com o rótulo do contrato', async () => {
+    const fonte = new FonteTipos(dto, [
+      { id: 'requisicao', nome: 'qualquer nome' },
+      { id: 'divida-tecnica', nome: 'outro nome' },
+    ])
+    const el = await abrir('T11', <CartaoT11 filtros={FILTROS_FLUXO} />, fonte)
+    await within(el).findByRole('tab', { name: 'Requisição' })
+    expect(
+      within(el)
+        .getAllByRole('tab')
+        .map((a) => a.textContent),
+    ).toEqual(['Todos os tipos', 'Requisição', 'Dívida técnica'])
+    await userEvent.setup().click(within(el).getByRole('tab', { name: 'Dívida técnica' }))
+    await waitFor(() =>
+      expect(
+        fonte.pedidos.some((p) => (p as { tipo: string[] }).tipo[0] === 'Dívida técnica'),
+      ).toBe(true),
+    )
+    expect(within(el).getByRole('tab', { name: 'Dívida técnica' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(within(el).queryByRole('tab', { name: 'Melhoria' })).toBeNull()
+    expect(within(el).queryByTestId('t11-sem-outros-tipos')).toBeNull()
+    // voltar a "Todos os tipos" limpa o tipo da consulta
+    await userEvent.setup().click(within(el).getByRole('tab', { name: 'Todos os tipos' }))
+    expect(within(el).getByRole('tab', { name: 'Todos os tipos' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+
+  it('id que o contrato não conhece não vira aba', async () => {
+    const fonte = new FonteTipos(dto, [
+      { id: 'desconhecido', nome: 'Desconhecido' },
+      { id: 'melhoria', nome: 'Melhoria' },
+    ])
+    const el = await abrir('T11', <CartaoT11 filtros={FILTROS_FLUXO} />, fonte)
+    await within(el).findByRole('tab', { name: 'Melhoria' })
+    expect(within(el).queryByRole('tab', { name: 'Desconhecido' })).toBeNull()
+  })
+
+  it('sem tipos no dado, a aba única vem com a explicação', async () => {
+    const el = await abrir('T11', <CartaoT11 filtros={FILTROS_FLUXO} />, new FonteTipos(dto, []))
+    expect(await within(el).findByTestId('t11-sem-outros-tipos')).toHaveTextContent(
+      'Sem outros tipos no dado deste recorte.',
+    )
+    expect(within(el).getAllByRole('tab')).toHaveLength(1)
+  })
+
+  it('enquanto as opções não chegam, não afirma que não há outros tipos', async () => {
+    const el = await abrir(
+      'T11',
+      <CartaoT11 filtros={FILTROS_FLUXO} />,
+      new FonteTipos(dto, 'nunca'),
+    )
+    expect(within(el).getAllByRole('tab')).toHaveLength(1)
+    expect(within(el).queryByTestId('t11-sem-outros-tipos')).toBeNull()
   })
 })
 

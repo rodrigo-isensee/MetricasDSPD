@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { acelerato } from '@metricas-dspd/metricas';
 import { describe, expect, it } from 'vitest';
+import { unidadeDeExibicao } from '../src/modulos/referencia/alvos-acelerato.js';
 import { lerArquivoAlvos, lerCalendario, lerTurnosVigentes } from '../src/modulos/referencia/index.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { criarDublePg } from './duble-pg.js';
@@ -18,12 +19,21 @@ describe('paridade do dia útil da Sustentação (arquivos x biblioteca)', () =>
     expect(acelerato.TURNOS_SUSTENTACAO.reduce((n, t) => n + t.fimMin - t.inicioMin, 0)).toBe(528);
     expect(arquivo.calendarios.find((c) => c.nome === 'dspd-businessmap')!.turnos).toBeUndefined();
   });
-  it('acelerato-alvos.json é igual a ALVOS_PADRAO e horas_por_dia_util é o dia do calendário', () => {
+  it('K-308: feriados e deslocamento do dspd-acelerato em calendario.json são iguais aos do CALENDARIO_SUSTENTACAO_PADRAO (a montagem D-7 usa este)', () => {
+    const { arquivo } = lerCalendario();
+    const ac = arquivo.calendarios.find((c) => c.nome === 'dspd-acelerato')!;
+    expect(ac.feriados.map((f) => f.data).sort()).toEqual([...acelerato.CALENDARIO_SUSTENTACAO_PADRAO.feriados].sort());
+    expect(ac.offset_minutos).toBe(acelerato.CALENDARIO_SUSTENTACAO_PADRAO.offsetMinutos);
+  });
+  it('acelerato-alvos.json é igual a ALVOS_PADRAO (horas, relógio e unidade de exibição) e horas_por_dia_util é o dia do calendário', () => {
     const { arquivo } = lerArquivoAlvos();
     expect(arquivo.horas_por_dia_util).toBe(acelerato.CALENDARIO_SUSTENTACAO_PADRAO.horasPorDia);
     expect(arquivo.alvos.map((a) => ({
       prioridade: a.prioridade, primeiro_atendimento_horas: a.primeiro_atendimento.horas, unidade_primeiro_atendimento: a.primeiro_atendimento.unidade,
       restauracao_horas: a.restauracao.horas, unidade_restauracao: a.restauracao.unidade,
+      // K-314: a unidade de exibição que o carregador deriva do texto do PROC; o mock nunca diverge do arquivo
+      exibir_primeiro_atendimento: unidadeDeExibicao(a.primeiro_atendimento.texto_proc, a.primeiro_atendimento.horas, arquivo.horas_por_dia_util, a.primeiro_atendimento.unidade),
+      exibir_restauracao: unidadeDeExibicao(a.restauracao.texto_proc, a.restauracao.horas, arquivo.horas_por_dia_util, a.restauracao.unidade),
     }))).toEqual(acelerato.ALVOS_PADRAO);
   });
   it('todo prazo util escrito em dias é dias x 8,8 (tabela fixa); os escritos em horas ficam como no PROC', () => {

@@ -139,6 +139,8 @@
  "dspd_ac.ref_alvo_prioridade.prazo_r_horas numeric NOT NULL",
  "dspd_ac.ref_alvo_prioridade.unidade_pa text NOT NULL",
  "dspd_ac.ref_alvo_prioridade.unidade_r text NOT NULL",
+ "dspd_ac.ref_alvo_prioridade.exibir_pa text NULL",
+ "dspd_ac.ref_alvo_prioridade.exibir_r text NULL",
  "dspd_ac.ref_dominio.campo character varying(40) NOT NULL",
  "dspd_ac.ref_dominio.codigo character varying(80) NOT NULL",
  "dspd_ac.ref_dominio.vigente_de date NOT NULL",

@@ -178,7 +178,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
   it('o dspd_api continua sem nenhuma tabela da aba nem pessoa_ref (K-085 inalterado)', async () => {
     for (const t of ['fato_apontamento', 'dim_card_raiz', 'dim_responsavel', 'stg_apontamento', 'evt_apontamento', 'cfg_pessoa_eliminada', 'ref_apontamento_subgrupo'])
       expect((await falha(api, `SELECT count(*) FROM ${S.bm}.${t}`)).code, t).toBe('42501');
-    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.fato_apontamento`)).code).toBe('42501');
+    await provarSemPessoa(api, dono, 'dspd_bm.fato_apontamento', S.bm);
   });
 
   async function consultar(nomesReais: boolean, query: string) {
@@ -314,7 +314,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(por.has(refs.d)).toBe(false);
     expect(por.has(refs.e)).toBe(false); // card fora do escopo nao conta
     await provarSemPessoa(aba, dono, 'dspd_bm.dim_card_versao', S.bm);
-    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.apt_pessoa_time`)).code).toBe('42501');
+    await provarSemPessoa(api, dono, 'dspd_bm.apt_pessoa_time', S.bm);
   });
 
   it('limiares dos achados (T2.6): registrados com data como versao de criterio, uma vez so, e listados em criterios para a aba', async () => {
