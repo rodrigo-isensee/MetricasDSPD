@@ -159,7 +159,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
   })
 
   it('o link antigo /sustentacao termina na visão com o cartão do hash', async () => {
-    const r = renderizarApp('/sustentacao?prioridade=P1&periodo=12m&equipe=totvs&tipo=Bug#s2')
+    const r = renderizarApp('/sustentacao?prioridade=P1&periodo=12m&equipe=sssc-totvs&tipo=Bug#s2')
     expect(
       await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 }),
     ).toBeInTheDocument()
@@ -283,7 +283,7 @@ describe('filtros por visão (CA-5, CA-6)', () => {
 
   it('rodapé do cartão: nenhum cartão S cita Tipo ou Sistema, e nenhum O cita Prioridade (CA-7)', async () => {
     renderizarApp(
-      '/operacional?cadencia=sustentacao&sust_prioridade=p1&sust_equipe=totvs&mock=sem-calibracao',
+      '/operacional?cadencia=sustentacao&sust_prioridade=p1&sust_equipe=sssc-totvs&mock=sem-calibracao',
     )
     const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 })
     await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })

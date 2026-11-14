@@ -268,7 +268,7 @@ describe('Sustentação: S8 e S9', () => {
     expect(normal.statusMeta).toBe('dentro')
     const nada = acelerato.calcularS8(ctxMock.ac, {
       ...FS,
-      equipe: ['fluig'],
+      equipe: ['sssc-fluig'],
       periodo: { tipo: '4s' },
     })
     expect(nada.statusMeta).toBe('sem-referencia')
