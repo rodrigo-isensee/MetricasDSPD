@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-release
-commit: 61286dac966797ba93e6cb8b80a89e81ad3cbeaa
+commit: 09c8d26919018b74d6a65d12a2aa0962a29d8e49
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-14
@@ -38,6 +38,17 @@ Escopo: `git log --first-parent origin/main..origin/develop`, 25 PRs (#383, #384
 - **CHANGELOG:** linha do #402 em `### Corrigido` da seção [Não publicado], com "sem migração, sem mudança no contrato da API e sem ação do dono". O #412 (K-326) e o lote K-236/K-243 não entram na 104.
 - **Achados:** nenhum novo; A1 e A2 seguem como estão.
 
+## Delta: 61286dac até 09c8d269 (#411)
+
+- **Diff lido:** `git diff 61286dac 09c8d269`, um PR só, o #411 do Dependabot (grupo `producao`): `server/package.json` (`mariadb` 3.5.4 para 3.5.5, versão exata, ADR 0023), `web/package.json` (`@tanstack/react-query` ^5.105.3 para ^5.107.1) e `pnpm-lock.yaml` (`@tanstack/query-core` 5.107.1, `@babel/runtime` 7.29.13 do `@testing-library/dom`, `lilconfig` 3.1.5, `ws` 8.22.2 do `puppeteer-core` e a marca `deprecated` do registro em `tldts-core` 7.4.20, versão que já estava no lockfile). Nenhum código do projeto muda.
+- **Notas de versão do `mariadb` 3.5.5:** correções de injeção sob big5, gbk, sjis e cp932 (CONJS-379, CONJS-380) e no `Pool.escape()` sob NO_BACKSLASH_ESCAPES (CONJS-378); a única mudança de comportamento é recusar charset que o servidor não suporta (CONJS-381). `opcoesConexao` em `server/src/modulos/acelerato/cliente-mysql.ts:41` não define `charset` (fica no utf8mb4 padrão), o coletor só usa `createConnection` (o aviso novo do pool não se aplica) e as opções explícitas da ADR 0023 seguem válidas. Sem efeito na coleta.
+- **Notas de versão do `@tanstack/react-query` 5.106.0 a 5.107.1:** só o `query-core` 5.107.0 muda (timestamp estável para o mesmo erro de seletor, contra laço de renderização); as demais são "No changes". Sem quebra.
+- **Migração, contrato, critério de cálculo e base real:** nenhum; as ações do dono da release 104 não mudam.
+- **CI:** `gh pr checks 411`: rapida, testes, seguranca, imagem, openapi e filtro `pass`; e2e e perf `skipping`. `gh run list --branch develop`: push na `develop` em 09c8d269, run 43588046343 `completed success` (rapida, testes, build, banco, openapi, seguranca, filtro, imagem; e2e e perf pulados). O e2e da release fica com o portão da homolog (E1.5).
+- **CHANGELOG:** linha do #411 em `### Dependências e Forge`, com o que subiu e "sem ação do dono".
+- **Fora:** a `origin/develop` andou para 64826e90 (#412, K-326) depois do #411; ele não entra na 104 e não veio por merge para esta branch. O K-236/K-243 e o K-325 também não.
+- **Achados:** nenhum novo; A1 e A2 seguem como estão.
+
 ## Parecer
 
-Aprovado sobre a develop em 61286dac (delta abaixo). Na primeira leitura, sobre b544000d: se o #402 ou o lote K-236/K-243 entrarem antes da E1.4, a develop vem por merge para esta branch e este parecer ganha a atualização do delta. A release segue para a homolog com os pareceres de segurança (E1.2) e QA (E1.3) gravados; o meu não depende deles.
+Aprovado sobre a develop em 09c8d269 (deltas acima: #402 e #411). Na primeira leitura, sobre b544000d: se o #402 ou o lote K-236/K-243 entrarem antes da E1.4, a develop vem por merge para esta branch e este parecer ganha a atualização do delta. A release segue para a homolog com os pareceres de segurança (E1.2) e QA (E1.3) gravados; o meu não depende deles.
