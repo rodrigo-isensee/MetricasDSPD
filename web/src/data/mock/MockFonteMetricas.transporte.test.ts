@@ -295,7 +295,7 @@ describe('invólucro do Worker', () => {
       vi.spyOn(self, 'postMessage').mockImplementation(((m: unknown) => {
         if (primeira) {
           primeira = false
-          throw 'texto solto'
+          throw 'texto solto' as unknown as Error
         }
         enviados.push(m)
       }) as never)
