@@ -16,7 +16,7 @@ const dbCom = (linhas: { codigo: string; rotulo: string }[]): Consultavel => ({
 
 describe('K-332: arquivo real -> opcoes.setores', () => {
   it('depois da carga do arquivo real, opcoes.setores traz exatamente os 6 nomes, sem o quadro 35 e sem código de quadro', async () => {
-    const lista = listasDoArquivo(lerDominioBm().arquivo).setor_quadro;
+    const lista = listasDoArquivo(lerDominioBm().arquivo).setor_quadro ?? [];
     expect(lista.map((l) => l.codigo)).toEqual(['23', '24', '25', '27', '31', '79']);
     const o = (await opcoesFiltro(dbCom(lista), 'businessmap', AGORA)) as { setores: { id: string; nome: string }[] };
     expect(o.setores.map((s) => s.nome)).toEqual(NOMES);
