@@ -46,7 +46,7 @@ Escopo: `git log --first-parent origin/main..origin/develop`, 25 PRs (#383, #384
 - **Migração, contrato, critério de cálculo e base real:** nenhum; as ações do dono da release 104 não mudam.
 - **CI:** `gh pr checks 411`: rapida, testes, seguranca, imagem, openapi e filtro `pass`; e2e e perf `skipping`. `gh run list --branch develop`: push na `develop` em 09c8d269, run 43588046343 `completed success` (rapida, testes, build, banco, openapi, seguranca, filtro, imagem; e2e e perf pulados). O e2e da release fica com o portão da homolog (E1.5).
 - **CHANGELOG:** linha do #411 em `### Dependências e Forge`, com o que subiu e "sem ação do dono".
-- **Fora:** a `origin/develop` andou para 64826e90 (#412, K-326) depois do #411; ele não entra na 104 e não veio por merge para esta branch. O K-236/K-243 e o K-325 também não.
+- **Fora:** a `origin/develop` andou para 64826e90 (#412, K-326) depois do #411. O pedido o deixa fora da 104 e este parecer não o revisa; mas outro papel o trouxe por merge para esta branch (a32aa62e, `Merge branch 'develop'`), e a E1.5 leva a `develop` inteira para a `homolog`. Pendente de decisão do Jarvis: aceitar o #412 na 104 (só teste em `server/tests/pg/colunas-pessoa.test.ts` e pareceres 097, com review e QA próprios) ou segurar a promoção. O K-236/K-243 e o K-325 não entram.
 - **Achados:** nenhum novo; A1 e A2 seguem como estão.
 
 ## Parecer
