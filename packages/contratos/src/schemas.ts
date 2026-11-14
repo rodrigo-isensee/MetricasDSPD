@@ -986,11 +986,11 @@ export const resultadoO16 = z.object({
 
 /**
  * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
- * Contagem, sem mínimo. Campo causa raiz via integração Metabase (decisão do usuário, 2026-10-11).
+ * Contagem, sem mínimo. Causa raiz: sem dado real até o Registro de Problemas ter vínculo ao incidente (pedido 099, B' da Q-099-7).
  */
 export const resultadoO17 = z.object({
   ...comum,
-  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  /** false = a parte que depende de extensão (causa raiz) não é publicada, nunca 0%. */
   campoDisponivel: z.boolean(),
   /** null = causa raiz sem dado real (pedido 099, B' da Q-099-7): nunca lista vazia nem "Não informada" inflado; o motivo vai em `motivoCausaRaiz`. */
   porCausa: z
