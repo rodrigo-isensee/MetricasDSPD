@@ -22,14 +22,22 @@ const TEXTO_TIPO =
 const tiposDe = (ids: readonly string[]): FiltrosFluxo['tipo'] =>
   ids.map((id) => TIPO_POR_ID.get(id) as FiltrosFluxo['tipo'][number])
 
-/** Texto da lista sem opções: ainda carregando, ou nada no recorte (ou erro; a lista não distingue). */
-const semOpcoes = (carregando: boolean, plural: string, genero: 'm' | 'f' = 'm'): string =>
-  carregando
+/** Texto da lista sem opções: erro da consulta, ainda carregando, ou nada no recorte. */
+const semOpcoes = (
+  carregando: boolean,
+  erro: boolean,
+  plural: string,
+  genero: 'm' | 'f' = 'm',
+): string => {
+  if (erro) return `Não foi possível carregar ${plural}.`
+  return carregando
     ? `Carregando ${plural}...`
     : `${genero === 'm' ? 'Nenhum' : 'Nenhuma'} ${plural.replace(/s$/, '')} disponível neste recorte.`
+}
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
-  const { config, opcoes } = uso
+  const { config, opcoes, opcoesErro } = uso
+  const aoTentar = opcoesErro ? uso.recarregarOpcoes : undefined
   const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
@@ -44,6 +52,8 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           id="equipe"
           rotulo={rotuloEquipe}
           opcoes={opcoes?.equipes ?? []}
+          vazio={opcoesErro ? semOpcoes(false, true, 'equipes', 'f') : undefined}
+          aoTentar={aoTentar}
           selecionados={f.equipe}
           variante={variante}
           onChange={(ids, replace) => definir({ equipe: ids }, { replace })}
@@ -55,7 +65,8 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Tipo de demanda"
           genero="m"
           opcoes={tiposOpc}
-          vazio={semOpcoes(!opcoes, 'tipos')}
+          vazio={semOpcoes(!opcoes, opcoesErro, 'tipos')}
+          aoTentar={aoTentar}
           selecionados={f.tipo.map((t) => TIPO_ID[t])}
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
@@ -68,7 +79,8 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Sistema"
           genero="m"
           opcoes={bm?.sistemas ?? []}
-          vazio={semOpcoes(!opcoes, 'sistemas')}
+          vazio={semOpcoes(!opcoes, opcoesErro, 'sistemas')}
+          aoTentar={aoTentar}
           selecionados={f.sistema}
           variante={variante}
           onChange={(ids, replace) => definir({ sistema: ids }, { replace })}
@@ -79,7 +91,8 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           id="prioridade"
           rotulo="Prioridade"
           opcoes={ac?.prioridades ?? []}
-          vazio={semOpcoes(!opcoes, 'prioridades', 'f')}
+          vazio={semOpcoes(!opcoes, opcoesErro, 'prioridades', 'f')}
+          aoTentar={aoTentar}
           selecionados={f.prioridade.map((p) => p.toLowerCase())}
           variante={variante}
           onChange={(ids, replace) =>

@@ -37,6 +37,10 @@ export interface UseFiltros<F> {
   filtros: F
   config: (typeof PAINEIS)[PainelId]
   opcoes: OpcoesFiltro | undefined
+  /** A consulta das opções falhou (a lista de cada filtro mostra o erro). */
+  opcoesErro: boolean
+  /** Repete a consulta das opções. */
+  recarregarOpcoes: () => void
   /** Aplica na hora (sem botão "Aplicar"): cada chamada é uma entrada no histórico (Voltar desfaz). */
   definir: (parcial: Partial<F>, opcoes?: { replace?: boolean }) => void
   /** Remove um filtro (ou só um valor dele). Período volta ao padrão. */
@@ -65,8 +69,18 @@ function useBase(painel: PainelId, prefixo: string) {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { data: opcoes } = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
-  return { config, params, navigate, location, opcoes: opcoes, prefixo }
+  const q = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
+  const recarregarOpcoes = () => void q.refetch()
+  return {
+    config,
+    params,
+    navigate,
+    location,
+    opcoes: q.data,
+    opcoesErro: q.isError,
+    recarregarOpcoes,
+    prefixo,
+  }
 }
 
 /** Nome pelo id; sem opções carregadas (ou id desconhecido), mostra o próprio id. */
@@ -139,7 +153,10 @@ export function useFiltros(
   o: OpcaoHook = {},
 ): UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao> {
   const prefixo = o.prefixo ?? ''
-  const { config, params, navigate, location, opcoes } = useBase(painel, prefixo)
+  const { config, params, navigate, location, opcoes, opcoesErro, recarregarOpcoes } = useBase(
+    painel,
+    prefixo,
+  )
   const ehSust = config.dominio === 'sustentacao'
   const memoria = useMemoriaFiltros()
   const guardados = useMemoriaAtual()
@@ -388,6 +405,8 @@ export function useFiltros(
     filtros: efetivo,
     config,
     opcoes,
+    opcoesErro,
+    recarregarOpcoes,
     definir,
     remover,
     limpar,
