@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k287-ids-antigos-sust
-commit: d3a14b455a3f68e39f08e3effcb9e1c396a1ec84
-parecer: reprovado
+commit: f1005198173f69e21bb7c41cbee7887c8d16e089
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-13
 ---
@@ -32,5 +32,17 @@ Volta 0, head d3a14b45. Diff lido: `git diff e5092e05...d3a14b45` (base develop 
 - A3 (recomendado) web/src/data/mock/MockFonteMetricas.test.ts:40 · o caso "filtros estreitos" da Sustentação usa `equipe: ['fluig']`, que agora seleciona zero chamados; o teste segue verde, mas deixou de exercitar o recorte estreito com dado. Trocar por `sssc-fluig`.
 - A4 (recomendado) packages/metricas/src/complementares.test.ts:271 · o `S8` "sem-referencia" usa `equipe: ['fluig']`; passa agora pelo recorte vazio, não pelo motivo original (4 semanas da SSSC FLUIG). Trocar por `sssc-fluig` e conferir que a expectativa se mantém.
 
-## Veredito
+## Veredito (volta 0)
 Reprovado: A1 e A2 deixam o CI vermelho no head. O desenho da remoção está correto; a volta é só nos testes da tendência (e, recomendado, A3 e A4).
+
+## Revalidação (volta 1, head f1005198)
+- Delta lido: `forge-check parecer delta docs/reviews/097-k287-ids-antigos-sust.md` (intervalo d3a14b45..f1005198, sem o que veio da develop no merge 4daef93b). No domínio: `packages/metricas/src/tendencia.test.ts`, `packages/metricas/src/complementares.test.ts`, `web/src/data/mock/MockFonteMetricas.test.ts` (commit `f1005198 fix(metricas)`, +7 -6) e `packages/contratos/src/filtros.ts` (campo `setores?`, vindo da develop pelo merge, PR #388; fora deste review).
+- A1 resolvido: `tendencia.test.ts:254` usa `sssc-totvs` (20) e `sssc-senior` (5) e afirma `['totvs']` = 0, prova da remoção do apelido.
+- A2 resolvido: `tendencia.test.ts:272` espera `['totvs']` = 0, e o nome do teste L7a diz que o id antigo não seleciona mais nada.
+- A3 resolvido: `MockFonteMetricas.test.ts:40` usa `sssc-fluig`, que é o id das opções do mock (`nucleoMock.ts:233`, `slug(nome)`) e o `equipeId` dos chamados (`acelerato/indice.ts:93`); o recorte estreito volta a ter dado.
+- A4 resolvido: `complementares.test.ts:271` usa `sssc-fluig`; a expectativa `sem-referencia` se mantém.
+- Execução: CI do head pelos check-runs do commit f1005198 (run 43540656683): `testes` **success** (era failure em d3a14b45); `rapida`, `filtro`, `build`, `banco`, `openapi`, `seguranca`, `imagem` verdes; `e2e`, `perf` pulados. Local: `vitest run src/tendencia.test.ts src/complementares.test.ts` em `packages/metricas`, 60 passam; `vitest run src/data/mock/MockFonteMetricas.test.ts` em `web/`, 18 passam.
+- Tamanho: `git diff --numstat --no-renames origin/develop...HEAD` sem `.md` soma 175 linhas; o corpo do PR mantém `teto: excedido, <n> linhas, troca do id antigo pelo slug em testes e specs, um comportamento só`.
+
+## Veredito
+Aprovado no head f1005198: A1 a A4 resolvidos, CI verde.
