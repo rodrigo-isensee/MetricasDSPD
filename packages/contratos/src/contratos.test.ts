@@ -7,9 +7,6 @@ import {
   eventoColetaSchema,
   janelaCalibracaoSchema,
   paginaColetasSchema,
-  EQUIPES_SUSTENTACAO,
-  EQUIPES_SUSTENTACAO_ID,
-  idEquipeSustentacao,
   JANELA_PERCENTIS_PADRAO,
   META_ADERENCIA_SLE_PCT,
   META_DESVIO_ALOCACAO_PP,
@@ -18,7 +15,6 @@ import {
   METRICAS_SUSTENTACAO,
   METRICA_IDS,
   MINIMO_AMOSTRA,
-  NOME_EQUIPE_SUSTENTACAO,
   PERIODOS_PADRAO,
   TIPOS_CARD,
   TIPOS_FILTRO,
@@ -99,10 +95,17 @@ describe('período e filtros', () => {
   })
 
   it('filtros da sustentação aceitam equipes e prioridades válidas e não têm filtro por agente', () => {
-    const ok = { equipe: ['totvs'], prioridade: ['P1', 'P3'], periodo: { tipo: '6m' } }
+    const ok = { equipe: ['sssc-totvs'], prioridade: ['P1', 'P3'], periodo: { tipo: '6m' } }
     expect(filtrosSustentacaoSchema.safeParse(ok).success).toBe(true)
     expect(filtrosSustentacaoSchema.safeParse({ ...ok, equipe: ['sssc-nova'] }).success).toBe(true)
     expect(filtrosSustentacaoSchema.safeParse({ ...ok, equipe: [1] }).success).toBe(false)
+    // K-287: o contrato exige slug (a-z, 0-9 e hífen); nome com espaço, maiúscula ou vazio não passa
+    for (const ruim of ['SSSC TOTVS', 'Sssc-Totvs', '', '-sssc', 'a'.repeat(61), 'constructor ']) {
+      expect(filtrosSustentacaoSchema.safeParse({ ...ok, equipe: [ruim] }).success).toBe(false)
+    }
+    expect(filtrosSustentacaoSchema.safeParse({ ...ok, equipe: ['a'.repeat(60)] }).success).toBe(
+      true,
+    )
     expect(filtrosSustentacaoSchema.safeParse({ ...ok, prioridade: ['P9'] }).success).toBe(false)
     expect(Object.keys(filtrosSustentacaoSchema.shape).sort()).toEqual([
       'equipe',
@@ -111,17 +114,7 @@ describe('período e filtros', () => {
     ])
   })
 
-  it('ids de URL: um por equipe de sustentação e um por tipo do filtro', () => {
-    expect(EQUIPES_SUSTENTACAO_ID.map((id) => NOME_EQUIPE_SUSTENTACAO[id])).toEqual([
-      ...EQUIPES_SUSTENTACAO,
-    ])
-    // 097 L7a: os ids antigos viram o slug do nome real; qualquer outro id passa como está.
-    expect(
-      EQUIPES_SUSTENTACAO.map((n) =>
-        idEquipeSustentacao(EQUIPES_SUSTENTACAO_ID[EQUIPES_SUSTENTACAO.indexOf(n)]!),
-      ),
-    ).toEqual(EQUIPES_SUSTENTACAO.map((n) => n.toLowerCase().replace(' ', '-')))
-    expect(idEquipeSustentacao('time-novo')).toBe('time-novo')
+  it('ids de URL: um por tipo do filtro', () => {
     expect(Object.keys(TIPO_ID).sort()).toEqual([...TIPOS_FILTRO].sort())
     expect(new Set(Object.values(TIPO_ID)).size).toBe(TIPOS_FILTRO.length)
     expect(TIPOS_CARD).toContain('Iniciativa')

@@ -101,6 +101,8 @@ describe('K-303: o vazio da aba vale só para os cartões do período', () => {
       'Nenhum apontamento nesta janela. Troque as datas do mapa.',
     )
     expect(screen.queryByTestId('mapa-diario')).toBeNull()
+    // K-320: sem pessoa no mapa, nada a explicar; a linha de nomes ocultos não aparece.
+    expect(screen.queryByTestId('linha-nomes-ocultos')).toBeNull()
   })
 
   it('CA-5: só a linha Outra área também conta como sem pessoa', async () => {
@@ -119,6 +121,7 @@ describe('K-303: o vazio da aba vale só para os cartões do período', () => {
     )
     expect(await screen.findByTestId('estado-vazio-AP')).toBeInTheDocument()
     expect(await screen.findByTestId('diario-sem-pessoas')).toBeInTheDocument()
+    expect(screen.queryByTestId('linha-nomes-ocultos')).toBeNull()
   })
 
   it('CA-6: no vazio do período não há índice de seções; com dados, há', async () => {
