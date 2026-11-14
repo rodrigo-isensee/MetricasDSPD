@@ -49,6 +49,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Sustentação (pedido 099, K-275, B' da Q-099-7): O17 com dado real por sistema (`categoria_sistema`); a causa raiz segue "Sem dado real" com o motivo (o Registro de Problemas não tem vínculo ao incidente), nunca lista vazia nem causa aparente (#406).
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 - Sustentação (pedido 087, K-215, servidor): `GET /api/v1/filtros/acelerato` ganha o campo opcional `recorte` (rótulos vigentes de organização, tipo e equipes do `ref_dominio`; omitido se alguma lista está vazia); sem migração nem GRANT novo; a tela passa a usar em etapa seguinte.
+
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 - Suíte: trava em `/tmp/claude-uid` (pedido 079) (#263); teste da trava não pendura dentro do `pronto` (pedido 085) (#280); E2E L3-01 espera a altura da página estabilizar antes do axe (pedido 080) (#265).

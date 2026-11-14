@@ -36,6 +36,7 @@ describe('opcoes.recorte (K-215)', () => {
   it.each([
     ['organização', [TIPO, EQ1]],
     ['tipo', [ORG, EQ1]],
+    // sonda review dc171ab S1: `repositorio.ts:57` `recorte.equipes.length > 0` trocado por `>= 0` · espera: vermelho (este caso e o do rótulo ruim que esvazia a lista)
     ['equipe', [ORG, TIPO]],
     ['todas', []],
   ])('lista de %s vazia: o campo recorte não vai (nunca lista vazia)', async (_nome, linhas) => {
