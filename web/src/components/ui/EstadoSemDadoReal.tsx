@@ -8,6 +8,7 @@ export function EstadoSemDadoReal({ codigo, motivo }: { codigo: string; motivo: 
   return (
     <div
       className="flex flex-col items-start gap-1 rounded-md border border-dashed border-borda-controle p-4 text-sm"
+      role="status"
       data-testid={`estado-sem-dado-real-${codigo}`}
     >
       <p className="flex items-center gap-2 font-semibold text-texto">

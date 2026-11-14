@@ -277,9 +277,16 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             )}
           </div>
         </div>
-        {/* Base e selos na linha do título; a altura é reservada para não saltar ao carregar.
+        {/* Base e selos na linha do título; a altura só é reservada quando há base (não salta ao carregar), sem faixa vazia.
             Recolhido, ficam a origem e a calibração: o cartão calmo não pode esconder "sem dado real" (M1). */}
-        <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
+        <div
+          className={clsx(
+            'mt-1 flex flex-wrap items-center gap-2',
+            !recolhido && p.base && 'min-h-6',
+            esmaece,
+          )}
+          data-testid={`selos-${p.codigo}`}
+        >
           {!recolhido && p.base && (
             <BadgeBase
               base={p.base}
