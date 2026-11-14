@@ -313,6 +313,13 @@ describe('recolher cartão: K-324 parte C', () => {
     expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
   })
 
+  it('C2: recolhido em estado ok, mesmo com callback, não mostra "Tentar de novo"', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="ok" onTentarDeNovo={vi.fn()} />]} />)
+    expect(screen.getByTestId('resumo-recolhido-O3')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
+  })
+
   it('C3: a linha de selos só reserva altura (min-h-6) expandida e com base', async () => {
     render(<Painel />)
     expect(screen.getByTestId('selos-O3')).toHaveClass('min-h-6')
@@ -345,6 +352,8 @@ describe('recolher cartão: K-324 parte C', () => {
     expect(visiveis().every((e) => e !== null)).toBe(true)
     await userEvent.click(screen.getByTestId('recolher-O3'))
     expect(visiveis().every((e) => e === null)).toBe(true)
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(visiveis().every((e) => e !== null)).toBe(true)
   })
 
   it('C3: em calibração, o selo segue visível recolhido; em sem-dado-real, some', () => {
