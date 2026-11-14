@@ -10,7 +10,7 @@ const papel = (erro: { code?: string } | null): pg.Pool =>
 
 describe('provarSemPessoa (K-326)', () => {
   it('lança quando não há coluna de pessoa a provar (nunca passa verde vazia)', async () => {
-    await expect(provarSemPessoa(papel({ code: '42501' }), dono([]), 'dspd_bm.tabela_sem_pessoa', 'schema_t')).rejects.toThrow(/COLUNAS_PESSOA não tem coluna|prova vazia/);
+    await expect(provarSemPessoa(papel({ code: '42501' }), dono([]), 'dspd_bm.tabela_sem_pessoa', 'schema_t')).rejects.toThrow(/COLUNAS_PESSOA não tem coluna de pessoa para dspd_bm\.tabela_sem_pessoa/);
   });
 
   it('passa quando a coluna existe e o GRANT é negado (42501)', async () => {
