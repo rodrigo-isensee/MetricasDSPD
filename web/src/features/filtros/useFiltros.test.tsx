@@ -158,9 +158,9 @@ describe('useFiltros: ações em sequência rápida (IF-001, IS-003)', () => {
     await aguardarOpcoes(r)
     act(() => {
       r.result.current.uso.definir({ equipe: ['fluig'] })
-      r.result.current.uso.definir({ tipo: ['Incidente'] })
+      r.result.current.uso.definir({ tipo: ['Melhoria'] })
     })
-    expect(r.result.current.loc.search).toBe('?cadencia=semanal&equipe=fluig&tipo=incidente')
+    expect(r.result.current.loc.search).toBe('?cadencia=semanal&equipe=fluig&tipo=melhoria')
   })
 
   it('remover dois chips em sequência remove os dois', async () => {
