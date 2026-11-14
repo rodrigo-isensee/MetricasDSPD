@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useEffect, useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import {
   JANELA_PERCENTIS_PADRAO,
   NOTAS_FIXAS_DO_CARTAO,
@@ -174,6 +174,8 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const atualizando = ok && !!p.atualizando
   const recolhivel = recolher !== null && p.recolhivel !== false
   const recolhido = recolhivel && recolher.recolhido
+  // B-2: o Tentar de novo some ao recarregar; o foco vai antes ao Recolher/Expandir do mesmo cartão.
+  const botaoRecolher = useRef<HTMLButtonElement>(null)
   const resumo = resumoDoRecolhido(estado, atualizando, p.resumoRecolhido, p.base)
 
   useEffect(() => {
@@ -264,6 +266,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             )}
             {recolhivel && (
               <button
+                ref={botaoRecolher}
                 type="button"
                 onClick={recolher.alternar}
                 aria-expanded={!recolhido}
@@ -320,7 +323,15 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             </p>
             {estado === 'erro' && p.onTentarDeNovo && (
               <div className="mt-2">
-                <Botao onClick={p.onTentarDeNovo}>Tentar de novo</Botao>
+                <Botao
+                  aria-label={`Tentar de novo: ${p.titulo}`}
+                  onClick={() => {
+                    botaoRecolher.current?.focus()
+                    p.onTentarDeNovo?.()
+                  }}
+                >
+                  Tentar de novo
+                </Botao>
               </div>
             )}
           </>
