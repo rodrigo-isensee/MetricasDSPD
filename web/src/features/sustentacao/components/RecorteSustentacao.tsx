@@ -7,15 +7,15 @@ function ListaCompleta({ lista }: { lista: ListaExpansivel }) {
   const [aberta, setAberta] = useState(false)
   return (
     <details
-      open={aberta}
       className="rounded-md border border-borda bg-superficie text-sm"
+      // O navegador alterna o `open` (clique, Enter, Espaço); o estado só lê o resultado para trocar o texto do resumo.
+      onToggle={(e) => setAberta(e.currentTarget.open)}
       data-testid="recorte-lista"
     >
-      <summary
-        className="alvo flex min-h-11 cursor-pointer items-center px-3 font-bold"
-        // O navegador alterna o `open`; o estado só acompanha para trocar o texto do resumo sem depender do evento `toggle`.
-        onClick={() => setAberta((a) => !a)}
-      >
+      <summary className="alvo flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 font-bold [&::-webkit-details-marker]:hidden">
+        <span aria-hidden="true" className={aberta ? 'rotate-90' : ''}>
+          ▸
+        </span>
         {aberta ? lista.aberto : lista.fechado}
       </summary>
       <ul className="list-disc break-words px-3 pb-3 pl-8 md:columns-2 lg:columns-3 [column-gap:1rem]">
