@@ -36,11 +36,10 @@ function lerLista<T extends string>(
 ): T[] {
   const bruto = lista(params, chave)
   const ok: T[] = []
-  for (const original of bruto) {
-    const v = original
+  for (const v of bruto) {
     if (validos === null || (validos as readonly string[]).includes(v)) {
       if (!ok.includes(v as T)) ok.push(v as T)
-    } else invalidos.push(`${rotulo} "${original}"`)
+    } else invalidos.push(`${rotulo} "${v}"`)
   }
   // selecionar todos equivale a "Todos" (URL omite o parâmetro)
   if (validos !== null && ok.length === validos.length) return []

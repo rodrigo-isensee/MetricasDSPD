@@ -164,6 +164,11 @@ describe('leitura e escrita da sustentação', () => {
     expect(r.invalidos).toEqual(['equipe "totvs"', 'equipe "fluig"'])
   })
 
+  it('slug repetido na URL entra uma vez só', () => {
+    const r = lerSustentacao(P('equipe=sssc-totvs,sssc-totvs'), opcoesSust, '6m')
+    expect(r.filtros.equipe).toEqual(['sssc-totvs'])
+  })
+
   it('nome do protótipo de objeto na URL é inválido, nunca vira texto de função (A6)', () => {
     const r = lerSustentacao(P('equipe=constructor,tostring,__proto__'), opcoesSust, '6m')
     expect(r.filtros.equipe).toEqual([])

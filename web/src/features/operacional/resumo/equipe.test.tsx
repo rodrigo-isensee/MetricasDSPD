@@ -250,6 +250,15 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     expect(await botao('resumo-sustentacao', 'Equipe: Todas')).toBeInTheDocument()
   })
 
+  it('as duas normalizações se somam também quando uma só ajusta o valor (maiúscula vira slug)', async () => {
+    const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=SSSC-TOTVS', new FonteEquipe())
+    expect(
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
+    ).toHaveTextContent('equipe "xyz"')
+    await waitFor(() => expect(busca(r).toString()).toBe('sust_equipe=sssc-totvs'))
+    expect(await botao('resumo-sustentacao', 'Equipe: SSSC TOTVS')).toBeInTheDocument()
+  })
+
   it('carregando: o botão fica desabilitado enquanto as opções não chegam', async () => {
     const fonte = new FonteEquipe()
     fonte.modoOpcoes = 'trava'
