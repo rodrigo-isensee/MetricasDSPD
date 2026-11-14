@@ -48,7 +48,7 @@ function mostrar(modo: Modo) {
   return r
 }
 const paragrafo = () => screen.getByTestId('recorte-sustentacao')
-const rotulo = (l: HTMLElement) => l.querySelector('summary')?.textContent?.replace('▸', '')
+const rotulo = (l: HTMLElement) => l.querySelector('summary')?.textContent.replace('▸', '')
 const listas = () => screen.queryAllByTestId('recorte-lista')
 
 describe('juntar', () => {
