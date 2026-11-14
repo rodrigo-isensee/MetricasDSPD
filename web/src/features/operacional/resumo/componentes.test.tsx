@@ -69,6 +69,21 @@ describe('NumeroChave', () => {
     expect(screen.queryByTestId('numero-acima-p95-valor')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
   })
+  it('K-285 B-2: o motivo do sem dado real tem 14 px (text-sm), não 12 px', () => {
+    noRouter(
+      <dl>
+        <NumeroChave
+          {...props}
+          estado="sem-dado-real"
+          erro={new SemDadoRealErro('O12', 'aguardando campo no quadro')}
+          modelo={null}
+        />
+      </dl>,
+    )
+    const motivo = screen.getByText('Motivo:').parentElement as HTMLElement
+    expect(motivo.className).toMatch(/text-sm/)
+    expect(motivo.className).not.toMatch(/text-xs/)
+  })
   it('sem dado real e sem motivo no erro: o motivo genérico do contrato', () => {
     noRouter(
       <dl>

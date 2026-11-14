@@ -5,6 +5,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1).
 - Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).
 - Aba Apontamento: dia atípico acima de 10 h (pedido 067) (#215) e aviso de coleta parcial (pedido 069, lote M1-a) (#219).
 - Sustentação: S8 conta só incidentes com resposta (pedido 066) (#216).

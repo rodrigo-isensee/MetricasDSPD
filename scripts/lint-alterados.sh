@@ -20,16 +20,17 @@ fi
 
 raiz=()
 servidor=()
-while IFS= read -r f; do
+# Listagem com -z e leitura por NUL: nome com quebra de linha, aspas ou barra invertida chega inteiro (K-322).
+while IFS= read -r -d '' f; do
   [ -n "$f" ] || continue
   case "$f" in
     server/*) servidor+=("${f#server/}") ;;
     *) raiz+=("$f") ;;
   esac
 done < <({
-  git -c core.quotePath=false diff --name-only --diff-filter=d "$mb" -- '*.ts' '*.tsx'
-  git -c core.quotePath=false ls-files --others --exclude-standard -- '*.ts' '*.tsx'
-} | sort -u)
+  git diff -z --name-only --diff-filter=d "$mb" -- '*.ts' '*.tsx'
+  git ls-files -z --others --exclude-standard -- '*.ts' '*.tsx'
+} | sort -zu)
 
 if [ "${#raiz[@]}" -eq 0 ] && [ "${#servidor[@]}" -eq 0 ]; then
   echo "lint-alterados: nenhum .ts/.tsx alterado contra $base; lint pulado (a CI roda o lint inteiro)."
@@ -39,10 +40,10 @@ fi
 rc=0
 if [ "${#raiz[@]}" -gt 0 ]; then
   echo "lint-alterados: eslint da raiz em ${#raiz[@]} arquivo(s) alterado(s) contra $base."
-  pnpm exec eslint --cache --cache-location node_modules/.cache/eslint --no-warn-ignored "${raiz[@]}" || rc=1
+  pnpm exec eslint --cache --cache-location node_modules/.cache/eslint --no-warn-ignored -- "${raiz[@]}" || rc=1
 fi
 if [ "${#servidor[@]}" -gt 0 ]; then
   echo "lint-alterados: eslint do server em ${#servidor[@]} arquivo(s) alterado(s) contra $base."
-  pnpm --filter @metricas-dspd/server exec eslint --cache --cache-location node_modules/.cache/eslint "${servidor[@]}" || rc=1
+  pnpm --filter @metricas-dspd/server exec eslint --cache --cache-location node_modules/.cache/eslint -- "${servidor[@]}" || rc=1
 fi
 exit "$rc"

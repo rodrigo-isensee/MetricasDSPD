@@ -23,6 +23,8 @@ interface Props {
   variante?: 'popover' | 'lista'
   dica?: ReactNode
   genero?: 'f' | 'm'
+  /** Texto da lista sem opções (carregando, erro ou recorte sem dado); sem ele, a lista fica em branco. */
+  vazio?: string
 }
 
 function resumo(opcoes: readonly OpcaoFiltro[], sel: readonly string[], genero: 'f' | 'm'): string {
@@ -71,6 +73,7 @@ function Lista({
   setBusca,
   buscaRef,
   genero = 'f',
+  vazio,
 }: Props & {
   busca: string
   setBusca: (t: string) => void
@@ -145,6 +148,15 @@ function Lista({
     else if (i === 0) buscaRef.current?.focus()
     else todas[i - 1]?.focus()
   }
+  if (vazio && opcoes.length === 0)
+    return (
+      <fieldset className="m-0 min-w-0 border-0 p-0">
+        <legend className="sr-only">{rotulo}</legend>
+        <p className="py-1 text-sm text-texto-2" role="status" data-testid={`${id}-vazio`}>
+          {vazio}
+        </p>
+      </fieldset>
+    )
   return (
     <fieldset className="m-0 min-w-0 border-0 p-0">
       <legend className="sr-only">{rotulo}</legend>
