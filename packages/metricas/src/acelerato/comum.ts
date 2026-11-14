@@ -6,7 +6,7 @@ import {
   type MetricaId,
   type Prioridade,
 } from '@metricas-dspd/contratos'
-import { idEquipeSustentacao, type FiltrosSustentacao } from '@metricas-dspd/contratos'
+import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
 import { criteriosDe } from '../core/criterios'
 import { arredondar } from '../core/estatistica'
@@ -25,7 +25,7 @@ export function selecionarAC(
   f: FiltrosSustentacao,
   o: { semPrioridade?: boolean } = {},
 ): ChamadoCalc[] {
-  const equipes = f.equipe.map(idEquipeSustentacao)
+  const equipes = f.equipe
   return ctx.idx.chamados.filter(
     (x) =>
       !x.c.excluido &&

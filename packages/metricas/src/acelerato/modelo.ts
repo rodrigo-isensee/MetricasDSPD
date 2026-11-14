@@ -76,9 +76,12 @@ export interface EtapaChamado {
 /** Relógio em que o prazo é medido: `corrido` (24 h por dia, sem feriado) ou `util` (calendário de expediente). */
 export type UnidadePrazo = 'corrido' | 'util'
 
+/** Unidade em que o PROC escreve o prazo (K-314, Q-099-11): só exibição; o cálculo é sempre em horas. */
+export type UnidadeExibicao = 'min' | 'h' | 'dia'
+
 /**
- * Prazos da matriz de prioridade (PROC 30.000.010 v002), em horas, cada um com a unidade (Q-099-11). P1 = 15 min / 4 h. Dia útil = 8 h
- * (os prazos em dias úteis vêm já em horas).
+ * Prazos da matriz de prioridade (PROC 30.000.010 v002), em horas, cada um com o relógio (Q-099-11) e a unidade de exibição (K-314). P1 = 15 min / 4 h.
+ * Dia útil = 8,8 h (os prazos em dias úteis vêm já em horas). `exibir_*` nulo = vigência anterior ao K-314.
  */
 export interface AlvoPrioridade {
   prioridade: Prioridade
@@ -86,6 +89,8 @@ export interface AlvoPrioridade {
   unidade_primeiro_atendimento: UnidadePrazo
   restauracao_horas: number
   unidade_restauracao: UnidadePrazo
+  exibir_primeiro_atendimento: UnidadeExibicao | null
+  exibir_restauracao: UnidadeExibicao | null
 }
 
 export interface ConfigAC {
@@ -129,6 +134,8 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
     unidade_primeiro_atendimento: 'corrido',
     restauracao_horas: 4,
     unidade_restauracao: 'corrido',
+    exibir_primeiro_atendimento: 'min',
+    exibir_restauracao: 'h',
   },
   {
     prioridade: 'P2',
@@ -136,6 +143,8 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
     unidade_primeiro_atendimento: 'corrido',
     restauracao_horas: 8,
     unidade_restauracao: 'util',
+    exibir_primeiro_atendimento: 'min',
+    exibir_restauracao: 'h',
   },
   {
     prioridade: 'P3',
@@ -143,6 +152,8 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
     unidade_primeiro_atendimento: 'util',
     restauracao_horas: 17.6,
     unidade_restauracao: 'util',
+    exibir_primeiro_atendimento: 'h',
+    exibir_restauracao: 'dia',
   },
   {
     prioridade: 'P4',
@@ -150,6 +161,8 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
     unidade_primeiro_atendimento: 'util',
     restauracao_horas: 44,
     unidade_restauracao: 'util',
+    exibir_primeiro_atendimento: 'h',
+    exibir_restauracao: 'dia',
   },
   {
     prioridade: 'P5',
@@ -157,6 +170,8 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
     unidade_primeiro_atendimento: 'util',
     restauracao_horas: 88,
     unidade_restauracao: 'util',
+    exibir_primeiro_atendimento: 'dia',
+    exibir_restauracao: 'dia',
   },
 ]
 

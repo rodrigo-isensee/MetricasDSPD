@@ -619,6 +619,8 @@ const classeS1 = z.object({
   alvoHoras: z.number(),
   /** Relógio em que o alvo e a estatística são medidos (Q-099-11): `corrido` (24 h por dia) ou `util` (calendário de expediente). */
   unidade: z.enum(['corrido', 'util']),
+  /** Unidade em que o PROC escreve o prazo (K-314, Q-099-11): só exibição; alvo e estatística continuam em horas. null = vigência anterior ao K-314. */
+  exibirEm: z.enum(['min', 'h', 'dia']).nullable(),
   n: z.number(),
   estatistica: estatisticaSchema(percentisComMediaSchema),
   /** mediana / alvo (1 = no alvo). null com amostra insuficiente. */
@@ -632,7 +634,7 @@ export const resultadoS1 = z.object({
   excecoesForaDaApuracao: z.number(),
   /** Horas do dia útil do calendário usado no cálculo (Decisão 13: 8,8 na Sustentação). Aditivo: a web converte horas em dias úteis por este número, nunca por constante. */
   horasPorDiaUtil: z.number(),
-  /** Tempos em horas úteis (calendário de expediente) para todas as prioridades. */
+  /** Tempos em horas, no relógio de `unidade` de cada célula. */
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),
   ),
@@ -986,13 +988,18 @@ export const resultadoO16 = z.object({
 
 /**
  * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
- * Contagem, sem mínimo. Campo causa raiz via integração Metabase (decisão do usuário, 2026-10-11).
+ * Contagem, sem mínimo. Causa raiz: sem dado real até o Registro de Problemas ter vínculo ao incidente (pedido 099, B' da Q-099-7).
  */
 export const resultadoO17 = z.object({
   ...comum,
-  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  /** false = a parte que depende de extensão (causa raiz) não é publicada, nunca 0%. */
   campoDisponivel: z.boolean(),
-  porCausa: z.array(z.object({ causa: z.enum([...CAUSAS_RAIZ, 'Não informada']), n: z.number() })),
+  /** null = causa raiz sem dado real (pedido 099, B' da Q-099-7): nunca lista vazia nem "Não informada" inflado; o motivo vai em `motivoCausaRaiz`. */
+  porCausa: z
+    .array(z.object({ causa: z.enum([...CAUSAS_RAIZ, 'Não informada']), n: z.number() }))
+    .nullable(),
+  /** Motivo de `porCausa` nulo; null quando a causa raiz é publicada. */
+  motivoCausaRaiz: z.string().min(1).nullable(),
   porSistema: z.array(z.object({ sistema: z.string(), n: z.number() })),
 })
 

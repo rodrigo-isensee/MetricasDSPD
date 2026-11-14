@@ -193,6 +193,54 @@ describe('Acelerato', () => {
     expect(util.u).toBe('util')
   })
 
+  it('S1 repassa a unidade de exibição do PROC (K-314) sem usá-la em conta: números idênticos com qualquer unidade, inclusive nula', () => {
+    // 25 chamados de P3 (acima de 20): estatística e razão saem e são comparadas
+    const base = baseDe(25)
+    const com = (exibir: (a: (typeof ALVOS_PADRAO)[number]) => (typeof ALVOS_PADRAO)[number]) =>
+      calcularS1(
+        criarContextoAC(
+          { ...base, config: { ...base.config, alvos: ALVOS_PADRAO.map(exibir) } },
+          HOJE,
+          CALENDARIO_PADRAO,
+        ),
+        F,
+      )
+    const padrao = com((a) => a)
+    const celulas = (r: typeof padrao) =>
+      r.prioridades.map((p) => [
+        p.prioridade,
+        p.primeiroAtendimento.exibirEm,
+        p.restauracao.exibirEm,
+      ])
+    expect(celulas(padrao)).toEqual([
+      ['P1', 'min', 'h'],
+      ['P2', 'min', 'h'],
+      ['P3', 'h', 'dia'],
+      ['P4', 'h', 'dia'],
+      ['P5', 'dia', 'dia'],
+    ])
+    const nulas = com((a) => ({
+      ...a,
+      exibir_primeiro_atendimento: null,
+      exibir_restauracao: null,
+    }))
+    expect(celulas(nulas).map((c) => [c[1], c[2]])).toEqual(Array(5).fill([null, null]))
+    const trocadas = com((a) => ({
+      ...a,
+      exibir_primeiro_atendimento: 'dia',
+      exibir_restauracao: 'min',
+    }))
+    const semExibir = (r: typeof padrao) =>
+      JSON.parse(
+        JSON.stringify(r, (k, v: unknown) => (k === 'exibirEm' ? undefined : v)),
+      ) as unknown
+    const p3 = padrao.prioridades.find((p) => p.prioridade === 'P3')!
+    expect(p3.restauracao.razaoMediana).toBe(0.51)
+    expect(p3.restauracao.estatistica.status).toBe('ok')
+    expect(semExibir(nulas)).toEqual(semExibir(padrao))
+    expect(semExibir(trocadas)).toEqual(semExibir(padrao))
+  })
+
   it('exceções de registro posterior ficam fora e a prioridade com menos de 20 chamados é insuficiente (nunca agregada)', () => {
     const ctx = criarContextoAC(
       baseDe(25, (i) => ({ excecao_sla_registro_posterior: i < 6 })),

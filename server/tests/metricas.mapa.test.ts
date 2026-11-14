@@ -89,20 +89,29 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     const ac = montarBaseAC({
       chamados: [l], etapas: [], criterios: [],
       alvos: [
-        { prioridade: 'P1', prazo_pa_horas: '0.25', unidade_pa: 'corrido', prazo_r_horas: '4.00', unidade_r: 'corrido' },
-        { prioridade: 'P2', prazo_pa_horas: '0.50', unidade_pa: 'corrido', prazo_r_horas: '8.00', unidade_r: 'util' },
+        { prioridade: 'P1', prazo_pa_horas: '0.25', unidade_pa: 'corrido', prazo_r_horas: '4.00', unidade_r: 'corrido', exibir_pa: 'min', exibir_r: 'h' },
+        { prioridade: 'P2', prazo_pa_horas: '0.50', unidade_pa: 'corrido', prazo_r_horas: '8.00', unidade_r: 'util', exibir_pa: null, exibir_r: null },
       ],
     });
     expect(ac.config.alvos).toEqual([
-      { prioridade: 'P1', primeiro_atendimento_horas: 0.25, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 4, unidade_restauracao: 'corrido' },
-      { prioridade: 'P2', primeiro_atendimento_horas: 0.5, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 8, unidade_restauracao: 'util' },
+      { prioridade: 'P1', primeiro_atendimento_horas: 0.25, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 4, unidade_restauracao: 'corrido', exibir_primeiro_atendimento: 'min', exibir_restauracao: 'h' },
+      { prioridade: 'P2', primeiro_atendimento_horas: 0.5, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 8, unidade_restauracao: 'util', exibir_primeiro_atendimento: null, exibir_restauracao: null },
     ]);
   });
 
   it('unidade de prazo fora de corrido e util em ref_alvo_prioridade: erro, nunca um padrão (a unidade muda o número da S1)', () => {
     const base = { chamados: [], etapas: [], criterios: [] };
-    const alvo = (unidade_pa: string, unidade_r: string) => ({ prioridade: 'P1', prazo_pa_horas: '1.00', unidade_pa, prazo_r_horas: '4.00', unidade_r });
+    const alvo = (unidade_pa: string, unidade_r: string) => ({ prioridade: 'P1', prazo_pa_horas: '1.00', unidade_pa, prazo_r_horas: '4.00', unidade_r, exibir_pa: null, exibir_r: null });
     expect(() => montarBaseAC({ ...base, alvos: [alvo('semana', 'util')] })).toThrow('unidade de prazo desconhecida');
     expect(() => montarBaseAC({ ...base, alvos: [alvo('util', 'semana')] })).toThrow('unidade de prazo desconhecida');
+  });
+
+  it('unidade de exibição (K-314): min, h e dia passam, nulo = vigência anterior ao K-314; outro valor é erro, nunca um padrão', () => {
+    const base = { chamados: [], etapas: [], criterios: [] };
+    const alvo = (exibir_pa: string | null, exibir_r: string | null) => ({ prioridade: 'P3', prazo_pa_horas: '2.00', unidade_pa: 'util', prazo_r_horas: '17.60', unidade_r: 'util', exibir_pa, exibir_r });
+    const lido = montarBaseAC({ ...base, alvos: [alvo('h', 'dia'), alvo('min', null)] }).config.alvos;
+    expect(lido.map((a) => [a.exibir_primeiro_atendimento, a.exibir_restauracao])).toEqual([['h', 'dia'], ['min', null]]);
+    expect(() => montarBaseAC({ ...base, alvos: [alvo('semana', 'dia')] })).toThrow('unidade de exibição desconhecida');
+    expect(() => montarBaseAC({ ...base, alvos: [alvo('h', 'Dia')] })).toThrow('unidade de exibição desconhecida');
   });
 });

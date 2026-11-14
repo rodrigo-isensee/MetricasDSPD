@@ -63,14 +63,20 @@ describe('/sustentacao: só redireciona para a visão Sustentação do Operacion
       '/operacional?cadencia=sustentacao&s3=prop&s4=a&s5=b&s6=c&ei_sust=x&mock=vazio',
     ],
     [
-      '?sust_prioridade=P3&sust_equipe=totvs',
+      '?sust_prioridade=P3&sust_equipe=sssc-totvs',
       '',
       '/operacional?cadencia=sustentacao&sust_prioridade=P3&sust_equipe=sssc-totvs',
     ],
     [
-      '?equipe=senior,sssc-fluig',
+      '?equipe=sssc-senior,sssc-fluig',
       '',
       '/operacional?cadencia=sustentacao&sust_equipe=sssc-senior,sssc-fluig',
+    ],
+    [
+      // K-287: o id antigo não vira slug; segue como veio e o codec o recusa como inválido
+      '?equipe=totvs,senior',
+      '',
+      '/operacional?cadencia=sustentacao&sust_equipe=totvs,senior',
     ],
     [
       '?sust_prioridade=P3&prioridade=P1',
@@ -96,7 +102,7 @@ describe('/sustentacao: só redireciona para a visão Sustentação do Operacion
 
   it('no navegador: termina no Operacional por replace, o histórico é substituído', async () => {
     const { roteador } = renderizarApp(
-      '/sustentacao?prioridade=P1&periodo=12m&equipe=totvs&tipo=Bug#s2',
+      '/sustentacao?prioridade=P1&periodo=12m&equipe=sssc-totvs&tipo=Bug#s2',
     )
     await waitFor(() => expect(roteador.state.location.pathname).toBe('/operacional'))
     const p = new URLSearchParams(roteador.state.location.search)

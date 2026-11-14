@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   fonteDaMetrica,
+  MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
   type FiltrosFluxo,
   type FiltrosSustentacao,
 } from '@metricas-dspd/contratos'
@@ -8,6 +9,7 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock'
 import { acelerato, businessmap, calcularMetrica, type ContextosMetricas } from '.'
 import { CALENDARIO_PADRAO } from './core/calendario'
+import { marcacoesNoPeriodo, VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL } from './core/criterios'
 import type { FatoBloqueio } from './businessmap/modelo'
 import { HOJE_TESTE, umaBase, type EspecCard } from './businessmap/testing'
 import { EXTENSAO_AC_VAZIA } from './acelerato/extensao'
@@ -75,7 +77,12 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(t8.sprints).toEqual([])
     const o17 = calcularMetrica('O17', FS, ctxSemExt)
     expect(o17.campoDisponivel).toBe(false)
-    expect(o17.porCausa).toEqual([])
+    expect(o17.porCausa).toBeNull()
+    expect(o17.motivoCausaRaiz).toBe(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL)
+    expect(o17.motivoCausaRaiz).toContain('causa aparente')
+    // Pedido 099 (E3.20, B' da Q-099-7): a parte por sistema é dado real mesmo sem a extensão.
+    expect(o17.base.n).toBeGreaterThan(0)
+    expect(o17.porSistema.reduce((t, x) => t + x.n, 0)).toBe(o17.base.n)
     const e4 = calcularMetrica('E4', F, ctxSemExt)
     expect(e4.campoDisponivel).toBe(false)
     expect(e4.trimestres.every((t) => t.iniciadosPorNatureza.length === 0)).toBe(true)
@@ -103,15 +110,16 @@ describe('métricas complementares: contratos e regras comuns', () => {
 
   it('O17 (Sustentação): incidentes encerrados por causa raiz e por sistema', () => {
     const o17 = calcularMetrica('O17', FS, ctxMock)
-    expect(o17.porCausa.some((c) => c.causa === 'Código')).toBe(true)
+    expect((o17.porCausa ?? []).some((c) => c.causa === 'Código')).toBe(true)
     expect(o17.porSistema.reduce((t, x) => t + x.n, 0)).toBe(o17.base.n)
-    const total = o17.porCausa.reduce((t, x) => t + x.n, 0)
+    const total = (o17.porCausa ?? []).reduce((t, x) => t + x.n, 0)
     expect(total).toBe(o17.base.n)
+    expect(o17.motivoCausaRaiz).toBeNull()
     const semCausa = calcularMetrica('O17', FS, {
       ...ctxMock,
       ext: { ...ext, ac: { ...ext.ac, causasRaiz: {} } },
     })
-    expect(semCausa.porCausa.filter((c) => c.n > 0)).toEqual([
+    expect((semCausa.porCausa ?? []).filter((c) => c.n > 0)).toEqual([
       { causa: 'Não informada', n: o17.base.n },
     ])
   })
@@ -268,7 +276,7 @@ describe('Sustentação: S8 e S9', () => {
     expect(normal.statusMeta).toBe('dentro')
     const nada = acelerato.calcularS8(ctxMock.ac, {
       ...FS,
-      equipe: ['fluig'],
+      equipe: ['sssc-fluig'],
       periodo: { tipo: '4s' },
     })
     expect(nada.statusMeta).toBe('sem-referencia')
@@ -377,5 +385,20 @@ describe('Sustentação: S8 e S9', () => {
     expect(sem.meses.some((m) => m.total > 0)).toBe(true)
     expect(sem.excecaoSla).toBeNull()
     expect(r.excecaoSla).not.toBeNull()
+  })
+})
+
+describe('O17: versão de critério do pedido 099 (E3.20)', () => {
+  it('marca o O17 só em períodos que cruzam 2026-11-12, e nenhum outro cartão', () => {
+    const periodo = { inicio: '2026-11-01', fim: '2026-11-30' }
+    expect(marcacoesNoPeriodo('O17', periodo, []).map((m) => m.id)).toEqual([
+      VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL.id,
+    ])
+    expect(marcacoesNoPeriodo('O17', { inicio: '2026-09-01', fim: '2026-10-31' }, [])).toEqual([])
+    expect(
+      marcacoesNoPeriodo('S2', periodo, []).some(
+        (m) => m.id === VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL.id,
+      ),
+    ).toBe(false)
   })
 })
