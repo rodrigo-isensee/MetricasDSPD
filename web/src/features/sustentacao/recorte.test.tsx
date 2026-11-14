@@ -25,8 +25,8 @@ class FonteRecorte extends MockFonteMetricas {
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.modo === 'carregando') return new Promise(() => {})
     if (this.modo === 'erro') throw new Error('falha')
-    const real = await super.opcoesFiltro(dominio)
-    if (real.dominio !== 'acelerato') return real
+    const real = (await super.opcoesFiltro(dominio)) as OpcoesFiltro
+    if (real.dominio !== 'acelerato') return real as Extract<OpcoesFiltro, { dominio: D }>
     const { recorte: _mock, ...resto } = real
     const r: OpcoesFiltro =
       this.modo.recorte === 'sem-campo' ? resto : { ...resto, recorte: this.modo.recorte }
@@ -48,6 +48,7 @@ function mostrar(modo: Modo) {
   return r
 }
 const paragrafo = () => screen.getByTestId('recorte-sustentacao')
+const rotulo = (l: HTMLElement) => l.querySelector('summary')?.textContent?.replace('▸', '')
 const listas = () => screen.queryAllByTestId('recorte-lista')
 
 describe('juntar', () => {
@@ -104,7 +105,7 @@ describe('texto do recorte da Sustentação (K-215)', () => {
     q3.unmount()
     mostrar({ recorte: recorte(4, 4, 1) })
     await screen.findByText(/Chamados de 4 organizações, de 4 tipos de chamado, equipe Equipe 1,/)
-    expect(listas().map((l) => l.querySelector('summary')?.textContent)).toEqual([
+    expect(listas().map((l) => rotulo(l))).toEqual([
       'Ver as 4 organizações',
       'Ver os 4 tipos de chamado',
     ])
@@ -113,7 +114,7 @@ describe('texto do recorte da Sustentação (K-215)', () => {
   it('várias listas longas: um details por lista, na ordem da frase (organizações, tipos, equipes)', async () => {
     mostrar({ recorte: recorte(5, 6, 38) })
     await screen.findByText(/Chamados de 5 organizações, de 6 tipos de chamado, de 38 equipes,/)
-    expect(listas().map((l) => l.querySelector('summary')?.textContent)).toEqual([
+    expect(listas().map((l) => rotulo(l))).toEqual([
       'Ver as 5 organizações',
       'Ver os 6 tipos de chamado',
       'Ver as 38 equipes',
@@ -162,6 +163,32 @@ describe('texto do recorte da Sustentação (K-215)', () => {
     expect(resumo).toHaveFocus()
   })
 
+  it('o resumo tem seta própria aria-hidden e esconde o marcador nativo (R1 da UX)', async () => {
+    mostrar({ recorte: recorte(1, 1, 6) })
+    const resumo = await screen.findByText('Ver as 6 equipes')
+    const seta = resumo.querySelector('span')!
+    expect(seta).toHaveAttribute('aria-hidden', 'true')
+    expect(seta.className).not.toContain('rotate-90')
+    expect(resumo.className).toContain('list-none')
+    expect(resumo.className).toContain('[&::-webkit-details-marker]:hidden')
+    await userEvent.click(resumo)
+    expect(seta.className).toContain('rotate-90')
+  })
+
+  it('o texto segue o open do navegador por qualquer via, sem depender do clique (R2 da UX)', async () => {
+    mostrar({ recorte: recorte(1, 1, 6) })
+    const resumo = await screen.findByText('Ver as 6 equipes')
+    const detalhes = resumo.closest('details')!
+    act(() => {
+      detalhes.open = true
+    })
+    await screen.findByText('Ocultar as 6 equipes')
+    act(() => {
+      detalhes.open = false
+    })
+    await screen.findByText('Ver as 6 equipes')
+  })
+
   it('o resumo tem altura mínima de 44px e a lista cresce a página, em colunas só em telas largas (CA-8)', async () => {
     mostrar({ recorte: recorte(1, 1, 6) })
     const resumo = await screen.findByText('Ver as 6 equipes')
@@ -183,7 +210,7 @@ describe('texto do recorte da Sustentação (K-215)', () => {
     expect(listas()[0]).not.toHaveAttribute('open')
   })
 
-  it.each([
+  it.each<[string, Modo]>([
     ['sem o campo', { recorte: 'sem-campo' }],
     ['carregando', 'carregando'],
     ['em erro', 'erro'],
