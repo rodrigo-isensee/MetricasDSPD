@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 102-forge-0460
 branch: fix/k236-k243-testes-tecnicos
-commit: d4feb4495cbbd69461ac6bef9e9595787142c054
-parecer: reprovado
+commit: 7e6f0b56aba5b356e7e85c2c238a7290710fd8b7
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-14
 ---
@@ -30,5 +30,11 @@ Diff lido: `git diff 7cb86b26...d4feb449` (1 commit): `server/tests/grants-api-c
 
 ## Sondas
 
+## Revalidação (E1.32)
+- Delta lido: `forge-check parecer delta` deu o intervalo `d4feb449..7e6f0b56`, com um arquivo no domínio, `server/tests/grants-api-colunas.pg.test.ts` (5 linhas trocadas, commit `7e6f0b56`).
+- A1 resolvido: o array da varredura inclui `${prefixo}dspd_core` (linha 32) e o comentário da linha 7 cita bm, ac e core.
+- A2 resolvido: o `SELECT ... LIMIT 0` cita coluna, schema e tabela com aspas duplas (linhas 73 e 77).
+- CI do head `7e6f0b56` (run 43554308380): `banco` verde, com `tests/grants-api-colunas.pg.test.ts (7 tests)` no log do job (45 arquivos, 303 testes); `testes`, `rapida`, `build`, `openapi`, `seguranca`, `imagem` e `filtro` verdes; `e2e` e `perf` pulados pelo filtro. Com o core na varredura nenhuma coluna legível foi recusada: o GRANT do `dspd_api` no `dspd_core` (`ref_`, `pesq_`, `vw_pesq_`) já respeita as quatro regras.
+
 ## Parecer
-Reprovado pelo A1: o K-243 está pronto e o teste do K-236 é correto no que varre, mas não varre o schema core, onde o `dspd_api` também tem GRANT. A correção é de uma linha; na volta, leio só o delta e o `banco` do novo head.
+Aprovado na revalidação: A1 e A2 resolvidos no `7e6f0b56`, com `banco` e `testes` verdes no CI desse head. (Na rodada anterior, sobre `d4feb449`, o parecer foi reprovado pelo A1.)
