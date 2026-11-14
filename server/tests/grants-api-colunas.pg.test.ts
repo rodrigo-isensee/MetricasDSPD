@@ -4,7 +4,7 @@ import { COLUNAS_FORA_DA_API, TABELAS_FORA_DA_API } from '../src/plataforma/db/g
 import { COLUNAS_PESSOA, EXCECOES_PESSOA, colunaDePessoa } from '../src/plataforma/db/lgpd.js';
 import { poolDe, prefixo, url } from './pg/ctx.js';
 
-// K-236: teste geral, coluna a coluna, de TUDO o que o `dspd_api` consegue ler nos schemas bm e ac do banco migrado. Não depende de lista de tabelas
+// K-236: teste geral, coluna a coluna, de TUDO o que o `dspd_api` consegue ler nos schemas bm, ac e core do banco migrado. Não depende de lista de tabelas
 // escrita à mão: tabela nova com GRANT entra sozinha. O teste de pessoa por tabela (`provarSemPessoa`) só casa colunas já listadas; este fecha o resto.
 const d = describe.skipIf(!url);
 
@@ -29,7 +29,7 @@ d('K-236: nenhuma tabela com GRANT ao dspd_api deixa coluna de pessoa ou não li
               has_column_privilege('dspd_api', format('%I.%I', c.table_schema, c.table_name), c.column_name, 'SELECT') AS legivel
          FROM information_schema.columns c
         WHERE c.table_schema = ANY($1::text[]) ORDER BY c.table_schema, c.table_name, c.ordinal_position`,
-      [[`${prefixo}dspd_bm`, `${prefixo}dspd_ac`]]);
+      [[`${prefixo}dspd_bm`, `${prefixo}dspd_ac`, `${prefixo}dspd_core`]]);
     colunas = r.rows;
   });
   afterAll(async () => { await Promise.all([dono.end(), api.end()]); });
@@ -70,11 +70,11 @@ d('K-236: nenhuma tabela com GRANT ao dspd_api deixa coluna de pessoa ou não li
       const bloqueadas = cols.filter((c) => !c.legivel);
       if (bloqueadas.length === 0 || bloqueadas.length === cols.length) continue; // sem GRANT algum ou integral: coberto pelas provas de tabela
       for (const c of bloqueadas) {
-        const codigo = await api.query(`SELECT ${c.coluna} FROM ${tabela} LIMIT 0`).then(() => 'permitido', (e: { code?: string }) => e.code);
+        const codigo = await api.query(`SELECT "${c.coluna}" FROM "${c.schema}"."${c.tabela}" LIMIT 0`).then(() => 'permitido', (e: { code?: string }) => e.code);
         expect(codigo, `${id(c)} bloqueada deve dar 42501`).toBe('42501');
       }
-      const liberadas = cols.filter((c) => c.legivel).map((c) => c.coluna).join(', ');
-      await expect(api.query(`SELECT ${liberadas} FROM ${tabela} LIMIT 0`), `${tabela}: colunas liberadas`).resolves.toBeDefined();
+      const liberadas = cols.filter((c) => c.legivel).map((c) => `"${c.coluna}"`).join(', ');
+      await expect(api.query(`SELECT ${liberadas} FROM "${cols[0]!.schema}"."${cols[0]!.tabela}" LIMIT 0`), `${tabela}: colunas liberadas`).resolves.toBeDefined();
     }
   });
 });
