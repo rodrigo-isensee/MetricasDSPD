@@ -41,18 +41,38 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
   },
 ];
 
+/**
+ * K-308 (ADR 0027, item 7.2; Decisão 25a do dono, pedido 099): etapas sintéticas D-7 montadas com o dia útil de 8 h 48 da Sustentação. Fica FORA de
+ * `CRITERIOS_ACELERATO` de propósito: quem a grava é só o comando `ac:reprojetar-etapas`, na mesma transação da reprojeção, para a marca T2.6 nunca
+ * aparecer num dia em que os intervalos ainda são os de 8 h. A `056:D-7` continua gravada; esta soma uma marca.
+ */
+export const REFERENCIA_D7_528 = '099:D-7-528';
+export const CRITERIO_D7_528: CriterioAcelerato = {
+  referencia: REFERENCIA_D7_528,
+  descricao: 'Etapas sintéticas D-7 montadas com o dia útil de 8 h 48 da Sustentação (o mesmo da medição); o tempo de cada etapa volta a ser o total do Acelerato',
+  motivo: 'Decisão 25a do dono (pedido 099, K-308): desde a Decisão 13 o intervalo era montado em 8 h e medido em 8 h 48. A série inteira é reprojetada pelo critério novo.',
+  metricas: ['S1', 'S4', 'S9', 'S10', 'EI_SUST'],
+};
+
+/** Grava o critério se a `referencia` ainda não existe no domínio `acelerato`. Devolve se gravou agora. */
+async function registrarCriterio(db: Consultavel, S: Esquemas, c: CriterioAcelerato, vigenteDesde: string, agora: Date): Promise<boolean> {
+  const existe = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [c.referencia]);
+  if (existe.rows.length > 0) return false;
+  const r = await db.query<{ versao_id: string }>(
+    `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+     VALUES ($1, 'acelerato', $2, $3, $4, $5) RETURNING versao_id`, [vigenteDesde, c.descricao, c.motivo, c.referencia, agora.toISOString()]);
+  const id = r.rows[0]!.versao_id;
+  for (const m of c.metricas) await db.query(`INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, $2)`, [id, m]);
+  return true;
+}
+
 /** Registra as que faltam, com a data civil `vigenteDesde` (AAAA-MM-DD). Devolve as referências gravadas agora. */
 export async function registrarCriteriosAcelerato(db: Consultavel, S: Esquemas, vigenteDesde: string, agora: Date): Promise<string[]> {
   const gravadas: string[] = [];
-  for (const c of CRITERIOS_ACELERATO) {
-    const existe = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [c.referencia]);
-    if (existe.rows.length > 0) continue;
-    const r = await db.query<{ versao_id: string }>(
-      `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
-       VALUES ($1, 'acelerato', $2, $3, $4, $5) RETURNING versao_id`, [vigenteDesde, c.descricao, c.motivo, c.referencia, agora.toISOString()]);
-    const id = r.rows[0]!.versao_id;
-    for (const m of c.metricas) await db.query(`INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, $2)`, [id, m]);
-    gravadas.push(c.referencia);
-  }
+  for (const c of CRITERIOS_ACELERATO) if (await registrarCriterio(db, S, c, vigenteDesde, agora)) gravadas.push(c.referencia);
   return gravadas;
 }
+
+/** Registra a `099:D-7-528` (só o comando de reprojeção chama). Idempotente. Devolve se gravou agora. */
+export const registrarCriterioD7528 = (db: Consultavel, S: Esquemas, vigenteDesde: string, agora: Date): Promise<boolean> =>
+  registrarCriterio(db, S, CRITERIO_D7_528, vigenteDesde, agora);

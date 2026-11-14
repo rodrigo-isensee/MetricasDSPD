@@ -15,7 +15,7 @@ import {
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
 import { SemDadoRealErro } from '@/data/http/SemDadoRealErro'
-import { fmtIntervalo } from '@/lib/formatar'
+import { fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
@@ -45,15 +45,8 @@ import { EstadoVazio } from './EstadoVazio'
 import { Icone } from './Icone'
 import { ModoTabelaContext, type ModoVisual } from './ModoTabela'
 import { BlocoNota, BotaoNota, type TextoNota } from './NotaMetodologica'
+import { useRecolhido } from './Recolhidos'
 import { SeloJanela } from './SeloJanela'
-import {
-  FaixaSimulado,
-  LEGENDA_TABELA_SIMULADO,
-  MarcaDaguaSimulado,
-  PREFIXO_LEITURA_SIMULADO,
-  ProvedorCartaoSimulado,
-  SeloSimulado,
-} from './SeloSimulado'
 import { StatusMeta } from './StatusMeta'
 import type { StatusMeta as Status } from '@metricas-dspd/contratos'
 
@@ -100,6 +93,10 @@ export interface CartaoMetricaProps {
   /** Sem alternativa em tabela (listas que já são tabelas). */
   semTabela?: boolean
   variante?: 'padrao' | 'compacto'
+  /** Mostra o botão "Recolher" (só dentro de um `ProvedorRecolhidos`); `false` nos cartões de número único (Q-8). */
+  recolhivel?: boolean
+  /** Linha do cartão recolhido quando há um total melhor que o padrão ("Recolhido. 24 projetos, ..."). Nunca por pessoa, equipe ou setor (CA-32). */
+  resumoRecolhido?: string
   onTentarDeNovo?: () => void
   erro?: Error | null
   className?: string
@@ -135,12 +132,13 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const idTitulo = useId()
   const idLeitura = useId()
   const idNota = useId()
+  const idCorpo = useId()
+  const recolher = useRecolhido(p.codigo)
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
   const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
   const origem = useOrigemCartao()(p.codigo)
-  // Calibração é do dado real: o cartão simulado não a mostra.
-  const calibrando = useEmCalibracao()(p.codigo) && origem.simulado !== true
+  const calibrando = useEmCalibracao()(p.codigo)
   const notas = notasDoCartaoVisiveis(p.codigo, p.notasDoCartao)
   const calibracaoPronta = useCalibracaoPronta()
   // O tempo mínimo do esqueleto vive aqui, que continua montado quando os dados chegam (6.1).
@@ -149,10 +147,6 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const estado = esq.mostrar || (p.estado === 'ok' && !calibracaoPronta) ? 'carregando' : p.estado
   const ok = estado === 'ok'
   const semDadoReal = estado === 'sem-dado-real'
-  // Simulado (pedido 070): o selo vem do contexto de origem, não de prop. Só com o dado na tela (CA-11: carregando e erro não têm selo);
-  // o vazio por filtro mantém o selo. Um cartão é inteiro real ou inteiro simulado.
-  const simulado = origem.simulado === true && (estado === 'ok' || estado === 'vazio')
-  const motivoSimulado = origem.motivo ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA
   // O motivo é o da resposta da API; sem ele (cartão que não repassa o erro), o do mapa de origem do contrato.
   const motivoSemDadoReal =
     p.erro instanceof SemDadoRealErro
@@ -161,17 +155,20 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const alturaCorpo = p.alturaEsqueleto ?? ALTURAS_ESQUELETO[p.codigo] ?? ALTURA_ESQUELETO_PADRAO
   const alturaMobile = p.alturaEsqueleto ?? ALTURAS_ESQUELETO_MOBILE[p.codigo] ?? alturaCorpo
   const atualizando = ok && !!p.atualizando
+  const recolhivel = recolher !== null && p.recolhivel !== false
+  const recolhido = recolhivel && recolher.recolhido
+  const resumo =
+    estado === 'erro'
+      ? 'Não foi possível carregar este cartão.'
+      : (p.resumoRecolhido ??
+        `Recolhido.${p.base ? ` ${fmtInteiro(p.base.n)} ${p.base.unidade}.` : ''}`)
 
   useEffect(() => {
     reportarAtualizando(id, atualizando)
     return () => reportarAtualizando(id, false)
   }, [id, atualizando, reportarAtualizando])
 
-  // O simulado só segue o período da tela: os filtros de dimensão (equipe, tipo, sistema, prioridade) não o afetam (Q-070-1).
-  const atua = (chave: string) =>
-    simulado
-      ? chave === 'periodo'
-      : !p.aplicaveis || p.aplicaveis.includes(chave as FiltroFluxoChave)
+  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroFluxoChave)
   const aplicados = filtrosAtivos.filter((f) => atua(f.chave))
   const naoAfetam = [...new Set(filtrosAtivos.filter((f) => !atua(f.chave)).map((f) => f.rotulo))]
   const textoAplicados = aplicados.map((f) => `${f.rotulo} ${f.valor}`)
@@ -210,7 +207,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
       data-estado={atualizando ? 'atualizando' : estado}
       className={clsx(
         'self-start rounded-lg bg-superficie text-texto',
-        simulado ? 'border-2 border-dashed border-atencao' : 'border border-borda',
+        'border border-borda',
         p.variante === 'compacto' ? 'p-3' : 'p-4',
         p.className,
       )}
@@ -226,13 +223,15 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <BotaoNota
-              aberta={notaAberta}
-              onAlternar={() => setNotaAberta((a) => !a)}
-              controla={idNota}
-            />
-            {p.acoes}
-            {ok && !p.semTabela && (
+            {!recolhido && (
+              <BotaoNota
+                aberta={notaAberta}
+                onAlternar={() => setNotaAberta((a) => !a)}
+                controla={idNota}
+              />
+            )}
+            {!recolhido && p.acoes}
+            {ok && !recolhido && !p.semTabela && (
               <AlternarTabela
                 modo={modo}
                 onAlternar={() => setModo((m) => (m === 'grafico' ? 'tabela' : 'grafico'))}
@@ -250,136 +249,164 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
                 Ocultar
               </button>
             )}
+            {recolhivel && (
+              <button
+                type="button"
+                onClick={recolher.alternar}
+                aria-expanded={!recolhido}
+                aria-controls={idCorpo}
+                aria-label={`${recolhido ? 'Expandir' : 'Recolher'} cartão: ${p.titulo}`}
+                data-testid={`recolher-${p.codigo}`}
+                className="alvo inline-flex items-center gap-1 rounded border border-borda-controle px-2 text-sm text-texto hover:bg-superficie-2"
+              >
+                <Icone nome="chevron" className={clsx('size-4', !recolhido && 'rotate-180')} />
+                {recolhido ? 'Expandir' : 'Recolher'}
+              </button>
+            )}
           </div>
         </div>
         {/* Base e selos na linha do título; a altura é reservada para não saltar ao carregar. */}
-        <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
-          {p.base && (
-            <BadgeBase
-              base={p.base}
-              variante={p.baseVariante ?? 'ok'}
-              {...(p.baseK !== undefined ? { k: p.baseK } : {})}
-              data-testid={`base-${p.codigo}`}
-            />
-          )}
-          {simulado && <SeloSimulado codigo={p.codigo} />}
-          {janelaFixa && <SeloJanela janela={janelaTxt} />}
-          {calibrando && !semDadoReal && <SeloCalibracao />}
-          {p.selos}
-          <SeloOrigem origem={origem} />
-        </div>
-        <BlocoNota
-          id={idNota}
-          aberta={notaAberta}
-          nota={p.nota}
-          nestaTela={nesta}
-          testid={`nota-${p.codigo}`}
-        />
+        {!recolhido && (
+          <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
+            {p.base && (
+              <BadgeBase
+                base={p.base}
+                variante={p.baseVariante ?? 'ok'}
+                {...(p.baseK !== undefined ? { k: p.baseK } : {})}
+                data-testid={`base-${p.codigo}`}
+              />
+            )}
+            {janelaFixa && <SeloJanela janela={janelaTxt} />}
+            {calibrando && !semDadoReal && <SeloCalibracao />}
+            {p.selos}
+            <SeloOrigem origem={origem} />
+          </div>
+        )}
+        {!recolhido && (
+          <BlocoNota
+            id={idNota}
+            aberta={notaAberta}
+            nota={p.nota}
+            nestaTela={nesta}
+            testid={`nota-${p.codigo}`}
+          />
+        )}
       </header>
 
-      {simulado && <FaixaSimulado codigo={p.codigo} motivo={motivoSimulado} />}
-      <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
-      {notas.length > 0 && (
-        <ul
-          className="mt-1 flex flex-col gap-0.5 text-xs text-texto-2"
-          data-testid={`notas-cartao-${p.codigo}`}
-        >
-          {notas.map((n) => (
-            <li key={n} className="flex items-start gap-1">
-              <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
-              {TEXTO_NOTA_QUALQUER[n]}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div id={idCorpo}>
+        {recolhido ? (
+          <p className="mt-2 text-sm text-texto-2" data-testid={`resumo-recolhido-${p.codigo}`}>
+            {resumo}
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
+            {notas.length > 0 && (
+              <ul
+                className="mt-1 flex flex-col gap-0.5 text-xs text-texto-2"
+                data-testid={`notas-cartao-${p.codigo}`}
+              >
+                {notas.map((n) => (
+                  <li key={n} className="flex items-start gap-1">
+                    <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
+                    {TEXTO_NOTA_QUALQUER[n]}
+                  </li>
+                ))}
+              </ul>
+            )}
 
-      {estado === 'carregando' && (
-        <div className="mt-3">
-          <EsqueletoCartao
-            codigo={p.codigo}
-            titulo={p.titulo}
-            altura={alturaCorpo}
-            alturaMobile={alturaMobile}
-            brilho={esq.brilho}
-          />
-        </div>
-      )}
-      {estado === 'erro' && (
-        <div className="mt-3">
-          <EstadoErro
-            codigo={p.codigo}
-            erro={p.erro ?? null}
-            {...(p.onTentarDeNovo ? { onTentarDeNovo: p.onTentarDeNovo } : {})}
-          />
-        </div>
-      )}
-      {semDadoReal && (
-        <div className="mt-3">
-          <EstadoSemDadoReal codigo={p.codigo} motivo={motivoSemDadoReal} />
-        </div>
-      )}
-      {estado === 'vazio' && (
-        <div className="mt-3">
-          <EstadoVazio codigo={p.codigo} />
-        </div>
-      )}
-
-      {ok && (
-        <ModoTabelaContext.Provider
-          value={{
-            modo,
-            idLeitura,
-            legenda: `${p.codigo} ${p.titulo}. ${p.pergunta}${simulado ? ` ${LEGENDA_TABELA_SIMULADO}.` : ''}`,
-            codigo: p.codigo,
-          }}
-        >
-          <ProvedorCartaoCalibracao ativo={calibrando}>
-            <ProvedorCartaoSimulado ativo={simulado}>
-              <div className="mt-1">
-                {p.leitura && (
-                  <p
-                    id={idLeitura}
-                    className={clsx('mt-2 text-sm font-medium [overflow-wrap:anywhere]', esmaece)}
-                    data-testid={`leitura-${p.codigo}`}
-                  >
-                    {simulado ? PREFIXO_LEITURA_SIMULADO : ''}
-                    {p.leitura}
-                  </p>
-                )}
-                {p.criterios && (
-                  <div className="mt-2 flex flex-col gap-2">
-                    <AvisoCriterio marcacoes={p.criterios.serie} />
-                    <AvisoCriterio
-                      marcacoes={p.criterios.janela.filter(
-                        (m) => !p.criterios?.serie.some((s) => s.id === m.id),
-                      )}
-                      tipo="janela"
-                      janela={janelaTxt}
-                    />
-                  </div>
-                )}
-                <div className={clsx('relative mt-3', esmaece)}>
-                  {p.children}
-                  {simulado && modo === 'grafico' && <MarcaDaguaSimulado />}
-                </div>
+            {estado === 'carregando' && (
+              <div className="mt-3">
+                <EsqueletoCartao
+                  codigo={p.codigo}
+                  titulo={p.titulo}
+                  altura={alturaCorpo}
+                  alturaMobile={alturaMobile}
+                  brilho={esq.brilho}
+                />
               </div>
-            </ProvedorCartaoSimulado>
-          </ProvedorCartaoCalibracao>
-        </ModoTabelaContext.Provider>
-      )}
+            )}
+            {estado === 'erro' && (
+              <div className="mt-3">
+                <EstadoErro
+                  codigo={p.codigo}
+                  erro={p.erro ?? null}
+                  {...(p.onTentarDeNovo ? { onTentarDeNovo: p.onTentarDeNovo } : {})}
+                />
+              </div>
+            )}
+            {semDadoReal && (
+              <div className="mt-3">
+                <EstadoSemDadoReal codigo={p.codigo} motivo={motivoSemDadoReal} />
+              </div>
+            )}
+            {estado === 'vazio' && (
+              <div className="mt-3">
+                <EstadoVazio codigo={p.codigo} />
+              </div>
+            )}
 
-      <footer className="mt-3 flex flex-wrap items-center gap-2">
-        {p.meta && <ChipMeta>{p.meta}</ChipMeta>}
-        {calibrando && ok && (
-          <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
+            {ok && (
+              <ModoTabelaContext.Provider
+                value={{
+                  modo,
+                  idLeitura,
+                  legenda: `${p.codigo} ${p.titulo}. ${p.pergunta}`,
+                  codigo: p.codigo,
+                }}
+              >
+                <ProvedorCartaoCalibracao ativo={calibrando}>
+                  <div className="mt-1">
+                    {p.leitura && (
+                      <p
+                        id={idLeitura}
+                        className={clsx(
+                          'mt-2 text-sm font-medium [overflow-wrap:anywhere]',
+                          esmaece,
+                        )}
+                        data-testid={`leitura-${p.codigo}`}
+                      >
+                        {p.leitura}
+                      </p>
+                    )}
+                    {p.criterios && (
+                      <div className="mt-2 flex flex-col gap-2">
+                        <AvisoCriterio marcacoes={p.criterios.serie} />
+                        <AvisoCriterio
+                          marcacoes={p.criterios.janela.filter(
+                            (m) => !p.criterios?.serie.some((s) => s.id === m.id),
+                          )}
+                          tipo="janela"
+                          janela={janelaTxt}
+                        />
+                      </div>
+                    )}
+                    <div className={clsx('relative mt-3', esmaece)}>{p.children}</div>
+                  </div>
+                </ProvedorCartaoCalibracao>
+              </ModoTabelaContext.Provider>
+            )}
+          </>
         )}
-        {p.statusMeta && ok && !calibrando && !simulado && (
-          <StatusMeta status={p.statusMeta} {...(p.textoStatus ? { texto: p.textoStatus } : {})} />
-        )}
-        <ChipFonte fonte={p.fonte} />
-        <ChipGranularidade granularidade={p.granularidade} />
-        <ChipFiltros aplicados={textoAplicados} naoAfetam={naoAfetam} />
-      </footer>
+      </div>
+
+      {!recolhido && (
+        <footer className="mt-3 flex flex-wrap items-center gap-2">
+          {p.meta && <ChipMeta>{p.meta}</ChipMeta>}
+          {calibrando && ok && (
+            <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
+          )}
+          {p.statusMeta && ok && !calibrando && (
+            <StatusMeta
+              status={p.statusMeta}
+              {...(p.textoStatus ? { texto: p.textoStatus } : {})}
+            />
+          )}
+          <ChipFonte fonte={p.fonte} />
+          <ChipGranularidade granularidade={p.granularidade} />
+          <ChipFiltros aplicados={textoAplicados} naoAfetam={naoAfetam} />
+        </footer>
+      )}
     </div>
   )
 }

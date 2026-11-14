@@ -7,6 +7,7 @@ import ApontamentoPage from './ApontamentoPage'
 import { useDadosAba } from './dados'
 import { RESPOSTA_FICTICIA, fonteFicticia, respostaFicticia, respostaVazia } from './fixture'
 import { fmtApontamentos } from './formatar'
+import { opcoesDeEquipe } from './filtros'
 import type { ConsultaApontamento, FonteApontamento, RespostaApontamento } from './types'
 
 const URL_ABA = '/operacional/apontamento'
@@ -68,10 +69,10 @@ describe('barra de filtros', () => {
     await waitFor(() => expect(roteador.state.location.search).toBe(''))
   })
 
-  it('"Limpar" dentro do filtro esvazia só aquele filtro', async () => {
+  it('"Limpar seleção" dentro do filtro esvazia só aquele filtro', async () => {
     const roteador = await pronto(`${URL_ABA}?tipo=3&projeto=1042`)
     await userEvent.click(screen.getByRole('button', { name: /^Tipo: / }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Limpar' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Limpar seleção' }))
     await waitFor(() => expect(roteador.state.location.search).toBe('?projeto=1042'))
   })
 
@@ -160,14 +161,14 @@ describe('barra de filtros', () => {
 
   it('sem resposta (erro na primeira carga) os filtros da URL aparecem como chips e podem ser removidos', async () => {
     const roteador = renderizar(
-      `${URL_ABA}?tipo=3&pessoa=p2&projeto=1042&subtarefa=em-subtarefa&subgrupo=reuniao&qualidade=generico`,
+      `${URL_ABA}?tipo=3&equipe=portal&projeto=1042&subtarefa=em-subtarefa&subgrupo=reuniao&qualidade=generico`,
       {
         buscar: () => Promise.reject(new Error('falha')),
       },
     )
     const chips = await screen.findByRole('list', { name: 'Filtros ativos' })
     expect(within(chips).getAllByRole('listitem')).toHaveLength(6)
-    expect(within(chips).getByText('Pessoa que apontou: p2')).toBeInTheDocument()
+    expect(within(chips).getByText('Equipe: portal')).toBeInTheDocument()
     await userEvent.click(within(chips).getByRole('button', { name: 'Remover filtro Tipo: 3' }))
     await waitFor(() =>
       expect(new URLSearchParams(roteador.state.location.search).has('tipo')).toBe(false),
@@ -230,11 +231,95 @@ describe('achados: atalhos', () => {
     }
   })
 
-  it('o cartão de subgrupo oferece o atalho para os não classificados', async () => {
+  it('o cartão de Qualidade mostra a execução técnica à parte, lida da distribuição, e o atalho filtra por ela', async () => {
+    const roteador = await pronto()
+    const cartao = screen.getByTestId('metrica-AP-QUALIDADE')
+    const nota = within(cartao).getByRole('region', { name: /Execução técnica/ })
+    expect(nota).toHaveTextContent(/24 apontamentos \(\d+% das horas apontadas\)/)
+    expect(nota).toHaveTextContent('Não conta como problema de qualidade')
+    expect(within(nota).queryByText('Sem vínculo claro')).not.toBeInTheDocument()
+    await userEvent.click(
+      within(nota).getByRole('button', { name: 'Ver apontamentos de execução técnica' }),
+    )
+    await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=execucao-tecnica'))
+  })
+
+  it('com menos de 20 apontamentos de execução técnica, a nota mostra a contagem sem percentual', async () => {
+    const r = respostaFicticia(CONSULTA_PADRAO)
+    await pronto(
+      URL_ABA,
+      com({
+        ...r,
+        distribuicao: {
+          ...r.distribuicao,
+          porSubgrupo: r.distribuicao.porSubgrupo.map((l) =>
+            l.id === 'execucao-tecnica'
+              ? {
+                  ...l,
+                  apontamentos: 7,
+                  participacao: { status: 'insuficiente', n: 7, minimo: 20 },
+                }
+              : l,
+          ),
+        },
+      }),
+    )
+    const nota = screen.getByTestId('nota-execucao-tecnica')
+    expect(nota).toHaveTextContent('7 apontamentos (percentual com 20 apontamentos ou mais)')
+    expect(nota).not.toHaveTextContent('%')
+  })
+
+  it('com 1 apontamento de execução técnica, a nota usa o singular', async () => {
+    const r = respostaFicticia(CONSULTA_PADRAO)
+    await pronto(
+      URL_ABA,
+      com({
+        ...r,
+        distribuicao: {
+          ...r.distribuicao,
+          porSubgrupo: r.distribuicao.porSubgrupo.map((l) =>
+            l.id === 'execucao-tecnica'
+              ? {
+                  ...l,
+                  apontamentos: 1,
+                  participacao: { status: 'insuficiente', n: 1, minimo: 20 },
+                }
+              : l,
+          ),
+        },
+      }),
+    )
+    expect(screen.getByTestId('nota-execucao-tecnica')).toHaveTextContent('1 apontamento (')
+  })
+
+  it('o cartão de subgrupo explica, à vista, a diferença para o Sem comentário da Qualidade', async () => {
+    await pronto()
+    const cartao = screen.getByTestId('metrica-AP-SUBGRUPO')
+    expect(within(cartao).getByTestId('explicacao-sem-comentario')).toHaveTextContent(
+      "No cartão de Qualidade, 'Sem comentário' conta todos os apontamentos sem comentário",
+    )
+  })
+
+  it('sem execução técnica na distribuição, a nota não aparece', async () => {
+    const r = respostaFicticia(CONSULTA_PADRAO)
+    await pronto(
+      URL_ABA,
+      com({
+        ...r,
+        distribuicao: {
+          ...r.distribuicao,
+          porSubgrupo: r.distribuicao.porSubgrupo.filter((l) => l.id !== 'execucao-tecnica'),
+        },
+      }),
+    )
+    expect(screen.queryByTestId('nota-execucao-tecnica')).not.toBeInTheDocument()
+  })
+
+  it('o cartão de subgrupo oferece o atalho para os sem comentário', async () => {
     const roteador = await pronto()
     const cartao = screen.getByTestId('metrica-AP-SUBGRUPO')
     await userEvent.click(
-      within(cartao).getByRole('button', { name: 'Ver apontamentos não classificados' }),
+      within(cartao).getByRole('button', { name: 'Ver apontamentos do subgrupo Sem comentário' }),
     )
     await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=nao-classificado'))
   })
@@ -316,23 +401,22 @@ describe('ramos de dados e de leitura', () => {
 })
 
 describe('fonte fictícia', () => {
-  it('aplica o período, o nível da matriz e o filtro de pessoa nos blocos por pessoa', () => {
+  it('aplica o período e o nível da matriz, e aceita a equipe que existe nas opções', () => {
     const r = respostaFicticia({
       ...CONSULTA_PADRAO,
       de: '2026-09-01',
       ate: '2026-09-30',
       nivelMatriz: 'subgrupo',
-      pessoa: ['p1', 'p2'],
+      equipe: ['portal'],
     })
     expect(r.periodo).toEqual({ de: '2026-09-01', ate: '2026-09-30' })
     expect(r.matriz.nivel).toBe('subgrupo')
-    expect(r.matriz.linhas.map((l) => l.pessoaRef)).toEqual(['p1', 'p2'])
-    expect(r.diario.linhas.map((l) => l.pessoaRef)).toEqual(['p1', 'p2'])
+    expect(r.kpis.apontamentos).toBeGreaterThan(0)
   })
 
   it('valor de filtro que não existe nas opções devolve o recorte vazio', () => {
     for (const c of [
-      { pessoa: ['p99'] },
+      { equipe: ['nao-existe'] },
       { projeto: ['1'] },
       { tipo: ['1'] },
       { subtarefa: ['x'] },
@@ -355,5 +439,13 @@ describe('fonte fictícia', () => {
   it('a fonte entrega a fixture sem filtros', async () => {
     const r = await fonteFicticia.buscar(CONSULTA_PADRAO)
     expect(r).toEqual(RESPOSTA_FICTICIA)
+  })
+
+  it('resposta sem `equipes` (contrato opcional): lista vazia, e filtro de equipe cai no recorte vazio', () => {
+    const { equipes: _omitido, ...opcoes } = RESPOSTA_FICTICIA.opcoes
+    const antiga: RespostaApontamento = { ...RESPOSTA_FICTICIA, opcoes }
+    expect(opcoesDeEquipe(opcoes)).toEqual([])
+    const r = respostaFicticia({ ...CONSULTA_PADRAO, equipe: ['portal'] }, antiga)
+    expect(r.kpis.apontamentos).toBe(0)
   })
 })

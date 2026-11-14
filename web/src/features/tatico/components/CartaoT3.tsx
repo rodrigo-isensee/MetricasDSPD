@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
-import { AmostraInsuficiente, CartaoMetrica, Dica, useCartaoSimulado } from '@/components/ui'
+import { AmostraInsuficiente, CartaoMetrica, Dica } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
@@ -9,9 +9,8 @@ import { propsCartao } from '@/features/painel/propsCartao'
 
 type Contagem = 'itens' | 'tempo'
 
-/** Selo de desvio da natureza. No cartão simulado não aparece: número inventado não se avalia contra a meta (R6, A-9). */
+/** Selo de desvio da natureza. */
 function SeloDesvio() {
-  if (useCartaoSimulado()) return null
   return (
     <span className="rounded bg-alerta-fundo px-2 py-0.5 text-xs font-semibold text-alerta">
       Desvio acima de 10 p.p.
@@ -20,7 +19,7 @@ function SeloDesvio() {
 }
 
 export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T3', filtros, { simulado: true })
+  const q = useMetrica('T3', filtros)
   const [contagem, setContagem] = useState<Contagem>('itens')
   const d = q.dados
   const ok = d?.status === 'ok'

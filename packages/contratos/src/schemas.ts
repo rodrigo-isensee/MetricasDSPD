@@ -33,7 +33,7 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaSustentacaoIdSchema } from './origem'
+import { notaCartaoIdSchema, notaS12IdSchema, notaSustentacaoIdSchema } from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -86,7 +86,7 @@ export const resultadoO1 = z.object({
   ),
   diasDentroDoLimite: taxaSchema,
   statusMeta: statusMetaSchema,
-  /** Pedido 065: nota `bloqueio-sem-dado-real` quando a parte de bloqueio sai `null` (base real sem bloqueios coletados). */
+  /** Notas do cartão (H-15 e H-24). Pedido 075, lote 9b: a nota de bloqueio sem dado real saiu do enum. */
   notas: z.array(notaCartaoIdSchema).optional(),
 })
 
@@ -139,7 +139,7 @@ export const resultadoO2 = z.object({
   statusMeta: statusMetaSchema,
   /** O23 (pedido 011, B2): bloco do O2; obrigatório desde que o cálculo o devolve. */
   parados: paradosSchema,
-  /** Pedido 065: nota `bloqueio-sem-dado-real` (`bloqueioMotivo` sem motivo vira "não sabemos", não "não bloqueado"). */
+  /** Notas do cartão (H-15 e H-24). Pedido 075, lote 9b: a nota de bloqueio sem dado real saiu do enum. */
   notas: z.array(notaCartaoIdSchema).optional(),
 })
 
@@ -617,6 +617,8 @@ export const resultadoE3 = z.object({
 /* ---------- Sustentação ---------- */
 const classeS1 = z.object({
   alvoHoras: z.number(),
+  /** Relógio em que o alvo e a estatística são medidos (Q-099-11): `corrido` (24 h por dia) ou `util` (calendário de expediente). */
+  unidade: z.enum(['corrido', 'util']),
   n: z.number(),
   estatistica: estatisticaSchema(percentisComMediaSchema),
   /** mediana / alvo (1 = no alvo). null com amostra insuficiente. */
@@ -628,6 +630,8 @@ export const resultadoS1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
   excecoesForaDaApuracao: z.number(),
+  /** Horas do dia útil do calendário usado no cálculo (Decisão 13: 8,8 na Sustentação). Aditivo: a web converte horas em dias úteis por este número, nunca por constante. */
+  horasPorDiaUtil: z.number(),
   /** Tempos em horas úteis (calendário de expediente) para todas as prioridades. */
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),
@@ -1175,7 +1179,10 @@ export const resultadoS12 = z.object({
       proporcao: taxaSchema,
     }),
   ),
-  excecaoSla: taxaSchema,
+  /** Pedido 099 (D9): null = o registro posterior de exceção de SLA não tem fonte (nunca 0%); vem com a nota `excecao-sla-s12-sem-fonte`. */
+  excecaoSla: taxaSchema.nullable(),
+  /** Notas da publicação sem dado (os textos vivem em `origem.ts`). */
+  notas: z.array(notaS12IdSchema).optional(),
 })
 
 /* ---------- Pesquisa de percepção (PV1) ---------- */

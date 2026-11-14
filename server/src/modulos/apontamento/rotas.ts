@@ -25,7 +25,7 @@ export type DepsApontamento = {
 
 /** Mesmo schema do contrato, mais a recusa de valor repetido nas listas (`pessoa=p1,p1`, CA-AP-6). */
 const consultaDaRota = consultaApontamentoSchema.superRefine((c, ctx) => {
-  for (const campo of ['pessoa', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qualidade'] as const) {
+  for (const campo of ['pessoa', 'projeto', 'tipo', 'equipe', 'subtarefa', 'subgrupo', 'qualidade'] as const) {
     const itens = c[campo] as string[] | undefined;
     if (itens !== undefined && new Set(itens).size !== itens.length) ctx.addIssue({ code: 'custom', path: [campo], message: 'repetido' });
   }

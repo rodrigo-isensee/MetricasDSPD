@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # Medição do F4 antes e depois do FIL-04
 
 Pergunta: o F4 (resposta visual ao trocar filtro, limite 100 ms, ADR 0003) piorou com a correção do `FiltroMulti` (91a878d)?

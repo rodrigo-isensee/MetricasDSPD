@@ -1,13 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { RouterProvider, type DataRouter } from 'react-router'
-import {
-  FonteMetricasProvider,
-  FonteComSimulado,
-  HttpFonteMetricas,
-  MockFonteMetricas,
-  type FonteMetricas,
-} from '@/data'
+import { FonteMetricasProvider, HttpFonteMetricas, type FonteMetricas } from '@/data'
 import { ProvedorMemoriaFiltros } from '@/features/filtros'
 import {
   LocalStoragePreferencias,
@@ -34,13 +28,12 @@ export function baseDaApi(valor: string | undefined): string {
   return valor
 }
 
-/** `VITE_FONTE=api|mock` (padrão `api`, pedido 060): o mock só liga com `VITE_FONTE=mock` explícito. Valor inválido falha na partida: nunca cai no mock em silêncio. */
-export function criarFontePadrao(): FonteMetricas {
-  const fonte = env.VITE_FONTE ?? 'api'
-  // Pedido 070: onde a API diz que não há dado real e o cartão é simulável, o navegador mostra o simulado, com selo.
-  if (fonte === 'api')
-    return new FonteComSimulado(new HttpFonteMetricas({ base: baseDaApi(env.VITE_API_BASE) }))
-  if (fonte !== 'mock') throw new Error(`VITE_FONTE inválida: "${fonte}" (use "api" ou "mock")`)
+/**
+ * Fonte mock (testes, E2E, homologação). O `import()` fica só neste ramo, que o build `api` descarta por inteiro:
+ * o código do mock não entra no bundle de produção (ADR 0030, D6, guarda G1).
+ */
+async function criarFonteMock(): Promise<FonteMetricas> {
+  const { MockFonteMetricas } = await import('@/data/mock/MockFonteMetricas')
   const semente = env.VITE_MOCK_SEMENTE
   return new MockFonteMetricas({
     ...(semente ? { semente: Number(semente) } : {}),
@@ -48,6 +41,19 @@ export function criarFontePadrao(): FonteMetricas {
     // Sem a variável: latência simulada de 150 a 400 ms (D7). `VITE_MOCK_LATENCIA=0` desliga (E2E).
     ...(env.VITE_MOCK_LATENCIA ? { latenciaMs: Number(env.VITE_MOCK_LATENCIA) } : {}),
   })
+}
+
+/**
+ * `VITE_FONTE=api|mock` (padrão `api`, pedido 060): o mock só liga com `VITE_FONTE=mock` explícito e chega por
+ * `Promise` (carga sob demanda). Valor inválido falha na partida: nunca cai no mock em silêncio.
+ * O teste literal `import.meta.env.VITE_FONTE === 'mock'` é o que o build troca por constante (ver `vite.config.ts`).
+ */
+export function criarFontePadrao(): FonteMetricas | Promise<FonteMetricas> {
+  if (import.meta.env.VITE_FONTE === 'mock') return criarFonteMock()
+  // Pedido 099: nenhum número inventado na web de uso diário; sem dado real, o cartão mostra "Sem dado real" e o motivo.
+  const fonte = (import.meta.env.VITE_FONTE as string | undefined) ?? 'api'
+  if (fonte !== 'api') throw new Error(`VITE_FONTE inválida: "${fonte}" (use "api" ou "mock")`)
+  return new HttpFonteMetricas({ base: baseDaApi(env.VITE_API_BASE) })
 }
 
 export function Provedores({
@@ -78,9 +84,35 @@ export function Provedores({
   )
 }
 
+/** A fonte da API chega na hora; a do mock, depois da carga sob demanda (`null` enquanto carrega). */
+function useFontePadrao(): FonteMetricas | null {
+  const inicial = useMemo(() => criarFontePadrao(), [])
+  const [carregada, setCarregada] = useState<FonteMetricas | null>(null)
+  const [falha, setFalha] = useState<Error | null>(null)
+  useEffect(() => {
+    if (!(inicial instanceof Promise)) return
+    let vivo = true
+    inicial.then(
+      (f) => vivo && setCarregada(f),
+      (e: unknown) => vivo && setFalha(e as Error),
+    )
+    return () => {
+      vivo = false
+    }
+  }, [inicial])
+  if (falha) throw falha
+  return inicial instanceof Promise ? carregada : inicial
+}
+
 export function App() {
-  const fonte = useMemo(() => criarFontePadrao(), [])
+  const fonte = useFontePadrao()
   const roteador: DataRouter = useMemo(() => criarRoteador(), [])
+  if (!fonte)
+    return (
+      <p role="status" className="p-6 text-sm">
+        Carregando…
+      </p>
+    )
   return (
     <Provedores fonte={fonte}>
       <RouterProvider router={roteador} />

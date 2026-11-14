@@ -14,12 +14,18 @@ import {
   selecionarAC,
 } from './comum'
 import type { ContextoAC } from './indice'
-import type { AlvoPrioridade } from './modelo'
+import type { AlvoPrioridade, UnidadePrazo } from './modelo'
+
+/** Campo do índice que cada unidade lê (nomes literais: o teste de calendário segue o código por eles). */
+const MEDIDAS = {
+  primeiroAtendimento: { corrido: 'primeiroAtendimentoHC', util: 'primeiroAtendimentoHU' },
+  restauracao: { corrido: 'restauracaoHC', util: 'restauracaoHU' },
+} as const
 
 /**
  * S1: primeiro atendimento (MTTA) e restauração (MTTR) por prioridade, nunca agregado.
- * Horas úteis do calendário de expediente para todas as prioridades; as pendências saem do relógio
- * de resolução; exceções de registro posterior ficam fora. Mediana/P85/P95 com a média ao lado (P6).
+ * Cada prazo é medido na unidade do seu alvo (Q-099-11): horas úteis do calendário de expediente ou horas corridas, do mesmo calendário
+ * (T2.5). As pendências saem do relógio de resolução, no mesmo relógio da medida; exceções de registro posterior ficam fora. Mediana/P85/P95 com a média ao lado (P6).
  */
 export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 {
   const periodo = periodoDe(ctx, f)
@@ -32,17 +38,20 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
 
   const classe = (
     p: Prioridade,
-    campo: 'primeiroAtendimentoHU' | 'restauracaoHU',
+    medidas: (typeof MEDIDAS)[keyof typeof MEDIDAS],
     alvoHoras: number,
+    unidade: UnidadePrazo,
   ) => {
+    const medida = medidas[unidade]
     const vals = apuraveis
       .filter((x) => x.c.prioridade === p)
-      .map((x) => x[campo])
+      .map((x) => x[medida])
       .filter((v): v is number => v !== null)
     const est = resumoComMedia(amostraAC(p, vals, janela))
     const p50 = est.status === 'ok' ? est.valor.p50 : null
     return {
       alvoHoras,
+      unidade,
       n: vals.length,
       estatistica: est,
       razaoMediana: p50 === null ? null : r2(p50 / alvoHoras),
@@ -60,12 +69,18 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
     criterios: criterios('S1', periodo, janela, ctx),
     janelaPercentis: janela,
     excecoesForaDaApuracao: fechados.length - apuraveis.length,
+    horasPorDiaUtil: ctx.cal.horasPorDia,
     prioridades: prioridadesAlvo(f).map((p) => {
       const a = alvos.find((x) => x.prioridade === p) as AlvoPrioridade
       return {
         prioridade: p,
-        primeiroAtendimento: classe(p, 'primeiroAtendimentoHU', a.primeiro_atendimento_horas),
-        restauracao: classe(p, 'restauracaoHU', a.restauracao_horas),
+        primeiroAtendimento: classe(
+          p,
+          MEDIDAS.primeiroAtendimento,
+          a.primeiro_atendimento_horas,
+          a.unidade_primeiro_atendimento,
+        ),
+        restauracao: classe(p, MEDIDAS.restauracao, a.restauracao_horas, a.unidade_restauracao),
       }
     }),
   }

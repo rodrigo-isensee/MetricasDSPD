@@ -26,6 +26,7 @@ import {
   capacidadeMensal,
   capacidadePessoa,
   diasAtipicos,
+  type FiltrosApontamento,
   ehAtipico,
   faixaDoDia,
   filtrar,
@@ -46,10 +47,13 @@ const H = 3600
 const CAL = criarCalendario({ feriados: new Set(['2026-09-07']) }) // jornada 8 h; 07/09/2026 é segunda
 const TAREFA = { id: '7', rotulo: 'Tarefa' }
 const BUG = { id: '8', rotulo: 'Correção' }
+const TIME_A = { id: 'time-a', rotulo: 'Time A' }
+const TIME_B = { id: 'time-b', rotulo: 'Time B' }
+const SEM_TIME = { id: 'sem-time', rotulo: 'Sem time' }
 const PROJ_A = { id: '100', rotulo: 'Projeto A', foraDoEscopo: false }
 const PROJ_B = { id: '200', rotulo: 'Projeto B', foraDoEscopo: true }
 const TESTES = { id: 'testes', rotulo: 'Testes' }
-const NAO_CLASS = { id: 'nao-classificado', rotulo: 'Não classificado' }
+const NAO_CLASS = { id: 'nao-classificado', rotulo: 'Sem comentário' }
 const DIRETO = { id: 'direto-no-card', rotulo: 'Direto no card' }
 const EM_SUB = { id: 'em-subtarefa', rotulo: 'Em subtarefa' }
 
@@ -59,6 +63,7 @@ function linha(o: Partial<LinhaApontamento> = {}): LinhaApontamento {
     data: '2026-09-01',
     segundos: H,
     tipo: TAREFA,
+    equipe: TIME_A,
     projeto: PROJ_A,
     subgrupo: TESTES,
     subtarefa: DIRETO,
@@ -260,6 +265,19 @@ describe('valor atípico e filtros', () => {
   const at = diasAtipicos(base, 10 * H)
   const ids = (ls: LinhaApontamento[]) => ls.map((l) => `${l.pessoaRef ?? '-'}@${l.data}`)
 
+  it('097 L2: o filtro equipe restringe pelo time do card (e "sem-time"); lista vazia = sem filtro; só recorte, a soma do recorte bate', () => {
+    const ls = [
+      linha({ equipe: TIME_A }),
+      linha({ equipe: TIME_B, segundos: 2 * H }),
+      linha({ equipe: SEM_TIME, segundos: 3 * H }),
+    ]
+    const f = (equipe: string[]) => filtrar(ls, { anomalos: 'incluir', equipe }, new Set())
+    expect(f(['time-b']).map((l) => l.segundos)).toEqual([2 * H])
+    expect(f(['time-a', 'sem-time'])).toHaveLength(2)
+    expect(f(['inexistente'])).toHaveLength(0)
+    expect(f([])).toHaveLength(3)
+  })
+
   it('sem filtro, lista vazia ou chave ausente: tudo passa (inclusive linha sem pessoa)', () => {
     expect(filtrar(base, { anomalos: 'incluir' }, at)).toHaveLength(4)
     expect(
@@ -294,15 +312,42 @@ describe('valor atípico e filtros', () => {
     expect(filtrar(base, { anomalos: 'ocultar' }, at)).toHaveLength(3)
   })
 
-  it('soPessoa (mapa diário): ignora todos os outros filtros', () => {
+  it("modo 'diario' (mapa diário): aplica pessoa e equipe e ignora os demais filtros", () => {
     const f = {
       anomalos: 'ocultar' as const,
       pessoa: ['p1'],
       tipo: ['8'],
       qualidade: ['sem-vinculo' as const],
     }
-    expect(filtrar(base, f, at, true)).toHaveLength(2)
-    expect(filtrar(base, { anomalos: 'ocultar' }, at, true)).toHaveLength(4)
+    expect(filtrar(base, f, at, 'diario')).toHaveLength(2)
+    expect(filtrar(base, { anomalos: 'ocultar' }, at, 'diario')).toHaveLength(4)
+  })
+
+  it("097 K-286: modo 'diario' recorta pela equipe (e 'sem-time'), junto com a pessoa, sem olhar projeto, tipo nem anômalos", () => {
+    const ls = [
+      linha({ pessoaRef: 'p1', equipe: TIME_A }),
+      linha({ pessoaRef: 'p1', equipe: TIME_B, segundos: 2 * H }),
+      linha({ pessoaRef: 'p2', equipe: TIME_B, segundos: 3 * H }),
+      linha({ pessoaRef: 'p2', equipe: SEM_TIME, segundos: 4 * H }),
+    ]
+    const d = (f: Partial<FiltrosApontamento>) =>
+      filtrar(ls, { anomalos: 'ocultar', ...f }, new Set(), 'diario').map((l) => l.segundos)
+    expect(d({ equipe: ['time-b'] })).toEqual([2 * H, 3 * H])
+    expect(d({ equipe: ['time-a', 'sem-time'] })).toHaveLength(2)
+    expect(d({ equipe: ['time-b'], pessoa: ['p1'] })).toEqual([2 * H])
+    expect(d({ equipe: ['time-b'], tipo: ['999'], projeto: ['999'] })).toHaveLength(2)
+    expect(d({ equipe: [] })).toHaveLength(4)
+  })
+
+  it('097 K-286: o atípico do mapa é decidido sobre o dia inteiro, antes do filtro de equipe', () => {
+    const ls = [
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_A, segundos: 6 * H }),
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_B, segundos: 6 * H }),
+    ]
+    const atip = diasAtipicos(ls, 10 * H)
+    const [so] = filtrar(ls, { anomalos: 'incluir', equipe: ['time-a'] }, atip, 'diario')
+    expect(so).toBeDefined()
+    expect(ehAtipico(so as LinhaApontamento, atip)).toBe(true)
   })
 })
 
@@ -673,7 +718,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
       base: { n: 40, unidade: 'apontamentos' as const },
       porProjeto: [linhaDist('1', 'Projeto X', 100, ok(40, 10))],
       porTipo: [],
-      porSubgrupo: [linhaDist('nao-classificado', 'Não classificado', 10, ok(40, 5))],
+      porSubgrupo: [linhaDist('nao-classificado', 'Sem comentário', 10, ok(40, 5))],
     },
     qualidade: {
       geral: {
@@ -707,7 +752,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
           linhaDist('1', 'Projeto X', 100, ok(40, 50)),
         ],
         porTipo: [],
-        porSubgrupo: [linhaDist('nao-classificado', 'Não classificado', 10, ok(40, 20))],
+        porSubgrupo: [linhaDist('nao-classificado', 'Sem comentário', 10, ok(40, 20))],
       },
       qualidade: {
         geral: {
@@ -736,7 +781,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
     expect(a[0]).toEqual({
       codigo: 'nao-classificado-alto',
       valores: { pct: 20, n: 7 },
-      rotuloRef: 'Não classificado',
+      rotuloRef: 'Sem comentário',
     })
     expect(a[1]).toEqual({
       codigo: 'sem-comentario-alto',
@@ -767,7 +812,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
         base: { n: 5, unidade: 'apontamentos' },
         porProjeto: [linhaDist('1', 'Projeto X', 100, poucos(5))],
         porTipo: [],
-        porSubgrupo: [linhaDist('nao-classificado', 'Não classificado', 10, poucos(5))],
+        porSubgrupo: [linhaDist('nao-classificado', 'Sem comentário', 10, poucos(5))],
       },
       qualidade: {
         geral: {
@@ -918,6 +963,25 @@ describe('calcularApontamento (blocos da resposta)', () => {
     expect(r.diario.dias).toHaveLength(3)
   })
 
+  it('097 K-302: o atípico do mapa diário não muda com a Equipe (decidido sobre o dia inteiro da pessoa)', () => {
+    // p1 aponta 6 h na Equipe A e 6 h na B no mesmo dia: 12 h, acima do limite; só a soma das duas torna o dia atípico
+    const ls = [
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_A, segundos: 6 * H }),
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_B, segundos: 6 * H }),
+    ]
+    const celula = (r: ReturnType<typeof calc>) =>
+      r.diario.linhas
+        .find((l) => l.pessoaRef === 'p1')
+        ?.celulas.find((c) => c.data === '2026-09-03')
+    const semEquipe = celula(calc(ls))
+    const daEquipeA = celula(calc(ls, { filtros: { anomalos: 'incluir', equipe: ['time-a'] } }))
+    const daEquipeB = celula(calc(ls, { filtros: { anomalos: 'incluir', equipe: ['time-b'] } }))
+    expect(semEquipe).toMatchObject({ segundos: 12 * H, atipico: true })
+    // a Equipe recorta as horas da célula, mas a marca de atípico continua a do dia inteiro
+    expect(daEquipeA).toMatchObject({ segundos: 6 * H, atipico: true })
+    expect(daEquipeB).toMatchObject({ segundos: 6 * H, atipico: true })
+  })
+
   it('outra-area (três pessoas de 6 h no mesmo dia) entra na distribuição, na matriz e nos totais; fica fora dos blocos por pessoa e dia', () => {
     const ls = [
       ...muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }),
@@ -1017,6 +1081,7 @@ const linhaArb: fc.Arbitrary<LinhaApontamento> = fc.record({
   data: diaArb,
   segundos: fc.integer({ min: 1, max: 12 * H }),
   tipo: fc.constantFrom(TAREFA, BUG),
+  equipe: fc.constantFrom(TIME_A, TIME_B, SEM_TIME),
   projeto: fc.constantFrom(PROJ_A, PROJ_B),
   subgrupo: fc.constantFrom(TESTES, NAO_CLASS),
   subtarefa: fc.constantFrom(DIRETO, EM_SUB),

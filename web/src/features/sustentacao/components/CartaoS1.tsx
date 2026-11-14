@@ -9,7 +9,7 @@ import {
 import type { FiltrosSustentacao, Prioridade, ResultadoS1 } from '@metricas-dspd/contratos'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
-import { fmtInteiro, fmtPct } from '@/lib/formatar'
+import { fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import { fmtTempoPrioridade } from '../formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { TextoInsuficiente } from './comuns'
@@ -24,10 +24,18 @@ const MEDIDAS: { chave: Medida; titulo: string; sigla: string }[] = [
   { chave: 'restauracao', titulo: 'Restauração', sigla: 'MTTR' },
 ]
 
-const celula = (c: Classe, p: Prioridade, campo: 'p50' | 'p85' | 'p95' | 'media') =>
-  c.estatistica.status === 'ok' ? fmtTempoPrioridade(c.estatistica.valor[campo], p) : '—'
+const celula = (c: Classe, p: Prioridade, campo: 'p50' | 'p85' | 'p95' | 'media', hd: number) =>
+  c.estatistica.status === 'ok' ? fmtTempoPrioridade(c.estatistica.valor[campo], p, hd) : '—'
 
-function Bloco({ medida, linhas }: { medida: (typeof MEDIDAS)[number]; linhas: readonly Linha[] }) {
+function Bloco({
+  medida,
+  linhas,
+  horasPorDiaUtil,
+}: {
+  medida: (typeof MEDIDAS)[number]
+  linhas: readonly Linha[]
+  horasPorDiaUtil: number
+}) {
   const ctx = useModoTabela()
   const modo = ctx.modo
   const k = medida.sigla
@@ -47,7 +55,7 @@ function Bloco({ medida, linhas }: { medida: (typeof MEDIDAS)[number]; linhas: r
           categorias={linhas.map((l) => {
             const c = l[medida.chave]
             return {
-              rotulo: `${l.prioridade} · alvo ${fmtTempoPrioridade(c.alvoHoras, l.prioridade)}`,
+              rotulo: `${l.prioridade} · alvo ${fmtTempoPrioridade(c.alvoHoras, l.prioridade, horasPorDiaUtil)}`,
               valores: {
                 p50: c.razaoMediana === null ? null : c.razaoMediana * 100,
                 p85: c.razaoP85 === null ? null : c.razaoP85 * 100,
@@ -94,11 +102,11 @@ function Bloco({ medida, linhas }: { medida: (typeof MEDIDAS)[number]; linhas: r
               const c = l[medida.chave]
               return {
                 p: l.prioridade,
-                alvo: fmtTempoPrioridade(c.alvoHoras, l.prioridade),
-                p50: celula(c, l.prioridade, 'p50'),
-                p85: celula(c, l.prioridade, 'p85'),
-                p95: celula(c, l.prioridade, 'p95'),
-                media: celula(c, l.prioridade, 'media'),
+                alvo: fmtTempoPrioridade(c.alvoHoras, l.prioridade, horasPorDiaUtil),
+                p50: celula(c, l.prioridade, 'p50', horasPorDiaUtil),
+                p85: celula(c, l.prioridade, 'p85', horasPorDiaUtil),
+                p95: celula(c, l.prioridade, 'p95', horasPorDiaUtil),
+                media: celula(c, l.prioridade, 'media', horasPorDiaUtil),
                 base: `${fmtInteiro(c.n)} chamados`,
                 status:
                   c.statusMeta === 'sem-referencia' ? (
@@ -124,14 +132,14 @@ function Bloco({ medida, linhas }: { medida: (typeof MEDIDAS)[number]; linhas: r
 
 export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S1')
-  const q = useMetrica('S1', filtros, { simulado: true })
+  const q = useMetrica('S1', filtros)
   const d = q.dados
   const primeira = d?.prioridades.find((l) => l.restauracao.estatistica.status === 'ok')
   const e = primeira?.restauracao.estatistica
   const leitura =
     d &&
     (primeira && e?.status === 'ok'
-      ? `${primeira.prioridade}: metade dos chamados restaura em até ${fmtTempoPrioridade(e.valor.p50, primeira.prioridade)} (alvo: ${fmtTempoPrioridade(primeira.restauracao.alvoHoras, primeira.prioridade)}); 85% em até ${fmtTempoPrioridade(e.valor.p85, primeira.prioridade)}.`
+      ? `${primeira.prioridade}: metade dos chamados restaura em até ${fmtTempoPrioridade(e.valor.p50, primeira.prioridade, d.horasPorDiaUtil)} (alvo: ${fmtTempoPrioridade(primeira.restauracao.alvoHoras, primeira.prioridade, d.horasPorDiaUtil)}); 85% em até ${fmtTempoPrioridade(e.valor.p85, primeira.prioridade, d.horasPorDiaUtil)}.`
       : 'Nenhuma prioridade tem 20 chamados para publicar mediana e P85.')
   const todasInsuf = d?.prioridades.every(
     (l) => l.restauracao.estatistica.status === 'insuficiente',
@@ -171,8 +179,16 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
             {d.excecoesForaDaApuracao === 1 ? 'chamado com' : 'chamados com'} exceção de registro
             posterior (fora desta apuração).
           </p>
+          <p className="text-sm text-texto-2" data-testid="s1-dia-util">
+            Dia útil da Sustentação: {fmtNumero(d.horasPorDiaUtil, 2)} h.
+          </p>
           {MEDIDAS.map((medida) => (
-            <Bloco key={medida.chave} medida={medida} linhas={d.prioridades} />
+            <Bloco
+              key={medida.chave}
+              medida={medida}
+              linhas={d.prioridades}
+              horasPorDiaUtil={d.horasPorDiaUtil}
+            />
           ))}
           <LeiaJunto id="s1" />
         </div>

@@ -180,8 +180,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       '% com avaliação registrada e conversão: avaliações que viraram Registro de Problema ÷ avaliações.',
     comoLer: 'Baixa avaliação deixa causas sem tratamento.',
     meta: SEM_ALVO,
-    cuidados:
-      'Os grupos se sobrepõem: um P1 pode ter contorno. O campo de Registro de Problema é fictício por ora.',
+    cuidados: 'Os grupos se sobrepõem: um P1 pode ter contorno.',
   },
   S12: {
     oQueE:
@@ -190,7 +189,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % com exceção de SLA por registro posterior.',
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
-    cuidados: 'Reincidência depende do preenchimento do campo.',
+    cuidados:
+      'Reincidência depende do preenchimento do campo. Hoje só o volume por sistema vem da base real. Reincidência e exceção de SLA por registro posterior ficam sem fonte até a coleta trazer os campos; sem fonte não é zero.',
   },
   O19: {
     oQueE: 'Quantos dias úteis de bloqueio cada causa somou e quantas vezes ela travou o trabalho.',
@@ -297,7 +297,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mostra o peso da dependência no prazo. O outro quadro não é identificado, para não virar comparação entre times. Leia junto com o lead time ponta a ponta (T1).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu". Dado fictício até a coleta real.',
+      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu".',
   },
   T14: {
     oQueE: 'Que parte de cada projeto em andamento é do meu time.',
@@ -307,7 +307,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mostra a parte do projeto que é do meu time, para entender a cobrança por entregas em que atuo pouco. Quando os outros times somam poucas pessoas, só a fatia do meu time é mostrada, sem o total do projeto.',
     meta: 'Sem meta numérica; não existe participação mínima esperada.',
     cuidados:
-      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado. Dado fictício até a coleta real.',
+      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado.',
   },
   E6: {
     oQueE: 'Se a data comprometida de um projeto se confirma: o deslize de cada projeto concluído.',
@@ -317,7 +317,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Cada ponto é um projeto; a forma mostra os replanejamentos (círculo 0, losango 1, triângulo 2 ou mais). Leia junto com a previsão de término (E5) e o avanço real (T9).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte. Dado fictício até a coleta real.',
+      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte.',
   },
   E7: {
     oQueE:
@@ -339,7 +339,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mede o risco de continuidade do parque. Mostra só quantos sistemas estão em cada faixa, sem nomear sistema nem pessoa.',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega. Dado fictício até a coleta real.',
+      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega.',
   },
   E9: {
     oQueE: 'Quanto tempo um projeto aprovado espera para começar.',

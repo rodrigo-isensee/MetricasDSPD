@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.js';
 import { lerCriterios } from '../src/modulos/apontamento/repositorio.js';
 import { analisarCalendario, sincronizarCalendario } from '../src/modulos/referencia/calendario.js';
 import { registrarCriteriosApontamento } from '../src/modulos/referencia/criterios-apontamento.js';
+import { colunasDePessoa, provarSemPessoa } from './pg/colunas-pessoa.js';
 import { novaColeta, poolDe, S, url } from './pg/ctx.js';
 
 // Pedido 059, B4 contra o PostgreSQL local: o privilégio do papel `dspd_api_apontamento` (CA-AP-1, R4-5) e a rota ponta a ponta com esse papel
@@ -16,6 +17,7 @@ const RAIZ = String(FAIXA + 1);
 const FILHO = String(FAIXA + 2);
 const SOLTO = String(FAIXA + 3); // card sem hierarquia na referência
 const ANTIGO = String(FAIXA + 5); // card do escopo cujo responsavel saiu antes dos 12 meses
+const OUTRO = String(FAIXA + 6); // card de outra categoria (Defeito), para provar que o filtro por tipo separa categorias
 const FORA = String(FAIXA + 4); // card fora do escopo do DSPD (raiz fora dos quadros coletados)
 const AGORA = new Date('2031-02-10T15:00:00Z');
 const SHA = (c: string): string => c.repeat(64).slice(0, 64);
@@ -45,10 +47,14 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await card(RAIZ, null, 'projeto', 'Projeto Raiz Teste 059', null);
     await card(FILHO, RAIZ, null, 'Card filho', 'Melhoria');
     await card(SOLTO, null, null, 'Card solto', null);
+    await card(OUTRO, RAIZ, null, 'Card outro tipo', 'Defeito');
     const raiz = (c: string, r: string, prof: number, ini: boolean) =>
       dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $2, $3, $4, false, now(), $5)`, [c, r, prof, ini, coleta]);
     await raiz(RAIZ, RAIZ, 0, true);
     await raiz(FILHO, RAIZ, 1, true);
+    await raiz(OUTRO, RAIZ, 1, true);
+    await dono.query(`UPDATE ${S.bm}.dim_card SET equipe = $2 WHERE card_id = $1`, [FILHO, 'Time Alfa Teste 097']); // 097 L2: time do card; OUTRO e SOLTO ficam em outros times / sem time
+    await dono.query(`UPDATE ${S.bm}.dim_card SET equipe = $2 WHERE card_id = $1`, [OUTRO, 'Time Beta Teste 097']);
     await card(FORA, null, null, 'Card fora do escopo', null);
     await card(ANTIGO, null, null, 'Card antigo', null);
     await dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $1, 0, false, false, now(), $2)`, [ANTIGO, coleta]);
@@ -102,10 +108,11 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await fato('2031-01-08', 3600, refs.b, FILHO, { excluido: true }); // excluído: fora das somas
     await fato('2031-01-09', 5400, null, FILHO); // sem pessoa (eliminada a pedido): só no agregado do time
     await fato('2031-04-01', 3600, refs.a, FILHO); // fora da janela da consulta
-    // maio de 2031: janela propria do filtro por tipo (type_id 12 e 34 no mesmo card, e uma linha sem tipo)
+    // maio de 2031: janela propria do filtro por tipo (type_id 12 e 34 na mesma categoria, Melhoria; 56 em outra, Defeito; e uma linha sem tipo)
     await fato('2031-05-03', 3600, refs.a, FILHO);
     await fato('2031-05-04', 7200, refs.a, FILHO, { tipo: '34' });
     await fato('2031-05-05', 1800, refs.a, SOLTO);
+    await fato('2031-05-06', 900, refs.a, OUTRO, { tipo: '56' }); // categoria distinta (Defeito)
     // marco de 2031 (janela propria do teste de Outra area): C, D e E nao sao do time; A e
     await fato('2031-03-03', 3600, refs.c, FILHO);
     await fato('2031-03-04', 7200, refs.d, FILHO);
@@ -116,8 +123,8 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
 
   afterAll(async () => {
     await dono.query(`DELETE FROM ${S.bm}.fato_apontamento WHERE logged_time_id = ANY($1::text[])`, [logged]);
-    await dono.query(`DELETE FROM ${S.bm}.dim_card_raiz WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO]]);
-    await dono.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO]]);
+    await dono.query(`DELETE FROM ${S.bm}.dim_card_raiz WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO, OUTRO]]);
+    await dono.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO, OUTRO]]);
     await dono.query(`DELETE FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[])`, [[ids.a, ids.b, ids.c, ids.d, ids.e]]);
     await dono.query(`UPDATE ${S.bm}.ctl_coleta SET tarefa = 'reconciliacao' WHERE versao_coletor = 'rota-teste'`);
     await Promise.all([dono, aba, api].map((p) => p.end()));
@@ -127,7 +134,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     for (const sql of [
       `SELECT card_id, parent_card_id, subtask_id, data_apontamento, segundos, subgrupo_codigo, flags_qualidade, iniciativa_card_id, pessoa_ref, excluido_em FROM ${S.bm}.fato_apontamento LIMIT 1`,
       `SELECT card_id, raiz_card_id, raiz_fora_do_escopo FROM ${S.bm}.dim_card_raiz LIMIT 1`,
-      `SELECT card_id, titulo, tipo FROM ${S.bm}.dim_card LIMIT 1`,
+      `SELECT card_id, titulo, tipo, equipe FROM ${S.bm}.dim_card LIMIT 1`,
       `SELECT pessoa_ref, responsavel_nome FROM ${S.bm}.dim_responsavel LIMIT 1`,
       `SELECT codigo, rotulo, incluido_por_versao_id FROM ${S.bm}.ref_apontamento_subgrupo LIMIT 1`,
       `SELECT incluido_por_versao_id FROM ${S.bm}.ref_apontamento_termo LIMIT 1`,
@@ -146,7 +153,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       `SELECT logged_time_id FROM ${S.bm}.fato_apontamento`,
       `SELECT registro_sha256 FROM ${S.bm}.fato_apontamento`,
       `SELECT category_id FROM ${S.bm}.fato_apontamento`,
-      `SELECT responsaveis FROM ${S.bm}.dim_card`,
+      ...colunasDePessoa('dspd_bm.dim_card').map((c) => `SELECT ${c} FROM ${S.bm}.dim_card`),
       `SELECT count(*) FROM ${S.bm}.stg_apontamento`,
       `SELECT count(*) FROM ${S.bm}.evt_apontamento`,
       `SELECT count(*) FROM ${S.bm}.stg_card`,
@@ -204,21 +211,73 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     for (const proibido of [MARCADOR_NOME, 'Outra Pessoa', ids.a, ids.b, 'Card filho', 'Card solto', ...logged]) expect(r.body, proibido).not.toContain(proibido);
   });
 
-  it('filtro por tipo ponta a ponta com o papel da aba: opcoes.tipos[].id e o type_id que o filtro aceita (E2.28)', async () => {
+  it('filtro por tipo ponta a ponta com o papel da aba: uma opcao por categoria (menor type_id) e o filtro por qualquer type_id cobre a categoria inteira (K-272)', async () => {
     const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
     const ler = async (filtro: string) => {
       const r = await consultar(false, `${MAIO}${filtro}`);
       expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
       return respostaApontamentoSchema.parse(r.json());
     };
+    const MELHORIA = 3600 + 7200; // type_id 12 e 34 sao a mesma categoria
     const todos = await ler('');
-    expect(todos.opcoes.tipos.map((t) => t.id).sort()).toEqual(['12', '34']);
-    expect(todos.kpis.segundos).toBe(3600 + 7200 + 1800);
+    // 12 e 34 colapsam na opcao '12' (menor type_id); 56 e outra categoria
+    expect(todos.opcoes.tipos.map((t) => t.id).sort()).toEqual(['12', '56']);
+    expect(todos.kpis.segundos).toBe(MELHORIA + 900 + 1800);
     for (const id of todos.opcoes.tipos.map((t) => t.id)) expect(id).toMatch(/^\d+$/);
-    expect((await ler('&tipo=34')).kpis).toMatchObject({ segundos: 7200, apontamentos: 1 });
-    expect((await ler('&tipo=12')).kpis).toMatchObject({ segundos: 3600, apontamentos: 1 });
-    expect((await ler('&tipo=12&tipo=34')).kpis.segundos).toBe(3600 + 7200);
+    expect((await ler('&tipo=12')).kpis).toMatchObject({ segundos: MELHORIA, apontamentos: 2 });
+    expect((await ler('&tipo=34')).kpis).toMatchObject({ segundos: MELHORIA, apontamentos: 2 }); // qualquer type_id da categoria cobre todos
+    expect((await ler('&tipo=12&tipo=34')).kpis.segundos).toBe(MELHORIA);
+    expect((await ler('&tipo=56')).kpis).toMatchObject({ segundos: 900, apontamentos: 1 }); // o filtro separa categorias
+    expect((await ler('&tipo=12&tipo=56')).kpis.segundos).toBe(MELHORIA + 900);
     expect((await ler('&tipo=999')).kpis.segundos).toBe(0);
+  });
+
+  it('filtro por equipe ponta a ponta com o papel da aba: o time do card, "Sem time", varios times como um conjunto, e o GRANT de dim_card.equipe sem coluna de pessoa (097 L2)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const ler = async (filtro: string) => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return respostaApontamentoSchema.parse(r.json());
+    };
+    const ALFA = 3600 + 7200; // FILHO, type_id 12 e 34
+    const todos = await ler('');
+    expect(todos.opcoes.equipes?.map((e) => e.id).sort()).toEqual(['sem-time', 'time-alfa-teste-097', 'time-beta-teste-097']);
+    expect(todos.kpis.segundos).toBe(ALFA + 900 + 1800);
+    expect((await ler('&equipe=time-alfa-teste-097')).kpis).toMatchObject({ segundos: ALFA, apontamentos: 2 });
+    expect((await ler('&equipe=time-beta-teste-097')).kpis).toMatchObject({ segundos: 900, apontamentos: 1 });
+    expect((await ler('&equipe=sem-time')).kpis).toMatchObject({ segundos: 1800, apontamentos: 1 });
+    expect((await ler('&equipe=time-alfa-teste-097,time-beta-teste-097')).kpis.segundos).toBe(ALFA + 900);
+    expect((await ler('&equipe=nao-existe')).kpis.segundos).toBe(0);
+    expect((await ler('&equipe=time-beta-teste-097&tipo=56')).kpis.segundos).toBe(900);
+    // o papel da aba le `equipe` de dim_card, mas nada de pessoa a mais
+    await expect(aba.query(`SELECT equipe FROM ${S.bm}.dim_card LIMIT 1`)).resolves.toBeDefined();
+    // colunas de pessoa de dim_card vêm de COLUNAS_PESSOA (K-282); card_pai não é de pessoa, é guarda de hierarquia fora do GRANT da aba
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card', S.bm);
+    expect((await falha(aba, `SELECT card_pai FROM ${S.bm}.dim_card`)).code, 'card_pai').toBe('42501');
+  });
+
+  it('cards incompletos filtrados por equipe ponta a ponta: o time do card, "Sem time" e slug inexistente com resultado vazio (097 L2, A1)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const cobertura = await novaColeta(dono, S.bm);
+    const marcar = (estado: 'incompleto' | 'completo') =>
+      dono.query(
+        `INSERT INTO ${S.bm}.ctl_apontamento_cobertura (card_id, estado, coleta_id, detectado_em) SELECT c, $2::text, $3::bigint, now() FROM unnest($1::text[]) AS c`,
+        [[FILHO, OUTRO, SOLTO], estado, cobertura]);
+    const incompletos = async (filtro: string): Promise<string[]> => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return (respostaApontamentoSchema.parse(r.json()).registroIncompleto?.cards ?? []).map((c) => c.cardId).sort();
+    };
+    await marcar('incompleto');
+    try {
+      expect(await incompletos('')).toEqual([FILHO, OUTRO, SOLTO].sort());
+      expect(await incompletos('&equipe=time-alfa-teste-097')).toEqual([FILHO]); // Alfa
+      expect(await incompletos('&equipe=time-beta-teste-097')).toEqual([OUTRO]); // Beta
+      expect(await incompletos('&equipe=sem-time')).toEqual([SOLTO]); // sem time
+      expect(await incompletos('&equipe=nao-existe')).toEqual([]); // slug inexistente: vazio, nunca "todos"
+    } finally {
+      await marcar('completo'); // append-only: o estado atual volta a completo para não vazar para os outros casos
+    }
   });
 
   it('com o interruptor ligado o nome só aparece em opcoes.pessoas[].rotulo, uma vez', async () => {
@@ -254,7 +313,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(por.get(refs.c)?.toISOString()).toBe('2029-06-01T00:00:00.000Z');
     expect(por.has(refs.d)).toBe(false);
     expect(por.has(refs.e)).toBe(false); // card fora do escopo nao conta
-    expect((await falha(aba, `SELECT responsaveis FROM ${S.bm}.dim_card_versao`)).code).toBe('42501');
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card_versao', S.bm);
     expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.apt_pessoa_time`)).code).toBe('42501');
   });
 
@@ -263,11 +322,15 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     const c = await dono.connect();
     try {
       await c.query('BEGIN');
-      expect(await registrarCriteriosApontamento(c, S, '2031-02-10', AGORA)).toEqual(['059:limiares-achados', '067:limite-dia-atipico']);
+      expect(await registrarCriteriosApontamento(c, S, '2031-02-10', AGORA)).toEqual(['059:limiares-achados', '067:limite-dia-atipico', '089:sem-vinculo-so-sem-comentario']);
       expect(await registrarCriteriosApontamento(c, S, '2031-02-11', AGORA)).toEqual([]);
       const criterios = await lerCriterios(c, S);
       const achado = criterios.find((x) => x.data === '2031-02-10');
       expect(achado?.descricao).toContain('não classificado 20%');
+      // pedido 089 (A): o id leva o prefixo da família, que o front usa para a marca; o critério de sem-vinculo é da família do dicionário
+      expect(achado?.id).toMatch(/^achados-\d+$/);
+      const semVinculo = criterios.find((x) => x.data === '2031-02-10' && x.descricao.includes('Execução técnica deixa de contar'));
+      expect(semVinculo?.id).toMatch(/^dicionario-\d+$/);
       expect(achado?.descricao).toContain('variação de utilização 10 pontos');
       expect(criterios.find((x) => x.data === '2031-02-10' && x.descricao.includes('10 h'))?.descricao).toContain('antes: 16 h');
       expect(criterios.filter((x) => x.data === '2031-02-11')).toEqual([]);

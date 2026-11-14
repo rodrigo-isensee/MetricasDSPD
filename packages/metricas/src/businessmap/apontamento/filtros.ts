@@ -35,7 +35,7 @@ const passa = <T>(escolhidos: readonly T[] | undefined, valor: T): boolean =>
   escolhidos === undefined || escolhidos.length === 0 || escolhidos.includes(valor)
 
 /**
- * Filtros da consulta (CA-4). `soPessoa`: o mapa diário aplica só o filtro de pessoa. Lista vazia ou ausente = sem
+ * Filtros da consulta (CA-4). `modo = 'diario'`: o mapa diário aplica só pessoa e equipe (K-286). Lista vazia ou ausente = sem
  * filtro. Com filtro de pessoa, linha sem pessoa fica de fora. `anomalos = ocultar` tira os dias atípicos (escolha de
  * quem lê; o padrão é marcar e manter).
  */
@@ -43,12 +43,13 @@ export function filtrar(
   linhas: readonly LinhaApontamento[],
   f: FiltrosApontamento,
   atipicos: ReadonlySet<string>,
-  soPessoa = false,
+  modo: 'recorte' | 'diario' = 'recorte',
 ): LinhaApontamento[] {
   const pessoas = f.pessoa ?? []
   return linhas.filter((l) => {
     if (pessoas.length > 0 && (l.pessoaRef === null || !pessoas.includes(l.pessoaRef))) return false
-    if (soPessoa) return true
+    if (!passa(f.equipe, l.equipe.id)) return false
+    if (modo === 'diario') return true
     if (!passa(f.projeto, l.projeto.id)) return false
     if (!passa(f.tipo, l.tipo.id)) return false
     if (!passa(f.subtarefa, l.subtarefa.id)) return false

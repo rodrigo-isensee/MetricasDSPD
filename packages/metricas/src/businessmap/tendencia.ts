@@ -13,7 +13,7 @@ import { concluidosDeDemanda } from './o4'
 import { classesNaJanela, entreguesPorTipo } from './o3'
 import type { ContextoBM } from './indice'
 
-/** Filtros padrão do fluxo (o Resumo não filtra): todos os recortes, janela móvel de 12 semanas. */
+/** Filtros padrão do fluxo (sem `equipe`): todos os recortes, janela móvel de 12 semanas. */
 const PADRAO: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
 
 /**
@@ -23,9 +23,13 @@ const PADRAO: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tip
  * dependem do corte e são montados uma vez para os seis meses. O teste de propriedade confere cada ponto contra
  * o `calcularO3` em um contexto criado para o fim do mês. O mês em curso fica fora. Só enxerga o BusinessMap.
  */
-export function calcularTendenciaFluxo(ctx: ContextoBM): ResultadoTendenciaFluxo {
-  const concluidos = concluidosDeDemanda(ctx, PADRAO)
-  const porTipo = entreguesPorTipo(ctx, PADRAO)
+export function calcularTendenciaFluxo(
+  ctx: ContextoBM,
+  equipe: readonly string[] = [],
+): ResultadoTendenciaFluxo {
+  const filtros: FiltrosFluxo = { ...PADRAO, equipe: [...equipe] }
+  const concluidos = concluidosDeDemanda(ctx, filtros)
+  const porTipo = entreguesPorTipo(ctx, filtros)
   const baldes = mesesFechados(ctx.hojeDia, MESES_TENDENCIA)
   const meses = baldes.map((b) => {
     const fimDoMes = isoDeDia(b.fimDia)

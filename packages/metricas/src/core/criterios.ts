@@ -120,11 +120,11 @@ export const VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL: VersaoCriterio = {
 }
 
 /**
- * DATA PENDENTE (pedido 075, lote 6a): a data real é a da primeira coleta do BusinessMap (primeiro `coletado_em` de
- * `stg_card`), da consulta do dono na prova do lote 6b. Até lá fica uma data futura, que não cruza nenhum período nem
- * corta ponto algum. O 6b troca SÓ esta constante (o id e a versão a seguem).
+ * Pedido 075, lote 6b: data da primeira coleta real do BusinessMap (primeiro `coletado_em` de `stg_card`), da consulta do dono
+ * (Histórico de 2026-11-10 22:10) e da versão de critério (2026-11-10 22:39). Ponto único: o id, a versão e o corte da série do
+ * O1 derivam desta constante.
  */
-export const DATA_BLOQUEIO_COM_DADO_REAL = '2099-12-31'
+export const DATA_BLOQUEIO_COM_DADO_REAL = '2026-11-01'
 
 /** Pedido 075 (K-204, via A): bloqueio volta com dado real, derivado da comparação entre coletas; histórico parcial (P-075-6). */
 export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
@@ -132,6 +132,33 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   data: DATA_BLOQUEIO_COM_DADO_REAL,
   descricao: `histórico parcial de bloqueios: só há dado a partir de ${DATA_BLOQUEIO_COM_DADO_REAL} (primeira coleta); antes disso o tempo bloqueado é desconhecido. Início e fim do bloqueio são o instante da coleta que viu a mudança, não o instante real`,
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
+}
+
+/** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
+export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-10-tendencia-fluxo-dado-real',
+  data: '2026-11-10',
+  descricao:
+    'A tendência mensal do fluxo passou a ser calculada com o dado real do BusinessMap (antes saía como "Sem dado real")',
+  afeta: ['TENDENCIA_FLUXO'],
+}
+
+/** Pedido 077 (L7, K-211): a tendência da sustentação passou de "Sem dado real" para o dado real do Acelerato (data do PR; a do merge corrige se escorregar). */
+export const VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-10-tendencia-sust-dado-real',
+  data: '2026-11-10',
+  descricao:
+    'A tendência mensal da sustentação passou a ser calculada com o dado real do Acelerato (antes saía como "Sem dado real")',
+  afeta: ['TENDENCIA_SUST'],
+}
+
+/** Pedido 099 (D9): o S12 entrou no mapa real só com o volume; a exceção de SLA por registro posterior sai nula (sem fonte), antes ficava no mock. */
+export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-12-s12-volume-real',
+  data: '2026-11-12',
+  descricao:
+    'O volume por sistema passou a ser calculado com o dado real do Acelerato; a exceção de SLA por registro posterior e a reincidência saem sem fonte (nulas, nunca 0%) até a coleta trazer os campos',
+  afeta: ['S12'],
 }
 
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
@@ -145,6 +172,9 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
+  VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
+  VERSAO_CRITERIO_S12_VOLUME_REAL,
 ]
 
 /**

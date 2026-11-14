@@ -13,19 +13,8 @@ export {
   type MetricaQuery,
   type EstadoMetrica,
 } from './useMetrica'
-export { MockFonteMetricas } from './mock/MockFonteMetricas'
 export { lerModoMock, type ModoMock } from './simulacao'
 export { HttpFonteMetricas, PAGINA_O2 } from './http/HttpFonteMetricas'
 export { ErroApi } from './http/ErroApi'
 export { SemDadoRealErro, motivoSemDadoReal } from './http/SemDadoRealErro'
 export { filtrosParaQuery } from './http/filtrosParaQuery'
-export { FonteComSimulado, type CriarMock } from './FonteComSimulado'
-export {
-  ehFonteSimuladora,
-  filtrosSoPeriodo,
-  RegistroSimulados,
-  SEM_SIMULADOS,
-  type FonteSimuladora,
-  type OrigemSimulada,
-  type OrigensSimuladas,
-} from './simulado'

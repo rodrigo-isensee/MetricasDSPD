@@ -26,8 +26,8 @@ export default function CatalogoPage() {
       <p className="text-sm text-texto-2">
         Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do
         serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na
-        seção "Mais métricas" da visão. Até a coleta real existir, todas as métricas usam dados
-        fictícios; a coluna "Dados" lembra isso.
+        seção "Mais métricas" da visão. A coluna "Dados" diz se a métrica já usa dado real ou ainda
+        está sem dado real; nenhuma mostra número de exemplo.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -65,7 +65,7 @@ export default function CatalogoPage() {
       </div>
       <TabelaDados
         codigo="catalogo"
-        legenda="Catálogo de métricas: código, nome, painel, grupo, fonte, granularidade e natureza dos dados"
+        legenda="Catálogo de métricas: código, nome, painel, grupo, fonte, granularidade e situação dos dados (real ou sem dado real)"
         colunas={[
           { chave: 'c', titulo: 'Código' },
           { chave: 'n', titulo: 'Métrica' },
@@ -78,7 +78,14 @@ export default function CatalogoPage() {
         ]}
         linhas={linhas.map((l) => ({
           c: l.codigo,
-          n: l.nome,
+          n: l.anotacao ? (
+            <>
+              {l.nome}
+              <span className="block text-xs text-texto-2">{l.anotacao}</span>
+            </>
+          ) : (
+            l.nome
+          ),
           p: l.painelRotulo,
           g: l.grupo,
           f: l.fonte,

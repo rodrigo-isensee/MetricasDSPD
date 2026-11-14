@@ -263,6 +263,15 @@ describe('GET /api/v1/metricas/:id', () => {
     const { app } = await montar();
     expect((await get(app, '/api/v1/metricas/S1?equipe=totvs&prioridade=P1,p2&periodo=4s')).statusCode).toBe(200);
     expect((await get(app, '/api/v1/metricas/EI_SUST')).statusCode).toBe(200);
+    // L7a do 097: equipe é slug do nome (id novo, id antigo, slug sem dado = recorte vazio, 200); slug inválido = 400.
+    for (const eq of ['sssc-totvs', 'totvs,senior,fluig', 'time-que-nao-existe']) {
+      expect((await get(app, `/api/v1/metricas/S1?equipe=${eq}&periodo=4s`)).statusCode, eq).toBe(200);
+    }
+    for (const eq of ['SSSC%20TOTVS', '-x', 'a_b', 'a'.repeat(61)]) {
+      const r = await get(app, `/api/v1/metricas/S1?equipe=${eq}`);
+      expect(r.statusCode, eq).toBe(400);
+      expect(r.json().error.code).toBe('VALIDATION_ERROR');
+    }
     const ref = await get(app, '/api/v1/metricas/S1?dataReferencia=2026-10-08');
     expect(ref.headers['x-data-referencia']).toBe('2026-10-08');
     expect((await get(app, '/api/v1/metricas/S1?periodo=custom&de=2026-08-03&ate=2026-09-30')).statusCode).toBe(200);
@@ -288,8 +297,19 @@ describe('GET /api/v1/metricas/:id', () => {
     for (const t of textos) expect(t.includes('dspd_bm') && t.includes('dspd_ac')).toBe(false);
   });
 
+  it('tendências aceitam equipe opcional (slug), na mesma forma de resposta', async () => {
+    const { app } = await montar();
+    for (const [id, eq] of [['TENDENCIA_FLUXO', 'equipe-a,equipe-b'], ['TENDENCIA_SUST', 'totvs']] as const) {
+      const r = await get(app, `/api/v1/metricas/${id}?dataReferencia=2026-10-08&equipe=${eq}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true);
+    }
+  });
+
   it.each([
-    ['filtro em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?equipe=fluig'],
+    ['tipo em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?tipo=incidente'],
+    ['equipe fora do formato de slug em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?equipe=Fluig%20X'],
+    ['equipe fora do formato de slug em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?equipe=a;b'],
     ['periodo em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?periodo=6m'],
     ['prioridade em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?prioridade=P1'],
     ['pessoa em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?agente=ana'],
@@ -309,7 +329,7 @@ describe('GET /api/v1/metricas/:id', () => {
     ['pessoa: agente', '/api/v1/metricas/S1?agente=ana'],
     ['pessoa: autor', '/api/v1/metricas/VISAO_GERAL?autor=ana'],
     ['tipo desconhecido', '/api/v1/metricas/T1?tipo=inexistente'],
-    ['equipe de sustentação desconhecida', '/api/v1/metricas/S1?equipe=outra'],
+    ['equipe de sustentação com slug inválido (097 L7a)', '/api/v1/metricas/S1?equipe=Equipe_Outra'],
     ['prioridade inválida', '/api/v1/metricas/S1?prioridade=P9'],
     ['período desconhecido', '/api/v1/metricas/T1?periodo=1h'],
     ['custom sem de e ate', '/api/v1/metricas/T1?periodo=custom'],

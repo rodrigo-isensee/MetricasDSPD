@@ -66,7 +66,7 @@ function BlocoMensal({
 
 export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S7')
-  const q = useMetrica('S7', filtros, { simulado: true })
+  const q = useMetrica('S7', filtros)
   const d = q.dados
   const j = d?.ajusteDePrioridade.justificados
   const leitura = d

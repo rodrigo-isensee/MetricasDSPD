@@ -1,6 +1,6 @@
-import type { EquipeSustentacaoId } from '@metricas-dspd/contratos'
 import {
   diaLocal,
+  calendarioCorrido,
   horasUteisEntre,
   instanteDeIso,
   isoDeDia,
@@ -10,16 +10,12 @@ import type { VersaoCriterio } from '../core/criterios'
 import { TOTALIZADORES, ETAPAS_PAUSA, totalizadorDaEtapa, type Totalizador } from './totalizadores'
 import type { BaseAC, Chamado, EtapaChamado } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
-
-const SLUG_EQUIPE: Record<Chamado['equipe'], EquipeSustentacaoId> = {
-  'SSSC TOTVS': 'totvs',
-  'SSSC SENIOR': 'senior',
-  'SSSC FLUIG': 'fluig',
-}
+import { slug } from '../slug'
 
 export interface ChamadoCalc {
   c: Chamado
-  equipeId: EquipeSustentacaoId
+  /** `slug(c.equipe)`: o mesmo id das opções de filtro. */
+  equipeId: string
   /** Concluído, com data de finalização, não excluído. */
   fechado: boolean
   /** Fechado e fora da exceção de SLA por registro posterior: entra em tempos e aderência. */
@@ -29,6 +25,10 @@ export interface ChamadoCalc {
   primeiroAtendimentoHU: number | null
   /** Horas úteis até a restauração validada, descontadas as pendências (relógio de resolução). */
   restauracaoHU: number | null
+  /** Horas corridas até o primeiro atendimento (relógio de 24 h, sem feriado). */
+  primeiroAtendimentoHC: number | null
+  /** Horas corridas até a restauração, descontadas as pendências no mesmo relógio corrido. */
+  restauracaoHC: number | null
   porTotalizador: Record<Totalizador, number>
   /** Horas úteis de cada etapa (soma por nome). */
   porEtapa: Map<string, number>
@@ -61,6 +61,7 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
     if (l) l.push(e)
     else porChamado.set(e.chamado_id, [e])
   }
+  const corrido = calendarioCorrido(cal)
   const chamados = base.chamados.map((c): ChamadoCalc => {
     const etapas = ordenarNeutro(porChamado.get(c.chamado_id) ?? [], (e) => [e.entrada, e.etapa])
     const fechado = c.status === 'Concluído' && c.data_finalizado !== null && !c.excluido
@@ -70,6 +71,7 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
     >
     const porEtapa = new Map<string, number>()
     let pausa = 0
+    let pausaHC = 0
     const fimRest = c.restaurado_em ?? hoje
     for (const e of etapas) {
       const fim = e.saida ?? (e.etapa === 'Encerrado' ? e.entrada : hoje)
@@ -80,12 +82,15 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
       if (ETAPAS_PAUSA.includes(e.etapa)) {
         const a = Math.max(e.entrada, c.aberto_em)
         const z = Math.min(fim, fimRest)
-        if (z > a) pausa += horasUteisEntre(a, z, cal)
+        if (z > a) {
+          pausa += horasUteisEntre(a, z, cal)
+          pausaHC += horasUteisEntre(a, z, corrido)
+        }
       }
     }
     return {
       c,
-      equipeId: SLUG_EQUIPE[c.equipe],
+      equipeId: slug(c.equipe),
       fechado,
       apuravel: fechado && !c.excecao_sla_registro_posterior,
       etapas,
@@ -97,6 +102,14 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
         c.restaurado_em === null
           ? null
           : horasUteisEntre(c.aberto_em, c.restaurado_em, cal) - pausa,
+      primeiroAtendimentoHC:
+        c.primeiro_atendimento_em === null
+          ? null
+          : horasUteisEntre(c.aberto_em, c.primeiro_atendimento_em, corrido),
+      restauracaoHC:
+        c.restaurado_em === null
+          ? null
+          : horasUteisEntre(c.aberto_em, c.restaurado_em, corrido) - pausaHC,
       porTotalizador,
       porEtapa,
       vidaHU: TOTALIZADORES.reduce((s, t) => s + porTotalizador[t], 0),

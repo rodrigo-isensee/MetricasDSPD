@@ -1,6 +1,6 @@
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendarioVigente, type CalendarioDaReferencia } from '../referencia/index.js';
+import { lerCalendarioVigente, METRICA_DICIONARIO_APONTAMENTO, type CalendarioDaReferencia } from '../referencia/index.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Só leitura, com o papel `dspd_api_apontamento` (GRANT por coluna, `COLUNAS_API_APONTAMENTO`): nenhuma
 // consulta usa `SELECT *`, `logged_time_id`, `responsavel_id`, comentário ou tabela `stg_`/`evt_`. Nome de schema vem de `Esquemas` (nunca da
@@ -22,15 +22,18 @@ export interface LinhaBruta {
   tipo: string | null;
   /** `type_id` do BusinessMap em dígitos (do card ou do pai); é o valor do filtro `tipo`. `null` nas linhas ainda não relidas pela coleta. */
   typeId: string | null;
+  /** `dim_card.equipe` do card (ou do pai): nome do time; `null` sem time (frente, projeto, fora do escopo, ainda não projetado). */
+  equipe: string | null;
 }
-type Row = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null };
+type Row = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null; equipe: string | null };
 
 /** Apontamentos ativos (`excluido_em` nulo) com data em `[de, ate]`, com as dimensões resolvidas. Ordem estável (a ordem final é da biblioteca). */
 export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: string): Promise<LinhaBruta[]> {
   const r = await db.query<Row>(
     `SELECT f.data_apontamento AS data, f.segundos, f.subgrupo_codigo AS subgrupo, f.flags_qualidade AS flags, f.subtask_id IS NOT NULL AS em_subtarefa,
             f.pessoa_ref, f.iniciativa_card_id AS projeto_id, pr.titulo AS projeto_titulo,
-            COALESCE(rc.raiz_fora_do_escopo, rp.raiz_fora_do_escopo, true) AS fora, COALESCE(c.tipo, p.tipo) AS tipo, f.type_id
+            COALESCE(rc.raiz_fora_do_escopo, rp.raiz_fora_do_escopo, true) AS fora, COALESCE(c.tipo, p.tipo) AS tipo, f.type_id,
+            COALESCE(c.equipe, p.equipe) AS equipe
      FROM ${S.bm}.fato_apontamento f
      LEFT JOIN ${S.bm}.dim_card_raiz rc ON rc.card_id = f.card_id
      LEFT JOIN ${S.bm}.dim_card_raiz rp ON rp.card_id = f.parent_card_id
@@ -42,8 +45,25 @@ export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: s
     [de, ate]);
   return r.rows.map((l) => ({
     data: l.data, segundos: l.segundos, subgrupo: l.subgrupo, flags: l.flags, emSubtarefa: l.em_subtarefa, pessoaRef: l.pessoa_ref,
-    projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora, tipo: l.tipo, typeId: l.type_id,
+    projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora, tipo: l.tipo, typeId: l.type_id, equipe: l.equipe,
   }));
+}
+
+/** Par (`type_id`, categoria) de um apontamento ativo, de qualquer data. */
+export interface TipoDoHistorico { typeId: string | null; tipo: string | null }
+
+/**
+ * K-272: pares distintos `type_id` x categoria (`dim_card.tipo`, do card ou do pai) em TODO o histórico ativo, sem filtro de data. É daqui que saem o id
+ * da categoria e o conjunto de `type_id` que um valor `tipo=` cobre, para não depender da janela pedida. Só dígitos e rótulo de tipo: nada de pessoa.
+ */
+export async function lerTiposDoHistorico(db: Consultavel, S: Esquemas): Promise<TipoDoHistorico[]> {
+  const r = await db.query<{ tipo: string | null; type_id: string | null }>(
+    `SELECT DISTINCT COALESCE(c.tipo, p.tipo) AS tipo, h.type_id
+     FROM ${S.bm}.fato_apontamento h
+     LEFT JOIN ${S.bm}.dim_card c ON c.card_id = h.card_id
+     LEFT JOIN ${S.bm}.dim_card p ON p.card_id = h.parent_card_id
+     WHERE h.excluido_em IS NULL AND h.type_id IS NOT NULL`);
+  return r.rows.map((l) => ({ typeId: l.type_id, tipo: l.tipo }));
 }
 
 /** Primeiro e último dia com apontamento ativo (limites do período personalizado); `null` sem apontamento algum. */
@@ -72,9 +92,14 @@ export async function lerPessoasDoTime(db: Consultavel, S: Esquemas, corte: Date
   return new Set(r.rows.map((l) => l.pessoa_ref));
 }
 
-/** Rótulo de cada subgrupo do dicionário vigente (os dois residuais, `execucao-tecnica` e `nao-classificado`, são do código). */
+/**
+ * Rótulo de cada subgrupo do dicionário (os dois residuais, `execucao-tecnica` e `nao-classificado`, são do código). Com a troca de rótulo (pedido 089, D3) a
+ * tabela guarda a linha fechada e a nova do mesmo `codigo`: vale a mais recente (maior `incluido_por_versao_id`, que é crescente), o mesmo que o vigente
+ * enquanto o código existe e ainda rotula o histórico de um código retirado. Não filtra por `vigente_ate`: o papel da aba não tem essa coluna no GRANT.
+ */
 export async function lerRotulosSubgrupo(db: Consultavel, S: Esquemas): Promise<Map<string, string>> {
-  const r = await db.query<{ codigo: string; rotulo: string }>(`SELECT codigo, rotulo FROM ${S.bm}.ref_apontamento_subgrupo`);
+  const r = await db.query<{ codigo: string; rotulo: string }>(
+    `SELECT DISTINCT ON (codigo) codigo, rotulo FROM ${S.bm}.ref_apontamento_subgrupo ORDER BY codigo, incluido_por_versao_id DESC`);
   return new Map(r.rows.map((l) => [l.codigo, l.rotulo]));
 }
 
@@ -97,10 +122,23 @@ export async function lerUltimasColetas(db: Consultavel, S: Esquemas): Promise<{
   return { ultima: lida(ultima.rows[0]), ultimaOk: lida(ok.rows[0]) };
 }
 
-/** Versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares dos achados (BusinessMap), em ordem de data. */
+/**
+ * Versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares dos achados (BusinessMap), em ordem de data. O `id` leva o
+ * prefixo da família que a versão alterou (`dicionario-`, `calendario-` ou `achados-`), porque o front só desenha a marca nos gráficos pelo prefixo (pedido 089,
+ * correção A): dicionário (subgrupo, termo, regra por tipo ou a métrica `apontamento-dicionario` do critério de `sem-vinculo`; `referencia` não está no GRANT da aba) > calendário (feriado) > achados (limiares).
+ */
 export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: string; data: string; descricao: string }[]> {
-  const r = await db.query<{ versao_id: string; vigente_desde: string; descricao: string }>(
-    `SELECT v.versao_id, v.vigente_desde, v.descricao FROM ${S.core}.ref_versao_criterio v
+  const r = await db.query<{ versao_id: string; vigente_desde: string; descricao: string; familia: 'dicionario' | 'calendario' | 'achados' }>(
+    `SELECT v.versao_id, v.vigente_desde, v.descricao,
+       CASE
+         WHEN EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica d WHERE d.versao_id = v.versao_id AND d.metrica_id = '${METRICA_DICIONARIO_APONTAMENTO}')
+           OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_subgrupo s WHERE s.incluido_por_versao_id = v.versao_id)
+           OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_termo t WHERE t.incluido_por_versao_id = v.versao_id)
+           OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_regra_tipo g WHERE g.incluido_por_versao_id = v.versao_id) THEN 'dicionario'
+         WHEN EXISTS (SELECT 1 FROM ${S.core}.ref_feriado h WHERE h.incluido_por_versao_id = v.versao_id) THEN 'calendario'
+         ELSE 'achados'
+       END AS familia
+     FROM ${S.core}.ref_versao_criterio v
      WHERE v.dominio = 'businessmap' AND (
        EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_subgrupo s WHERE s.incluido_por_versao_id = v.versao_id)
        OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_termo t WHERE t.incluido_por_versao_id = v.versao_id)
@@ -108,7 +146,16 @@ export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: 
        OR EXISTS (SELECT 1 FROM ${S.core}.ref_feriado h WHERE h.incluido_por_versao_id = v.versao_id)
        OR EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica m WHERE m.versao_id = v.versao_id AND m.metrica_id = 'apontamento-achados'))
      ORDER BY v.vigente_desde, v.versao_id`);
-  return r.rows.map((l) => ({ id: String(l.versao_id), data: l.vigente_desde, descricao: l.descricao }));
+  return r.rows.map((l) => ({ id: `${l.familia}-${l.versao_id}`, data: l.vigente_desde, descricao: l.descricao }));
+}
+
+/** Filtro de time já resolvido para os nomes de `dim_card.equipe` (`nomes`) e para o card sem time (`semTime`). */
+export interface FiltroEquipe { nomes: readonly string[]; semTime: boolean }
+
+/** Nomes distintos de time em `dim_card.equipe` (coluna de time, nunca de pessoa): é daqui que o slug do filtro volta ao nome. Sem contagem nem ordem por time. */
+export async function lerNomesDeEquipe(db: Consultavel, S: Esquemas): Promise<string[]> {
+  const r = await db.query<{ equipe: string }>(`SELECT DISTINCT equipe FROM ${S.bm}.dim_card WHERE equipe IS NOT NULL`);
+  return r.rows.map((l) => l.equipe);
 }
 
 export interface CardIncompleto {
@@ -122,12 +169,12 @@ type RowIncompleto = { card_id: string; titulo: string | null; projeto_id: strin
 
 /**
  * Pedido 063 (K-200): cards do BusinessMap com registro de horas INCOMPLETO (último evento de `ctl_apontamento_cobertura` = `incompleto`) que
- * têm horas ativas no recorte: período `[de, ate]` e, quando pedidos, os filtros de projeto (`iniciativa_card_id`) e de tipo (`type_id`). O filtro de
+ * têm horas ativas no recorte: período `[de, ate]` e, quando pedidos, os filtros de projeto (`iniciativa_card_id`), de tipo (`type_id`) e de time (`dim_card.equipe` do card ou do pai). O filtro de
  * pessoa e os demais não entram (o card é incompleto para todo mundo). Só id, título e projeto do card: nada de pessoa, hora nem contagem de registros.
  * Os filtros chegam por parâmetro (`null` = sem filtro); nunca se monta SQL com valor da requisição.
  */
 export async function lerCardsIncompletos(
-  db: Consultavel, S: Esquemas, de: string, ate: string, projetos: readonly string[] | undefined, tipos: readonly string[] | undefined,
+  db: Consultavel, S: Esquemas, de: string, ate: string, projetos: readonly string[] | undefined, tipos: readonly string[] | undefined, equipes?: FiltroEquipe,
 ): Promise<CardIncompleto[]> {
   const r = await db.query<RowIncompleto>(
     `SELECT cb.card_id, k.titulo, x.projeto_id, pr.titulo AS projeto_titulo, x.fora
@@ -138,15 +185,19 @@ export async function lerCardsIncompletos(
        FROM ${S.bm}.fato_apontamento f
        LEFT JOIN ${S.bm}.dim_card_raiz rc ON rc.card_id = f.card_id
        LEFT JOIN ${S.bm}.dim_card_raiz rp ON rp.card_id = f.parent_card_id
+       LEFT JOIN ${S.bm}.dim_card ec ON ec.card_id = f.card_id
+       LEFT JOIN ${S.bm}.dim_card ep ON ep.card_id = f.parent_card_id
        WHERE f.excluido_em IS NULL AND f.data_apontamento BETWEEN $1::date AND $2::date
          AND (f.card_id = cb.card_id OR f.parent_card_id = cb.card_id)
          AND ($3::text[] IS NULL OR f.iniciativa_card_id = ANY($3::text[]))
          AND ($4::text[] IS NULL OR f.type_id = ANY($4::text[]))
+         AND ($5::text[] IS NULL OR COALESCE(ec.equipe, ep.equipe) = ANY($5::text[]) OR ($6::boolean AND COALESCE(ec.equipe, ep.equipe) IS NULL))
        ORDER BY f.data_apontamento, f.card_id
        LIMIT 1) x ON true
      LEFT JOIN ${S.bm}.dim_card k ON k.card_id = cb.card_id
      LEFT JOIN ${S.bm}.dim_card pr ON pr.card_id = x.projeto_id
      ORDER BY length(cb.card_id), cb.card_id`,
-    [de, ate, projetos === undefined || projetos.length === 0 ? null : projetos, tipos === undefined || tipos.length === 0 ? null : tipos]);
+    [de, ate, projetos === undefined || projetos.length === 0 ? null : projetos, tipos === undefined || tipos.length === 0 ? null : tipos,
+     equipes === undefined ? null : [...equipes.nomes], equipes?.semTime ?? false]);
   return r.rows.map((l) => ({ cardId: l.card_id, titulo: l.titulo, projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora }));
 }

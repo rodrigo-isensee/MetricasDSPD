@@ -54,8 +54,12 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     expect(o13).toBeGreaterThan(o13Antes);
     const filtrado = await get<{ base: { n: number } }>(a, '/api/v1/metricas/O3?tipo=trabalho-produto');
     expect(filtrado.base.n).toBeGreaterThan(0);
-    const filtros = await get<{ tipos: { id: string }[] }>(a, '/api/v1/filtros/businessmap');
+    const filtros = await get<{ tipos: { id: string; nome: string }[] }>(a, '/api/v1/filtros/businessmap');
     expect(filtros.tipos.map((t) => t.id)).toContain('trabalho-produto');
+    // L6 do 097: a lista vem das stories da base; "Incidente" (nenhuma story cai nele) não é opção.
+    expect(filtros.tipos.map((t) => t.id)).not.toContain('incidente');
+    const presentes = (await mig.query<{ tipo: string }>(`SELECT DISTINCT tipo FROM ${R.bm}.dim_card WHERE granularidade = 'story' AND tipo IS NOT NULL`)).rows.map((x) => x.tipo);
+    expect(filtros.tipos.map((t) => t.nome).sort()).toEqual(presentes.filter((t) => t !== 'Incidente').sort());
   }, 60_000);
 
   it('(b) correção da coluna vale para todo o período na leitura e o fato de transição não é reescrito', async () => {
@@ -104,7 +108,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
   it('(d) FL2, FL3, S1 e Visão geral respondem "sem dado real" na base real, nunca o número do seed (que só o modo mock explícito lê)', async () => {
     const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const real = await app();
-    for (const id of ['T1', 'T7', 'E1', 'E2', 'S1', 'VISAO_GERAL', 'O8', 'O19']) {
+    for (const id of ['T1', 'T7', 'E1', 'E2', 'S1', 'VISAO_GERAL', 'O8', 'O26']) {
       const a = await mock.inject(`/api/v1/metricas/${id}`);
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(a.statusCode, id).toBe(200);
@@ -115,15 +119,19 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     }
   }, 60_000);
 
-  it('(e) Sustentação (E2.115): S3 lê a base real do Acelerato; S1, S5, S9, S12 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
+  it('(e) Sustentação (E2.115): S3 e S12 leem a base real do Acelerato; S1, S5, S9 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
     await mig.query(`UPDATE ${R.ac}.dim_chamado SET categoria_sistema = 'Sistema só da base real'`);
     const real = await app();
-    for (const id of ['S3']) {
+    for (const id of ['S3', 'S12']) {
       const r = await real.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.json(), id).not.toHaveProperty('estado');
     }
-    for (const id of ['S1', 'S5', 'S9', 'S12', 'EI_SUST']) {
+    // D9: a coluna real nasce `false` por padrão; o S12 não a lê como "0%": sai null com a nota.
+    const s12 = (await real.inject('/api/v1/metricas/S12')).json();
+    expect(s12.excecaoSla).toBeNull();
+    expect(s12.notas).toEqual(['excecao-sla-s12-sem-fonte']);
+    for (const id of ['S1', 'S5', 'S9', 'EI_SUST']) {
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(b.statusCode, id).toBe(200);
       expect(b.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });

@@ -16,6 +16,11 @@
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -39,7 +44,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -151,7 +156,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -1021,6 +1026,11 @@
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -1044,7 +1054,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -1144,6 +1154,11 @@
         { "pessoaRef": "p2", "rotulo": "Pessoa 2", "identificada": true },
         { "pessoaRef": "p3", "rotulo": "Pessoa 3", "identificada": true }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -1167,7 +1182,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -1656,6 +1671,11 @@
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -1679,7 +1699,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -1791,7 +1811,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -2661,6 +2681,11 @@
         { "pessoaRef": "p7", "rotulo": "Gabriela Exemplo", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -2684,7 +2709,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -2796,7 +2821,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -3667,6 +3692,11 @@
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false },
         { "pessoaRef": "outra-area", "rotulo": "Outra área", "identificada": true }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -3690,7 +3720,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -3802,7 +3832,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -4761,6 +4791,11 @@
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false },
         { "pessoaRef": "outra-area", "rotulo": "Outra área", "identificada": true }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -4784,7 +4819,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -4896,7 +4931,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -6177,7 +6212,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "linhas": [
         {

@@ -140,14 +140,14 @@ describe('FiltroMulti', () => {
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], false)
     await userEvent.click(screen.getByLabelText('Alfa'))
     expect(onChange).toHaveBeenLastCalledWith(['b'], true)
-    await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar seleção' }))
     expect(onChange).toHaveBeenLastCalledWith([], true)
     await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     // Ao reabrir, volta a empilhar.
     await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
     // (o botão já mostra "Todas": acompanha as caixas, não a prop antiga)
-    await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar seleção' }))
     expect(onChange).toHaveBeenLastCalledWith([], false)
   })
 
@@ -308,6 +308,58 @@ describe('BarraFiltros: folha em tela estreita e avisos', () => {
     expect(screen.getByTestId('abrir-filtros')).toHaveTextContent('Filtros (0)')
   })
 
+  it('CA-16/CA-14: na folha, Esc com texto só limpa o texto; sem texto fecha e devolve o foco', async () => {
+    renderizarBarra('/operacional')
+    const abrir = await screen.findByTestId('abrir-filtros')
+    await userEvent.click(abrir)
+    const folha = await screen.findByRole('dialog', { name: 'Filtros' })
+    const campo = within(folha).getByTestId('equipe-busca')
+    await userEvent.type(campo, 'zz')
+    await userEvent.keyboard('{Escape}')
+    expect(screen.getByRole('dialog', { name: 'Filtros' })).toBeInTheDocument()
+    expect(within(folha).getByTestId('equipe-busca')).toHaveValue('')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(abrir).toHaveFocus()
+  })
+
+  it('S1: na folha, Esc com o foco na busca vazia de outro filtro fecha a folha, mesmo com texto em Equipe', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('abrir-filtros'))
+    const folha = await screen.findByRole('dialog', { name: 'Filtros' })
+    await userEvent.type(within(folha).getByTestId('equipe-busca'), 'zz')
+    await userEvent.click(within(folha).getByTestId('tipo-busca'))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('S2: na folha, Esc com o foco em "Ver resultados" fecha a folha, mesmo com texto em Equipe', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('abrir-filtros'))
+    const folha = await screen.findByRole('dialog', { name: 'Filtros' })
+    await userEvent.type(within(folha).getByTestId('equipe-busca'), 'zz')
+    within(folha).getByRole('button', { name: 'Ver resultados' }).focus()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('K-278 A1: ao abrir a folha o foco não vai para um campo de busca', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('abrir-filtros'))
+    const folha = await screen.findByRole('dialog', { name: 'Filtros' })
+    await waitFor(() => expect(folha).toHaveFocus())
+  })
+
+  it('A4: na folha, cada campo de busca tem nome acessível próprio', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('abrir-filtros'))
+    const folha = await screen.findByRole('dialog', { name: 'Filtros' })
+    expect(within(folha).getByRole('textbox', { name: 'Buscar em Equipe' })).toBeInTheDocument()
+    expect(
+      within(folha).getByRole('textbox', { name: 'Buscar em Tipo de demanda' }),
+    ).toBeInTheDocument()
+  })
+
   it('reabrir a folha volta a empilhar uma nova entrada', async () => {
     const r = renderizarBarra('/operacional')
     await userEvent.click(await screen.findByTestId('abrir-filtros'))
@@ -374,5 +426,229 @@ describe('FiltroMulti: caixa marcada e prop atrasada', () => {
     expect(screen.getByLabelText('Alfa')).toBeChecked()
     await userEvent.click(screen.getByLabelText('Alfa'))
     expect(onChange).toHaveBeenLastCalledWith([], true)
+  })
+})
+
+describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
+  const lista = [
+    { id: 'a', nome: 'Avaliação' },
+    { id: 'b', nome: 'Beta' },
+    { id: 'c', nome: 'Gestão' },
+  ]
+  const montar = (
+    sel: string[] = [],
+    onChange = vi.fn(),
+    variante: 'popover' | 'lista' = 'popover',
+  ) =>
+    render(
+      <FiltroMulti
+        id="x"
+        rotulo="Equipe"
+        opcoes={lista}
+        selecionados={sel}
+        onChange={onChange}
+        variante={variante}
+      />,
+    )
+
+  it('CA-10: abre com o campo Buscar focado, mesmo com lista curta', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    expect(screen.getByLabelText(/^Buscar/)).toHaveFocus()
+  })
+
+  it('CA-11: ignora maiúsculas e acentos e anuncia a contagem', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'AVALIACAO')
+    expect(screen.getByLabelText('Avaliação')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Beta')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('1 opção encontrada de 3.')
+  })
+
+  it('CA-12: sem resultado mostra a mensagem e anuncia', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'zzz')
+    expect(screen.getByText('Nenhuma opção com “zzz”.')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Nenhuma opção encontrada.')
+  })
+
+  it('CA-13: a seleção fora da busca continua aplicada e é contada', async () => {
+    const u = userEvent.setup()
+    const onChange = vi.fn()
+    montar(['a'], onChange)
+    await u.click(screen.getByRole('button', { name: 'Equipe: Avaliação' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta')
+    expect(screen.getByTestId('x-fora-da-busca')).toHaveTextContent(/1 selecionada fora da busca/)
+    await u.click(screen.getByLabelText('Beta'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], expect.any(Boolean))
+  })
+
+  it('CA-14: teclado: seta para baixo, setas, Enter com uma opção, Esc limpa e depois fecha', async () => {
+    const u = userEvent.setup()
+    const onChange = vi.fn()
+    montar([], onChange)
+    const botao = screen.getByRole('button', { name: 'Equipe: Todas' })
+    await u.click(botao)
+    await u.keyboard('{ArrowDown}')
+    expect(screen.getByLabelText('Avaliação')).toHaveFocus()
+    await u.keyboard('{ArrowDown}')
+    expect(screen.getByLabelText('Beta')).toHaveFocus()
+    await u.keyboard('{ArrowUp}{ArrowUp}')
+    expect(screen.getByLabelText(/^Buscar/)).toHaveFocus()
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta{Enter}')
+    expect(onChange).toHaveBeenLastCalledWith(['b'], expect.any(Boolean))
+    await u.keyboard('{Escape}')
+    expect(screen.getByLabelText(/^Buscar/)).toHaveValue('')
+    expect(screen.getByLabelText(/^Buscar/)).toBeInTheDocument()
+    await u.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByLabelText(/^Buscar/)).not.toBeInTheDocument())
+    expect(screen.getByTestId('filtro-x')).toHaveFocus()
+  })
+
+  it('CA-14: Enter com várias opções ou nenhuma não marca nada; seta no fim e outras teclas não movem o foco', async () => {
+    const u = userEvent.setup()
+    const onChange = vi.fn()
+    montar([], onChange)
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.keyboard('{Enter}')
+    await u.type(screen.getByLabelText(/^Buscar/), 'zzz{Enter}{ArrowDown}')
+    expect(onChange).not.toHaveBeenCalled()
+    await u.clear(screen.getByLabelText(/^Buscar/))
+    await u.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}')
+    expect(screen.getByLabelText('Gestão')).toHaveFocus()
+    await u.keyboard('a')
+    expect(screen.getByLabelText('Gestão')).toHaveFocus()
+  })
+
+  it('K-278 A2: o popover tem nome acessível próprio', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    expect(screen.getByRole('dialog', { name: 'Equipe' })).toBeInTheDocument()
+  })
+
+  it('K-278 A3: a contagem traz o total e listas longas mostram "N opções"', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta')
+    expect(screen.getByRole('status')).toHaveTextContent('1 opção encontrada de 3.')
+    expect(screen.queryByText('3 opções')).not.toBeInTheDocument()
+  })
+
+  it('K-278 A3: com mais de 12 opções e sem busca aparece "N opções"', async () => {
+    const u = userEvent.setup()
+    const longa = Array.from({ length: 13 }, (_, i) => ({ id: `o${i}`, nome: `Opção ${i}` }))
+    render(
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={longa} selecionados={[]} onChange={vi.fn()} />,
+    )
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    expect(screen.getByText('13 opções')).toBeInTheDocument()
+  })
+
+  it('K-278 A4: a frase das marcações fora da busca é anunciada na região viva', async () => {
+    const u = userEvent.setup()
+    montar(['a'])
+    await u.click(screen.getByRole('button', { name: 'Equipe: Avaliação' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '1 selecionada fora da busca (continua aplicada).',
+    )
+  })
+
+  it('K-278 A5: Enter com uma opção anuncia "Marcada" e depois "Desmarcada"', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Marcada: Beta.')
+    await u.keyboard('{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Desmarcada: Beta.')
+  })
+
+  it('K-284: o clique na caixa apaga o aviso "Marcada" da região viva', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Marcada: Beta.')
+    await u.click(screen.getByRole('checkbox', { name: 'Beta' }))
+    expect(screen.getByRole('status')).not.toHaveTextContent('Marcada')
+    expect(screen.getByRole('status')).not.toHaveTextContent('Desmarcada')
+  })
+
+  it('K-284: o Esc apaga o aviso "Marcada" da região viva', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Marcada: Beta.')
+    await u.keyboard('{Escape}')
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+  })
+
+  it('K-278 A6: no popover, Esc com o foco em "Fechar" fecha mesmo com texto na busca', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'zz')
+    screen.getByRole('button', { name: 'Fechar' }).focus()
+    await u.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByLabelText(/^Buscar/)).not.toBeInTheDocument())
+  })
+
+  it('K-278 A8: o campo traz o texto de ajuda "Digite para buscar"', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    expect(screen.getByPlaceholderText('Digite para buscar')).toBeInTheDocument()
+  })
+
+  it('CA-15: fechar zera o texto', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta')
+    await u.click(screen.getByRole('button', { name: 'Fechar' }))
+    await u.click(screen.getByTestId('filtro-x'))
+    expect(screen.getByLabelText(/^Buscar/)).toHaveValue('')
+  })
+
+  it('CA-16: a variante lista (folha mobile) tem o mesmo campo', async () => {
+    const u = userEvent.setup()
+    montar([], vi.fn(), 'lista')
+    await u.type(screen.getByLabelText(/^Buscar/), 'gestao')
+    expect(screen.getByLabelText('Gestão')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Beta')).not.toBeInTheDocument()
+    await u.keyboard('{Escape}')
+    expect(screen.getByLabelText(/^Buscar/)).toHaveValue('')
+  })
+
+  it('CA-16: Esc com o foco numa opção limpa a busca e mantém o popover aberto', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta')
+    await u.keyboard('{ArrowDown}')
+    expect(screen.getByLabelText('Beta')).toHaveFocus()
+    await u.keyboard('{Escape}')
+    expect(screen.getByLabelText(/^Buscar/)).toHaveValue('')
+    expect(screen.getByLabelText('Avaliação')).toBeInTheDocument()
+  })
+
+  it('CA-16: na folha, Esc com o foco numa opção limpa a busca', async () => {
+    const u = userEvent.setup()
+    montar([], vi.fn(), 'lista')
+    await u.type(screen.getByLabelText(/^Buscar/), 'gestao')
+    await u.keyboard('{ArrowDown}')
+    expect(screen.getByLabelText('Gestão')).toHaveFocus()
+    await u.keyboard('{Escape}')
+    expect(screen.getByLabelText(/^Buscar/)).toHaveValue('')
+    expect(screen.getByLabelText('Beta')).toBeInTheDocument()
   })
 })

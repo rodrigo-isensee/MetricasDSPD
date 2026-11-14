@@ -1,4 +1,9 @@
-import { CATALOGO_CARTOES, ROTULO_PAINEL, type CartaoCatalogo } from '@metricas-dspd/contratos'
+import {
+  CATALOGO_CARTOES,
+  ROTULO_PAINEL,
+  origemDaMetrica,
+  type CartaoCatalogo,
+} from '@metricas-dspd/contratos'
 import { destinoDoCartao } from '@/lib/destinoCartao'
 import type { FonteDoCartao } from '@/components/ui'
 import { CATALOGO, type PainelDaMetrica } from '@/content/catalogo-metricas'
@@ -11,10 +16,17 @@ export interface LinhaCatalogo {
   grupo: 'Núcleo' | 'Complementar'
   fonte: FonteDoCartao
   granularidade: string
-  /** Decisão 20: o app inteiro roda com dados fictícios até a coleta real existir. */
-  dados: 'Fictícios'
+  /** Situação do dado da métrica no mapa de origem: lida da coleta ou ainda sem dado real. */
+  dados: 'Real' | 'Sem dado real'
+  /** Anotação de métrica parcial (dado real só em parte); não é um terceiro valor de `dados`. */
+  anotacao?: string
   /** Destino no app: o painel e, para complementares, o cartão (abre a seção "Mais métricas"). */
   destino: string
+}
+
+/** Métricas reais só em parte: a anotação diz o que ainda está sem fonte. */
+const ANOTACAO_PARCIAL: Record<string, string> = {
+  S12: 'Parcial: volume por sistema; reincidência sem fonte',
 }
 
 /** BLOQUEADOS é lista, não métrica do briefing. */
@@ -36,7 +48,8 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
       grupo: cartao ? 'Complementar' : 'Núcleo',
       fonte: m.fonte,
       granularidade: m.granularidade,
-      dados: 'Fictícios',
+      dados: origemDaMetrica(m.id) === 'real' ? 'Real' : 'Sem dado real',
+      ...(ANOTACAO_PARCIAL[m.codigo] ? { anotacao: ANOTACAO_PARCIAL[m.codigo] } : {}),
       destino: destinoDoCartao(alvo),
     }
   })

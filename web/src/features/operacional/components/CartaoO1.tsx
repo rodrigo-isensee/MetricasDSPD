@@ -27,12 +27,11 @@ const seriesBarra = (semBloqueio: boolean): SerieBarra[] => [
 
 /** O1: WIP e limite. A quebra por coluna só existe com uma equipe (porColuna != null); sempre mostra o tempo acima do limite. */
 export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O1', filtros, { simulado: true })
+  const q = useMetrica('O1', filtros)
   const d = q.dados
   const h = d?.hoje
-  // Pedido 065: sem bloqueios coletados a parte vem null (nunca 0); o resto do cartão segue igual.
-  const semBloqueio =
-    !!d && (d.hoje.bloqueados === null || d.notas?.includes('bloqueio-sem-dado-real') === true)
+  // O contrato ainda aceita bloqueados null (nunca 0); a API real já o calcula (pedido 075, 6b).
+  const semBloqueio = !!d && d.hoje.bloqueados === null
   const leitura =
     d && h
       ? `Hoje há ${fmtInteiro(h.total)} ${plural(h.total, 'item', 'itens')} em progresso para um limite de ${fmtInteiro(h.limite)} (${fmtInteiro(h.acimaDoLimite)} acima), ${h.bloqueados === null ? 'bloqueados: sem dado real' : `${fmtInteiro(h.bloqueados)} deles bloqueados`}. Nos últimos ${fmtInteiro(d.diasDentroDoLimite.n)} dias úteis o WIP ficou dentro do limite em ${fmtInteiro(d.diasDentroDoLimite.k)}.`

@@ -15,9 +15,9 @@ const MARCADOR_NOME = 'PESSOA-FICTICIA-MARCADOR-059';
 const AGORA = new Date('2026-11-02T15:00:00Z'); // 2026-11-02 12:00 em America/Sao_Paulo
 const HOJE = '2026-11-02';
 
-type Linha = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null };
+type Linha = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null; equipe: string | null };
 const linha = (o: Partial<Linha> = {}): Linha => ({
-  data: '2026-10-20', segundos: 3600, subgrupo: 'desenvolvimento', flags: 0, em_subtarefa: false, pessoa_ref: '1', projeto_id: '900', projeto_titulo: 'Projeto Alfa', fora: false, tipo: 'Melhoria', type_id: '12', ...o,
+  data: '2026-10-20', segundos: 3600, subgrupo: 'desenvolvimento', flags: 0, em_subtarefa: false, pessoa_ref: '1', projeto_id: '900', projeto_titulo: 'Projeto Alfa', fora: false, tipo: 'Melhoria', type_id: '12', equipe: null, ...o,
 });
 /** 25 apontamentos da pessoa 1 (passa do piso de 20), 3 da pessoa 2 e 1 sem pessoa (eliminada a pedido), em subtarefa. */
 const fixture = (): Linha[] => [
@@ -29,6 +29,10 @@ const fixture = (): Linha[] => [
 interface Opcoes {
   linhas?: Linha[]; falharEm?: string; nomes?: Record<string, string>; coletas?: { ultima?: boolean; ok?: boolean; ultimaFalhou?: boolean; ultimaParcial?: boolean };
   incompletos?: { card_id: string; titulo: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean }[];
+  /** Pares do histórico inteiro (padrão: os das próprias linhas). */
+  /** Nomes distintos de `dim_card.equipe` (padrão: os das próprias linhas). */
+  nomesDeEquipe?: string[];
+  historicoTipos?: { tipo: string | null; type_id: string | null }[];
   feriados?: string[]; semHistorico?: boolean; S?: typeof S_PADRAO; doTime?: string[];
 }
 function banco(op: Opcoes = {}) {
@@ -36,8 +40,10 @@ function banco(op: Opcoes = {}) {
     const t = c.texto;
     if (op.falharEm !== undefined && t.includes(op.falharEm)) return new Error(`falha do banco com ${MARCADOR_NOME}`);
     if (t.includes('apt_pessoa_time')) return (op.doTime ?? ['1', '2', '3', '4']).map((pessoa_ref) => ({ pessoa_ref }));
-    if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }];
+    if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1', familia: 'dicionario' }];
     if (t.includes('ctl_apontamento_cobertura')) return op.incompletos ?? [];
+    if (t.includes('SELECT DISTINCT equipe FROM dspd_bm.dim_card')) return (op.nomesDeEquipe ?? [...new Set((op.linhas ?? fixture()).flatMap((l) => (l.equipe === null ? [] : [l.equipe])))]).map((equipe) => ({ equipe }));
+    if (t.includes('fato_apontamento h')) return op.historicoTipos ?? (op.linhas ?? fixture()).map(({ tipo, type_id }) => ({ tipo, type_id }));
     if (t.includes('FROM dspd_bm.fato_apontamento f')) return op.linhas ?? fixture();
     if (t.includes('min(data_apontamento)')) return [op.semHistorico === true ? { inicio: null, fim: null } : { inicio: '2026-01-05', fim: '2026-10-30' }];
     if (t.includes('responsavel_nome')) return Object.entries(op.nomes ?? {}).map(([pessoa_ref, responsavel_nome]) => ({ pessoa_ref, responsavel_nome }));
@@ -82,9 +88,9 @@ describe('GET /api/apontamento: resposta', () => {
     expect(corpo.kpis.apontamentos).toBe(29);
     expect(corpo.kpis.pessoasAtivas).toBe(2);
     expect(corpo.frescor).toEqual({ selo: 'atual', ultimaColetaOk: '2026-11-02T06:10:00-03:00', ultimaTentativa: { resultado: 'ok', fim: '2026-11-02T06:10:00-03:00' } });
-    expect(corpo.criterios).toEqual([{ id: '5', data: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }]);
+    expect(corpo.criterios).toEqual([{ id: 'dicionario-5', data: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }]); // prefixo da família: é por ele que o front desenha a marca (pedido 089, A)
     expect(corpo.opcoes.historico).toEqual({ inicio: '2026-01-05', fim: '2026-10-30' });
-    expect(corpo.opcoes.subgrupos.map((s) => s.rotulo)).toEqual(['Desenvolvimento', 'Não classificado']);
+    expect(corpo.opcoes.subgrupos.map((s) => s.rotulo)).toEqual(['Desenvolvimento', 'Sem comentário']);
     await app.close();
   });
   it('sem coleta do worklog: selo "sem-coleta" e `ultimaColetaOk` nulo', async () => {
@@ -170,6 +176,59 @@ describe('GET /api/apontamento: resposta', () => {
     expect(dois.kpis.segundos).toBe(14_400);
     const nenhum = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=99`)).json());
     expect(nenhum.kpis.segundos).toBe(0);
+    await app.close();
+  });
+  it('K-272: dois type_id da mesma categoria viram uma linha no AP-TIPO e uma opção; filtrar por qualquer um cobre os dois e o banco recebe os dois', async () => {
+    const { app, db } = await montar({ linhas: [
+      linha({ type_id: '12', tipo: 'Trabalho de produto', segundos: 3600 }),
+      linha({ type_id: '9', tipo: 'Trabalho de produto', segundos: 7200, data: '2026-10-21' }),
+      linha({ type_id: '34', tipo: 'Incidente', segundos: 1800, data: '2026-10-22' }),
+      linha({ type_id: '77', tipo: null, segundos: 900, data: '2026-10-23' }),
+    ] });
+    const base = '/api/apontamento?de=2026-10-01&ate=2026-10-31';
+    const todos = respostaApontamentoSchema.parse((await get(app, base)).json());
+    expect(todos.opcoes.tipos.map((t) => [t.id, t.rotulo])).toEqual([['34', 'Incidente'], ['9', 'Trabalho de produto']]);
+    const produto = todos.distribuicao.porTipo.filter((l) => l.rotulo === 'Trabalho de produto');
+    expect(produto).toHaveLength(1);
+    expect(produto[0]!.segundos).toBe(3600 + 7200);
+    expect(produto[0]!.apontamentos).toBe(2);
+    for (const v of ['9', '12']) {
+      const r = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=${v}`)).json());
+      expect(r.kpis.segundos, v).toBe(10_800);
+      expect(r.kpis.apontamentos, v).toBe(2);
+    }
+    await get(app, `${base}&tipo=12`);
+    const c = db.chamadas.filter((x) => x.texto.includes('ctl_apontamento_cobertura')).at(-1)!;
+    expect(c.valores[3]).toEqual(['9', '12']);
+    await app.close();
+  });
+  it('K-272 (A1): o id da categoria vem do histórico; link com o menor type_id numa janela sem ele não zera a categoria', async () => {
+    const { app, db } = await montar({
+      linhas: [linha({ type_id: '12', tipo: 'Trabalho de produto', segundos: 3600 }), linha({ type_id: '34', tipo: 'Incidente', segundos: 1800, data: '2026-10-22' })],
+      historicoTipos: [{ tipo: 'Trabalho de produto', type_id: '9' }, { tipo: 'Trabalho de produto', type_id: '12' }, { tipo: 'Incidente', type_id: '34' }],
+    });
+    const base = '/api/apontamento?de=2026-10-01&ate=2026-10-31';
+    const todos = respostaApontamentoSchema.parse((await get(app, base)).json());
+    expect(todos.opcoes.tipos.map((t) => [t.id, t.rotulo])).toEqual([['34', 'Incidente'], ['9', 'Trabalho de produto']]);
+    const r = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=9`)).json());
+    expect(r.kpis.segundos).toBe(3600);
+    expect(r.kpis.apontamentos).toBe(1);
+    await get(app, `${base}&tipo=9`);
+    expect(db.chamadas.filter((x) => x.texto.includes('ctl_apontamento_cobertura')).at(-1)!.valores[3]).toEqual(['9', '12']);
+    const hist = db.chamadas.find((x) => x.texto.includes('fato_apontamento h'))!;
+    expect(hist.texto).not.toContain('data_apontamento');
+    await app.close();
+  });
+  it('K-272 (A2): a linha "Sem tipo" fica à parte em porTipo, sem opção', async () => {
+    const { app } = await montar({ linhas: [
+      linha({ type_id: '12', tipo: 'Melhoria', segundos: 3600 }),
+      linha({ type_id: null, tipo: null, segundos: 900, data: '2026-10-23' }),
+    ] });
+    const r = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
+    const sem = r.distribuicao.porTipo.filter((l) => l.rotulo === 'Sem tipo');
+    expect(sem).toHaveLength(1);
+    expect(sem[0]!.segundos).toBe(900);
+    expect(r.opcoes.tipos.map((t) => t.rotulo)).toEqual(['Melhoria']);
     await app.close();
   });
   it('type_id fora de dígitos no filtro: 400 do contrato, sem consulta ao banco', async () => {
@@ -366,7 +425,7 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
       ],
     });
     const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
-    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo'], ['56', 'Sem tipo']]);
+    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo']]); // K-272: "Sem tipo" (categoria nula) soma, mas não é opção
     expect(c.opcoes.projetos.map((p) => p.rotulo).sort()).toEqual(['Card 900', 'Sem iniciativa']);
     expect(c.opcoes.subgrupos.map((g) => g.rotulo).sort()).toEqual(['Execução técnica', 'codigo-sem-rotulo']);
     expect(c.qualidade.geral.porFlag.find((f) => f.flag === 'sem-iniciativa')!.apontamentos).toBe(3);
@@ -490,14 +549,33 @@ describe('registroIncompleto: sinal de card com horas incompletas (063, K-200)',
   it('o recorte e o periodo e os filtros de projeto e tipo, por parametro; o filtro de pessoa nao entra e nenhuma pessoa, hora ou contagem de registros sai', async () => {
     const { db, bruto } = await ler({ incompletos: [card('9100000001')] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&projeto=900&tipo=12&pessoa=p1');
     const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
-    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', ['900'], ['12']]);
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', ['900'], ['12'], null, false]);
     expect(c.texto).not.toMatch(/pessoa|segundos|user_id|responsavel|comentario/i);
     const sinal = JSON.stringify((JSON.parse(bruto) as { registroIncompleto: unknown }).registroIncompleto);
     expect(sinal).not.toMatch(/pessoa|segundos|horas|registros|p1/i);
   });
   it('sem filtros de projeto e tipo, a consulta recebe null (sem filtro)', async () => {
     const { db } = await ler({});
-    expect(db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!.valores.slice(2)).toEqual([null, null]);
+    expect(db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!.valores.slice(2)).toEqual([null, null, null, false]);
+  });
+  it('097 L2: o filtro equipe chega por parametro (nomes de dim_card.equipe e a marca sem-time) e nunca vira SQL', async () => {
+    const { db } = await ler({ incompletos: [card('9100000001')], nomesDeEquipe: ['Time Alfa', 'Time Beta'] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&equipe=time-alfa,sem-time,inexistente');
+    const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', null, null, ['Time Alfa'], true]);
+    expect(c.texto).not.toMatch(/time-alfa|inexistente/);
+    expect(c.texto).toMatch(/COALESCE\(ec\.equipe, ep\.equipe\)/);
+  });
+  it('097 L2 (A1): filtro equipe ativo e nenhum nome resolvido (slug inexistente) vai ao banco como lista vazia, nunca como sem filtro', async () => {
+    const { db } = await ler({ incompletos: [card('9100000001')], nomesDeEquipe: ['Time Alfa'] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&equipe=nao-existe');
+    const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', null, null, [], false]);
+  });
+  it('097 L2 (A2): nome de time com slug vazio e "sem-time" nas linhas e tambem no filtro dos incompletos', async () => {
+    const { db, corpo } = await ler({ incompletos: [card('9100000001')], nomesDeEquipe: ['Time Alfa', '---'], linhas: [linha({ equipe: '---' })] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&equipe=sem-time');
+    expect(corpo.opcoes.equipes).toEqual([{ id: 'sem-time', rotulo: 'Sem time' }]);
+    expect(corpo.kpis.apontamentos).toBe(1);
+    const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', null, null, ['---'], true]);
   });
   it('erro do banco na leitura do sinal: 500 generico, sem a mensagem do banco', async () => {
     const { app } = await montar({ falharEm: 'ctl_apontamento_cobertura' });
@@ -505,5 +583,61 @@ describe('registroIncompleto: sinal de card com horas incompletas (063, K-200)',
     expect(r.statusCode).toBe(500);
     expect(r.body).not.toContain(MARCADOR_NOME);
     await app.close();
+  });
+});
+
+describe('equipe no apontamento: filtro por time do card, so recorte (097 L2)', () => {
+  const doTime = (equipe: string | null, o: Partial<Linha> = {}) => linha({ equipe, ...o });
+  const cenario = () => [
+    doTime('Time Alfa', { segundos: 3600 }), doTime('Time Alfa', { segundos: 3600, data: '2026-10-21' }),
+    doTime('Time Beta', { segundos: 7200, data: '2026-10-22' }), doTime(null, { segundos: 1800, data: '2026-10-23' }),
+  ];
+  const ler = async (consulta = '', op: Opcoes = {}) => {
+    const { app, db } = await montar({ linhas: cenario(), ...op });
+    const r = await get(app, `/api/apontamento?de=2026-10-01&ate=2026-10-31${consulta}`);
+    expect(r.statusCode, r.body.slice(0, 200)).toBe(200);
+    const corpo = respostaApontamentoSchema.parse(r.json());
+    await app.close();
+    return { corpo, db, bruto: r.body };
+  };
+  it('opcoes.equipes lista os times do recorte (id = slug do nome, "Sem time" para card sem time), em ordem neutra', async () => {
+    const { corpo } = await ler();
+    expect(corpo.opcoes.equipes).toEqual([{ id: 'sem-time', rotulo: 'Sem time' }, { id: 'time-alfa', rotulo: 'Time Alfa' }, { id: 'time-beta', rotulo: 'Time Beta' }]);
+    expect(corpo.kpis.segundos).toBe(3600 + 3600 + 7200 + 1800);
+  });
+  it('o filtro equipe restringe o calculo; varios times = um conjunto; sem-time e um recorte valido; time desconhecido zera', async () => {
+    expect((await ler('&equipe=time-alfa')).corpo.kpis).toMatchObject({ segundos: 7200, apontamentos: 2 });
+    expect((await ler('&equipe=time-alfa,time-beta')).corpo.kpis.segundos).toBe(14_400);
+    expect((await ler('&equipe=sem-time')).corpo.kpis.segundos).toBe(1800);
+    expect((await ler('&equipe=outro-time')).corpo.kpis.segundos).toBe(0);
+  });
+  it('K-286: o mapa diario e recortado pela equipe (e pela pessoa), sem olhar tipo nem projeto', async () => {
+    const soma = (c: Awaited<ReturnType<typeof ler>>['corpo']) => c.diario.linhas.reduce((t, l) => t + l.segundos, 0);
+    expect(soma((await ler()).corpo)).toBe(3600 + 3600 + 7200 + 1800);
+    expect(soma((await ler('&equipe=time-alfa')).corpo)).toBe(7200);
+    expect(soma((await ler('&equipe=time-alfa,sem-time')).corpo)).toBe(9000);
+    expect(soma((await ler('&equipe=outro-time')).corpo)).toBe(0);
+    expect(soma((await ler('&equipe=time-beta&tipo=999&projeto=999')).corpo)).toBe(7200);
+  });
+  it('entrada invalida ou repetida: 400 so com caminho e codigo; o parametro pessoa continua aceito', async () => {
+    const { app } = await montar({ linhas: cenario() });
+    for (const q of ['equipe=Time%20Alfa', 'equipe=a%27%3B--', 'equipe=time-alfa,time-alfa', `equipe=${'a'.repeat(61)}`]) {
+      const r = await get(app, `/api/apontamento?${q}`);
+      expect(r.statusCode, q).toBe(400);
+      expect(r.body).not.toMatch(/Alfa|--|aaaa/);
+    }
+    expect((await get(app, '/api/apontamento?pessoa=p1')).statusCode).toBe(200);
+    await app.close();
+  });
+  it('a resposta nao ganha bloco por time: so opcoes.equipes e o recorte; nenhuma contagem, soma ou serie por time', async () => {
+    const { corpo, bruto } = await ler('&equipe=time-alfa');
+    expect(Object.keys(corpo).sort()).toEqual(Object.keys((await ler()).corpo).sort());
+    expect(bruto).not.toMatch(/porEquipe|porTime/);
+    expect(JSON.stringify(corpo.distribuicao)).not.toMatch(/time-alfa|Time Alfa/);
+  });
+  it('a consulta de linhas usa a equipe do card (ou do pai) e nenhuma coluna de pessoa a mais', async () => {
+    const { db } = await ler();
+    const sql = db.chamadas.find((x) => x.texto.includes('FROM dspd_bm.fato_apontamento f') && !x.texto.includes('ctl_apontamento_cobertura'))!.texto;
+    expect(sql).toContain('COALESCE(c.equipe, p.equipe) AS equipe');
   });
 });

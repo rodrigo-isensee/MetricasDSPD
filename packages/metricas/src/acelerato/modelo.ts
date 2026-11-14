@@ -3,13 +3,13 @@
  * além de primitivos e dos domínios fechados de `contracts/comum`.
  */
 import type {
-  EquipeSustentacao,
   MotivoEncerramento,
   MotivoEscalacao,
   NivelResolucao,
   Prioridade,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
+import { criarCalendario, type Turno } from '../core/calendario'
 
 export type EtapaAcelerato =
   | 'Novo'
@@ -36,7 +36,7 @@ export interface Chamado {
   chamado_id: string
   organizacao: 'DSPD Sustentação'
   tipo_fila: 'DSPD - SSSC'
-  equipe: EquipeSustentacao
+  equipe: string
   natureza: 'incidente' | 'requisicao'
   categoria_sistema: string
   excluido: boolean
@@ -73,11 +73,19 @@ export interface EtapaChamado {
   motivo_pendencia: MotivoPendencia | null
 }
 
-/** Prazos da matriz de prioridade (briefing 3.4), em horas úteis. P1 = 15 min / 4 h. */
+/** Relógio em que o prazo é medido: `corrido` (24 h por dia, sem feriado) ou `util` (calendário de expediente). */
+export type UnidadePrazo = 'corrido' | 'util'
+
+/**
+ * Prazos da matriz de prioridade (PROC 30.000.010 v002), em horas, cada um com a unidade (Q-099-11). P1 = 15 min / 4 h. Dia útil = 8 h
+ * (os prazos em dias úteis vêm já em horas).
+ */
 export interface AlvoPrioridade {
   prioridade: Prioridade
   primeiro_atendimento_horas: number
+  unidade_primeiro_atendimento: UnidadePrazo
   restauracao_horas: number
+  unidade_restauracao: UnidadePrazo
 }
 
 export interface ConfigAC {
@@ -101,13 +109,55 @@ export const MATRIZ_PRIORIDADE: Record<
   Baixo: { Alta: 'P3', Média: 'P4', Baixa: 'P5' },
 }
 
-/** 8 h úteis por dia: 1 dia útil = 8 h. */
+/**
+ * Expediente da Sustentação (Decisão 13 do dono, pedido 099, D3b): dia útil de 8 h 48 (528 min). A janela é a da Q-099-32, ainda com o dono
+ * (recomendação A: 08:00-12:00 e 13:00-17:48). Se o dono escolher outra janela, trocar só `fimMin`/`inicioMin` aqui e `turnos` do calendário
+ * `dspd-acelerato` em `docs/architecture/fontes/calendario.json` (o teste de paridade do servidor exige os dois iguais).
+ */
+export const TURNOS_SUSTENTACAO: readonly Turno[] = [
+  { inicioMin: 8 * 60, fimMin: 12 * 60 },
+  { inicioMin: 13 * 60, fimMin: 17 * 60 + 48 },
+]
+/** Calendário padrão da Sustentação (mock e padrão do servidor no domínio Acelerato quando a referência não tem calendário); o BusinessMap segue o `CALENDARIO_PADRAO`. */
+export const CALENDARIO_SUSTENTACAO_PADRAO = criarCalendario({ turnos: TURNOS_SUSTENTACAO })
+
+/** Dias úteis dos alvos do PROC em horas pelo dia útil de 8,8 h da Sustentação (Decisão 13). Unidades da Q-099-11: P1 (os dois prazos) e P2 (primeiro atendimento) em tempo corrido. */
 export const ALVOS_PADRAO: AlvoPrioridade[] = [
-  { prioridade: 'P1', primeiro_atendimento_horas: 0.25, restauracao_horas: 4 },
-  { prioridade: 'P2', primeiro_atendimento_horas: 0.5, restauracao_horas: 8 },
-  { prioridade: 'P3', primeiro_atendimento_horas: 2, restauracao_horas: 16 },
-  { prioridade: 'P4', primeiro_atendimento_horas: 4, restauracao_horas: 40 },
-  { prioridade: 'P5', primeiro_atendimento_horas: 8, restauracao_horas: 80 },
+  {
+    prioridade: 'P1',
+    primeiro_atendimento_horas: 0.25,
+    unidade_primeiro_atendimento: 'corrido',
+    restauracao_horas: 4,
+    unidade_restauracao: 'corrido',
+  },
+  {
+    prioridade: 'P2',
+    primeiro_atendimento_horas: 0.5,
+    unidade_primeiro_atendimento: 'corrido',
+    restauracao_horas: 8,
+    unidade_restauracao: 'util',
+  },
+  {
+    prioridade: 'P3',
+    primeiro_atendimento_horas: 2,
+    unidade_primeiro_atendimento: 'util',
+    restauracao_horas: 17.6,
+    unidade_restauracao: 'util',
+  },
+  {
+    prioridade: 'P4',
+    primeiro_atendimento_horas: 4,
+    unidade_primeiro_atendimento: 'util',
+    restauracao_horas: 44,
+    unidade_restauracao: 'util',
+  },
+  {
+    prioridade: 'P5',
+    primeiro_atendimento_horas: 8.8,
+    unidade_primeiro_atendimento: 'util',
+    restauracao_horas: 88,
+    unidade_restauracao: 'util',
+  },
 ]
 
 /** Predicado único de "justificado" (R6): campo preenchido e não vazio; texto só com espaços NÃO conta. Usado pela S7 e pelo seed/coletor. */

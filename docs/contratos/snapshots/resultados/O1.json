@@ -338,8 +338,7 @@
         "type": "string",
         "enum": [
           "sem-classe",
-          "sle-nao-definido",
-          "bloqueio-sem-dado-real"
+          "sle-nao-definido"
         ]
       }
     }

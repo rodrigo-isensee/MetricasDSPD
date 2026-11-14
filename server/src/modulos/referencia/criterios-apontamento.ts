@@ -9,6 +9,8 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
  * Idempotente pela `referencia`. Escrita em `dspd_core` por quem tem privilégio de referência (o migrador); nunca pelo coletor nem pela rota.
  */
 export const METRICA_ACHADOS_APONTAMENTO = 'apontamento-achados';
+/** Marca a versão como mudança do dicionário/da classificação: `lerCriterios` a lista na família `dicionario-` (a marca dos gráficos). */
+export const METRICA_DICIONARIO_APONTAMENTO = 'apontamento-dicionario';
 export type CriterioApontamento = { referencia: string; descricao: string; motivo: string; metricas: readonly string[] };
 
 const L = LIMIARES_ACHADO_PADRAO;
@@ -25,6 +27,14 @@ export const CRITERIOS_APONTAMENTO: readonly CriterioApontamento[] = [
     descricao: `Limite do dia atípico da aba Apontamento: soma do dia da pessoa acima de ${LIMITE_ATIPICO_HORAS_PADRAO} h é marcada como valor atípico (antes: 16 h). Só marca, nunca descarta`,
     motivo: 'Decisão do dono (pedido 067, 2026-11-04): "Atipico acima de 10 horas". Muda o total de dias atípicos e o achado de dias atípicos; as demais métricas seguem iguais.',
     metricas: [METRICA_ACHADOS_APONTAMENTO],
+  },
+  {
+    // Pedido 089 (D2 e D3, decisão do dono de 2026-11-10). A vigência é a da primeira varredura completa que reclassifica (a entrada recebe a data), nunca a da decisão.
+    // A segunda métrica faz `lerCriterios` listá-la na família do dicionário (a marca nos gráficos); a `referencia` não está no GRANT da aba.
+    referencia: '089:sem-vinculo-so-sem-comentario',
+    descricao: 'Execução técnica deixa de contar em sem-vínculo: só o apontamento sem comentário e sem regra por tipo continua como falha de qualidade; o subgrupo "Não classificado" passa a se chamar "Sem comentário"',
+    motivo: 'Decisão do dono (pedido 089, 2026-11-10): D2 = A (execução técnica, com comentário que o dicionário não reconheceu, não é falha de qualidade) e D3 = A (rótulo "Sem comentário"). Afeta o flag sem-vinculo, o subgrupo e o achado de não classificado.',
+    metricas: [METRICA_ACHADOS_APONTAMENTO, METRICA_DICIONARIO_APONTAMENTO],
   },
 ];
 

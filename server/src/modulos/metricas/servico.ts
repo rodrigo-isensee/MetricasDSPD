@@ -1,5 +1,5 @@
 import {
-  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICAS_COM_PARTE_DE_BLOQUEIO, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
@@ -11,8 +11,8 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
-import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
-import { comCorteDaSerieO1, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
+import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
+import { comCorteDaSerieO1, comNotaS12SemFonte, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
@@ -46,11 +46,16 @@ const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3', 'S2', 'TE
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 /**
  * Calendário do domínio (pedido 069, L7-b; ADR 0027): o vigente da referência para a classe; sem linha, `CALENDARIO_PADRAO` (o comportamento anterior).
- * Turnos e modo ficam os padrão. A construção é da biblioteca (T2.5): aqui só se entregam os feriados e o deslocamento.
+ * Turnos (Decisão 13, pedido 099 D3b): só o domínio Acelerato os lê (`ref_calendario_turno`); o BusinessMap fica nos turnos padrão. Sem calendário na
+ * referência, o Acelerato usa `CALENDARIO_SUSTENTACAO_PADRAO` (528 min); com calendário sem turnos gravados, turnos padrão da biblioteca. A construção é da
+ * biblioteca (T2.5): aqui só se entregam os feriados, o deslocamento e os turnos.
  */
 async function calendarioDaReferencia(db: Consultavel, S: Esquemas | undefined, dominio: Dom, classe: string): Promise<Calendario> {
   const ref = await lerCalendarioVigente(db, S, dominio, classe);
-  return ref === null ? CALENDARIO_PADRAO : criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos });
+  if (ref === null) return dominio === 'acelerato' ? acelerato.CALENDARIO_SUSTENTACAO_PADRAO : CALENDARIO_PADRAO;
+  if (dominio === 'businessmap') return criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos });
+  const gravados = await lerTurnosVigentes(db, S, dominio, classe);
+  return criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos, turnos: gravados.length > 0 ? gravados : acelerato.TURNOS_SUSTENTACAO });
 }
 const BASE_AC_VAZIA: BaseAC = { chamados: [], etapas: [], config: { alvos: [], criterios: [] } };
 const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
@@ -265,11 +270,14 @@ export class ServicoMetricas {
     }
     // Pedido 060 (P3): o mapa de origem é um portão. Fora dele (e fora do modo mock explícito) nada é lido nem calculado: responde o estado
     // "sem dado real" com o motivo, sem número.
-    if (this.semDadoReal(id)) return { resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true };
+    const semDado = (): Calculo => ({ resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true });
+    if (this.semDadoReal(id)) return semDado();
     const real = this.real;
     if (dom === 'pesquisa') return this.calcularPesquisa(id, op.dataReferencia ?? hoje);
     const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
     const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
+    // Pedido 077 (L5, A14): a tendência do fluxo sem carga inicial com sucesso não tem início de histórico; sem ele não se publica a série.
+    if (id === 'TENDENCIA_FLUXO' && this.deps.modoMock !== true && bm?.historicoDesde === undefined) return semDado();
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
     }
@@ -316,12 +324,14 @@ export class ServicoMetricas {
     let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".
     if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
-    // Pedido 065 (K-205): a coleta ainda não grava bloqueios; na base real a parte de bloqueio sai `null` com nota, nunca zero. Só publicação: nada é recalculado.
-    if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
-    // Pedido 075, lote 6a: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (código escuro).
+    // Pedido 065 (K-205): com o interruptor desligado a parte de bloqueio do O1 sai `null`, nunca zero (sem nota desde o 9b). Ligado no pedido 075 (lote 6b), o ramo não roda e o corte da série do O1 (abaixo) é o único que anula. Só publicação.
+    if (real && !BLOQUEIOS_COM_DADO_REAL) resultado = semParteDeBloqueio(id, resultado);
+    // Pedido 075, lotes 6a e 6b: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (2026-11-01).
     if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
     if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
+    // Pedido 099 (D9): o S12 real sem a fonte da exceção de SLA sai `excecaoSla: null` da biblioteca; aqui só a nota. Só publicação.
+    if (real) resultado = comNotaS12SemFonte(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };

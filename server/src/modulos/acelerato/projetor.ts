@@ -3,7 +3,10 @@ import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/d
 import { Contadores, type RegistroChamado } from './allow-list.js';
 import { ErroColeta, exigirEsquemaSemSeed } from './erros.js';
 import { registrarContagens, type Contagem } from './controle.js';
+import * as acelerato from '@metricas-dspd/metricas/acelerato';
+import { CALENDARIO_PADRAO, type Calendario } from '@metricas-dspd/metricas/core';
 import { intervalosDasEtapas } from './etapas-sinteticas.js';
+import { REFERENCIA_D7_528 } from '../referencia/index.js';
 import { normalizarChamado, type EtapaTotal, type Natureza, type NaturezaPorPrefixo, type LinhaProjecao } from './normalizador.js';
 import { ultimasDeEtapas } from './staging.js';
 
@@ -65,10 +68,8 @@ function inserirLote(S: Esquemas, tabela: string, colunas: readonly string[], li
   return { texto: `INSERT INTO ${S.ac}.${tabela} (${colunas.join(', ')}) VALUES ${grupos.join(', ')}${sufixo}`, valores };
 }
 
-async function projetarLote(
-  db: Consultavel, S: Esquemas, lote: readonly LinhaStaging[], natureza: NaturezaPorPrefixo, coletaId: number, agora: Date, c: Contadores,
-): Promise<{ chamados: number; etapas: number; semIntervalo: number }> {
-  const ids = [...new Set(lote.map((l) => l.id_origem))];
+/** Etapas (totais da ferramenta, última versão do staging) por chamado. Usada pelo projetor e pelo comando de reprojeção (uma regra só). */
+export async function etapasDoStaging(db: Consultavel, S: Esquemas, ids: readonly string[]): Promise<Map<string, EtapaTotal[]>> {
   const etapasDe = new Map<string, EtapaTotal[]>();
   for (const e of (await ultimasDeEtapas(db, S, ids)).values()) {
     const p = e.payload as { descricao: string | null; tempo_sla_segundos: number | null; quantidade_vezes: number | null };
@@ -76,6 +77,49 @@ async function projetarLote(
     lista.push({ descricao: p.descricao, tempo_sla_segundos: p.tempo_sla_segundos, quantidade_vezes: p.quantidade_vezes });
     etapasDe.set(e.chamadoId, lista);
   }
+  return etapasDe;
+}
+
+type ChamadoParaIntervalo = { chamado_id: string; data_finalizado: Date | null; excluido: boolean; fora_do_recorte: boolean };
+
+/**
+ * Intervalos por etapa refeitos por chamado (projeção derivada; a história fica no staging e em `dim_chamado_versao`): apaga os dados e
+ * grava, com o calendário `cal`, só os de chamado fechado, não excluído e dentro do recorte. Função comum do projetor e do comando
+ * `ac:reprojetar-etapas` (ADR 0027, item 7.4): montagem dos intervalos com uma regra só.
+ */
+export async function regravarIntervalos(
+  db: Consultavel, S: Esquemas, chamados: readonly ChamadoParaIntervalo[], etapasDe: ReadonlyMap<string, EtapaTotal[]>, cal: Calendario, coletaId: number, agora: Date,
+): Promise<{ etapas: number; semIntervalo: number }> {
+  await db.query(`DELETE FROM ${S.ac}.fato_etapa_chamado WHERE chamado_id = ANY($1::text[])`, [chamados.map((x) => x.chamado_id)]);
+  const fato: (string | number | boolean | null)[][] = [];
+  let semIntervalo = 0;
+  for (const x of chamados) {
+    if (x.data_finalizado === null || x.excluido || x.fora_do_recorte) continue;
+    const s = intervalosDasEtapas(x.data_finalizado, etapasDe.get(x.chamado_id) ?? [], cal);
+    semIntervalo += s.semIntervalo;
+    for (const i of s.intervalos) fato.push([x.chamado_id, i.etapa, i.entrada.toISOString(), i.saida.toISOString(), null, agora.toISOString(), coletaId]);
+  }
+  for (let i = 0; i < fato.length; i += TAMANHO_LOTE) {
+    const f = inserirLote(S, 'fato_etapa_chamado', ['chamado_id', 'etapa', 'entrada', 'saida', 'motivo_pendencia', 'coletado_em', 'atualizado_por_coleta_id'], fato.slice(i, i + TAMANHO_LOTE));
+    await db.query(f.texto, f.valores);
+  }
+  return { etapas: fato.length, semIntervalo };
+}
+
+/**
+ * Calendário da montagem dos intervalos, escolhido UMA vez por rodada (ADR 0027, item 7.3): o dia de 8 h 48 da Sustentação se a versão
+ * `099:D-7-528` existe em `ref_versao_criterio`, senão o padrão de 8 h (o comportamento anterior). Assim a mesma tabela nunca mistura
+ * intervalos de 8 h e de 8 h 48: até o comando de reprojeção tudo é 8 h; depois dele, tudo é 8 h 48.
+ */
+export async function calendarioDaMontagem(db: Consultavel, S: Esquemas): Promise<Calendario> {
+  const r = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio v WHERE v.dominio = 'acelerato' AND v.referencia = $1`, [REFERENCIA_D7_528]);
+  return r.rows.length > 0 ? acelerato.CALENDARIO_SUSTENTACAO_PADRAO : CALENDARIO_PADRAO;
+}
+
+async function projetarLote(
+  db: Consultavel, S: Esquemas, lote: readonly LinhaStaging[], natureza: NaturezaPorPrefixo, coletaId: number, agora: Date, c: Contadores, cal: Calendario,
+): Promise<{ chamados: number; etapas: number; semIntervalo: number }> {
+  const etapasDe = await etapasDoStaging(db, S, [...new Set(lote.map((l) => l.id_origem))]);
   const linhas = lote.map((l) => ({ stg: l, dim: normalizarChamado(l.id_origem, l.payload, { ausente: l.ausente_na_extracao, fora: l.fora_do_recorte }, etapasDe.get(l.id_origem) ?? [], natureza, c) }));
 
   const versaoCols = ['chamado_id', 'vigente_de', 'stg_chamado_sk', ...ATRIBUTOS, 'coletado_em', 'coleta_id'];
@@ -93,21 +137,8 @@ async function projetarLote(
     [...vigentes.values()].map((x) => [x.chamado_id, ...ATRIBUTOS.map((a) => valorDe(x, a)), agora.toISOString(), coletaId]));
   await db.query(d.texto, d.valores);
 
-  // Intervalos por etapa: refeitos por chamado (projeção derivada; a história fica no staging e em `dim_chamado_versao`).
-  await db.query(`DELETE FROM ${S.ac}.fato_etapa_chamado WHERE chamado_id = ANY($1::text[])`, [[...vigentes.keys()]]);
-  const fato: (string | number | boolean | null)[][] = [];
-  let semIntervalo = 0;
-  for (const x of vigentes.values()) {
-    if (x.data_finalizado === null || x.excluido || x.fora_do_recorte) continue;
-    const s = intervalosDasEtapas(x.data_finalizado, etapasDe.get(x.chamado_id) ?? []);
-    semIntervalo += s.semIntervalo;
-    for (const i of s.intervalos) fato.push([x.chamado_id, i.etapa, i.entrada.toISOString(), i.saida.toISOString(), null, agora.toISOString(), coletaId]);
-  }
-  for (let i = 0; i < fato.length; i += TAMANHO_LOTE) {
-    const f = inserirLote(S, 'fato_etapa_chamado', ['chamado_id', 'etapa', 'entrada', 'saida', 'motivo_pendencia', 'coletado_em', 'atualizado_por_coleta_id'], fato.slice(i, i + TAMANHO_LOTE));
-    await db.query(f.texto, f.valores);
-  }
-  return { chamados: vigentes.size, etapas: fato.length, semIntervalo };
+  const { etapas, semIntervalo } = await regravarIntervalos(db, S, [...vigentes.values()], etapasDe, cal, coletaId, agora);
+  return { chamados: vigentes.size, etapas, semIntervalo };
 }
 
 /**
@@ -120,6 +151,7 @@ export async function projetarAcelerato(pool: PoolLike, S: Esquemas, agora: () =
     if (!(await haPendentes(db, S))) return { coletaId: null, versoes: 0, chamados: 0, etapas: 0, semIntervalo: 0, contagens: {} };
     const inicio = agora();
     const natureza = await carregarNaturezaPorPrefixo(db, S);
+    const cal = await calendarioDaMontagem(db, S);
     const ctl = await db.query<{ coleta_id: string }>(
       `INSERT INTO ${S.ac}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_PROJETOR]);
     const coletaId = Number(ctl.rows[0]!.coleta_id);
@@ -129,7 +161,7 @@ export async function projetarAcelerato(pool: PoolLike, S: Esquemas, agora: () =
     for (;;) {
       const lote = await pendentes(db, S, cursor);
       if (lote.length === 0) break;
-      const r = await projetarLote(db, S, lote, natureza, coletaId, inicio, c);
+      const r = await projetarLote(db, S, lote, natureza, coletaId, inicio, c, cal);
       versoes += lote.length; chamados += r.chamados; etapas += r.etapas; semIntervalo += r.semIntervalo;
       cursor = lote[lote.length - 1]!.stg_sk;
     }
@@ -146,4 +178,4 @@ export async function projetarAcelerato(pool: PoolLike, S: Esquemas, agora: () =
   });
 }
 
-export const VERSAO_PROJETOR = 'acelerato-f2/1';
+export const VERSAO_PROJETOR = 'acelerato-f2/2';

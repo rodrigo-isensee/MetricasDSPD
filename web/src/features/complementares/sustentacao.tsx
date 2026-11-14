@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
+import { TEXTO_NOTA_S12, type FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { Barras, Histograma } from '@/components/charts'
 import {
   AmostraInsuficiente,
@@ -11,8 +11,7 @@ import {
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
-import { fmtTempoPrioridade } from '@/features/sustentacao/formatar'
-import { fmtHorasUteis } from '@/lib/formatar'
+import { fmtHU } from '@/features/sustentacao/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
 import { CampoSemFonte, Leia } from './comuns'
 
@@ -22,7 +21,7 @@ interface P {
 
 /** O17: causa raiz e concentração por sistema dos incidentes encerrados (Acelerato). */
 export function CartaoO17({ filtros }: P) {
-  const q = useMetrica('O17', filtros, { simulado: true })
+  const q = useMetrica('O17', filtros)
   const d = q.dados
   const topo = d?.porCausa.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
   return (
@@ -67,7 +66,7 @@ export function CartaoO17({ filtros }: P) {
 
 /** S8: taxa de reabertura de incidentes, com a referência do briefing. */
 export function CartaoS8({ filtros }: P) {
-  const q = useMetrica('S8', filtros, { simulado: true })
+  const q = useMetrica('S8', filtros)
   const d = q.dados
   return (
     <CartaoComplementar
@@ -146,7 +145,7 @@ export function CartaoS8({ filtros }: P) {
 
 /** S9: tempo em pendência por motivo (horas úteis) e cumprimento da previsão de retorno. */
 export function CartaoS9({ filtros }: P) {
-  const q = useMetrica('S9', filtros, { simulado: true })
+  const q = useMetrica('S9', filtros)
   const d = q.dados
   const ok = d?.porMotivo.filter((m) => m.estatistica.status === 'ok') ?? []
   return (
@@ -176,8 +175,7 @@ export function CartaoS9({ filtros }: P) {
           ]}
           linhas={r.porMotivo.map((m) => {
             const v = m.estatistica.status === 'ok' ? m.estatistica.valor : undefined
-            const c = (k: 'p50' | 'p85' | 'p95') =>
-              v ? fmtHorasUteis(v[k]) : <CelulaInsuficiente />
+            const c = (k: 'p50' | 'p85' | 'p95') => (v ? fmtHU(v[k]) : <CelulaInsuficiente />)
             return { m: m.motivo, n: fmtInteiro(m.n), p50: c('p50'), p85: c('p85'), p95: c('p95') }
           })}
         />
@@ -188,7 +186,7 @@ export function CartaoS9({ filtros }: P) {
 
 /** S10: fila de atribuição por prioridade (percentis, histograma e % aceito em até 15 min). */
 export function CartaoS10({ filtros }: P) {
-  const q = useMetrica('S10', filtros, { simulado: true })
+  const q = useMetrica('S10', filtros)
   const [prioridade, setPrioridade] = useState<string | null>(null)
   const d = q.dados
   const atual = d?.prioridades.find((p) => p.prioridade === prioridade) ?? d?.prioridades[0]
@@ -219,9 +217,8 @@ export function CartaoS10({ filtros }: P) {
               {atual.estatistica.status === 'ok' ? (
                 <>
                   <p className="text-sm font-medium" data-testid="percentis-S10">
-                    P50 {fmtTempoPrioridade(atual.estatistica.valor.p50, atual.prioridade)} · P85{' '}
-                    {fmtTempoPrioridade(atual.estatistica.valor.p85, atual.prioridade)} · P95{' '}
-                    {fmtTempoPrioridade(atual.estatistica.valor.p95, atual.prioridade)}
+                    P50 {fmtHU(atual.estatistica.valor.p50)} · P85{' '}
+                    {fmtHU(atual.estatistica.valor.p85)} · P95 {fmtHU(atual.estatistica.valor.p95)}
                   </p>
                   {atual.histograma && (
                     <Histograma
@@ -248,7 +245,7 @@ export function CartaoS10({ filtros }: P) {
 
 /** S11: avaliação de Problema em P1, P2 e encerrados por contorno. */
 export function CartaoS11({ filtros }: P) {
-  const q = useMetrica('S11', filtros, { simulado: true })
+  const q = useMetrica('S11', filtros)
   const d = q.dados
   const celula = (t: Parameters<typeof textoTaxa>[0]) =>
     t.status === 'ok' ? textoTaxa(t) : `${fmtInteiro(t.k)} de ${fmtInteiro(t.n)}`
@@ -299,12 +296,16 @@ const totaisPorSistema = (d: R12): [string, number][] => {
   return [...totais.entries()].sort((a, b) => b[1] - a[1])
 }
 
-const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
-  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${textoTaxa(d.excecaoSla)}.`
+/** Exceção de SLA sem fonte mostra "campo sem fonte" (padrão do painel), nunca 0%. */
+export const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
+  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${d.excecaoSla ? textoTaxa(d.excecaoSla) : 'campo sem fonte'}.`
+
+const TEXTO_S12_REINCIDENCIA_SEM_FONTE =
+  'Reincidência: campo sem fonte. O campo de reincidência ainda não vem da coleta, por isso a proporção não é publicada. Isto não significa zero. O volume por sistema acima é dado real.'
 
 /** S12: volume por sistema, reincidência e exceção de SLA por registro posterior. */
 export function CartaoS12({ filtros }: P) {
-  const q = useMetrica('S12', filtros, { simulado: true })
+  const q = useMetrica('S12', filtros)
   const d = q.dados
   const ordenados = d ? totaisPorSistema(d) : []
   return (
@@ -354,7 +355,14 @@ export function CartaoS12({ filtros }: P) {
               )}
             </>
           ) : (
-            <CampoSemFonte codigo="S12" />
+            <CampoSemFonte codigo="S12" texto={TEXTO_S12_REINCIDENCIA_SEM_FONTE} />
+          )}
+          {r.excecaoSla === null && (
+            <p className="text-sm text-texto-2" data-testid="nota-S12-excecao-sla">
+              {(r.notas?.length ? r.notas : (['excecao-sla-s12-sem-fonte'] as const))
+                .map((id) => TEXTO_NOTA_S12[id])
+                .join(' ')}
+            </p>
           )}
           <Leia>
             Por sistema, nunca por pessoa. Reincidente é o chamado com ticket anterior informado.

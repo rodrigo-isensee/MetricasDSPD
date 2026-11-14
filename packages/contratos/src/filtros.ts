@@ -8,9 +8,23 @@ import {
   type Prioridade,
 } from './comum'
 
-/** Ids (slugs) das equipes de sustentação usados na URL e no contrato. */
+/**
+ * Ids ANTIGOS das três equipes de sustentação (antes do 097 L7a). A equipe agora é texto/slug vindo do dado real
+ * (`dim_chamado.equipe`, id = slug do nome); estes ids seguem aceitos como apelido por um ciclo de release.
+ */
 export const EQUIPES_SUSTENTACAO_ID = ['totvs', 'senior', 'fluig'] as const
 export type EquipeSustentacaoId = (typeof EQUIPES_SUSTENTACAO_ID)[number]
+
+/** Apelido dos ids antigos para o slug do nome real (`slug('SSSC TOTVS')`). */
+export const APELIDO_EQUIPE_SUSTENTACAO: Record<EquipeSustentacaoId, string> = {
+  totvs: 'sssc-totvs',
+  senior: 'sssc-senior',
+  fluig: 'sssc-fluig',
+}
+
+/** Resolve o apelido antigo para o slug real; qualquer outro id passa como está. */
+export const idEquipeSustentacao = (id: string): string =>
+  (APELIDO_EQUIPE_SUSTENTACAO as Record<string, string | undefined>)[id] ?? id
 
 export const NOME_EQUIPE_SUSTENTACAO: Record<EquipeSustentacaoId, EquipeSustentacao> = {
   totvs: 'SSSC TOTVS',
@@ -46,7 +60,8 @@ export type FiltrosFluxo = z.infer<typeof filtrosFluxoSchema>
 
 /** Filtros da sustentação (Acelerato). Tipo distinto do fluxo de propósito. Sem filtro por agente. */
 export const filtrosSustentacaoSchema = z.object({
-  equipe: z.array(z.enum(EQUIPES_SUSTENTACAO_ID)),
+  /** Slugs do nome da equipe (`dim_chamado.equipe`); os ids antigos (`totvs`...) seguem aceitos. */
+  equipe: z.array(z.string()),
   prioridade: z.array(z.enum(PRIORIDADES)),
   periodo: periodoSchema,
 })
@@ -65,6 +80,8 @@ export interface OpcoesFiltroFluxo {
   equipes: OpcaoFiltro[]
   tipos: OpcaoFiltro[]
   sistemas: OpcaoFiltro[]
+  /** Setores (id = slug do nome sem sobrenome), ordem alfabética; vazio até o dono mapear os quadros (097, L10a). */
+  setores?: OpcaoFiltro[] | undefined
   /** Datas limite para o período personalizado (AAAA-MM-DD). */
   historico: { inicio: string; fim: string }
 }

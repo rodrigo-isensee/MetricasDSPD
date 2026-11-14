@@ -19,7 +19,7 @@ export const NOTAS_TATICO = {
       'Um prazo por classe, não um prazo único; o mapa indica em que etapa o tempo se perdeu.',
     meta: '85% por classe.',
     cuidados:
-      'Neste mock o SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe.',
+      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe.',
   },
   T3: {
     oQueE: 'Distribuição das entregas por natureza do trabalho contra o acordo.',
@@ -27,8 +27,7 @@ export const NOTAS_TATICO = {
       'Itens entregues no período agrupados por natureza; acordo é o definido pela coordenação.',
     comoLer: 'A distância entre as barras é a decisão a tomar.',
     meta: 'Desvio máximo de 10 pontos percentuais.',
-    cuidados:
-      'Contar cards distorce quando os tamanhos diferem muito. Valores de acordo no mock são fictícios.',
+    cuidados: 'Contar cards distorce quando os tamanhos diferem muito.',
   },
   T4: {
     oQueE: 'Chegada de pedidos contra a vazão.',

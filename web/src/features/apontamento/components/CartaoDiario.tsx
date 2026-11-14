@@ -6,7 +6,7 @@ import { useDadosAba, useRotulos } from '../dados'
 import { diaMes, fmtHoras } from '../formatar'
 import { ordenarPorTotal } from '../ordem'
 import { rolarCelulaParaVista } from '../rolagem'
-import { ANOMALIA, CARTOES, FAIXAS } from '../textos'
+import { ANOMALIA, CARTOES, DIARIO_VAZIO, FAIXAS } from '../textos'
 import {
   PESSOA_OUTRA_AREA,
   type DiarioApontamento,
@@ -79,6 +79,12 @@ interface Celula {
   atipico: boolean
 }
 
+/** ", da equipe X" quando há recorte por Equipe; só o nome da equipe, nunca de pessoa. */
+const daEquipe = (equipes: string[]) =>
+  equipes.length === 0
+    ? ''
+    : `, ${equipes.length === 1 ? 'da equipe' : 'das equipes'} ${equipes.join(', ')}`
+
 function Mapa({
   diario,
   linhas,
@@ -88,6 +94,7 @@ function Mapa({
   linhas: DiarioApontamento['linhas']
   r: RespostaApontamento
 }) {
+  const { equipes } = useDadosAba()
   const rotulos = useRotulos(r)
   const grade = useRef<HTMLTableElement>(null)
   const [ativaBruta, setAtiva] = useState<[number, number]>([0, 0])
@@ -118,7 +125,7 @@ function Mapa({
       <table
         ref={grade}
         role="grid"
-        aria-label={`Horas apontadas por pessoa e dia, de ${fmtData(diario.de)} a ${fmtData(diario.ate)}`}
+        aria-label={`Horas apontadas por pessoa e dia${daEquipe(equipes)}, de ${fmtData(diario.de)} a ${fmtData(diario.ate)}`}
         onKeyDown={mover}
         className="w-full min-w-max border-collapse text-xs"
       >
@@ -227,10 +234,11 @@ function TabelaDoMapa({
   r: RespostaApontamento
 }) {
   const rotulos = useRotulos(r)
+  const { equipes } = useDadosAba()
   return (
     <TabelaDados
       codigo="AP-DIARIO"
-      legenda={`Horas apontadas por pessoa e dia, de ${fmtData(diario.de)} a ${fmtData(diario.ate)}`}
+      legenda={`Horas apontadas por pessoa e dia${daEquipe(equipes)}, de ${fmtData(diario.de)} a ${fmtData(diario.ate)}`}
       colunas={[
         { chave: 'p', titulo: 'Pessoa' },
         { chave: 'd', titulo: 'Dia' },
@@ -256,7 +264,7 @@ const soPessoas = (d: DiarioApontamento) =>
   d.linhas.filter((l) => l.pessoaRef !== PESSOA_OUTRA_AREA)
 
 function Diario({ r }: { r: RespostaApontamento }) {
-  const { ordem } = useDadosAba()
+  const { ordem, equipes, removerEquipe } = useDadosAba()
   const { modo } = useModoTabela()
   const diario = r.diario
   const pessoas = soPessoas(diario)
@@ -267,7 +275,20 @@ function Diario({ r }: { r: RespostaApontamento }) {
       <p className="text-sm font-medium" data-testid="intervalo-diario">
         Período do mapa: {fmtData(diario.de)} a {fmtData(diario.ate)}
       </p>
-      {modo === 'tabela' ? (
+      {linhas.length === 0 ? (
+        <div className="flex flex-col items-start gap-2 text-sm" data-testid="diario-sem-pessoas">
+          <p>{equipes.length > 0 ? DIARIO_VAZIO.comEquipe : DIARIO_VAZIO.semEquipe}</p>
+          {equipes.length > 0 && (
+            <button
+              type="button"
+              onClick={removerEquipe}
+              className="alvo rounded border border-borda-controle bg-superficie px-3 text-sm"
+            >
+              Remover filtro Equipe
+            </button>
+          )}
+        </div>
+      ) : modo === 'tabela' ? (
         <TabelaDoMapa diario={diario} linhas={linhas} r={r} />
       ) : (
         <>
@@ -279,6 +300,7 @@ function Diario({ r }: { r: RespostaApontamento }) {
         <p className="flex items-start gap-1 text-xs text-texto-2" data-testid="dica-anomalia">
           <Icone nome="alerta" className="mt-0.5 size-3.5 shrink-0" />
           {ANOMALIA.marca}: {ANOMALIA.dica(diario.limiteAtipicoSegundos / 3600)}
+          {equipes.length > 0 && ` ${ANOMALIA.dicaRecorteEquipe}`}
         </p>
       )}
       <NotaNaoIdentificada r={r} />
@@ -333,7 +355,7 @@ export function CartaoDiario() {
       titulo="Mapa de calor pessoa × dia"
       texto={CARTOES.diario}
       leitura={leitura}
-      aplicaveis={['pessoa']}
+      aplicaveis={['equipe']} // o servidor recorta o mapa pela Equipe (K-286); os demais filtros não o afetam e a janela é a própria
       familiaCriterio="calendario"
       acoes={<SeletorJanela />}
       className="lg:col-span-12"

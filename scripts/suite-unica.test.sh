@@ -4,6 +4,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+# Guarda se já rodamos dentro de uma suíte que segura a trava padrão (ex.: pnpm run pronto), antes de limpar a marca.
+DENTRO_DE_SUITE="${METRICAS_DSPD_SUITE_SEGURA:-}"
 unset METRICAS_DSPD_SUITE_SEGURA
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

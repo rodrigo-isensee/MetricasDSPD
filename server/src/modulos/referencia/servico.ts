@@ -1,11 +1,11 @@
 import {
-  EQUIPES_SUSTENTACAO_ID, NOME_EQUIPE_SUSTENTACAO, PRIORIDADES, TIPOS_FILTRO, TIPO_ID, type Dominio,
+  PRIORIDADES, TIPOS_FILTRO, TIPO_ID, type Dominio,
 } from '@metricas-dspd/contratos';
 import { isoLocal, slug } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { marcaDagua, ultimaColetaOk } from '../operacao/index.js';
-import { lerEquipesBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerVersaoCriterioVigente } from './repositorio.js';
+import { lerEquipesAC, lerEquipesBM, lerPrioridadesAC, lerTiposBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerSetoresBM, lerVersaoCriterioVigente } from './repositorio.js';
 import type { OpcoesFiltroDto, ReferenciaDto } from './schemas.js';
 
 /** Data civil de hoje em America/Sao_Paulo (o relógio é sempre parâmetro). */
@@ -19,22 +19,42 @@ export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Dat
   const fim = dataCivil(agora);
   if (dominio === 'businessmap') {
     const inicio = await lerInicioBM(db, S);
+    const tiposPresentes = new Set(await lerTiposBM(db, S));
     return {
       dominio,
       // F6 do 052: na base real o filtro de equipe lista os times ativos da tabela de times (só filtro; nada compara times).
       equipes: (opcoes.times === true ? await lerTimesAtivos(db, S) : await lerEquipesBM(db, S)).map((nome) => ({ id: slug(nome), nome })),
-      tipos: TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t })),
+      // L6 do 097 (E4): só as categorias que têm story na base, na ordem de TIPOS_FILTRO ("Incidente" some: nenhuma story cai nele).
+      tipos: TIPOS_FILTRO.filter((t) => t !== 'Incidente' && tiposPresentes.has(t)).map((t) => ({ id: TIPO_ID[t], nome: t })),
       sistemas: (await lerSistemasBM(db, S)).map((s) => ({ id: slug(s.id), nome: s.nome })),
+      // L10a do 097 (E7): setores do dicionário versionado (nome sem sobrenome), id = slug do nome; vazio até a P-097-9.
+      setores: setoresPorSlug(await lerSetoresBM(db, S)),
       historico: { inicio: inicio ?? fim, fim },
     };
   }
   const inicio = await lerInicioAC(db, S);
+  const prioridadesPresentes = new Set(await lerPrioridadesAC(db, S));
   return {
     dominio,
-    equipes: EQUIPES_SUSTENTACAO_ID.map((id) => ({ id, nome: NOME_EQUIPE_SUSTENTACAO[id] })),
-    prioridades: PRIORIDADES.map((p) => ({ id: p.toLowerCase(), nome: p })),
+    // L7a do 097 (E4): equipes do dado real (corte de lerChamados); id = slug do nome, sem repetir id.
+    equipes: equipesPorSlug(await lerEquipesAC(db, S)),
+    prioridades: PRIORIDADES.filter((p) => prioridadesPresentes.has(p)).map((p) => ({ id: p.toLowerCase(), nome: p })),
     historico: { inicio: inicio ?? fim, fim },
   };
+}
+
+/** Setores em ordem alfabética (CA-40); dois quadros com o mesmo nome viram uma opção só (id = slug do nome). */
+function setoresPorSlug(linhas: { nome: string }[]): { id: string; nome: string }[] {
+  const porId = new Map<string, { id: string; nome: string }>();
+  for (const { nome } of linhas) if (slug(nome) !== '' && !porId.has(slug(nome))) porId.set(slug(nome), { id: slug(nome), nome });
+  return [...porId.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+}
+
+/** K-288: `nomes` vem em ordem de bytes; em slug repetido vale o primeiro, sem id repetido. */
+function equipesPorSlug(nomes: string[]): { id: string; nome: string }[] {
+  const porId = new Map<string, { id: string; nome: string }>();
+  for (const nome of nomes) if (!porId.has(slug(nome))) porId.set(slug(nome), { id: slug(nome), nome });
+  return [...porId.values()];
 }
 
 /**

@@ -89,8 +89,10 @@ export default function ApontamentoPage({
       diarioDe: uso.consulta.diarioDe,
       diarioAte: uso.consulta.diarioAte,
       definirDiario: uso.definirDiario,
+      equipes: ativos.filter((a) => a.chave === 'equipe').map((a) => a.valor),
+      removerEquipe: () => uso.remover('equipe'),
     }),
-    [dados.resposta, dados.erro, dados.atualizando, dados.tentarDeNovo, estado, uso],
+    [dados.resposta, dados.erro, dados.atualizando, dados.tentarDeNovo, estado, uso, ativos],
   )
   const vazio = dados.resposta !== undefined && dados.resposta.kpis.apontamentos === 0
   return (
@@ -127,12 +129,7 @@ export default function ApontamentoPage({
                 <AvisoRegistroIncompleto registro={resposta.registroIncompleto} />
               )}
               {resposta ? (
-                <BarraFiltrosApontamento
-                  opcoes={resposta.opcoes}
-                  uso={uso}
-                  ativos={ativos}
-                  nomesReais={resposta.nomesReais}
-                />
+                <BarraFiltrosApontamento opcoes={resposta.opcoes} uso={uso} ativos={ativos} />
               ) : (
                 ativos.length > 0 && <ChipsFiltros chips={ativos} onRemover={uso.remover} />
               )}
@@ -143,11 +140,13 @@ export default function ApontamentoPage({
               className="sr-only"
               data-testid="anuncio-carregando"
             >
-              {estado === 'carregando' ? CARREGANDO : ''}
+              {estado === 'carregando' ? CARREGANDO : vazio ? VAZIO.anuncio : ''}
             </div>
-            <IndiceDeSecoes secoes={INDICE} />
+            {!vazio && <IndiceDeSecoes secoes={INDICE} />}
             {vazio ? (
-              <EstadoVazio codigo="AP" titulo={VAZIO.titulo} texto={VAZIO.texto} />
+              <Secao id="secao-periodo" titulo={VAZIO.secao}>
+                <EstadoVazio codigo="AP" titulo={VAZIO.titulo} texto={VAZIO.texto} />
+              </Secao>
             ) : (
               <>
                 <Secao id="secao-kpis" titulo={SECOES.kpis}>
@@ -170,11 +169,11 @@ export default function ApontamentoPage({
                 <Secao id="secao-achados" titulo={SECOES.achados}>
                   <CartaoAchados />
                 </Secao>
-                <Secao id="secao-diario" titulo={SECOES.diario}>
-                  <CartaoDiario />
-                </Secao>
               </>
             )}
+            <Secao id="secao-diario" titulo={SECOES.diario}>
+              <CartaoDiario />
+            </Secao>
           </section>
         </ProvedorDadosAba>
       </ProvedorOrigemCartoes>

@@ -164,13 +164,13 @@ test.describe('perf-api A1', () => {
     expect(primeiraTendencia, `ordem: ${ordem.join(',')}`).toBeGreaterThan(ultimoNumero);
   });
 
-  // T-E4 do 070 (ADR 0028, ADR 0003 C6 e C2): painéis com cartão simulado. O simulado roda no Web Worker (ADR 0021); a thread principal
-  // não pode ter tarefa longa >= 200 ms (mediana de N cargas frias) e o primeiro cartão simulado aparece em até 1,5 s da carga (C2, informativo).
+  // T-E4 do 070, ajustado no pedido 099 (ADR 0030, ADR 0003 C6 e C2): painéis com cartão sem dado real (não há mais simulado). A thread principal
+  // não pode ter tarefa longa >= 200 ms (mediana de N cargas frias) e o primeiro cartão sem dado real aparece em até 1,5 s da carga (C2, informativo).
   for (const [rota, codigo] of [['/tatico', 'T2'], [ROTAS.sustentacao, 'S1']] as const) {
-    test(`C6 com cartão simulado em ${rota}: tarefa longa < 200 ms e selo presente`, async ({ browser, baseURL }) => {
+    test(`C6 com cartão sem dado real em ${rota}: tarefa longa < 200 ms e estado presente`, async ({ browser, baseURL }) => {
       test.setTimeout(10 * 60_000);
       const longas: number[] = [];
-      const ateSelo: number[] = [];
+      const ateEstado: number[] = [];
       for (let i = 0; i < N; i++) {
         const ctx = await browser.newContext({ baseURL: baseURL! });
         const page = await ctx.newPage();
@@ -178,16 +178,16 @@ test.describe('perf-api A1', () => {
         await instalarObservadores(page);
         const t0 = Date.now();
         await new PainelPage(page).ir(rota);
-        await expect(page.getByTestId(`selo-simulado-${codigo}`), `selo do ${codigo} (o painel precisa ter simulado)`).toBeVisible({ timeout: 30_000 });
-        ateSelo.push(Date.now() - t0);
+        await expect(page.getByTestId(`estado-sem-dado-real-${codigo}`), `estado sem dado real do ${codigo}`).toBeVisible({ timeout: 30_000 });
+        ateEstado.push(Date.now() - t0);
         await page.waitForLoadState('networkidle');
         longas.push((await lerVitais(page)).maiorTarefaLongaMs);
         await ctx.close();
       }
       const r = resumir(longas);
-      const s = resumir(ateSelo);
-      console.log(`[perf-api] C6 ${rota} com simulado: n=${r.n} mediana=${r.mediana.toFixed(0)} ms p95=${r.p95.toFixed(0)} ms max=${r.max.toFixed(0)} ms | até o selo: mediana=${s.mediana.toFixed(0)} ms p95=${s.p95.toFixed(0)} ms`);
-      registrar(`C6_simulado_${rota}`, { c6: r, ateSeloMs: s });
+      const s = resumir(ateEstado);
+      console.log(`[perf-api] C6 ${rota} sem dado real: n=${r.n} mediana=${r.mediana.toFixed(0)} ms p95=${r.p95.toFixed(0)} ms max=${r.max.toFixed(0)} ms | até o estado: mediana=${s.mediana.toFixed(0)} ms p95=${s.p95.toFixed(0)} ms`);
+      registrar(`C6_sem_dado_real_${rota}`, { c6: r, ateEstadoMs: s });
       expect.soft(r.mediana, `C6 ${rota} (mediana)`).toBeLessThan(200);
     });
   }

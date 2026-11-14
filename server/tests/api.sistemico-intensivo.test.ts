@@ -32,6 +32,7 @@ const VALIDOS = {
   acelerato: () => ['', 'periodo=4s', 'periodo=12m', 'equipe=totvs', 'equipe=senior,fluig', 'prioridade=p1,P2', 'prioridade=P5&equipe=fluig&periodo=6m',
     'periodo=custom&de=2026-01-05&ate=2026-06-30', 'dataReferencia=2026-09-01'],
   ambos: () => ['', 'dataReferencia=2026-09-01'],
+  tendencia: () => ['', 'dataReferencia=2026-09-01', 'equipe=totvs', 'equipe=equipe-a,equipe-b&dataReferencia=2026-09-01'],
   pesquisa: () => ['', 'dataReferencia=2026-09-01'],
 } as const;
 
@@ -40,13 +41,14 @@ const INVALIDOS_COMUNS = ['xyz=1', 'responsavel=ana', 'responsaveis=ana', 'usuar
 const INVALIDOS = {
   businessmap: [...INVALIDOS_COMUNS, 'periodo=1a', 'periodo=custom', 'periodo=custom&de=2026-01-05', 'de=2026-01-05&ate=2026-02-01', 'prioridade=P1',
     'tipo=999', 'equipe=Equipe%20A', 'equipe=..%2F..', 'page=0', 'pageSize=201', 'page=abc'],
-  acelerato: [...INVALIDOS_COMUNS, 'periodo=1a', 'periodo=custom&ate=2026-02-01', 'sistema=erp', 'tipo=1', 'equipe=xpto', 'prioridade=P9', 'page=1'],
+  acelerato: [...INVALIDOS_COMUNS, 'periodo=1a', 'periodo=custom&ate=2026-02-01', 'sistema=erp', 'tipo=1', 'equipe=Equipe_Outra', 'prioridade=P9', 'page=1'],
   ambos: [...INVALIDOS_COMUNS, 'equipe=totvs', 'periodo=4s', 'sistema=erp'],
+  tendencia: [...INVALIDOS_COMUNS, 'equipe=Equipe%20A', 'equipe=..%2F..', 'periodo=4s', 'sistema=erp', 'tipo=1', 'prioridade=P1'],
   pesquisa: [...INVALIDOS_COMUNS, 'equipe=totvs', 'periodo=4s'],
 } as const;
 
-/** As tendências mensais (ADR 0019) aceitam só `dataReferencia`, como a Visão geral: a matriz delas é a de "ambos". */
-const grupoDe = (id: MetricaId) => (id === 'TENDENCIA_FLUXO' || id === 'TENDENCIA_SUST' ? 'ambos' : fonteDaMetrica(id));
+/** As tendências mensais (ADR 0019, pedido 097) aceitam `dataReferencia` e `equipe` (slug): grupo próprio. */
+const grupoDe = (id: MetricaId) => (id === 'TENDENCIA_FLUXO' || id === 'TENDENCIA_SUST' ? 'tendencia' : fonteDaMetrica(id));
 
 const schemaDe = (id: MetricaId) => (id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]);
 

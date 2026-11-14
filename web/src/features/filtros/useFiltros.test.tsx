@@ -53,16 +53,16 @@ describe('useFiltros: remover cada filtro', () => {
   })
 
   it('sustentação: prioridade e equipe, com e sem valor; chave desconhecida só reaplica', async () => {
-    const r = montar('sustentacao', '/sustentacao?prioridade=p1,p2&equipe=fluig,senior')
+    const r = montar('sustentacao', '/sustentacao?prioridade=p1,p2&equipe=sssc-fluig,sssc-senior')
     await aguardarOpcoes(r)
     act(() => r.result.current.uso.remover('prioridade', 'P1'))
     expect(r.result.current.loc.search).toContain('prioridade=p2')
     act(() => r.result.current.uso.remover('prioridade'))
     expect(r.result.current.loc.search).not.toContain('prioridade')
-    act(() => r.result.current.uso.remover('equipe', 'fluig'))
-    expect(r.result.current.loc.search).toContain('equipe=senior')
+    act(() => r.result.current.uso.remover('equipe', 'sssc-fluig'))
+    expect(r.result.current.loc.search).toContain('equipe=sssc-senior')
     act(() => r.result.current.uso.remover('inexistente'))
-    expect(r.result.current.loc.search).toContain('equipe=senior')
+    expect(r.result.current.loc.search).toContain('equipe=sssc-senior')
     expect(r.result.current.uso.chips.map((c) => c.valor)).toEqual(['SSSC SENIOR'])
   })
 })
@@ -82,11 +82,11 @@ describe('useFiltros: definir, limpar e normalização da URL', () => {
 
   it('sustentação: valores inválidos são corrigidos e viram aviso; dispensar limpa o estado', async () => {
     const r = montar('sustentacao', '/sustentacao?equipe=fluig,xyz&prioridade=p9')
-    await waitFor(() => expect(r.result.current.loc.search).toBe('?equipe=fluig'))
+    await waitFor(() => expect(r.result.current.loc.search).toBe('?equipe=sssc-fluig'))
     expect(r.result.current.uso.invalidos).toEqual(['equipe "xyz"', 'prioridade "p9"'])
     act(() => r.result.current.uso.dispensarInvalidos())
     await waitFor(() => expect(r.result.current.uso.invalidos).toEqual([]))
-    expect(r.result.current.loc.search).toBe('?equipe=fluig')
+    expect(r.result.current.loc.search).toBe('?equipe=sssc-fluig')
   })
 
   it('Estratégico: período válido que o painel não oferece some em silêncio; chips usam o nome do sistema', async () => {
@@ -187,11 +187,11 @@ describe('useFiltros: ações em sequência rápida (IF-001, IS-003)', () => {
     const r = montar('sustentacao', '/sustentacao?sust_prioridade=p1', 'sust_')
     await aguardarOpcoes(r)
     act(() => {
-      r.result.current.uso.definir({ equipe: ['fluig'] })
+      r.result.current.uso.definir({ equipe: ['sssc-fluig'] })
       r.result.current.uso.definir({ periodo: { tipo: '12m' } })
     })
     expect(r.result.current.loc.search).toContain('sust_prioridade=p1')
-    expect(r.result.current.loc.search).toContain('sust_equipe=fluig')
+    expect(r.result.current.loc.search).toContain('sust_equipe=sssc-fluig')
     expect(r.result.current.loc.search).toContain('sust_periodo=12m')
   })
 })

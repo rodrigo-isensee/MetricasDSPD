@@ -2,7 +2,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
-import { ProvedorCalibracao } from '@/components/ui'
+import { ContextoPreferenciasPainel, ProvedorCalibracao } from '@/components/ui'
+import { TEXTO_NOTA_SUSTENTACAO } from '@metricas-dspd/contratos'
 import { SemDadoRealErro, type MetricaQuery } from '@/data'
 import { NumeroChave } from './NumeroChave'
 import type { NumeroModelo } from './modelo'
@@ -280,7 +281,6 @@ const q = (estado: MetricaQuery<never>['estado'], dados?: unknown): MetricaQuery
   estado,
   dados: dados as never,
   erro: null,
-  origem: 'real',
   atualizando: false,
   recarregar: vi.fn(),
 })
@@ -370,6 +370,62 @@ describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', 
     )
     expect(screen.getByTestId('marcador-criterio')).toHaveTextContent('Janela nova')
   })
+  describe('Sustentação: ressalva do S2 (077, CA-8 a CA-11, CA-13)', () => {
+    const celula = { taxa: { status: 'ok', k: 20, n: 25, pct: 80 }, statusMeta: 'fora' }
+    const mes = (prioridades: object[]) => ({
+      mes: '2026-08',
+      fimDoMes: '2026-08-31',
+      janela: J,
+      prioridades,
+      volume: 3,
+    })
+    const t = (prioridades: object[], notas?: string[]) =>
+      ({
+        criterios: { serie: [], janela: [] },
+        meses: [mes(prioridades)],
+        ...(notas ? { notas } : {}),
+      }) as never
+    const publicada = [{ prioridade: 'P1', primeiroAtendimento: celula, restauracao: celula }]
+    const NOTA = ['excecao-sla-sem-fonte']
+    const TEXTO = TEXTO_NOTA_SUSTENTACAO['excecao-sla-sem-fonte']
+    it('CA-8 e CA-13: com a nota e ponto publicado, o texto do contrato fica entre o subtítulo e o gráfico; CA-10: nunca no volume', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t(publicada, NOTA))} />)
+      const notas = screen.getByTestId('notas-tendencia-sla')
+      expect(notas).toHaveTextContent(TEXTO)
+      const sla = screen.getByTestId('tendencia-sustentacao-sla')
+      const ordem = [
+        within(sla).getByText(/Cada ponto: janela/),
+        notas,
+        within(sla).getByTestId('tendencia-sustentacao-sla-grafico'),
+      ]
+      expect(ordem[0]!.compareDocumentPosition(ordem[1]!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+      expect(ordem[1]!.compareDocumentPosition(ordem[2]!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+      expect(
+        within(screen.getByTestId('tendencia-sustentacao-volume')).queryByText(TEXTO),
+      ).toBeNull()
+      expect(screen.getAllByText(TEXTO)).toHaveLength(1)
+    })
+    it('CA-9: sem a nota no resultado, nada aparece', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t(publicada))} />)
+      expect(screen.queryByTestId('notas-tendencia-sla')).toBeNull()
+    })
+    it('série de SLA vazia: sem nota, só o vazio', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t([], NOTA))} />)
+      expect(screen.getByTestId('tendencia-sustentacao-sla-vazio')).toBeInTheDocument()
+      expect(screen.queryByTestId('notas-tendencia-sla')).toBeNull()
+    })
+    it('CA-11: S2 oculto nas preferências, a série e a nota somem juntas', () => {
+      const prefs = { estaOculto: (id: string) => id === 's2' } as never
+      noRouter(
+        <ContextoPreferenciasPainel.Provider value={prefs}>
+          <TendenciaSustentacao q={q('ok', t(publicada, NOTA))} />
+        </ContextoPreferenciasPainel.Provider>,
+      )
+      expect(screen.queryByTestId('tendencia-sustentacao-sla')).toBeNull()
+      expect(screen.queryByTestId('notas-tendencia-sla')).toBeNull()
+      expect(screen.getByTestId('tendencia-sustentacao-volume')).toBeInTheDocument()
+    })
+  })
   describe('Sustentação: janela incompleta (077, CA-1, CA-2, CA-4, CA-5, CA-14)', () => {
     const incompleto = (mes: string) => ({
       mes,
@@ -418,5 +474,69 @@ describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', 
         'Em julho: 12 chamados.',
       )
     })
+  })
+})
+
+describe('contagem parcial (077, Lote 8b, P-077-5 = A)', () => {
+  const parcial = { historicoDesde: '2026-08-14' }
+  const fluxo = (meses: object[]) => ({ criterios: { serie: [], janela: [] }, meses }) as never
+  const mesFluxo = (mes: string, concluidos: number, extra: object = {}) => ({
+    mes,
+    fimDoMes: `${mes}-28`,
+    janelaPercentis: { ...J, unidade: 'semanas', quantidade: 12 },
+    p85PorTipo: [],
+    concluidos,
+    ...extra,
+  })
+  const mesSust = (mes: string, volume: number, extra: object = {}) => ({
+    mes,
+    fimDoMes: `${mes}-28`,
+    janela: J,
+    prioridades: [],
+    volume,
+    ...extra,
+  })
+  it('fluxo: o número do mês marcado não aparece em gráfico, tabela nem resumo; o motivo sim', async () => {
+    const t = fluxo([
+      mesFluxo('2026-07', 777, { contagemParcial: parcial }),
+      mesFluxo('2026-08', 31),
+    ])
+    noRouter(<TendenciaFluxo q={q('ok', t)} qO3={q('ok')} />)
+    const s = screen.getByTestId('tendencia-fluxo-concluidos')
+    expect(s).not.toHaveTextContent('777')
+    expect(within(s).getByTestId('tendencia-fluxo-concluidos-sem-valor')).toHaveTextContent(
+      'jul/2026 · Histórico incompleto: o histórico carregado começa em 14/08/2026',
+    )
+    expect(
+      within(s).getByTestId('tendencia-fluxo-concluidos-grafico').closest('figure'),
+    ).toHaveTextContent('julho: Histórico incompleto')
+    expect(s).toHaveTextContent('agosto: 31 itens')
+    await userEvent.click(within(s).getByRole('button', { name: 'Ver como tabela' }))
+    const linha = within(s).getByRole('row', { name: /jul\/2026/ })
+    expect(linha).not.toHaveTextContent('777')
+    expect(linha).toHaveTextContent('não publicado · histórico incompleto')
+    expect(within(s).getByRole('row', { name: /ago\/2026/ })).toHaveTextContent('31')
+  })
+  it('sustentação: o volume do mês marcado não aparece; o SLA do mesmo mês não muda', async () => {
+    const t = fluxo([mesSust('2026-07', 888, { contagemParcial: parcial }), mesSust('2026-08', 12)])
+    noRouter(<TendenciaSustentacao q={q('ok', t)} />)
+    const s = screen.getByTestId('tendencia-sustentacao-volume')
+    expect(s).not.toHaveTextContent('888')
+    expect(s).toHaveTextContent('jul/2026 · Histórico incompleto')
+    await userEvent.click(within(s).getByRole('button', { name: 'Ver como tabela' }))
+    expect(within(s).getByRole('row', { name: /jul\/2026/ })).toHaveTextContent(
+      'não publicado · histórico incompleto',
+    )
+    expect(within(s).getByRole('row', { name: /ago\/2026/ })).toHaveTextContent('12')
+    expect(screen.getByTestId('tendencia-sustentacao-sla')).not.toHaveTextContent(
+      'Histórico incompleto',
+    )
+  })
+  it('sem nenhum mês marcado a série não muda', () => {
+    noRouter(<TendenciaFluxo q={q('ok', fluxo([mesFluxo('2026-08', 31)]))} qO3={q('ok')} />)
+    const s = screen.getByTestId('tendencia-fluxo-concluidos')
+    expect(s).toHaveTextContent('Em agosto: 31 itens.')
+    expect(s).not.toHaveTextContent('Histórico incompleto')
+    expect(within(s).queryByTestId('tendencia-fluxo-concluidos-sem-valor')).toBeNull()
   })
 })

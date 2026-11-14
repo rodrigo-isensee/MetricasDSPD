@@ -41,7 +41,7 @@ type Ordem = 'idade' | 'parado'
 
 /** O2: idade do WIP. Pontos do tipo escolhido contra as linhas de percentil do tipo; a lista traz todos os tipos. */
 export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O2', filtros, { simulado: true })
+  const q = useMetrica('O2', filtros)
   const d = q.dados
   const sugerido = slug(d?.tipoSugerido ?? d?.tipos[0]?.tipo ?? TIPOS_CARD[0])
   const [aba, setAba] = useParametroLocal('o2', VALORES, sugerido)
@@ -66,9 +66,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
     )
     .slice(0, 10)
   const janela = d?.janelaPercentis
-  // Pedido 065: sem bloqueios coletados, "sem motivo" quer dizer "não sabemos", não "não bloqueado".
-  const semBloqueio = d?.notas?.includes('bloqueio-sem-dado-real') === true
-  const naoClass = !semBloqueio && lista.some((i) => i.bloqueioMotivo === MOTIVO_NAO_CLASSIFICADO)
+  const naoClass = lista.some((i) => i.bloqueioMotivo === MOTIVO_NAO_CLASSIFICADO)
   const leitura = d
     ? d.acimaP95 > 0 && maisAcima
       ? `${fmtInteiro(d.acimaP95)} ${plural(d.acimaP95, 'item está', 'itens estão')} acima do P95 do seu tipo. O mais velho entre eles tem ${fmtDiasUteis(maisAcima.idadeDiasUteis, 0)} e está em "${maisAcima.etapa}".`
@@ -130,7 +128,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                   circulo: 'até o P85',
                   losango: 'entre o P85 e o P95',
                   triangulo: 'acima do P95',
-                  ...(semBloqueio ? {} : { anel: 'bloqueado' }),
+                  anel: 'bloqueado',
                 }}
               />
               {ref?.status === 'insuficiente' && (
@@ -205,13 +203,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                 idade: fmtInteiro(i.idadeDiasUteis),
                 parado: fmtInteiro(i.semMoverHaDiasUteis),
                 situacao: SITUACAO[i.situacao],
-                bloqueio: semBloqueio ? (
-                  'Sem dado real'
-                ) : i.bloqueioMotivo ? (
-                  <MotivoBloqueio motivo={i.bloqueioMotivo} />
-                ) : (
-                  '—'
-                ),
+                bloqueio: i.bloqueioMotivo ? <MotivoBloqueio motivo={i.bloqueioMotivo} /> : '—',
               }))}
               descritoPor={naoClass ? 'o2-apoio-motivo' : undefined}
             />

@@ -1,8 +1,46 @@
-import { render, screen } from '@testing-library/react'
+import { corpoSemDadoReal, type MetricaId } from '@metricas-dspd/contratos'
+import { render, screen, waitFor } from '@testing-library/react'
+import { Component, type ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { HttpFonteMetricas, type FonteMetricas } from '@/data'
 import { App, criarFontePadrao, criarQueryClient } from './App'
 
-afterEach(() => vi.unstubAllEnvs())
+const estado = vi.hoisted(() => ({ quebrar: false }))
+
+// A carga sob demanda do mock pode falhar (chunk indisponível): o teste liga a falha por `estado.quebrar`.
+vi.mock('@/data/mock/MockFonteMetricas', async (original) => {
+  const real = await original<typeof import('@/data/mock/MockFonteMetricas')>()
+  return {
+    MockFonteMetricas: class extends real.MockFonteMetricas {
+      constructor(...args: ConstructorParameters<typeof real.MockFonteMetricas>) {
+        if (estado.quebrar) throw new Error('chunk do mock indisponível')
+        super(...args)
+      }
+    },
+  }
+})
+
+class Barreira extends Component<{ children: ReactNode }, { erro: Error | null }> {
+  override state = { erro: null as Error | null }
+  static getDerivedStateFromError(erro: Error) {
+    return { erro }
+  }
+  override render() {
+    return this.state.erro ? <p role="alert">{this.state.erro.message}</p> : this.props.children
+  }
+}
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  estado.quebrar = false
+})
+
+/** Fonte da API: chega na hora (só a do mock vem por Promise, da carga sob demanda). */
+const daApi = (): FonteMetricas => {
+  const f = criarFontePadrao()
+  if (f instanceof Promise) throw new Error('a fonte api não é assíncrona')
+  return f
+}
 
 describe('App e composição', () => {
   it('o cliente de dados não tenta de novo nem atualiza sozinho', () => {
@@ -15,14 +53,14 @@ describe('App e composição', () => {
     vi.stubEnv('VITE_MOCK_SEMENTE', '7')
     vi.stubEnv('VITE_MOCK_HOJE', '2026-10-09')
     vi.stubEnv('VITE_MOCK_LATENCIA', '0')
-    const fonte = criarFontePadrao()
+    const fonte = await criarFontePadrao()
     expect(await fonte.dataReferencia()).toBe('2026-10-09')
   })
 
-  it('sem variáveis, a fonte é a API: o mock só liga com VITE_FONTE=mock explícito (pedido 060)', () => {
-    expect(criarFontePadrao().tipo).toBe('api')
+  it('sem variáveis, a fonte é a API: o mock só liga com VITE_FONTE=mock explícito (pedido 060)', async () => {
+    expect(daApi().tipo).toBe('api')
     vi.stubEnv('VITE_FONTE', 'mock')
-    expect(criarFontePadrao().tipo).toBe('mock')
+    expect((await criarFontePadrao()).tipo).toBe('mock')
   })
 
   it('VITE_FONTE=api escolhe a fonte HTTP, com a base padrão ou a configurada', async () => {
@@ -30,12 +68,39 @@ describe('App e composição', () => {
     const f = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => Promise.resolve(new Response('[]')))
-    const fonte = criarFontePadrao()
+    const fonte = daApi()
     expect(fonte.tipo).toBe('api')
     await fonte.criterios()
     vi.stubEnv('VITE_API_BASE', '/v9')
-    await criarFontePadrao().criterios()
+    await daApi().criterios()
     expect(f.mock.calls.map((c) => c[0])).toStrictEqual(['/api/v1/criterios', '/v9/criterios'])
+    f.mockRestore()
+  })
+
+  it('a fonte padrão (api) é a HTTP pura, sem o decorador de simulado (pedido 099)', () => {
+    vi.stubEnv('VITE_FONTE', 'api')
+    expect(criarFontePadrao()).toBeInstanceOf(HttpFonteMetricas)
+  })
+
+  it('sem dado real, nenhum cartão do Operacional mostra o selo "Simulado" (pedido 099)', async () => {
+    vi.stubEnv('VITE_FONTE', 'api')
+    const f = vi.spyOn(globalThis, 'fetch').mockImplementation((entrada: RequestInfo | URL) => {
+      const url =
+        typeof entrada === 'string' ? entrada : entrada instanceof URL ? entrada.href : entrada.url
+      const m = /\/metricas\/([A-Za-z0-9-]+)/.exec(url)
+      if (!m) return Promise.resolve(new Response('[]'))
+      const corpo = corpoSemDadoReal(m[1] as MetricaId)
+      return Promise.resolve(
+        new Response(JSON.stringify(corpo), { headers: { 'content-type': 'application/json' } }),
+      )
+    })
+    window.history.pushState({}, '', '/operacional')
+    render(<App />)
+    await waitFor(() => expect(screen.getAllByText(/Sem dado real/i).length).toBeGreaterThan(0), {
+      timeout: 5000,
+    })
+    expect(screen.queryByText(/Simulado/i)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(/simulado/i)).not.toBeInTheDocument()
     f.mockRestore()
   })
 
@@ -59,5 +124,36 @@ describe('App e composição', () => {
     render(<App />)
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.getByTestId('aviso-dados-ficticios')).toBeInTheDocument()
+  })
+
+  it('com o mock, mostra o aviso de carga e depois o aplicativo (o mock chega por import() sob demanda)', async () => {
+    vi.stubEnv('VITE_FONTE', 'mock')
+    vi.stubEnv('VITE_MOCK_LATENCIA', '0')
+    window.history.pushState({}, '', '/ajuda')
+    render(<App />)
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando')
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
+  })
+
+  it('falha na carga do mock vai ao limite de erro, sem cair em silêncio', async () => {
+    vi.stubEnv('VITE_FONTE', 'mock')
+    estado.quebrar = true
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    render(
+      <Barreira>
+        <App />
+      </Barreira>,
+    )
+    expect(await screen.findByRole('alert')).toHaveTextContent('chunk do mock indisponível')
+    erro.mockRestore()
+  })
+
+  it('desmontar antes da carga terminar não atualiza o estado', async () => {
+    vi.stubEnv('VITE_FONTE', 'mock')
+    vi.stubEnv('VITE_MOCK_LATENCIA', '0')
+    const { unmount } = render(<App />)
+    unmount()
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
   })
 })

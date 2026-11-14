@@ -61,15 +61,15 @@ const sessaoFalsa = (a: unknown[], b: unknown[]) => {
 const A_OK = { itens: 1, sem_chave: 0, casa_etapa_key: 0, igual_status_atual: 0 };
 
 describe('executarApoioL9c com conexão falsa', () => {
-  it('roda só as duas consultas, por placeholder (recorte e os 7 nomes da lista fechada), e devolve só contagens', async () => {
+  it('roda só as duas consultas, por placeholder (recorte e os 6 nomes da lista fechada), e devolve só contagens', async () => {
     const { sessao, pedidos } = sessaoFalsa(
       [{ itens: '120', sem_chave: '3', casa_etapa_key: '100', igual_status_atual: '40' }],
-      [{ nome: 'Motivo da Escalação', chamados: 5 }, { nome: 'Avaliação de Problema', chamados: '2' }],
+      [{ nome: 'Motivo da Escalação:', chamados: 5 }, { nome: 'Avaliação de Problema', chamados: '2' }],
     );
     const r = await executarApoioL9c(sessao);
     expect(r.a).toEqual({ itens: 120, sem_chave: 3, casa_etapa_key: 100, igual_status_atual: 40 });
     expect(r.b.map((x) => x.campo)).toEqual([...NOMES_ETAPA_LISTA]);
-    expect(Object.fromEntries(r.b.map((x) => [x.campo, x.chamados]))).toMatchObject({ 'Motivo da Escalação': 5, 'Avaliação de Problema': 2, 'Motivo de Pendência': 0 });
+    expect(Object.fromEntries(r.b.map((x) => [x.campo, x.chamados]))).toMatchObject({ 'Motivo da Escalação:': 5, 'Avaliação de Problema': 2, 'Motivo de Pendência': 0 });
     expect(pedidos).toHaveLength(2);
     expect(pedidos.every((p) => p.sql.startsWith('SELECT') && !p.sql.includes('<') && !p.sql.includes(';'))).toBe(true);
     for (const p of pedidos) expect(p.valores).toEqual([RECORTE_APOIO.tipo, RECORTE_APOIO.organizacao, ...RECORTE_APOIO.equipes, ...NOMES_ETAPA_LISTA]);
@@ -87,7 +87,7 @@ describe('executarApoioL9c com conexão falsa', () => {
     ['A sem linha', [], [], 'apoio_l9c_a', undefined],
     ['A com duas linhas', [A_OK, A_OK], [], 'apoio_l9c_a', undefined],
     ['B com nome fora da lista fechada', [A_OK], [{ nome: 'MARCADOR-L9C', chamados: 1 }], 'apoio_l9c_b', 'nome'],
-    ['B com coluna a mais', [A_OK], [{ nome: 'Motivo da Escalação', chamados: 1, valor: 'MARCADOR-L9C' }], 'apoio_l9c_b', 'valor'],
+    ['B com coluna a mais', [A_OK], [{ nome: 'Motivo da Escalação:', chamados: 1, valor: 'MARCADOR-L9C' }], 'apoio_l9c_b', 'valor'],
   ])('%s: falha fechado dados-invalidos, citando só o nome da coluna, sem o valor', async (_n, a, b, entidade, coluna) => {
     const erro = (await executarApoioL9c(sessaoFalsa(a, b).sessao).catch((e: unknown) => e)) as { codigo: string; entidade: string; coluna?: string; message: string };
     expect(erro).toMatchObject({ codigo: 'dados-invalidos', entidade });
