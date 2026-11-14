@@ -3,13 +3,15 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/k285-sem-dado-real-ux
-commit: 5dcf0e4da462c35e2f338d763980124eb40c1d5f
+commit: 79c5cab7f9345144fbfb35a58a122e2dc1afb9e1
 parecer: aprovado
 revisor: tech-lead
-data: 2026-11-12
+data: 2026-11-14
 ---
 
 # Code review: K-285, estado sem dado real (B-2 a B-4 da revisão de UX do L2b e L2c) (E2.12)
+
+**Revalidação (junção com a develop, E3.200), aprovado sobre 79c5cab7.** Delta lido por `forge-check parecer delta` (5dcf0e4d..79c5cab7, sem o que veio da base): só `web/src/components/ui/CartaoMetrica.tsx`. O `git show --remerge-diff 79c5cab7` mostra um conflito só, na faixa de selos e na `BlocoNota`; a resolução fica com o lado da develop (o recolher do L8a: faixa e nota dentro de `!recolhido`) e põe nele as duas mudanças do K-285 (`min-h-6` só com `p.base` e `data-testid="selos-<codigo>"`), com o comentário novo. Contra `62823ca0` (develop), o CartaoMetrica difere só nessas linhas; o resto do recolher (botão com `aria-expanded`/`aria-controls`, resumo recolhido, ações, alternar tabela, rodapé e corpo em `idCorpo`) está intacto, e `calibrando && !semDadoReal` e o bloco `EstadoSemDadoReal` seguem no corpo não recolhido. `EstadoSemDadoReal.tsx` (`role="status"`) e `NumeroChave.tsx` (motivo em `text-sm`, 14 px) não mudam na junção. Nenhum ramo perdido. Vitest com `--maxWorkers=2` em `recolhidos.test.tsx`, `componentes.test.tsx` (ui e resumo) e `ui.test.tsx`: 4 arquivos, 120 testes, 120 passaram. CI do PR 392 sobre 79c5cab7: runs 43549889578 (push) e 43549894601 (pull_request), ambos success. O A1 segue recomendado, sem mudança.
 
 ## O que foi conferido
 - Diff `origin/develop...5dcf0e4d` (base `02272442`): cinco arquivos em `web/src/`, 39 linhas adicionadas e 3 removidas. Dentro do teto de 150 linhas; um comportamento só (o estado sem dado real na interface).
