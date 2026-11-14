@@ -10,13 +10,14 @@ export function contarAtivos(
   params: URLSearchParams,
   dominio: DominioFiltros,
   prefixo = '',
-  /** O Resumo tem o filtro Equipe nos dois blocos: ela não é "guardada" ali. */
+  /** O Resumo tem os filtros Equipe (nos dois blocos) e Setor (no Fluxo): eles não são "guardados" ali. */
   semEquipe = false,
 ): number {
   const ativos = new Set<string>()
   if (dominio === 'fluxo') {
     const { periodoPadrao } = PAINEIS.operacional
     const f = lerFluxo(params, undefined, periodoPadrao, prefixo).filtros
+    if ((f.setor ?? []).length > 0) ativos.add('setor')
     if (f.equipe.length > 0) ativos.add('equipe')
     if (f.tipo.length > 0) ativos.add('tipo')
     if (f.sistema.length > 0) ativos.add('sistema')
@@ -28,6 +29,9 @@ export function contarAtivos(
     if (f.prioridade.length > 0) ativos.add('prioridade')
     if (f.periodo.tipo !== periodoPadrao) ativos.add('periodo')
   }
-  if (semEquipe) ativos.delete('equipe')
+  if (semEquipe) {
+    ativos.delete('equipe')
+    ativos.delete('setor')
+  }
   return ativos.size
 }

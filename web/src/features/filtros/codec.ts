@@ -22,6 +22,12 @@ export interface Leitura<F> {
 
 type Opcoes = OpcoesFiltro | undefined
 
+/**
+ * Filtros do fluxo na web: os do contrato mais o setor (097 L11). `setor` só existe com seleção; sem ele o objeto é
+ * idêntico ao de antes (mesma chave de cache e mesma consulta). Lista vazia = "Todos".
+ */
+export type FiltrosFluxoSetor = FiltrosFluxo & { setor?: string[] }
+
 const lista = (params: URLSearchParams, chave: string): string[] =>
   (params.get(chave) ?? '')
     .split(',')
@@ -84,9 +90,12 @@ function lerPeriodo(
   return { tipo: padrao }
 }
 
-const idsDe = (o: Opcoes, campo: 'equipes' | 'sistemas'): string[] | null => {
+const idsDe = (o: Opcoes, campo: 'equipes' | 'sistemas' | 'setores'): string[] | null => {
   if (!o) return null
   if (campo === 'sistemas') return o.dominio === 'businessmap' ? o.sistemas.map((x) => x.id) : null
+  // Setor só existe no BusinessMap; resposta sem `setores` (servidor antigo) equivale a lista vazia.
+  if (campo === 'setores')
+    return o.dominio === 'businessmap' ? (o.setores ?? []).map((x) => x.id) : null
   return o.equipes.map((x) => x.id)
 }
 
@@ -96,11 +105,13 @@ export function lerFluxo(
   padrao: PeriodoPadrao,
   prefixo = '',
   restricao: RestricaoPeriodo = SEM_RESTRICAO,
-): Leitura<FiltrosFluxo> {
+): Leitura<FiltrosFluxoSetor> {
   const p = prefixar(params, prefixo)
   const invalidos: string[] = []
+  const setor = lerLista(p, 'setor', idsDe(opcoes, 'setores'), 'setor', invalidos)
   return {
     filtros: {
+      ...(setor.length > 0 ? { setor } : {}),
       equipe: lerLista(p, 'equipe', idsDe(opcoes, 'equipes'), 'equipe', invalidos),
       tipo: lerLista(p, 'tipo', idsTipo(opcoes), 'tipo', invalidos).map(
         (id) => TIPO_POR_ID.get(id) as TipoFiltro,
@@ -187,11 +198,12 @@ function gravarPeriodo(
 /** Escreve só os valores fora do padrão. Devolve novos parâmetros, preservando os demais (cadência, mock...). */
 export function escreverFluxo(
   base: URLSearchParams,
-  f: FiltrosFluxo,
+  f: FiltrosFluxoSetor,
   padrao: PeriodoPadrao,
   prefixo = '',
 ): URLSearchParams {
   const p = new URLSearchParams(base)
+  gravar(p, prefixo, 'setor', f.setor?.join(',') || null)
   gravar(p, prefixo, 'equipe', f.equipe.join(',') || null)
   gravar(p, prefixo, 'tipo', f.tipo.map((t) => TIPO_ID[t]).join(',') || null)
   gravar(p, prefixo, 'sistema', f.sistema.join(',') || null)
@@ -214,9 +226,10 @@ export function escreverSustentacao(
 
 /** Texto de URL de cada filtro de fluxo (para a memória de sessão e para os links). */
 export function paramsDeFluxo(
-  f: FiltrosFluxo,
-): Record<'equipe' | 'tipo' | 'sistema' | 'periodo' | 'de' | 'ate', string | null> {
+  f: FiltrosFluxoSetor,
+): Record<'setor' | 'equipe' | 'tipo' | 'sistema' | 'periodo' | 'de' | 'ate', string | null> {
   return {
+    setor: f.setor?.join(',') || null,
     equipe: f.equipe.join(',') || null,
     tipo: f.tipo.map((t) => TIPO_ID[t]).join(',') || null,
     sistema: f.sistema.join(',') || null,
@@ -249,7 +262,8 @@ export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
 ): F {
   const todos = (sel: readonly string[], validos: readonly string[] | null): boolean =>
     validos !== null && validos.length > 0 && validos.every((v) => sel.includes(v))
-  const r = { ...f } as FiltrosFluxo & FiltrosSustentacao
+  const r = { ...f } as FiltrosFluxoSetor & FiltrosSustentacao
+  if (todos(r.setor ?? [], idsDe(opcoes, 'setores'))) delete r.setor
   if (todos(r.equipe, idsDe(opcoes, 'equipes'))) r.equipe = []
   if (sustentacao) {
     if (todos(r.prioridade, maiusculasPrioridade(opcoes))) r.prioridade = []
