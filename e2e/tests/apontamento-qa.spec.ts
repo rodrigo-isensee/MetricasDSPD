@@ -767,6 +767,34 @@ test.describe('acessibilidade automática (CT-65, WCAG 2.2 AA)', () => {
     }
   }
 
+  // K-320: a linha de nomes ocultos (text-xs text-texto-2) nos quatro cartões; contraste medido nos dois temas.
+  for (const tema of ['claro', 'escuro'] as const) {
+    test(`linha de nomes ocultos nos quatro cartões, tema ${tema}: zero violações críticas ou sérias e zero color-contrast`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme: tema === 'escuro' ? 'dark' : 'light' })
+      await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), tema)
+      await page.setViewportSize({ width: 1280, height: 900 })
+      await semear(page)
+      await abrir(page)
+      for (const codigo of [
+        'AP-MATRIZ',
+        'AP-QUALIDADE-PESSOA',
+        'AP-CAPACIDADE-PESSOA',
+        'AP-DIARIO',
+      ]) {
+        await expect(cartao(page, codigo).getByTestId('linha-nomes-ocultos')).toBeVisible()
+      }
+      await expect(page.getByTestId('linha-nomes-ocultos')).toHaveCount(4)
+      const r = await rodarAxe(page)
+      expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+      const contraste = [...r.bloqueantes, ...r.informativas].filter(
+        (v) => v.id === 'color-contrast',
+      )
+      expect(contraste, JSON.stringify(contraste)).toEqual([])
+    })
+  }
+
   test('tema escuro, com todas as tabelas abertas e a legenda da finalidade expandida', async ({
     page,
   }) => {
