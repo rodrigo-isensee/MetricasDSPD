@@ -1,5 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import {
+  TIPO_ID,
+  TIPO_POR_ID,
   type TipoFiltro,
   type FiltrosFluxo,
   type ResultadoT10,
@@ -259,20 +261,27 @@ export function CartaoT11({ filtros }: P) {
             </Leia>
           </div>
         )
+        // Só tipos que o contrato conhece (TIPO_POR_ID), com o rótulo do contrato; o valor da aba é o id.
+        const tiposAba = (opcoes?.tipos ?? []).flatMap((t) => {
+          const rotulo = TIPO_POR_ID.get(t.id)
+          return rotulo ? [{ valor: t.id, rotulo }] : []
+        })
         return filtroDeTipo ? (
           mapa
         ) : (
           <SeletorLocal
             codigo="T11"
             rotulo="Tipo de demanda"
-            valor={tipo}
-            onChange={(v) => setTipo(v as TipoFiltro | '')}
+            valor={tipo ? TIPO_ID[tipo] : ''}
+            onChange={(v) => setTipo(v === '' ? '' : (TIPO_POR_ID.get(v) as TipoFiltro))}
             anuncio={tipo ? `Tipo ${tipo}.` : 'Todos os tipos.'}
-            itens={[
-              { valor: '', rotulo: 'Todos os tipos' },
-              ...(opcoes?.tipos ?? []).map((t) => ({ valor: t.nome, rotulo: t.nome })),
-            ]}
+            itens={[{ valor: '', rotulo: 'Todos os tipos' }, ...tiposAba]}
           >
+            {opcoes && tiposAba.length === 0 && (
+              <p className="mt-2 text-sm text-texto-2" data-testid="t11-sem-outros-tipos">
+                Sem outros tipos no dado deste recorte.
+              </p>
+            )}
             <div className="mt-3">{mapa}</div>
           </SeletorLocal>
         )
