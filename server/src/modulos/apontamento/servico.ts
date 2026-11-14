@@ -1,5 +1,5 @@
 import {
-  FLAGS_QUALIDADE, MAX_ROTULO, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
+  FLAGS_QUALIDADE, ID_SEM_PROJETO, MAX_ROTULO, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
 } from '@metricas-dspd/contratos';
 import { calcularApontamento, LIMITE_ATIPICO_SEGUNDOS_PADRAO, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
 import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor, slug } from '@metricas-dspd/metricas/core';
@@ -107,7 +107,7 @@ function linhaDaBiblioteca(l: LinhaBruta, rotulosSubgrupo: ReadonlyMap<string, s
     // uma entrada por categoria do card (`dim_card.tipo`); `id` = menor `type_id` da categoria, em dígitos (valor aceito pelo filtro `tipo`)
     tipo: l.typeId === null || l.tipo === null ? { id: TIPO_SEM_ID, rotulo: 'Sem tipo' } : { id: cat.idDaCategoria.get(l.typeId) as string, rotulo: l.tipo },
     equipe: equipeDe(l.equipe),
-    projeto: { id: l.projetoId ?? 'sem-projeto', rotulo: l.projetoTitulo ?? (l.projetoId === null ? 'Sem iniciativa' : `Card ${l.projetoId}`), foraDoEscopo: l.foraDoEscopo },
+    projeto: { id: l.projetoId ?? ID_SEM_PROJETO, rotulo: l.projetoTitulo ?? (l.projetoId === null ? 'Sem iniciativa' : `Card ${l.projetoId}`), foraDoEscopo: l.foraDoEscopo },
     subgrupo: { id: l.subgrupo, rotulo: rotulosSubgrupo.get(l.subgrupo) ?? ROTULO_RESIDUAL[l.subgrupo] ?? l.subgrupo },
     subtarefa: l.emSubtarefa ? { id: 'em-subtarefa', rotulo: 'Em subtarefa' } : { id: 'direto-no-card', rotulo: 'Direto no card' },
     semIniciativa: l.projetoId === null || (l.flags & BIT_SEM_INICIATIVA) !== 0,
@@ -189,10 +189,10 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
     cards: incompletos.map((i) => ({
       cardId: i.cardId, titulo: (i.titulo ?? `Card ${i.cardId}`).slice(0, MAX_ROTULO),
       projeto: {
-        id: i.projetoId ?? 'sem-projeto', rotulo: (i.projetoTitulo ?? (i.projetoId === null ? 'Sem iniciativa' : `Card ${i.projetoId}`)).slice(0, MAX_ROTULO), foraDoEscopo: i.foraDoEscopo,
+        id: i.projetoId ?? ID_SEM_PROJETO, rotulo: (i.projetoTitulo ?? (i.projetoId === null ? 'Sem iniciativa' : `Card ${i.projetoId}`)).slice(0, MAX_ROTULO), foraDoEscopo: i.foraDoEscopo,
       },
     })),
-    projetoIds: [...new Set(incompletos.map((i) => i.projetoId ?? 'sem-projeto'))],
+    projetoIds: [...new Set(incompletos.map((i) => i.projetoId ?? ID_SEM_PROJETO))],
   };
 
   return {
