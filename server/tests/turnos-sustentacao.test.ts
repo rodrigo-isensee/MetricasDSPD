@@ -18,6 +18,12 @@ describe('paridade do dia útil da Sustentação (arquivos x biblioteca)', () =>
     expect(acelerato.TURNOS_SUSTENTACAO.reduce((n, t) => n + t.fimMin - t.inicioMin, 0)).toBe(528);
     expect(arquivo.calendarios.find((c) => c.nome === 'dspd-businessmap')!.turnos).toBeUndefined();
   });
+  it('K-308: feriados e deslocamento do dspd-acelerato em calendario.json são iguais aos do CALENDARIO_SUSTENTACAO_PADRAO (a montagem D-7 usa este)', () => {
+    const { arquivo } = lerCalendario();
+    const ac = arquivo.calendarios.find((c) => c.nome === 'dspd-acelerato')!;
+    expect(ac.feriados.map((f) => f.data).sort()).toEqual([...acelerato.CALENDARIO_SUSTENTACAO_PADRAO.feriados].sort());
+    expect(ac.offset_minutos).toBe(acelerato.CALENDARIO_SUSTENTACAO_PADRAO.offsetMinutos);
+  });
   it('acelerato-alvos.json é igual a ALVOS_PADRAO e horas_por_dia_util é o dia do calendário', () => {
     const { arquivo } = lerArquivoAlvos();
     expect(arquivo.horas_por_dia_util).toBe(acelerato.CALENDARIO_SUSTENTACAO_PADRAO.horasPorDia);

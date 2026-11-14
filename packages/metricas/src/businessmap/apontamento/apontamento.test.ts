@@ -963,6 +963,25 @@ describe('calcularApontamento (blocos da resposta)', () => {
     expect(r.diario.dias).toHaveLength(3)
   })
 
+  it('097 K-302: o atípico do mapa diário não muda com a Equipe (decidido sobre o dia inteiro da pessoa)', () => {
+    // p1 aponta 6 h na Equipe A e 6 h na B no mesmo dia: 12 h, acima do limite; só a soma das duas torna o dia atípico
+    const ls = [
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_A, segundos: 6 * H }),
+      linha({ pessoaRef: 'p1', data: '2026-09-03', equipe: TIME_B, segundos: 6 * H }),
+    ]
+    const celula = (r: ReturnType<typeof calc>) =>
+      r.diario.linhas
+        .find((l) => l.pessoaRef === 'p1')
+        ?.celulas.find((c) => c.data === '2026-09-03')
+    const semEquipe = celula(calc(ls))
+    const daEquipeA = celula(calc(ls, { filtros: { anomalos: 'incluir', equipe: ['time-a'] } }))
+    const daEquipeB = celula(calc(ls, { filtros: { anomalos: 'incluir', equipe: ['time-b'] } }))
+    expect(semEquipe).toMatchObject({ segundos: 12 * H, atipico: true })
+    // a Equipe recorta as horas da célula, mas a marca de atípico continua a do dia inteiro
+    expect(daEquipeA).toMatchObject({ segundos: 6 * H, atipico: true })
+    expect(daEquipeB).toMatchObject({ segundos: 6 * H, atipico: true })
+  })
+
   it('outra-area (três pessoas de 6 h no mesmo dia) entra na distribuição, na matriz e nos totais; fica fora dos blocos por pessoa e dia', () => {
     const ls = [
       ...muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }),
