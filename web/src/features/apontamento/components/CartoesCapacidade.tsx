@@ -4,11 +4,11 @@ import { fmtData, fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
 import { useDadosAba, useRotulos } from '../dados'
 import { fmtHoras, pctOuNulo } from '../formatar'
 import { ordenarPorTotal } from '../ordem'
-import { CARTOES, LINHA_NOMES_OCULTOS } from '../textos'
+import { CARTOES, NOTA_OUTRA_AREA_FORA_CAPACIDADE } from '../textos'
 import { PESSOA_OUTRA_AREA, type PctComPiso, type RespostaApontamento } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
-import { NotaOutraArea } from './NotaOutraArea'
+import { NotaNomesOcultos } from './NotaNomesOcultos'
 import { SeloLeituraRelativa } from './SeloLeituraRelativa'
 
 /** "19%" (a coluna já se chama Utilização) ou, abaixo do piso, só a marca de amostra insuficiente (o3). Nunca cor, faixa nem média. */
@@ -48,7 +48,7 @@ function CapacidadeMensal({ r }: { r: RespostaApontamento }) {
       />
       <TabelaDados
         codigo="AP-CAPACIDADE-MENSAL-detalhe"
-        legenda="Capacidade mensal da equipe: capacidade, apontado e utilização; a utilização só aparece com 20 apontamentos ou mais"
+        legenda="Capacidade mensal do recorte: capacidade, apontado e utilização; a utilização só aparece com 20 apontamentos ou mais"
         colunas={[
           { chave: 'm', titulo: 'Mês' },
           { chave: 'c', titulo: 'Capacidade', alinhar: 'direita' },
@@ -73,7 +73,7 @@ export function CartaoCapacidadeMensal() {
   const ultimo = resposta?.capacidade.mensal.at(-1)
   const leitura = ultimo
     ? ultimo.utilizacao.status === 'ok'
-      ? `A utilização da equipe em ${fmtMes(ultimo.mes)} foi de ${fmtNumero(ultimo.utilizacao.pct, 0)}%.`
+      ? `A utilização do recorte em ${fmtMes(ultimo.mes)} foi de ${fmtNumero(ultimo.utilizacao.pct, 0)}%.`
       : `Em ${fmtMes(ultimo.mes)} foram ${fmtHoras(ultimo.realizadoSegundos)} apontadas; a utilização aparece com 20 apontamentos ou mais.`
     : undefined
   const corte = ultimo?.parcialAte
@@ -86,7 +86,7 @@ export function CartaoCapacidadeMensal() {
   return (
     <CartaoApontamento
       codigo="AP-CAPACIDADE-MENSAL"
-      titulo="Capacidade mensal (equipe)"
+      titulo="Capacidade mensal (total do recorte)"
       texto={texto}
       leitura={leitura}
       criterios={(resposta?.criterios ?? []).filter((c) => c.id.startsWith('calendario'))}
@@ -109,12 +109,12 @@ function CapacidadePessoa({ r }: { r: RespostaApontamento }) {
     <div className="flex flex-col gap-3">
       <SeloLeituraRelativa />
       {/* Moradia nova (097, Q-3): antes ficavam sob o filtro Pessoa, que saiu; descrevem as pessoas deste cartão. */}
-      {!r.nomesReais && (
-        <p className="text-xs text-texto-2" data-testid="linha-nomes-ocultos">
-          {LINHA_NOMES_OCULTOS}
+      <NotaNomesOcultos r={r} />
+      {pessoas.length < capacidade.porPessoa.length && (
+        <p className="text-xs text-texto-2" data-testid="nota-outra-area-capacidade">
+          {NOTA_OUTRA_AREA_FORA_CAPACIDADE}
         </p>
       )}
-      <NotaOutraArea linhas={capacidade.porPessoa} />
       <TabelaDados
         codigo="AP-CAPACIDADE-PESSOA-detalhe"
         legenda="Capacidade por pessoa: intervalo, dias úteis, capacidade, apontado e utilização; sem meta nem faixa de bom ou ruim"

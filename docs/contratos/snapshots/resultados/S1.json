@@ -185,6 +185,21 @@
                   "util"
                 ]
               },
+              "exibirEm": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "min",
+                      "h",
+                      "dia"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "n": {
                 "type": "number"
               },
@@ -338,6 +353,7 @@
             "required": [
               "alvoHoras",
               "unidade",
+              "exibirEm",
               "n",
               "estatistica",
               "razaoMediana",
@@ -359,6 +375,21 @@
                   "util"
                 ]
               },
+              "exibirEm": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "min",
+                      "h",
+                      "dia"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "n": {
                 "type": "number"
               },
@@ -512,6 +543,7 @@
             "required": [
               "alvoHoras",
               "unidade",
+              "exibirEm",
               "n",
               "estatistica",
               "razaoMediana",

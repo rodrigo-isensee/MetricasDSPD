@@ -18,7 +18,7 @@ test.use({ viewport: { width: 1280, height: 800 } });
 // ---------------------------------------------------------------------------------------------
 const EQUIPES = ['erp-protheus', 'fluig', 'senior', 'marketing-e-vendas', 'dados', 'plataforma-5g'];
 const SISTEMAS = ['protheus', 'fluig', 'senior', 'crm', 'site-marketing', 'data-lake', 'core-5g', 'portal-do-cliente'];
-const TIPOS = ['incidente', 'requisicao', 'melhoria', 'bug-interno', 'defeito-producao', 'divida-tecnica', 'trabalho-produto'];
+const TIPOS = ['requisicao', 'melhoria', 'bug-interno', 'defeito-producao', 'divida-tecnica', 'trabalho-produto'];
 const SSSC = ['sssc-totvs', 'sssc-senior', 'sssc-fluig'];
 const PRIORIDADES = ['p1', 'p2', 'p3', 'p4', 'p5'];
 const CUSTOM = { periodo: 'custom', de: '2026-06-01', ate: '2026-08-31' };
@@ -79,7 +79,7 @@ const dimEquipe: Dim = {
   nome: 'equipe',
   valores: [{}, { equipe: 'fluig' }, { equipe: 'erp-protheus,dados' }, { equipe: 'marketing-e-vendas,plataforma-5g,senior' }],
 };
-const dimTipo: Dim = { nome: 'tipo', valores: [{}, { tipo: 'incidente' }, { tipo: 'melhoria,divida-tecnica,requisicao' }] };
+const dimTipo: Dim = { nome: 'tipo', valores: [{}, { tipo: 'bug-interno' }, { tipo: 'melhoria,divida-tecnica,requisicao' }] };
 const dimSistema: Dim = { nome: 'sistema', valores: [{}, { sistema: 'fluig' }, { sistema: 'crm,core-5g' }] };
 const dimPeriodoFluxo: Dim = { nome: 'periodo', valores: [{}, { periodo: '4s' }, { periodo: '6m' }, { periodo: '12m' }, CUSTOM] };
 
@@ -513,7 +513,7 @@ test('IF-D3 equipe de sustentação (totvs) não vaza para o fluxo e equipe do f
 });
 
 test('IF-D4 Estratégico: equipe e tipo guardados aparecem como "não se aplica" e voltam no Tático', async ({ page }) => {
-  await page.goto('/operacional?cadencia=diaria&equipe=fluig&tipo=incidente&periodo=4s');
+  await page.goto('/operacional?cadencia=diaria&equipe=fluig&tipo=melhoria&periodo=4s');
   await retrato(page);
   await page.getByRole('navigation').first().getByRole('link', { name: 'Estratégico' }).click();
   await expect(page).toHaveURL(/\/estrategico/);
@@ -525,7 +525,7 @@ test('IF-D4 Estratégico: equipe e tipo guardados aparecem como "não se aplica"
   await page.getByRole('navigation').first().getByRole('link', { name: 'Tático' }).click();
   await expect(page).toHaveURL(/\/tatico\?/);
   const p = new URL(page.url()).searchParams;
-  expect([p.get('equipe'), p.get('tipo'), p.get('periodo')]).toEqual(['fluig', 'incidente', '4s']);
+  expect([p.get('equipe'), p.get('tipo'), p.get('periodo')]).toEqual(['fluig', 'melhoria', '4s']);
 });
 
 test('IF-D5 Visão geral, catálogo e dados aceitam parâmetros de filtro sem erro e sem quebrar a memória', async ({ page, problemas }) => {
@@ -578,7 +578,7 @@ test('IF-I01 marcar todas (uma a uma) e desmarcar todas, em cada filtro múltipl
 });
 
 test('IF-I02 "Limpar filtros" zera tudo e preserva cadência e abas locais', async ({ page }) => {
-  await page.goto('/operacional?cadencia=semanal&o3=melhoria&equipe=fluig&tipo=incidente&sistema=fluig&periodo=4s');
+  await page.goto('/operacional?cadencia=semanal&o3=melhoria&equipe=fluig&tipo=melhoria&sistema=fluig&periodo=4s');
   await retrato(page);
   await page.getByTestId('limpar-filtros').click();
   await expect.poll(() => paramsOrdenados(page.url())).toBe('cadencia=semanal&o3=melhoria');
@@ -626,12 +626,12 @@ test('IF-I05 sob CPU 6x mais lenta: filtro seguido de troca de cadência não pe
 });
 
 test('IF-I06 sob CPU 6x mais lenta: remover dois chips em sequência remove os dois', async ({ page }) => {
-  await page.goto('/operacional?cadencia=diaria&equipe=fluig,dados&tipo=incidente');
+  await page.goto('/operacional?cadencia=diaria&equipe=fluig,dados&tipo=melhoria');
   await retrato(page);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
   await page.getByRole('button', { name: 'Remover filtro Equipe: Fluig' }).click();
-  await page.getByRole('button', { name: 'Remover filtro Tipo de demanda: Incidente' }).click();
+  await page.getByRole('button', { name: 'Remover filtro Tipo de demanda: Melhoria' }).click();
   await expect.poll(() => paramsOrdenados(page.url()), { timeout: 30_000 }).toBe('cadencia=diaria&equipe=dados');
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
 });
@@ -644,9 +644,9 @@ test('IF-I07 mesmo tick, filtros diferentes (equipe e depois tipo) na folha de 3
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.evaluate(() => {
     (document.querySelector('[role="dialog"] [data-testid="equipe-opcao-fluig"]') as HTMLInputElement).click();
-    (document.querySelector('[role="dialog"] [data-testid="tipo-opcao-incidente"]') as HTMLInputElement).click();
+    (document.querySelector('[role="dialog"] [data-testid="tipo-opcao-melhoria"]') as HTMLInputElement).click();
   });
-  await expect.poll(() => paramsOrdenados(page.url())).toBe('cadencia=diaria&equipe=fluig&tipo=incidente');
+  await expect.poll(() => paramsOrdenados(page.url())).toBe('cadencia=diaria&equipe=fluig&tipo=melhoria');
 });
 
 test('IF-I08 teclado: Tab até o filtro, Espaço abre, Tab/Espaço marca, Esc fecha e devolve o foco', async ({ page }) => {
@@ -772,7 +772,7 @@ test('IF-I12 combinações sem dados: estado vazio/insuficiente correto, nunca e
     '/tatico?equipe=dados&sistema=crm',
     '/espera-invisivel?equipe=senior&sistema=core-5g',
     '/estrategico?sistema=portal-do-cliente&periodo=6m',
-    '/operacional?cadencia=sustentacao&sust_equipe=fluig&sust_prioridade=p1&sust_periodo=4s',
+    '/operacional?cadencia=sustentacao&sust_equipe=sssc-fluig&sust_prioridade=p1&sust_periodo=4s',
   ]) {
     await page.goto(url);
     const r = await retrato(page);
@@ -795,10 +795,10 @@ test('IF-I13 dois filtros diferentes em sequência na barra (sem esperar o paine
     await retrato(page);
     const sust = rota.startsWith('/operacional?cadencia=sustentacao');
     await marcar(page, 'equipe', [sust ? 'sssc-senior' : 'fluig']);
-    await marcar(page, sust ? 'prioridade' : 'tipo', [sust ? 'p2' : 'incidente']);
+    await marcar(page, sust ? 'prioridade' : 'tipo', [sust ? 'p2' : 'melhoria']);
     const esperado = new URL(rota, 'http://x').searchParams;
     esperado.set(sust ? 'sust_equipe' : 'equipe', sust ? 'sssc-senior' : 'fluig');
-    esperado.set(sust ? 'sust_prioridade' : 'tipo', sust ? 'p2' : 'incidente');
+    esperado.set(sust ? 'sust_prioridade' : 'tipo', sust ? 'p2' : 'melhoria');
     await expect.poll(() => paramsOrdenados(page.url()), rota).toBe(paramsOrdenados(`http://x/?${esperado.toString()}`));
   }
 });

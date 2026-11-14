@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, type MotivoBloqueio } from '@metricas-dspd/contratos';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
-import { ErroDominio, planejarDominio, textoSeguro, type LinhaVigente } from '../referencia/index.js';
+import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, ErroDominio, planejarDominio, rotuloDeSetorSeguro, textoSeguro, type LinhaVigente } from '../referencia/index.js';
 import { CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
 
 /**
@@ -56,6 +56,11 @@ const valorPrioridade = z.object({ codigo: z.string().regex(/^[1-9]\d{0,2}$/), r
 // Só os 7 do briefing: nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
 const valorMotivo = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(MOTIVOS_BLOQUEIO) }).strict();
 
+// L10a do 097 (E7): quadro (codigo, só dígitos) -> setor (rotulo, sem sobrenome do responsável). Rótulo com o padrão de sobrenome é recusado.
+const valorSetor = z
+  .object({ codigo: z.string().regex(CODIGO_QUADRO), rotulo: textoSeguro(80).refine(rotuloDeSetorSeguro, 'rótulo com sobrenome') })
+  .strict();
+
 export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_UNICA) => z
   .object({
     versao: z.literal(1),
@@ -71,6 +76,7 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
     regra: textoSeguro(2000),
     campos: z.array(criarCampo(tipos)).max(40),
     motivo_bloqueio: z.array(valorMotivo).max(500).default([]),
+    setores: z.array(valorSetor).max(50).default([]),
     prioridade_severidade: z.array(valorPrioridade).max(20).default([]),
   })
   .strict()
@@ -84,6 +90,15 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
     for (const [i, m] of d.motivo_bloqueio.entries()) {
       if (reasons.has(String(Number(m.codigo)))) ctx.addIssue({ code: 'custom', path: ['motivo_bloqueio', i, 'codigo'], message: 'reason_id repetido' });
       reasons.add(String(Number(m.codigo)));
+    }
+    const quadros = new Set<string>();
+    const nomes = new Set<string>();
+    for (const [i, v] of d.setores.entries()) {
+      const q = String(Number(v.codigo));
+      if (quadros.has(q)) ctx.addIssue({ code: 'custom', path: ['setores', i, 'codigo'], message: 'quadro repetido' });
+      if (nomes.has(v.rotulo)) ctx.addIssue({ code: 'custom', path: ['setores', i, 'rotulo'], message: 'rótulo repetido' });
+      quadros.add(q);
+      nomes.add(v.rotulo);
     }
     const ids = new Set<string>();
     const colunas = new Set<string>();
@@ -139,6 +154,7 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
   };
   for (const c of a.campos) listas[c.coluna] = c.valores;
   listas[CAMPO_MOTIVO_BLOQUEIO] = a.motivo_bloqueio;
+  listas[CAMPO_SETOR_QUADRO] = a.setores;
   listas[CAMPO_PRIORIDADE_SEVERIDADE] = a.prioridade_severidade;
   return listas;
 }

@@ -20,7 +20,6 @@ import { describe, expect, it } from 'vitest'
 import {
   APLICABILIDADE_FLUXO,
   METRICAS_TENDENCIA,
-  EQUIPES_SUSTENTACAO_ID,
   METRICA_IDS,
   MINIMO_AMOSTRA,
   PRIORIDADES,
@@ -77,6 +76,9 @@ const CENARIOS: Cenario[] = [
 const FLUXO = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
 const SUST = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato')
 
+/** Slugs das equipes da Sustentação (slug do nome real). */
+const SLUGS_SUST = ['sssc-totvs', 'sssc-senior', 'sssc-fluig']
+
 const PERIODOS: Periodo[] = [
   { tipo: '4s' },
   { tipo: '12s' },
@@ -117,7 +119,7 @@ const arbFluxo = (c: Cenario) =>
   }) as fc.Arbitrary<FF>
 
 const arbSust = fc.record({
-  equipe: sub(EQUIPES_SUSTENTACAO_ID),
+  equipe: sub(SLUGS_SUST),
   prioridade: sub(PRIORIDADES),
   periodo: fc.constantFrom(...PERIODOS),
 }) as fc.Arbitrary<FS>
@@ -211,7 +213,7 @@ describe.each(CENARIOS)('QA intensivo de filtros: $nome', (c) => {
           fc.record({
             largo: fc.constant(f),
             estreito: fc.record({
-              equipe: estreitar(f.equipe, EQUIPES_SUSTENTACAO_ID),
+              equipe: estreitar(f.equipe, SLUGS_SUST),
               prioridade: estreitar(f.prioridade, PRIORIDADES),
               periodo: fc.constant(f.periodo),
             }),

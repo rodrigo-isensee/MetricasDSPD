@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ddl as ddl0016 } from '../migrations/0016_ac_stg_chamado_recorte.js';
 import { COLUNAS_DA_LINHA, COLUNAS_LIDAS } from '../src/modulos/acelerato/listas-fechadas.js';
@@ -100,7 +100,10 @@ describe('CT-37 e fronteiras do módulo', () => {
       // E10, Lote 2: a única leitura permitida do core é a versão de critério do domínio acelerato (escrita no core segue barrada pelas escritas abaixo).
       const t = ler(f).replaceAll("${S.core}.ref_versao_criterio v WHERE v.dominio = 'acelerato'", '');
       expect(t, f).not.toMatch(/S\.(bm|core)\b|dspd_bm|dspd_core|businessmap/i);
-      expect(t, f).not.toMatch(/from '\.\.\/(businessmap|metricas|operacao|referencia)\//);
+      // K-308 (ADR 0027, itens 7.3 e 7.4): só o projetor (portão da versão 099:D-7-528) e o comando de reprojeção (calendário e versão da referência)
+      // importam da referência, e só pelo `referencia/index.ts` (ADR 0013 §9); as escritas no core ficam no módulo `referencia` (o teste das escritas, abaixo, segue valendo para este módulo).
+      const podeReferencia = ['projetor.ts', 'reprojecao-etapas.ts'].includes(basename(f));
+      expect(t, f).not.toMatch(podeReferencia ? /from '\.\.\/(businessmap|metricas|operacao)\/|from '\.\.\/referencia\/(?!index\.js')/ : /from '\.\.\/(businessmap|metricas|operacao|referencia)\//);
     }
     const sql = fontesModulo.map(codigo).join('\n');
     const escritas = [...sql.matchAll(/(INSERT INTO|UPDATE|DELETE FROM|ALTER TABLE|CREATE TABLE|DROP TABLE)\s+(\S+)/g)].map((m) => m[2]!);

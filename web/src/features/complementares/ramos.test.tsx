@@ -301,10 +301,48 @@ describe('ramos dos componentes complementares', () => {
     const el = await screen.findByTestId('metrica-O17')
     await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
     expect(el).not.toHaveTextContent('mais frequente')
-    expect(el).toHaveTextContent('Só a lista de causas é provisória')
+    expect(el).toHaveTextContent('A causa raiz vem do Registro de Problemas')
     a.unmount()
     renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: fonteDeTeste })
     expect(await screen.findByText(/A causa raiz mais frequente é/)).toBeInTheDocument()
+  })
+
+  it('O17 sem causa raiz mostra Sem dado real com o motivo e mantém o por sistema', async () => {
+    const semCausa = new FonteAjustada({
+      O17: (r: Qualquer) => {
+        r.campoDisponivel = false
+        r.porCausa = null
+        r.motivoCausaRaiz =
+          'aguardando o Registro de Problemas (a causa aparente não é a causa raiz)'
+      },
+    })
+    renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: semCausa })
+    const el = await screen.findByTestId('metrica-O17')
+    const aviso = await within(el).findByTestId('estado-sem-dado-real-O17-causa-raiz')
+    expect(aviso).toHaveTextContent('Sem dado real')
+    expect(within(el).getByTestId('motivo-sem-dado-real-O17-causa-raiz')).toHaveTextContent(
+      'causa aparente',
+    )
+    expect(el).not.toHaveTextContent('mais frequente')
+    expect(el).toHaveTextContent('Por causa raiz')
+    expect(el).toHaveTextContent('Por sistema')
+    expect(el).not.toHaveTextContent('Metabase')
+    expect(el).not.toHaveTextContent('A causa raiz vem do Registro de Problemas')
+    expect(within(el).queryByTestId('campo-sem-fonte-O17')).not.toBeInTheDocument()
+  })
+
+  it('O17 com causa nula e sem motivo no corpo usa o motivo padrão', async () => {
+    const semMotivo = new FonteAjustada({
+      O17: (r: Qualquer) => {
+        r.porCausa = null
+        r.motivoCausaRaiz = null
+      },
+    })
+    renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: semMotivo })
+    const el = await screen.findByTestId('metrica-O17')
+    expect(await within(el).findByTestId('motivo-sem-dado-real-O17-causa-raiz')).toHaveTextContent(
+      'causa raiz sem dado real',
+    )
   })
 
   it('S8 acima da referência diz "Acima de 5%"', async () => {

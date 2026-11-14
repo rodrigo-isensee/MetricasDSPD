@@ -74,6 +74,12 @@ describe('Catálogo de métricas (/metricas)', () => {
     await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
     expect(
       screen.getByText(
+        /Tudo o que existe no DSPD: as métricas do briefing, as complementares acrescentadas depois dele e a de percepção \(a pesquisa de valor do serviço\); a espera invisível aparece em uma linha por nível\./,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/45 métricas/)).not.toBeInTheDocument()
+    expect(
+      screen.getByText(
         /A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de exemplo\./,
       ),
     ).toBeInTheDocument()

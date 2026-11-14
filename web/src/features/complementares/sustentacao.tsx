@@ -4,6 +4,7 @@ import { Barras, Histograma } from '@/components/charts'
 import {
   AmostraInsuficiente,
   CelulaInsuficiente,
+  EstadoSemDadoReal,
   SeletorLocal,
   StatusMeta,
   TabelaDados,
@@ -23,11 +24,12 @@ interface P {
 export function CartaoO17({ filtros }: P) {
   const q = useMetrica('O17', filtros)
   const d = q.dados
-  const topo = d?.porCausa.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
+  const topo = d?.porCausa?.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
   return (
     <CartaoComplementar
       id="O17"
       q={q}
+      semFonteParcial
       leitura={
         topo && topo.n > 0
           ? `A causa raiz mais frequente é ${topo.causa}, com ${fmtInteiro(topo.n)} incidentes.`
@@ -36,15 +38,24 @@ export function CartaoO17({ filtros }: P) {
     >
       {(r) => (
         <div className="flex flex-col gap-3">
-          <Barras
-            descricao="Incidentes encerrados por causa raiz"
-            orientacao="horizontal"
-            unidade="incidentes"
-            semLegenda
-            larguraRotulos={140}
-            categorias={r.porCausa.map((c) => ({ rotulo: c.causa, valores: { n: c.n } }))}
-            series={[{ chave: 'n', rotulo: 'Incidentes' }]}
-          />
+          <h4 className="text-sm font-semibold text-texto">Por causa raiz</h4>
+          {r.porCausa === null ? (
+            <EstadoSemDadoReal
+              codigo="O17-causa-raiz"
+              motivo={r.motivoCausaRaiz ?? 'causa raiz sem dado real'}
+            />
+          ) : (
+            <Barras
+              descricao="Incidentes encerrados por causa raiz"
+              orientacao="horizontal"
+              unidade="incidentes"
+              semLegenda
+              larguraRotulos={140}
+              categorias={r.porCausa.map((c) => ({ rotulo: c.causa, valores: { n: c.n } }))}
+              series={[{ chave: 'n', rotulo: 'Incidentes' }]}
+            />
+          )}
+          <h4 className="text-sm font-semibold text-texto">Por sistema</h4>
           <Barras
             descricao="Incidentes encerrados por sistema"
             orientacao="horizontal"
@@ -54,10 +65,11 @@ export function CartaoO17({ filtros }: P) {
             categorias={r.porSistema.map((c) => ({ rotulo: c.sistema, valores: { n: c.n } }))}
             series={[{ chave: 'n', rotulo: 'Incidentes' }]}
           />
-          <Leia>
-            Só a lista de causas é provisória: é uma proposta do time, e o campo causa raiz virá do
-            Metabase.
-          </Leia>
+          {r.porCausa !== null && (
+            <Leia>
+              A causa raiz vem do Registro de Problemas; a lista de causas é uma proposta do time.
+            </Leia>
+          )}
         </div>
       )}
     </CartaoComplementar>

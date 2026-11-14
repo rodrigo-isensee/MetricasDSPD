@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import ApontamentoPage from './ApontamentoPage'
 import { respostaFicticia } from './fixture'
-import { CARTOES } from './textos'
+import { CARTOES, DIARIO_VAZIO } from './textos'
 import type { FonteApontamento, RespostaApontamento } from './types'
 
 const URL_ABA = '/operacional/apontamento'
@@ -26,9 +26,14 @@ function renderizar(url: string, fonte: FonteApontamento) {
 const fonteDe = (r: (c: Parameters<FonteApontamento['buscar']>[0]) => RespostaApontamento) =>
   ({ buscar: (c) => Promise.resolve(r(c)) }) satisfies FonteApontamento
 
+const semPessoas = (r: RespostaApontamento): RespostaApontamento => ({
+  ...r,
+  diario: { ...r.diario, linhas: [] },
+})
+
 const semLinhasSeEquipe = fonteDe((c) => {
   const r = respostaFicticia(c)
-  return c.equipe ? { ...r, diario: { ...r.diario, linhas: [] } } : r
+  return c.equipe ? semPessoas(r) : r
 })
 
 describe('mapa diário recortado pela Equipe (K-286, volta 1 da revisão de UX)', () => {
@@ -42,6 +47,7 @@ describe('mapa diário recortado pela Equipe (K-286, volta 1 da revisão de UX)'
     const roteador = renderizar(`${URL_ABA}?equipe=portal`, semLinhasSeEquipe)
     const cartao = await screen.findByTestId('metrica-AP-DIARIO')
     const aviso = await within(cartao).findByTestId('diario-sem-pessoas')
+    expect(aviso).toHaveTextContent(DIARIO_VAZIO.comEquipe)
     expect(aviso).toHaveTextContent(/Nenhum apontamento da equipe escolhida nesta janela/)
     expect(within(cartao).queryByTestId('mapa-diario')).toBeNull()
     expect(within(cartao).queryByTestId('legenda-diario')).toBeNull()
@@ -54,6 +60,20 @@ describe('mapa diário recortado pela Equipe (K-286, volta 1 da revisão de UX)'
     renderizar(URL_ABA, semLinhasSeEquipe)
     expect(await screen.findByTestId('mapa-diario')).toBeInTheDocument()
     expect(screen.queryByTestId('diario-sem-pessoas')).toBeNull()
+  })
+
+  it('A2 (review): janela sem ninguém e sem Equipe mostra a mensagem própria, sem botão de remover', async () => {
+    renderizar(
+      URL_ABA,
+      fonteDe((c) => semPessoas(respostaFicticia(c))),
+    )
+    const cartao = await screen.findByTestId('metrica-AP-DIARIO')
+    const aviso = await within(cartao).findByTestId('diario-sem-pessoas')
+    expect(aviso).toHaveTextContent(DIARIO_VAZIO.semEquipe)
+    expect(aviso).toHaveTextContent('Nenhum apontamento nesta janela. Troque as datas do mapa.')
+    expect(aviso).not.toHaveTextContent(/equipe/i)
+    expect(within(aviso).queryByRole('button')).toBeNull()
+    expect(within(cartao).queryByTestId('mapa-diario')).toBeNull()
   })
 
   it('A3: com a Equipe ativa, a dica do atípico diz que o dia é avaliado inteiro', async () => {

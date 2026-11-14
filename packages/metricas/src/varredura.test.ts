@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  EQUIPES_SUSTENTACAO_ID,
   METRICA_IDS,
   METRICAS_TENDENCIA,
   fonteDaMetrica,
@@ -19,6 +18,9 @@ import type { ContextosMetricas } from './calcular'
  * prioridades variados, sobre bases de tamanhos e datas de corte diferentes. Cada resultado precisa
  * obedecer ao contrato (inclui a regra dos 20 itens) e a seleção mais estreita nunca ganha itens.
  */
+/** Slugs das equipes da Sustentação (slug do nome real). */
+const SLUGS_SUST = ['sssc-totvs', 'sssc-senior', 'sssc-fluig']
+
 const PERIODOS: Periodo[] = [
   { tipo: '4s' },
   { tipo: '12s' },
@@ -104,11 +106,11 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
         const todos = { equipe: [], prioridade: [], periodo }
         const recortes = [
           todos,
-          { ...todos, equipe: [EQUIPES_SUSTENTACAO_ID[0]] },
+          { ...todos, equipe: [SLUGS_SUST[0]!] },
           { ...todos, prioridade: [PRIORIDADES[0]] },
           {
             ...todos,
-            equipe: [...EQUIPES_SUSTENTACAO_ID.slice(1)],
+            equipe: [...SLUGS_SUST.slice(1)],
             prioridade: [PRIORIDADES[2], PRIORIDADES[4]],
           },
         ]

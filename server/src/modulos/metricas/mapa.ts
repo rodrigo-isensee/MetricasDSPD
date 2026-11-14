@@ -1,6 +1,6 @@
 import { MOTIVO_NAO_CLASSIFICADO, MOTIVOS_BLOQUEIO, TIPOS_CARD, type VersaoCriterio } from '@metricas-dspd/contratos';
 import { CALENDARIO_PADRAO, diaDeIso, fimDoExpediente } from '@metricas-dspd/metricas/core';
-import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC, UnidadePrazo } from '@metricas-dspd/metricas/acelerato';
+import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC, UnidadeExibicao, UnidadePrazo } from '@metricas-dspd/metricas/acelerato';
 import type {
   BaseBM, ConfigBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao, FichaResultado,
 } from '@metricas-dspd/metricas/businessmap';
@@ -178,6 +178,12 @@ const unidadeDe = (u: string): UnidadePrazo => {
   throw new Error('unidade de prazo desconhecida em ref_alvo_prioridade');
 };
 
+/** Unidade de exibição do PROC (K-314): `null` na vigência anterior ao K-314; a coluna tem CHECK em `min`, `h` e `dia`, e outro valor é erro, nunca um padrão. */
+const exibirDe = (u: string | null): UnidadeExibicao | null => {
+  if (u === null || u === 'min' || u === 'h' || u === 'dia') return u;
+  throw new Error('unidade de exibição desconhecida em ref_alvo_prioridade');
+};
+
 export type LinhasAC = { chamados: LinhaChamado[]; etapas: LinhaEtapa[]; alvos: LinhaAlvo[]; criterios: VersaoCriterio[] };
 
 export const montarBaseAC = (l: LinhasAC): BaseAC => ({
@@ -186,6 +192,7 @@ export const montarBaseAC = (l: LinhasAC): BaseAC => ({
     alvos: l.alvos.map((a) => ({
       prioridade: campo(a.prioridade), primeiro_atendimento_horas: Number(a.prazo_pa_horas), unidade_primeiro_atendimento: unidadeDe(a.unidade_pa),
       restauracao_horas: Number(a.prazo_r_horas), unidade_restauracao: unidadeDe(a.unidade_r),
+      exibir_primeiro_atendimento: exibirDe(a.exibir_pa), exibir_restauracao: exibirDe(a.exibir_r),
     })),
     criterios: l.criterios,
   },
