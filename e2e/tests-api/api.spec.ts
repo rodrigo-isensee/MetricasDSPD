@@ -63,12 +63,12 @@ test.describe('fonte api: painéis com dados reais da API', () => {
     expect(comCors, 'respostas com Access-Control-Allow-Origin').toEqual([]);
   });
 
-  test('FA5-04 a troca de filtro pede a métrica de novo com a query do contrato (tipo=incidente)', async ({ painel, page }) => {
+  test('FA5-04 a troca de filtro pede a métrica de novo com a query do contrato (tipo=melhoria)', async ({ painel, page }) => {
     await painel.ir(ROTAS.operacionalSemanal);
     await painel.esperarPronto();
-    const pedido = page.waitForRequest((r) => /\/api\/v1\/metricas\/O4\?/.test(r.url()) && r.url().includes('tipo=incidente'));
+    const pedido = page.waitForRequest((r) => /\/api\/v1\/metricas\/O4\?/.test(r.url()) && r.url().includes('tipo=melhoria'));
     await painel.filtros.botao('tipo').click();
-    await page.getByRole('checkbox', { name: 'Incidente' }).first().click();
+    await page.getByRole('checkbox', { name: 'Melhoria' }).first().click();
     const req = await pedido;
     expect(new URL(req.url()).searchParams.get('periodo')).toBeTruthy();
     await page.keyboard.press('Escape');
@@ -164,13 +164,13 @@ test.describe('fonte api: falhas da API (page.route)', () => {
   test('FA5-16 troca de filtro cancela a requisição anterior (sem corrida: o painel termina no último filtro)', async ({ painel, page }) => {
     await painel.ir(ROTAS.operacionalSemanal);
     await painel.esperarPronto();
-    await page.route(/\/api\/v1\/metricas\/O4\?.*tipo=incidente/, async (route) => {
+    await page.route(/\/api\/v1\/metricas\/O4\?.*tipo=melhoria/, async (route) => {
       await new Promise((r) => setTimeout(r, 1500)); // resposta lenta do filtro antigo
       await route.continue().catch(() => undefined);
     });
     await painel.filtros.botao('tipo').click();
-    await page.getByRole('checkbox', { name: 'Incidente' }).first().click();
-    await page.getByRole('checkbox', { name: 'Incidente' }).first().click(); // desmarca: volta ao padrão
+    await page.getByRole('checkbox', { name: 'Melhoria' }).first().click();
+    await page.getByRole('checkbox', { name: 'Melhoria' }).first().click(); // desmarca: volta ao padrão
     await page.keyboard.press('Escape');
     await painel.esperarPronto();
     await expect(painel.cartao('O4').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);

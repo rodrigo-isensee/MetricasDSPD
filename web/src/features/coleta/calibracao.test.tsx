@@ -160,7 +160,7 @@ describe('calibração na Sustentação (sistêmico: coletas mock -> hooks -> p�
     const s1 = await screen.findByTestId('metrica-S1')
     expect(within(s1).queryByText(/Mediana (dentro do|acima do) alvo/)).not.toBeInTheDocument()
     // Os números continuam: a calibração não esconde dados.
-    expect(within(s2).getByTestId('tabela-S2-detalhe')).toHaveTextContent('88,9% · 144 de 162')
+    expect(within(s2).getByTestId('tabela-S2-detalhe')).toHaveTextContent('89,6% · 146 de 163')
   })
 
   it('"Pede atenção" não lista S1 nem S2 e diz por quê', async () => {

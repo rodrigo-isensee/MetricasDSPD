@@ -1,5 +1,5 @@
 import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 
 /** Fonte de teste: devolve o DTO montado no teste para as métricas informadas; o resto vem do mock. */
 export class FonteFixa extends MockFonteMetricas {

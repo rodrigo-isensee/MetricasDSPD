@@ -15,6 +15,7 @@ interface Resp {
     pessoas: { pessoaRef: string; rotulo: string; identificada: boolean }[]
     projetos: { id: string; rotulo: string; foraDoEscopo: boolean }[]
     tipos: { id: string; rotulo: string }[]
+    equipes: { id: string; rotulo: string }[]
     subtarefas: { id: string }[]
     subgrupos: { id: string }[]
   }
@@ -49,10 +50,7 @@ function ficticia(url: URL, variante: Variante = 'base'): Resp {
   const existe = (ids: string[] | undefined, opcoes: readonly { id: string }[]) =>
     !ids || ids.every((id) => opcoes.some((o) => o.id === id))
   const valido =
-    existe(
-      lista('pessoa'),
-      r.opcoes.pessoas.map((x) => ({ id: x.pessoaRef })),
-    ) &&
+    existe(lista('equipe'), r.opcoes.equipes) &&
     existe(lista('projeto'), r.opcoes.projetos) &&
     existe(lista('tipo'), r.opcoes.tipos) &&
     existe(lista('subtarefa'), r.opcoes.subtarefas) &&
@@ -143,25 +141,26 @@ test.describe('seletor do Operacional e cabeçalho (CA-1)', () => {
 test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
-  test('CT-10: pessoa vai à URL e à rota como pessoaRef; nome real nunca em URL nem em storage', async ({
+  test('CT-10: equipe vai à URL e à rota como slug; nome real nunca em URL nem em storage', async ({
     page,
   }) => {
     const chamadas = await semear(page, (u) => ficticia(u, 'nomesReais'))
     await abrir(page)
     await expect(page.getByTestId('aviso-nome-real')).toBeVisible()
-    await page.getByRole('button', { name: /Pessoa que apontou/ }).click()
-    await page.getByRole('checkbox', { name: 'Ana Exemplo' }).check()
-    await expect(page).toHaveURL(/pessoa=p1(&|$)/)
-    expect(decodeURIComponent(page.url())).not.toMatch(/Ana|Exemplo/)
-    await expect.poll(() => chamadas.some((c) => c.includes('pessoa=p1'))).toBe(true)
-    for (const c of chamadas) expect(decodeURIComponent(c)).not.toMatch(/Ana|Exemplo/)
+    await expect(page.getByRole('button', { name: /^Pessoa/ })).toHaveCount(0)
+    await page.getByRole('button', { name: /^Equipe/ }).click()
+    await page.getByRole('checkbox', { name: 'Portal' }).check()
+    await expect(page).toHaveURL(/equipe=portal(&|$)/)
+    expect(decodeURIComponent(page.url())).not.toMatch(/Ana|Exemplo|pessoa/)
+    await expect.poll(() => chamadas.some((c) => c.includes('equipe=portal'))).toBe(true)
+    for (const c of chamadas) expect(decodeURIComponent(c)).not.toMatch(/Ana|Exemplo|pessoa/)
     const guardado = await page.evaluate(CHAVES_STORAGE)
-    expect(guardado).not.toMatch(/Ana|Exemplo|p1/)
+    expect(guardado).not.toMatch(/Ana|Exemplo|p1|portal/)
     // recarregar restaura o filtro, e voltar do navegador o desfaz
     await page.reload()
     await expect(page.getByTestId('periodo-dos-dados')).toBeVisible()
-    await expect(page).toHaveURL(/pessoa=p1/)
-    await expect(page.getByRole('button', { name: /Remover filtro.*Ana Exemplo/i })).toBeVisible()
+    await expect(page).toHaveURL(/equipe=portal/)
+    await expect(page.getByRole('button', { name: /Remover filtro Equipe: Portal/i })).toBeVisible()
   })
 
   test('CT-08: tipo vai à URL com o id opaco e à rota; os outros filtros também persistem', async ({
@@ -190,6 +189,8 @@ test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
     const chamadas = await semear(page)
     await abrir(page, `${ABA}?pessoa=Ana%20Exemplo&tipo=%3Cscript%3E&nivelMatriz=xyz`)
     await expect(page.getByTestId('filtros-invalidos')).toBeVisible()
+    await expect(page.getByTestId('filtros-invalidos')).toContainText(/em: Tipo, Agrupar por\./)
+    await expect(page.getByTestId('aviso-pessoa-retirada')).toBeVisible()
     await expect(aba(page)).not.toContainText('Ana Exemplo')
     await expect(aba(page)).not.toContainText('<script>')
     for (const c of chamadas) {
@@ -207,7 +208,7 @@ test.describe('recorte vazio e amostra insuficiente (CA-2, CA-3, o3)', () => {
   }) => {
     await semear(page)
     await abrir(page, `${ABA}?tipo=999&projeto=1042`)
-    await expect(page.getByText('Nenhum apontamento encontrado').first()).toBeVisible()
+    await expect(page.getByText('Nenhum apontamento no período dos filtros').first()).toBeVisible()
     const barra = page.getByTestId('barra-filtros-apontamento')
     await expect(barra.getByRole('button', { name: /Remover filtro/ })).toHaveCount(2)
     await expect(barra.getByRole('button', { name: 'Limpar filtros' })).toBeVisible()
@@ -266,12 +267,15 @@ test.describe('Outra área (decisão do dono de 2026-11-02)', () => {
     const mapa = page.getByTestId('mapa-diario')
     await expect(mapa.getByRole('rowheader', { name: /Outra área/ })).toHaveCount(0)
     await expect(mapa).not.toContainText('Outra área')
-    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).not.toContainText('Outra área')
-    // sem nome: nenhum nome real vira rótulo de Outra área, e o filtro oferece a chave fixa
-    await page.getByRole('button', { name: /Pessoa que apontou/ }).click()
-    await expect(page.getByRole('checkbox', { name: 'Outra área' })).toBeVisible()
-    await page.getByRole('checkbox', { name: 'Outra área' }).check()
-    await expect(page).toHaveURL(/pessoa=outra-area/)
+    await expect(
+      cartao(page, 'AP-CAPACIDADE-PESSOA').getByRole('rowheader', { name: /Outra área/ }),
+    ).toHaveCount(0)
+    // a nota mora junto do cartão de capacidade (097, Q-3), não na barra de filtros, que não tem mais Pessoa
+    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).toContainText(
+      /Outra área soma várias pessoas e por isso não entra na capacidade por pessoa/,
+    )
+    await expect(page.getByTestId('barra-filtros-apontamento')).not.toContainText('Outra área')
+    await expect(page.getByRole('button', { name: /^Pessoa/ })).toHaveCount(0)
   })
 })
 
@@ -546,7 +550,7 @@ test.describe('mapa diário por teclado (CT-64)', () => {
       })
       alcancados.add(rotulo)
     }
-    expect([...alcancados].join('|')).toMatch(/Pessoa que apontou/)
+    expect([...alcancados].join('|')).toMatch(/Equipe/)
     expect([...alcancados].join('|')).toMatch(/Ver como tabela/)
   })
 })
@@ -650,7 +654,7 @@ test.describe('375 px (CA-8) e rolagem das tabelas por pessoa (R2-2: A-1 e A-2)'
     const alvos = [
       abrirBarra,
       page.getByRole('button', { name: /^Tipo/ }),
-      page.getByRole('button', { name: /Pessoa que apontou/ }),
+      page.getByRole('button', { name: /^Equipe/ }),
       page.locator('label', { hasText: 'Ocultar possíveis erros' }),
     ]
     for (const a of alvos) {
@@ -736,6 +740,29 @@ test.describe('acessibilidade automática (CT-65, WCAG 2.2 AA)', () => {
         await expect(page.locator('[aria-busy="true"]')).toHaveCount(0)
         const r = await rodarAxe(page)
         expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+      })
+    }
+  }
+
+  // K-289 (A1) e B1 da revisão de UX: o aviso novo do filtro Pessoa usa text-atencao; o contraste é medido nos dois temas e larguras.
+  for (const tema of ['claro', 'escuro'] as const) {
+    for (const largura of [1280, 375]) {
+      test(`aviso do filtro Pessoa retirado, tema ${tema} em ${largura}px: visível e zero violações críticas ou sérias`, async ({
+        page,
+      }) => {
+        await page.emulateMedia({ colorScheme: tema === 'escuro' ? 'dark' : 'light' })
+        await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), tema)
+        await page.setViewportSize({ width: largura, height: largura === 375 ? 812 : 900 })
+        await semear(page)
+        await abrir(page, `${ABA}?pessoa=Ana%20Exemplo`)
+        const aviso = page.getByTestId('aviso-pessoa-retirada')
+        await expect(aviso).toHaveText('O filtro Pessoa foi retirado; use Equipe.')
+        await expect(aviso.locator('svg')).not.toHaveCount(0)
+        const r = await rodarAxe(page, { incluir: '[data-testid="barra-filtros-apontamento"]' })
+        expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+        // contraste é regra "serious" do axe: nenhuma violação de color-contrast, nem informativa, no aviso
+        const todas = [...r.bloqueantes, ...r.informativas].filter((v) => v.id === 'color-contrast')
+        expect(todas, JSON.stringify(todas)).toEqual([])
       })
     }
   }

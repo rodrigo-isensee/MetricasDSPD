@@ -253,6 +253,15 @@ describe('recolher cartão (097 E5, CA-25 a CA-32)', () => {
     )
   })
 
+  it('recolhido esconde os selos extras do cartão; expandido, eles voltam', async () => {
+    render(<Painel cartoes={[<Cartao key="a" selos={<span>selo extra</span>} />]} />)
+    expect(screen.getByText('selo extra')).toBeInTheDocument()
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(screen.queryByText('selo extra')).toBeNull()
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(screen.getByText('selo extra')).toBeInTheDocument()
+  })
+
   it('A1: todo código de cartão do catálogo e da aba Apontamento passa no formato que a memória aceita', () => {
     const codigos = [
       ...CATALOGO_CARTOES.map((c) => c.id.toUpperCase()),

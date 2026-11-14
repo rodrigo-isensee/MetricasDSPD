@@ -1,4 +1,5 @@
 import type { TextoNota } from '@/components/ui'
+import { LIMITE_MAIORES } from './dezMaiores'
 import { fmtMes, fmtNumero } from '@/lib/formatar'
 import type { FaixaDiario, FiltroQualidade, FlagQualidade, NivelMatriz } from './types'
 
@@ -35,6 +36,13 @@ export const LINHA_NOMES_OCULTOS = "Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'
 export const NOTA_OUTRA_AREA =
   'Outra área: pessoas que não foram responsáveis por card do DSPD nos últimos 12 meses, somadas, sem nome.'
 
+/** Decisão 2a do dono (2026-11-12): link antigo com o filtro Pessoa, que saiu; não repete o valor recebido. */
+export const AVISO_PESSOA_RETIRADA = 'O filtro Pessoa foi retirado; use Equipe.'
+
+/** Capacidade por pessoa não mostra a linha Outra área (A-4); a frase explica a ausência (K-289, A2 da revisão de UX). */
+export const NOTA_OUTRA_AREA_FORA_CAPACIDADE =
+  'Outra área soma várias pessoas e por isso não entra na capacidade por pessoa.'
+
 export const PESSOA_NAO_IDENTIFICADA = 'Pessoa não identificada'
 export const DICA_NAO_IDENTIFICADA =
   'Não foi possível ligar este apontamento a uma pessoa. Ele não é somado a outra.'
@@ -43,7 +51,11 @@ export const SELO_LEITURA_RELATIVA = 'Comparação relativa; não é jornada tot
 export const DICA_LEITURA_RELATIVA =
   'O apontamento cobre só parte da jornada. Por isso a utilização serve para comparar períodos, não para medir quanto alguém trabalhou. Pode passar de 100%.'
 
-export const ROTULO_FILTRO_PESSOA = 'Pessoa que apontou'
+export const ROTULO_FILTRO_EQUIPE = 'Equipe'
+
+/** O servidor chama a opção sem equipe de "Sem time"; na tela o rótulo é "Equipe" (097, UX), então a opção se chama assim. */
+export const ROTULO_SEM_EQUIPE = 'Sem equipe'
+export const ID_SEM_EQUIPE = 'sem-time'
 
 export const FLAGS: Record<FlagQualidade | 'completo', string> = {
   'sem-comentario': 'Sem comentário',
@@ -66,6 +78,9 @@ export const ANOMALIA = {
   filtro: 'Ocultar possíveis erros',
   dica: (limiteHoras: number) =>
     `Mais de ${fmtNumero(limiteHoras, 0)} h apontadas por uma pessoa em um dia. O valor foi mantido na soma e marcado para conferência.`,
+  /** Só no mapa com a Equipe ativa: as horas da célula são as da equipe, o atípico olha o dia todo. */
+  dicaRecorteEquipe:
+    'O dia é avaliado com todas as horas da pessoa, não só as da equipe escolhida.',
 } as const
 
 export const ROTULO_CHIP_ORDEM = { rotulo: 'Ordem', valor: 'total de horas' } as const
@@ -88,8 +103,18 @@ export const ROTULO_NIVEL: Record<NivelMatriz, string> = {
 }
 
 export const VAZIO = {
-  titulo: 'Nenhum apontamento encontrado',
-  texto: 'Nenhum apontamento atende aos filtros atuais.',
+  secao: 'Período dos filtros',
+  titulo: 'Nenhum apontamento no período dos filtros',
+  texto:
+    'Nenhum apontamento atende aos filtros atuais. O mapa dia a dia abaixo usa a janela própria dele.',
+  anuncio: 'Nenhum apontamento no período dos filtros. O mapa dia a dia tem janela própria.',
+} as const
+
+/** Vazio do próprio mapa diário (K-286): a janela dele é a escolhida no cartão, não o período dos filtros. */
+export const DIARIO_VAZIO = {
+  semEquipe: 'Nenhum apontamento nesta janela. Troque as datas do mapa.',
+  comEquipe:
+    'Nenhum apontamento da equipe escolhida nesta janela. Troque as datas do mapa ou remova o filtro Equipe.',
 } as const
 
 export const CARREGANDO = 'Carregando apontamentos'
@@ -181,7 +206,7 @@ export const CARTOES = {
   diario: {
     pergunta: 'Como as horas se distribuem pelos dias, por pessoa?',
     comoLer:
-      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. Este cartão responde só ao filtro Pessoa.",
+      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. A Equipe escolhida na barra recorta este mapa; os demais filtros e o período da barra não o afetam, e a janela dele é a escolhida aqui. O dia atípico é decidido sobre o dia inteiro da pessoa, em qualquer equipe.",
     criterio: 'Faixas fixas; limite de possível erro configurável no servidor.',
   },
 } satisfies Record<string, TextosCartao>
@@ -317,6 +342,15 @@ export const INCOMPLETO = {
   comoLer: 'Cards com registro de horas incompleto entram nos totais só com o que já foi coletado.',
   projetosComSelo: 'Projetos com horas incompletas',
 } as const
+/** AP-PROJETO: os 10 projetos com mais horas e o "ver todos" (097, E5, CA-33 a CA-38). */
+export const MAIORES = {
+  mostrando: (n: number) => `Mostrando os ${LIMITE_MAIORES} projetos com mais horas, de ${n}.`,
+  demais: (n: number, horas: string) => `Demais ${n} ${n === 1 ? 'projeto' : 'projetos'}: ${horas}`,
+  verTodos: (n: number) => `Ver todos os ${n} projetos`,
+  verMaiores: `Ver só os ${LIMITE_MAIORES} maiores`,
+  regiao: 'Todos os projetos, com rolagem',
+} as const
+
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 
 /** Subgrupo "Sem comentário" (não é a marca de qualidade de mesmo nome): explicação visível e atalho do subgrupo. */

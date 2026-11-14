@@ -7,7 +7,6 @@ import {
   fmtDataHoraCurta,
   fmtDiasCorridos,
   fmtDiasUteis,
-  fmtHorasUteis,
   fmtIntervalo,
   fmtMes,
   fmtPct,
@@ -41,13 +40,6 @@ describe('formatação pt-BR', () => {
     expect(fmtDiasUteis(2.5)).toBe('2,5 dias úteis')
     expect(fmtDiasCorridos(1)).toBe('1 dia')
     expect(fmtDiasCorridos(3)).toBe('3 dias')
-  })
-
-  it('horas úteis: minutos abaixo de 1 h, horas até 3 dias úteis, dias acima', () => {
-    expect(fmtHorasUteis(0.5)).toBe('30 min')
-    expect(fmtHorasUteis(5.5)).toBe('5,5 h úteis')
-    expect(fmtHorasUteis(24)).toBe('3 dias úteis')
-    expect(fmtHorasUteis(8, 2)).toBe('4 dias úteis')
   })
 
   it('diferença de datas, validade e janelas', () => {

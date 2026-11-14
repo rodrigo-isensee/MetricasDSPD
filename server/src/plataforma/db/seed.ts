@@ -151,8 +151,8 @@ export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquema
   }));
   const vigenteDe = dia(Math.min(...base.ac.chamados.map((c) => c.aberto_em)));
   const refAlvo = base.ac.config.alvos.map((a): Linha => ({
-    prioridade: a.prioridade, vigente_de: vigenteDe, prazo_pa_horas_uteis: a.primeiro_atendimento_horas,
-    prazo_r_horas_uteis: a.restauracao_horas,
+    prioridade: a.prioridade, vigente_de: vigenteDe, prazo_pa_horas: a.primeiro_atendimento_horas,
+    unidade_pa: a.unidade_primeiro_atendimento, prazo_r_horas: a.restauracao_horas, unidade_r: a.unidade_restauracao,
   }));
   return [
     { tabela: `${S.ac}.dim_chamado`, linhas: dimChamado },

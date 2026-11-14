@@ -141,7 +141,11 @@ export class NucleoMock {
       await ceder()
       const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
       await ceder()
-      const ac = lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO)
+      const ac = lib.acelerato.criarContextoAC(
+        base.ac,
+        base.config.hoje,
+        lib.acelerato.CALENDARIO_SUSTENTACAO_PADRAO,
+      )
       const pesq = lib.pesquisa.criarContextoPesquisa(
         mock.gerarPesquisaMock(base.config),
         base.config.hoje,
