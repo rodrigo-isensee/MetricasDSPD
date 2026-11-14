@@ -17,7 +17,10 @@ overrides:
   # vite 8.3.5 quebra o test:pg (K-182): extractInlineSourceMap chama code.charCodeAt, mas o vitest 5.0.5 entrega o
   # código do globalSetup como Buffer; qualquer stack que passe por tests/pg/global-setup.ts (jiti do node-pg-migrate
   # com cache frio, como na CI) cai em "Startup Error". Reverter quando sair vitest com a correção.
-  vite: "8.3.4"
+  vite: "8.3.8"
   # Alertas Dependabot #18 a #25 (fast-uri, produção via fastify): override de patch na mesma linha maior (pedido 062)
   "fast-uri@3": "3.1.9"
   "fast-uri@4": "4.2.3"
+  # Alerta Dependabot minimatch (< 11.0.1), só ferramenta de desenvolvimento: o typescript-estree 8.72.2 ainda pede ^10.2.2;
+  # a API usada (import nomeado minimatch) é igual na 11. Escopo só dele, para não tocar o glob 13 do node-pg-migrate (produção).
+  "@typescript-eslint/typescript-estree>minimatch": "11.0.8"
