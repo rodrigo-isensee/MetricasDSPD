@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { lerCards, lerChamados } from '../src/modulos/metricas/repositorio.js';
 import { CORTE_CARDS, CORTE_CHAMADOS } from '../src/modulos/referencia/index.js';
-import { lerPrioridadesAC, lerTiposBM } from '../src/modulos/referencia/repositorio.js';
+import { lerEquipesAC, lerPrioridadesAC, lerTiposBM } from '../src/modulos/referencia/repositorio.js';
 import type { Consultavel } from '../src/plataforma/db/pool.js';
 
 /** K-280: listas e opções de filtro usam a mesma condição de corte (uma só constante). */
@@ -20,5 +20,15 @@ describe('corte único de cards e chamados (K-280)', () => {
   it('lerChamados e lerPrioridadesAC usam o mesmo corte', async () => {
     expect(await capturar((db) => lerChamados(db))).toContain(`WHERE ${CORTE_CHAMADOS}`);
     expect(await capturar((db) => lerPrioridadesAC(db))).toContain(`WHERE ${CORTE_CHAMADOS}`);
+  });
+});
+
+describe('K-288: ordem estável das equipes da Sustentação', () => {
+  const com = (nomes: string[]): Consultavel => ({ query: async () => ({ rows: nomes.map((equipe) => ({ equipe })) }) }) as unknown as Consultavel;
+  it('lerEquipesAC ordena por bytes, qualquer que seja a ordem devolvida pelo banco', async () => {
+    const a = await lerEquipesAC(com(['time-novo', 'Time Novo', 'SSSC']));
+    const b = await lerEquipesAC(com(['SSSC', 'Time Novo', 'time-novo']));
+    expect(a).toEqual(['SSSC', 'Time Novo', 'time-novo']);
+    expect(b).toEqual(a);
   });
 });

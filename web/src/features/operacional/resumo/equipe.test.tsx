@@ -8,7 +8,7 @@ import type {
   OpcoesFiltro,
   ResultadoDe,
 } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 
 afterEach(() => window.localStorage.clear())

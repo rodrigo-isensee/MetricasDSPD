@@ -8,7 +8,7 @@ import type {
   ResultadoVisaoGeral,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import {
   CAMPO_PESSOAL,
   LIMITE_METRICAS,

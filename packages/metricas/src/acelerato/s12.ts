@@ -18,7 +18,8 @@ import type { ContextoAC } from './indice'
  * S12: volume por sistema (categoria); na janela de 12 semanas, contagem e proporção de chamados
  * reincidentes por sistema (campo `reincidente` preenchido já conta, sem limite K nem sintoma);
  * e % com exceção de SLA por registro posterior. A proporção usa só chamados com o campo informado;
- * `cobertura` expõe "n de N". Sem extensão, só a reincidência fica sem fonte: volume e exceção de SLA seguem reais.
+ * `cobertura` expõe "n de N". Sem extensão (base real sem o campo, pedido 099 D9) só o volume é real: a reincidência fica sem
+ * fonte e a exceção de SLA sai `null` (nunca 0%); a coluna da base é `false` por padrão e não distingue "não" de "sem fonte".
  */
 export function calcularS12(
   ctx: ContextoAC,
@@ -87,9 +88,9 @@ export function calcularS12(
       })),
       (p) => [-p.chamados, p.sistema],
     ),
-    excecaoSla: taxa(
-      fechados.filter((x) => x.c.excecao_sla_registro_posterior).length,
-      fechados.length,
-    ),
+    excecaoSla:
+      ext === undefined
+        ? null
+        : taxa(fechados.filter((x) => x.c.excecao_sla_registro_posterior).length, fechados.length),
   }
 }

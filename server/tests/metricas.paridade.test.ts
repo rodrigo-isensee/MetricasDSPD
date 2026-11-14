@@ -20,7 +20,7 @@ describe('paridade mock x projeções (sem Postgres: linhas do seed num banco fa
   const memoria = mockComoNoBanco(base);
   const ctx: ContextosMetricas = {
     bm: businessmap.criarContextoBM(memoria.bm, CORTE, CALENDARIO_PADRAO),
-    ac: acelerato.criarContextoAC(memoria.ac, CORTE, CALENDARIO_PADRAO),
+    ac: acelerato.criarContextoAC(memoria.ac, CORTE, acelerato.CALENDARIO_SUSTENTACAO_PADRAO),
     ext: gerarExtensoesMock(base),
     pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), CORTE_DATA),
   };

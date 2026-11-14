@@ -293,6 +293,11 @@ export const RESPOSTA_FICTICIA: RespostaApontamento = {
   nomesReais: false,
   opcoes: {
     pessoas: pessoasOpcao,
+    equipes: [
+      { id: 'integracoes', rotulo: 'Integrações' },
+      { id: 'portal', rotulo: 'Portal' },
+      { id: 'sem-time', rotulo: 'Sem time' },
+    ],
     projetos: [
       { id: '1042', rotulo: 'Iniciativa Portal do Cliente', foraDoEscopo: false },
       { id: '1077', rotulo: 'Iniciativa Integração Financeira', foraDoEscopo: false },
@@ -403,6 +408,16 @@ export function respostaVazia(base: RespostaApontamento = RESPOSTA_FICTICIA): Re
     diario: { ...base.diario, linhas: [] },
     achados: [],
   }
+}
+
+/**
+ * Período dos filtros sem apontamento, mas com o mapa diário cheio (K-303): o mapa tem janela própria, então o vazio
+ * dos cartões do período não esvazia o mapa.
+ */
+export function respostaVaziaComMapa(
+  base: RespostaApontamento = RESPOSTA_FICTICIA,
+): RespostaApontamento {
+  return { ...respostaVazia(base), diario: base.diario }
 }
 
 const insuf = (n: number): PctComPiso => ({ status: 'insuficiente', n, minimo: MINIMO_AMOSTRA })
@@ -531,7 +546,7 @@ export function respostaComOutraArea(
 }
 
 /**
- * Fonte fictícia: aplica só o filtro de pessoa (os blocos por pessoa e o mapa diário) e a escolha do nível da
+ * Fonte fictícia: confere que os valores filtrados existem nas opções e aplica a escolha do nível da
  * matriz. Filtro cujo valor não existe nas opções devolve o recorte vazio. A agregação de verdade é do servidor.
  */
 export function respostaFicticia(
@@ -542,10 +557,7 @@ export function respostaFicticia(
   const existe = (ids: string[] | undefined, lista: readonly { id: string }[]) =>
     !ids || ids.every((id) => lista.some((x) => x.id === id))
   const valido =
-    existe(
-      consulta.pessoa,
-      o.pessoas.map((p) => ({ id: p.pessoaRef })),
-    ) &&
+    existe(consulta.equipe, o.equipes ?? []) &&
     existe(consulta.projeto, o.projetos) &&
     existe(consulta.tipo, o.tipos) &&
     existe(consulta.subtarefa, o.subtarefas) &&
@@ -558,17 +570,7 @@ export function respostaFicticia(
     periodo,
     matriz: consulta.nivelMatriz === 'tipo' ? base.matriz : matrizDoNivel(consulta.nivelMatriz),
   }
-  if (!consulta.pessoa) return resposta
-  const refs = new Set(consulta.pessoa)
-  const doRecorte = <T extends { pessoaRef: string }>(ls: T[]): T[] =>
-    ls.filter((l) => refs.has(l.pessoaRef))
-  return {
-    ...resposta,
-    qualidade: { ...resposta.qualidade, porPessoa: doRecorte(resposta.qualidade.porPessoa) },
-    matriz: { ...resposta.matriz, linhas: doRecorte(resposta.matriz.linhas) },
-    capacidade: { ...resposta.capacidade, porPessoa: doRecorte(resposta.capacidade.porPessoa) },
-    diario: { ...resposta.diario, linhas: doRecorte(resposta.diario.linhas) },
-  }
+  return resposta
 }
 
 export const fonteFicticia: FonteApontamento = {
