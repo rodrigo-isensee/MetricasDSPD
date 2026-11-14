@@ -188,6 +188,8 @@ describe('transporte do MockFonteMetricas', () => {
     await expect(f.dataReferencia()).rejects.toThrow(
       'Falha ao enviar ao Worker do mock: não clonável',
     )
+    const cliente = (f as unknown as { cliente: { pendentes: Map<number, unknown> } }).cliente
+    expect(cliente.pendentes.size).toBe(0)
   })
 
   it('postMessage que lança valor que não é Error também rejeita, com o texto', async () => {
@@ -253,4 +255,34 @@ describe('invólucro do Worker', () => {
     expect(enviados[1]).toStrictEqual({ id: 2, ok: true, valor: '2026-10-09' })
     self.onmessage = null
   })
+
+  it(
+    'resposta não clonável vira erro com o id do pedido, em vez de deixá-lo pendente',
+    { timeout: 40000 },
+    async () => {
+      const enviados: unknown[] = []
+      let primeira = true
+      vi.spyOn(self, 'postMessage').mockImplementation(((m: unknown) => {
+        if (primeira) {
+          primeira = false
+          throw new DOMException('não clonável', 'DataCloneError')
+        }
+        enviados.push(m)
+      }) as never)
+      vi.resetModules()
+      await import('./nucleoMock.worker')
+      const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
+      onmessage({ data: { id: 5, metodo: 'iniciar', args: [{}] } })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+      expect(enviados[0]).toStrictEqual({
+        id: 5,
+        ok: false,
+        erro: {
+          nome: 'DataCloneError',
+          mensagem: 'Falha ao responder do Worker do mock: não clonável',
+        },
+      })
+      self.onmessage = null
+    },
+  )
 })
