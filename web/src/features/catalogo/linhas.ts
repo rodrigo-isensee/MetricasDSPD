@@ -18,14 +18,21 @@ export interface LinhaCatalogo {
   granularidade: string
   /** Situação do dado da métrica no mapa de origem: lida da coleta ou ainda sem dado real. */
   dados: 'Real' | 'Sem dado real'
+  /** Anotação de métrica parcial (dado real só em parte); não é um terceiro valor de `dados`. */
+  anotacao?: string
   /** Destino no app: o painel e, para complementares, o cartão (abre a seção "Mais métricas"). */
   destino: string
+}
+
+/** Métricas reais só em parte: a anotação diz o que ainda está sem fonte. */
+const ANOTACAO_PARCIAL: Record<string, string> = {
+  S12: 'Parcial: volume por sistema; reincidência sem fonte',
 }
 
 /** BLOQUEADOS é lista, não métrica do briefing. */
 const FORA = new Set(['BLOQUEADOS'])
 
-/** As 45 métricas do briefing (28 do núcleo e 17 complementares), com a espera invisível em uma linha por nível, mais a PV1 (pesquisa de percepção, terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato), derivadas dos dois catálogos estáticos. */
+/** O catálogo das métricas do briefing, das complementares e da percepção, com a espera invisível em uma linha por nível. A PV1 (pesquisa de percepção) é a terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato. Derivado dos dois catálogos estáticos. */
 export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
     const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
@@ -42,6 +49,7 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
       fonte: m.fonte,
       granularidade: m.granularidade,
       dados: origemDaMetrica(m.id) === 'real' ? 'Real' : 'Sem dado real',
+      ...(ANOTACAO_PARCIAL[m.codigo] ? { anotacao: ANOTACAO_PARCIAL[m.codigo] } : {}),
       destino: destinoDoCartao(alvo),
     }
   })

@@ -55,6 +55,8 @@ export interface Referencia {
   tipos: ReadonlyMap<string, readonly LinhaTipo[]>;
   /** `field_id` -> coluna de lista de `dim_card` (L2-b, `ref_dominio campo = 'campo_customizado'`); vazio = nenhuma coluna de lista é preenchida. */
   camposLista: ReadonlyMap<string, string>;
+  /** `priority` do card -> severidade (C8a, `ref_dominio campo = 'prioridade_severidade'`); ausente ou vazio = nenhuma severidade é projetada. */
+  prioridades?: ReadonlyMap<string, string>;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -104,6 +106,8 @@ export interface LinhaDimCard {
   coluna_atual_id: string | null; excluido_em: Date | null;
   classe_servico: string | null; sistema: string | null; area_solicitante: string | null; fornecedor: string | null; objetivo_estrategico: string | null;
   tamanho_declarado: string | null; responsabilidade_atraso: string | null; origem_demanda: string | null; fase_deteccao: string | null; severidade: string | null;
+  /** Prazo nativo do card (`deadline`), dia civil `AAAA-MM-DD`; nulo se ausente ou fora da forma (099-o12-deadline §2). */
+  data_acordada: string | null;
 }
 
 const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null])) as Record<(typeof COLUNAS_LISTA)[number], null>;
@@ -136,6 +140,33 @@ export interface CardProjetado { dim: LinhaDimCard; transicoes: FatoTransicaoPro
 
 const NIVEL_PARA_GRANULARIDADE: Record<string, string> = { projeto: 'projeto', feature: 'frente', story: 'story' };
 const texto = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
+/**
+ * Parse estrito do `deadline` (099-o12-deadline §2): só `AAAA-MM-DD` com ano >= 0001 (o PostgreSQL não tem ano 0), mês e dia válidos; o dia é gravado como está (data civil, sem fuso).
+ * Data e hora, texto ou número viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela). Nada se converte.
+ */
+export function dataAcordada(valor: unknown, notas: string[]): string | null {
+  if (valor === undefined || valor === null) return null;
+  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const d = new Date(`${valor}T00:00:00Z`);
+    // Ano 0000: o Date do JS aceita, o `date` do PostgreSQL não (abortaria o INSERT do lote inteiro); exige ano >= 1.
+    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor && !valor.startsWith('0000')) return valor;
+  }
+  notas.push('deadline_fora_da_forma');
+  return null;
+}
+/**
+ * C8a: severidade pelo `priority` nativo e o mapa versionado (1 Critical a 4 Low, decrescente). Sem mapa: `undefined` (a coluna fica como a lista a deixou).
+ * `priority` nulo ou ausente: `null` (Sem severidade, Q-099-33 recomendação A: o valor não foi gravado; não se supõe Average). Valor fora do mapa
+ * (por exemplo acima de 4): `null` com a nota `priority_fora_do_mapa` (contagem; o valor nunca vai a log nem a tabela); a regra "acima de 4 = Low" da ferramenta não se aplica.
+ */
+export function severidadeDaPrioridade(valor: unknown, mapa: ReadonlyMap<string, string> | undefined, notas: string[]): string | null | undefined {
+  if (mapa === undefined || mapa.size === 0) return undefined;
+  if (valor === undefined || valor === null) return null;
+  const chave = typeof valor === 'number' && Number.isInteger(valor) ? String(valor) : typeof valor === 'string' && /^[1-9]\d{0,2}$/.test(valor) ? valor : null;
+  const sev = chave === null ? undefined : mapa.get(chave);
+  if (sev === undefined) notas.push('priority_fora_do_mapa');
+  return sev ?? null;
+}
 const data = (ms: number | null): Date | null => (ms === null ? null : new Date(ms));
 
 function colunaDoPasso(ref: Referencia, quadro: string | null, coluna: string, dia: string, notas: string[]): { passo: ColunaDoPasso; tipo: 'fila' | 'execucao' | null } | undefined {
@@ -216,6 +247,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   const pai = pais[0] === undefined || (paiTipo !== undefined && !paiTipo.eh_item) ? null : pais[0];
   if (pais[0] !== undefined && pai === null) notas.push('pai_sprint');
 
+  const severidade = severidadeDaPrioridade(e.card.priority, ref.prioridades, notas);
   const titulo = texto(e.card.title);
   const eventos: EventoCard[] = [{ card_id: e.id, tipo: 'criado', ocorrido_em: new Date(criado) }];
   if (arquivadoNativo !== null) eventos.push({ card_id: e.id, tipo: 'arquivado', ocorrido_em: new Date(arquivadoNativo) });
@@ -227,7 +259,8 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
-      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, ...colunasDeLista(e.card, ref.camposLista, notas),
+      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), ...colunasDeLista(e.card, ref.camposLista, notas),
+      ...(severidade === undefined ? {} : { severidade }),
     },
     transicoes, eventos, notas,
   };

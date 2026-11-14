@@ -3,7 +3,8 @@
 # Casos: só docs, web, web+server, e2e, packages/* (inteiro), raiz (inteiro), tools sem typecheck e fallback sem origin/develop.
 set -uo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-TMP="$(mktemp -d)"
+mkdir -p "$RAIZ/node_modules/.cache"
+TMP="$(mktemp -d "$RAIZ/node_modules/.cache/typecheck-alterados-test.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 mkdir -p "$TMP/bin"
@@ -119,6 +120,41 @@ git commit -qm rm
 roda
 grep -qx 'pnpm --filter @metricas-dspd/web run typecheck' "$PNPM_LOG"
 verifica ".ts removido em web roda o typecheck do web" $?
+
+# 8b) alteração ainda não commitada (árvore e arquivo novo) também conta: sem commit não dá verde em branco.
+volta feature/suja
+echo b >>web/src/a.ts
+roda
+grep -qx 'pnpm --filter @metricas-dspd/web run typecheck' "$PNPM_LOG"
+verifica "mudança não commitada em web roda o typecheck do web" $?
+git checkout -q -- web/src/a.ts
+echo novo >server/src/novo.ts
+roda
+grep -qx 'pnpm --filter @metricas-dspd/server run typecheck' "$PNPM_LOG"
+verifica "arquivo novo não rastreado em server roda o typecheck do server" $?
+rm server/src/novo.ts
+
+# 8c) K-319: nome acentuado em server/ casa com server/* (sem a citação em octal do git).
+volta feature/acento
+echo novo >'server/src/ção.ts'
+git add -A
+git commit -qm acento
+roda
+grep -qx 'pnpm --filter @metricas-dspd/server run typecheck' "$PNPM_LOG"
+verifica "arquivo acentuado em server/ roda o typecheck do server" $?
+
+# 8d) K-319: branch órfã (sem merge-base com origin/develop) cai no typecheck inteiro.
+git switch -q --orphan feature/orfa
+mkdir -p scripts # a órfã começa com a árvore vazia: o script sob teste volta como arquivo não rastreado
+cp "$RAIZ/scripts/typecheck-alterados.sh" scripts/
+echo a >orfao.ts
+git add orfao.ts
+git commit -qm orfa
+roda
+grep -qx 'pnpm run typecheck' "$PNPM_LOG"
+verifica "branch órfã sem merge-base cai no typecheck inteiro" $?
+grep -q 'sem merge-base' <<<"$saida"
+verifica "branch órfã avisa que não há merge-base" $?
 
 # 9) fallback: sem origin/develop, typecheck inteiro.
 novo_repo sem-base

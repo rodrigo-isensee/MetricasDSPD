@@ -1,6 +1,6 @@
 import { pino } from 'pino';
-import { carregarConfigAcelerato, coletarAcelerato, ErroColeta, prepararTls, projetarAcelerato } from '../modulos/acelerato/index.js';
-import { carregarConfigWorker } from '../plataforma/config.js';
+import { carregarConfigColetaAcelerato, coletarAcelerato, ErroColeta, prepararTls, projetarAcelerato } from '../modulos/acelerato/index.js';
+import { categoriaDoErro, ErroConfiguracao } from '../plataforma/categoria-erro.js';
 import { criarPool } from '../plataforma/db/pool.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { opcoesLog } from '../plataforma/log.js';
@@ -17,8 +17,7 @@ if (fonte !== 'ac' || opcoes.some((o) => !conhecidas.includes(o))) {
 const releitura = opcoes.includes('--releitura');
 let pool: ReturnType<typeof criarPool> | undefined;
 try {
-  const worker = carregarConfigWorker();
-  const config = carregarConfigAcelerato();
+  const { worker, config } = carregarConfigColetaAcelerato();
   const S = montarEsquemas(worker.DSPD_SCHEMA_PREFIXO);
   const tls = prepararTls(config.tlsSha256, config.tlsCertFile);
   const log = pino(opcoesLog(worker.LOG_LEVEL));
@@ -34,8 +33,9 @@ try {
   }
   process.exitCode = r.estado === 'ok' ? 0 : 3;
 } catch (e) {
-  const detalhe = e instanceof ErroColeta ? e.paraLog() : { codigo: 'erro-interno' };
-  process.stderr.write(`coleta ac falhou: ${JSON.stringify(detalhe)}\n`);
+  // Configuração ausente ou inválida: só os NOMES das variáveis (K-304), nunca o valor.
+  const detalhe = e instanceof ErroConfiguracao ? categoriaDoErro(e) : JSON.stringify(e instanceof ErroColeta ? e.paraLog() : { codigo: 'erro-interno' });
+  process.stderr.write(`coleta ac falhou: ${detalhe}\n`);
   process.exitCode = 1;
 } finally {
   await pool?.end();

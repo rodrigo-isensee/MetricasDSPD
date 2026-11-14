@@ -10,6 +10,8 @@ import {
   calcularS7,
   criarContextoAC,
   ALVOS_PADRAO,
+  CALENDARIO_SUSTENTACAO_PADRAO,
+  TURNOS_SUSTENTACAO,
   type BaseAC,
   type Chamado,
   type EtapaChamado,
@@ -114,6 +116,81 @@ describe('Acelerato', () => {
       expect(p3.restauracao.estatistica.valor.p50).toBeCloseTo(9, 6)
     if (p3?.primeiroAtendimento.estatistica.status === 'ok')
       expect(p3.primeiroAtendimento.estatistica.valor.p50).toBeCloseTo(0.5, 6)
+  })
+
+  it('D3b (Decisão 13): o dia útil da Sustentação tem 528 min (08:00-12:00 e 13:00-17:48), o BusinessMap segue com 480, e os alvos em dias são dias x 8,8 h', () => {
+    expect(TURNOS_SUSTENTACAO).toEqual([
+      { inicioMin: 480, fimMin: 720 },
+      { inicioMin: 780, fimMin: 1068 },
+    ])
+    expect(CALENDARIO_SUSTENTACAO_PADRAO.horasPorDia).toBe(8.8)
+    expect(CALENDARIO_PADRAO.horasPorDia).toBe(8)
+    const restauracao = (p: string) =>
+      ALVOS_PADRAO.find((a) => a.prioridade === p)!.restauracao_horas
+    expect([restauracao('P3'), restauracao('P4'), restauracao('P5')]).toEqual([17.6, 44, 88])
+    expect(ALVOS_PADRAO.find((a) => a.prioridade === 'P5')!.primeiro_atendimento_horas).toBe(8.8)
+    // prazos escritos em horas no PROC não mudam
+    expect(ALVOS_PADRAO.map((a) => a.primeiro_atendimento_horas).slice(0, 4)).toEqual([
+      0.25, 0.5, 2, 4,
+    ])
+    expect(restauracao('P1')).toBe(4)
+    expect(restauracao('P2')).toBe(8)
+  })
+
+  it('S1 informa as horas do dia útil do calendário usado, para a web converter horas em dias (8,8 na Sustentação, 8 no calendário padrão)', () => {
+    expect(
+      calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_SUSTENTACAO_PADRAO), F)
+        .horasPorDiaUtil,
+    ).toBe(8.8)
+    expect(
+      calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO), F).horasPorDiaUtil,
+    ).toBe(8)
+  })
+
+  it('S1 escolhe a medida pela unidade do alvo da célula: P1 e P2 (primeiro atendimento) em tempo corrido, os demais em útil (Q-099-11)', () => {
+    const ctx = criarContextoAC(
+      baseDe(25, (i) => ({ prioridade: i < 5 ? 'P1' : i < 10 ? 'P2' : 'P3' })),
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    const r = calcularS1(ctx, F)
+    const ps = (pr: string) => r.prioridades.find((p) => p.prioridade === pr)!
+    expect(ps('P1').primeiroAtendimento.unidade).toBe('corrido')
+    expect(ps('P1').restauracao.unidade).toBe('corrido')
+    expect(ps('P2').primeiroAtendimento.unidade).toBe('corrido')
+    expect(ps('P2').restauracao.unidade).toBe('util')
+    expect(ps('P3').restauracao.unidade).toBe('util')
+    expect(
+      ALVOS_PADRAO.filter((a) => a.unidade_primeiro_atendimento === 'corrido').map(
+        (a) => a.prioridade,
+      ),
+    ).toEqual(['P1', 'P2'])
+    expect(
+      ALVOS_PADRAO.filter((a) => a.unidade_restauracao === 'corrido').map((a) => a.prioridade),
+    ).toEqual(['P1'])
+  })
+
+  it('S1: a mesma amostra dá 10 h corridas (32 h menos 22 h de pausa no relógio corrido) ou 9 h úteis, conforme a unidade do alvo', () => {
+    const med = (unidade: 'corrido' | 'util') => {
+      const base = baseDe(25)
+      const alvos = ALVOS_PADRAO.map((a) =>
+        a.prioridade === 'P3'
+          ? { ...a, unidade_primeiro_atendimento: unidade, unidade_restauracao: unidade }
+          : a,
+      )
+      const p3 = calcularS1(
+        criarContextoAC({ ...base, config: { ...base.config, alvos } }, HOJE, CALENDARIO_PADRAO),
+        F,
+      ).prioridades.find((p) => p.prioridade === 'P3')!
+      const v = (x: typeof p3.restauracao) =>
+        x.estatistica.status === 'ok' ? x.estatistica.valor.p50 : NaN
+      return { r: v(p3.restauracao), pa: v(p3.primeiroAtendimento), u: p3.restauracao.unidade }
+    }
+    expect(med('corrido')).toEqual({ r: 10, pa: 0.5, u: 'corrido' })
+    const util = med('util')
+    expect(util.r).toBeCloseTo(9, 6)
+    expect(util.pa).toBeCloseTo(0.5, 6)
+    expect(util.u).toBe('util')
   })
 
   it('exceções de registro posterior ficam fora e a prioridade com menos de 20 chamados é insuficiente (nunca agregada)', () => {

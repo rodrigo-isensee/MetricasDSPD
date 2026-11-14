@@ -152,6 +152,15 @@ export const VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL: VersaoCriterio = {
   afeta: ['TENDENCIA_SUST'],
 }
 
+/** Pedido 099 (D9): o S12 entrou no mapa real só com o volume; a exceção de SLA por registro posterior sai nula (sem fonte), antes ficava no mock. */
+export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-12-s12-volume-real',
+  data: '2026-11-12',
+  descricao:
+    'O volume por sistema passou a ser calculado com o dado real do Acelerato; a exceção de SLA por registro posterior e a reincidência saem sem fonte (nulas, nunca 0%) até a coleta trazer os campos',
+  afeta: ['S12'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -165,6 +174,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
+  VERSAO_CRITERIO_S12_VOLUME_REAL,
 ]
 
 /**

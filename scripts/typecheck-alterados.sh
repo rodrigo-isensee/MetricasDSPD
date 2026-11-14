@@ -1,5 +1,5 @@
 #!/bin/bash
-# Typecheck do pre-push: só nos pacotes tocados contra origin/develop (web, server, e2e, tools/homolog).
+# Typecheck do pre-push: só nos pacotes tocados contra o merge-base com origin/develop (commits, índice, árvore de trabalho e arquivos novos; web, server, e2e, tools/homolog).
 # Mudança em packages/* (libs compartilhadas), config da raiz (package.json, lockfile, tsconfig) ou no workspace roda o typecheck inteiro.
 # Sem nenhum .ts/.tsx/tsconfig/package.json relevante, pula. A CI segue com o `pnpm run typecheck` inteiro.
 # Fallback: se origin/develop não existir (clone raso, remoto sem a ref), roda o typecheck inteiro.
@@ -9,6 +9,10 @@ cd "$(dirname "$0")/.." || exit 1
 base="origin/develop"
 if ! git rev-parse --verify -q "refs/remotes/$base" >/dev/null; then
   echo "typecheck-alterados: $base inexistente; fallback para o typecheck inteiro (pnpm run typecheck)." >&2
+  exec pnpm run typecheck
+fi
+if ! mb="$(git merge-base "refs/remotes/$base" HEAD 2>/dev/null)"; then
+  echo "typecheck-alterados: sem merge-base com $base; fallback para o typecheck inteiro (pnpm run typecheck)." >&2
   exec pnpm run typecheck
 fi
 
@@ -34,14 +38,17 @@ while IFS= read -r f; do
     package.json) raiz_pkg=1 ;;
     pnpm-lock.yaml | pnpm-workspace.yaml | tsconfig*.json) inteiro=1 ;;
   esac
-done < <(git diff --name-only "$base...HEAD" -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml')
+done < <({
+  git -c core.quotePath=false diff --name-only "$mb" -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
+  git -c core.quotePath=false ls-files --others --exclude-standard -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
+} | sort -u)
 
 # package.json da raiz: só conta se mudou algo além do bloco "scripts" (dependências, workspaces, etc.).
 if [ "$raiz_pkg" -eq 1 ] && [ "$inteiro" -eq 0 ]; then
-  sem_scripts() { # ref; imprime o package.json da raiz sem "scripts" (vazio se não existir)
-    git show "$1:package.json" 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);delete j.scripts;console.log(JSON.stringify(j))}catch(e){console.log("")}})'
+  sem_scripts() { # ref (ou "arvore" para o arquivo em disco); imprime o package.json da raiz sem "scripts" (vazio se não existir)
+    { if [ "$1" = arvore ]; then cat package.json; else git show "$1:package.json"; fi; } 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);delete j.scripts;console.log(JSON.stringify(j))}catch(e){console.log("")}})'
   }
-  [ "$(sem_scripts "$base")" != "$(sem_scripts HEAD)" ] && inteiro=1
+  [ "$(sem_scripts "$mb")" != "$(sem_scripts arvore)" ] && inteiro=1
 fi
 
 if [ "$inteiro" -eq 1 ]; then
