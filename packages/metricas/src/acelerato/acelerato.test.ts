@@ -194,7 +194,8 @@ describe('Acelerato', () => {
   })
 
   it('S1 repassa a unidade de exibição do PROC (K-314) sem usá-la em conta: números idênticos com qualquer unidade, inclusive nula', () => {
-    const base = baseDe(25, (i) => ({ prioridade: i < 5 ? 'P1' : i < 10 ? 'P2' : 'P3' }))
+    // 25 chamados de P3 (acima de 20): estatística e razão saem e são comparadas
+    const base = baseDe(25)
     const com = (exibir: (a: (typeof ALVOS_PADRAO)[number]) => (typeof ALVOS_PADRAO)[number]) =>
       calcularS1(
         criarContextoAC(
@@ -233,6 +234,9 @@ describe('Acelerato', () => {
       JSON.parse(
         JSON.stringify(r, (k, v: unknown) => (k === 'exibirEm' ? undefined : v)),
       ) as unknown
+    const p3 = padrao.prioridades.find((p) => p.prioridade === 'P3')!
+    expect(p3.restauracao.razaoMediana).toBe(0.51)
+    expect(p3.restauracao.estatistica.status).toBe('ok')
     expect(semExibir(nulas)).toEqual(semExibir(padrao))
     expect(semExibir(trocadas)).toEqual(semExibir(padrao))
   })
