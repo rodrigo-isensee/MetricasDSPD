@@ -42,13 +42,16 @@ export function useReferenciaDasTendencias(): {
 }
 
 /**
- * Filtros das tendências: a data de referência e, só com seleção, a equipe do bloco (L4). Sem equipe a consulta
- * é idêntica à de antes (mesma chave de cache, mesma URL).
+ * Filtros das tendências: a data de referência e, só com seleção, a equipe do bloco (L4) e o setor do bloco Fluxo
+ * (L11; o servidor passa a aceitá-lo com o L10b). Sem seleção a consulta é idêntica à de antes (mesma chave de
+ * cache, mesma URL).
  */
 export const filtrosTendencia = (
   dataReferencia: string | undefined,
   equipe: readonly string[] = [],
-): FiltrosDe<'TENDENCIA_FLUXO'> => ({
+  setor: readonly string[] = [],
+): FiltrosDe<'TENDENCIA_FLUXO'> & { setor?: string[] } => ({
   ...(dataReferencia ? { dataReferencia } : {}),
+  ...(setor.length > 0 ? { setor: [...setor] } : {}),
   ...(equipe.length > 0 ? { equipe: [...equipe] } : {}),
 })
