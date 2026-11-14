@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k295-l6-web
-commit: e5efc31c6a8e29565544974cf980c4cee013c8de
+commit: d1ea2991d49e9fb5d39140a8f1aba1ea9e88d971
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-13
+data: 2026-11-14
 ---
 
 # QA: K-295, ajustes depois do L6 web (097, E4.41)
@@ -66,6 +66,10 @@ Aprovado. Cobertura da web 100% em todas as métricas, axe sem violação nas me
 
 - **Vermelho antes do verde:** `forge-testes --vermelho` não se aplica a este projeto; a prova de que os testes novos falham sem a regra são M1 a M12, com a falha observada por mutante. Os 6 specs e2e do review não foram repetidos (brief).
 - **Suíte completa e e2e inteiro:** valem pelo check-run `bateria` do CI do PR no mesmo sha, não pelo local.
+
+## Revalidação (E4.61, junção com a develop, head d1ea2991)
+
+Delta: merge de `9e3a52a4` (K-287, equipes da Sustentação só por slug) em `fix/k295-l6-web`. `git show --remerge-diff d1ea2991`: um único conflito, nos imports de `web/src/features/filtros/codec.ts`; a resolução manteve `TIPO_POR_ID` (K-295) e descartou `idEquipeSustentacao` (que o K-287 removeu). Sem referência restante a `idEquipeSustentacao` em `web/src`. Filtros por tipo e equipes só por slug (`useFiltros.test.tsx`, `equipe=sssc-fluig`) convivem: `pnpm exec vitest run src/features/filtros --maxWorkers=2` em `web/`: 11 arquivos, 141 testes passados. E2E dos filtros não repetido (vale o check-run `bateria` do PR no mesmo sha). A1 e A2 seguem recomendados. Parecer: aprovado.
 
 ## Achados
 
