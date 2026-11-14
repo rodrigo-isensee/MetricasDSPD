@@ -190,6 +190,17 @@ describe('transporte do MockFonteMetricas', () => {
     )
   })
 
+  it('postMessage que lança valor que não é Error também rejeita, com o texto', async () => {
+    class LancaTexto extends FalsoWorker {
+      override postMessage(): void {
+        throw 'texto solto' as unknown as Error
+      }
+    }
+    vi.stubGlobal('Worker', LancaTexto)
+    const f = new MockFonteMetricas({ latenciaMs: 0 })
+    await expect(f.criterios()).rejects.toThrow('Falha ao enviar ao Worker do mock: texto solto')
+  })
+
   it('pedido antes do iniciar é recusado com erro claro, sem mudar o fluxo normal', async () => {
     const estado: EstadoWorker = {}
     const r = await tratarPedido(estado, { id: 7, metodo: 'criterios', args: [] })
