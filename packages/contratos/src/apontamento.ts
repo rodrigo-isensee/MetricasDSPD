@@ -52,6 +52,12 @@ export const pessoaRefSchema = z.union([
 ])
 export type PessoaRef = z.infer<typeof pessoaRefSchema>
 
+/**
+ * Identificador único da linha sem projeto (card sem iniciativa na referência) em `opcoes.projetos`, em `distribuicao.porProjeto` e em
+ * `registroIncompleto` (`projeto.id` e `projetoIds`). Não é um projeto: o front não a conta como projeto (K-324). Valor fixo, parte do contrato.
+ */
+export const ID_SEM_PROJETO = 'sem-projeto'
+
 /** Flags de qualidade (§3.4; não excludentes, M-11 do UX). "completo" = nenhuma flag. */
 export const FLAGS_QUALIDADE = [
   'sem-comentario',
