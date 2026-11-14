@@ -35,3 +35,31 @@ Com opções, a lista segue com busca, contagem e retorno do Enter (`:752` do te
 ## Pendência de medição
 
 Contraste do texto `text-texto-2` no estado de erro, leitor de tela (B3) e a ordem de foco real (B1) não foram medidos; cabe ao QA (`@axe`, teste de teclado). B1 e M1 são leitura do código e do comportamento documentado do Radix e do TanStack Query v5; um teste de teclado confirma ou derruba os dois.
+
+## Delta (E4.75): revisão das voltas, `7a3436cb..6f5111de`
+
+Lidos na worktree 041: `FiltroMulti.tsx`, `BarraFiltros.tsx`, `useFiltros.ts` e a seção Delta de `docs/qa/097-k323.md`. Itens de código marcados `lido`; o que vem do QA (teclado no chromium, axe nos 4 estados, claro e escuro) cito como `medido (QA)`, sem repetir a medição.
+
+### Veredito
+
+**Aprovado com ressalvas.** B1, M1, M2 e B2 estão resolvidos. Nenhum achado bloqueante. Há 1 achado médio novo (D1, folha mobile) e 1 baixo (D2); o A7 do review eu recomendo acatar (D3). Nenhum deles impede o envio; D1 eu corrigiria na mesma branch por ser barato.
+
+### Conferência
+
+| Item | Resultado | Evidência |
+|---|---|---|
+| B1 foco no Tentar de novo ao abrir; na busca quando há campo | resolvido | `lido`: `FiltroMulti.tsx:376-382` só impede o foco padrão se `buscaRef.current` existe; sem campo o Radix foca o primeiro focável (o botão). `medido (QA)`: Enter abre e o foco já está no botão, sem Tab. Depois do sucesso, `:117-120` leva o foco ao botão ou, se ele saiu, à busca (`tentarRef.current ?? buscaRef.current`); `medido (QA)`: busca recebe o foco |
+| M1 botão montado, `aria-disabled`, "Tentando de novo..." | resolvido | `lido`: `useFiltros.ts:79-96` mantém `opcoesErro` verdadeiro durante a tentativa; `FiltroMulti.tsx:189-199` com `aria-disabled` (não `disabled`, o foco fica) e texto trocado; a guarda `if (tentando) return` evita reentrada |
+| M1 segunda falha: texto muda, foco volta ao botão | resolvido | `lido`: `BarraFiltros.tsx:33-34` ("Ainda não foi possível carregar tipos. Tente de novo em instantes.") e `RegiaoVazia` reescreve o `textContent` ao mudar `texto`, o que a região `role=status` anuncia; foco pelo efeito `:117`. `medido (QA)` nos 4 estados |
+| M2 Equipe com o mesmo vazio | resolvido | `lido`: `BarraFiltros.tsx:60` `vazio={sem('equipes','f')}`; "Carregando equipes..." e "Nenhuma equipe disponível neste recorte." |
+| B2 nome acessível por filtro | resolvido | `lido`: `FiltroMulti.tsx:194` `aria-label="Tentar de novo carregar tipos"`; o texto visível "Tentar de novo" abre o nome, então vale o 2.5.3 (Rótulo no nome). Os 4 filtros passam `tentarDe` |
+
+### Achados novos
+
+- **D1 (médio, WCAG 2.4.3 Ordem de foco e 3.2.2; heurística 5; folha mobile)** `FiltroMulti.tsx:113-120` com `BarraFiltros.tsx:266`. Na folha as quatro listas ficam montadas ao mesmo tempo e compartilham `tentando`. Quando a tentativa termina, o efeito de cada `Lista` roda e cada uma chama `.focus()` no seu botão ou na sua busca; como os efeitos rodam em ordem, o foco termina na última lista da folha, não na que a pessoa acionou. No sucesso, isso é o campo de busca de outro filtro, o que também abre o teclado virtual, justamente o que o A1 da folha evita (`BarraFiltros.tsx:253`). `lido` (nada no teste ou na medição do QA cobre a folha; a prova de teclado foi no popover desktop). Correção: só mover o foco se o foco atual estava dentro desta lista, por exemplo guardar `document.activeElement` ao iniciar a tentativa e agir só se `tentarRef.current === ativo`; ou, na folha, não buscar a busca no sucesso e focar o `fieldset`/região. Teste: folha com dois filtros em erro, acionar o segundo, afirmar o foco depois do sucesso.
+- **D2 (baixo, heurística 1; leitor de tela)** `FiltroMulti.tsx:194-197`. O estado "Tentando de novo" só aparece no nome do botão com o foco nele; a região viva não muda durante a tentativa (o texto segue "Não foi possível carregar tipos."), e leitores de tela costumam não reanunciar mudança de nome do elemento focado. A segunda falha é anunciada, a tentativa em si pode ficar muda. Correção opcional: passar o texto "Tentando de novo..." para a região viva durante a tentativa. `lido`; vale conferir com NVDA e VoiceOver junto do B3 anterior.
+- **D3 (A7 do review, recomendado: concordo)** `FiltroMulti.tsx:117-120, 184-188`. Se a nova tentativa dá certo mas a lista vem vazia (recorte sem equipes, "Nenhuma equipe disponível neste recorte."), `tentarRef` e `buscaRef` são nulos: o botão saiu do DOM e o foco cai no `body` (ou no contêiner), com a pessoa sem saber onde está; o texto novo é anunciado pela região, mas o teclado perde o lugar, o mesmo defeito do B1 por outro caminho. `lido`. Correção: no `RegiaoVazia`, dar `tabIndex={-1}` ao `<p>` e usá-lo como terceiro recuo do foco (`tentarRef ?? buscaRef ?? regiaoRef`); o foco no texto também o faz ser lido. Teste: retry que devolve `[]`, afirmando `document.activeElement` no texto. Concordo em fazer, porque o caso é raro mas o custo é uma linha e evita foco perdido.
+
+### O que não mudou (conferido, `lido`)
+
+Lista com opções, busca, contagem, Enter, Esc, Limpar seleção e Fechar seguem como estavam; o texto por gênero está certo; `retry: false` mantém o Tentar de novo como a única forma de repetir. Pendências que continuam do QA/medição: leitor de tela real (B3 anterior e D2) e o contraste de `text-texto-2` no erro (o axe do QA não acusou).
