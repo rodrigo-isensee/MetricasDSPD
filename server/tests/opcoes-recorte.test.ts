@@ -64,6 +64,7 @@ describe('opcoes.recorte (K-215)', () => {
     const c = consultas.find((x) => x.texto.includes('ref_dominio'));
     expect(c?.texto).toMatch(/SELECT campo, rotulo FROM dspd_ac\.ref_dominio/);
     expect(c?.texto).toContain('vigente_ate IS NULL');
+    expect(c?.texto).toContain('ORDER BY campo, ordem, codigo');
     expect(c?.valores).toEqual([['organizacao_recorte', 'tipo_recorte', 'equipe']]);
     expect(JSON.stringify(o)).not.toMatch(/codigo|"3"|"23"/);
   });
