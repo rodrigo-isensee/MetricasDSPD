@@ -19,6 +19,9 @@ export interface DadosAba {
   diarioDe: string | undefined
   diarioAte: string | undefined
   definirDiario: (de: string | null, ate: string | null) => void
+  /** Rótulos das equipes escolhidas no filtro (nunca pessoa); vazio sem filtro. */
+  equipes: string[]
+  removerEquipe: () => void
 }
 
 const Ctx = createContext<DadosAba | null>(null)

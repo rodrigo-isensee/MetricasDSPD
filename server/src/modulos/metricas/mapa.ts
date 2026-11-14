@@ -1,6 +1,6 @@
 import { MOTIVO_NAO_CLASSIFICADO, MOTIVOS_BLOQUEIO, TIPOS_CARD, type VersaoCriterio } from '@metricas-dspd/contratos';
 import { CALENDARIO_PADRAO, diaDeIso, fimDoExpediente } from '@metricas-dspd/metricas/core';
-import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
+import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC, UnidadePrazo } from '@metricas-dspd/metricas/acelerato';
 import type {
   BaseBM, ConfigBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao, FichaResultado,
 } from '@metricas-dspd/metricas/businessmap';
@@ -172,14 +172,20 @@ export const etapaDe = (l: LinhaEtapa): EtapaChamado => ({
   motivo_pendencia: campo(l.motivo_pendencia),
 });
 
+/** A coluna tem CHECK em `corrido` e `util`; valor fora disso é erro, nunca um padrão (a unidade muda o número da S1). */
+const unidadeDe = (u: string): UnidadePrazo => {
+  if (u === 'corrido' || u === 'util') return u;
+  throw new Error('unidade de prazo desconhecida em ref_alvo_prioridade');
+};
+
 export type LinhasAC = { chamados: LinhaChamado[]; etapas: LinhaEtapa[]; alvos: LinhaAlvo[]; criterios: VersaoCriterio[] };
 
 export const montarBaseAC = (l: LinhasAC): BaseAC => ({
   chamados: l.chamados.map(chamadoDe), etapas: l.etapas.map(etapaDe),
   config: {
     alvos: l.alvos.map((a) => ({
-      prioridade: campo(a.prioridade), primeiro_atendimento_horas: Number(a.prazo_pa_horas_uteis),
-      restauracao_horas: Number(a.prazo_r_horas_uteis),
+      prioridade: campo(a.prioridade), primeiro_atendimento_horas: Number(a.prazo_pa_horas), unidade_primeiro_atendimento: unidadeDe(a.unidade_pa),
+      restauracao_horas: Number(a.prazo_r_horas), unidade_restauracao: unidadeDe(a.unidade_r),
     })),
     criterios: l.criterios,
   },

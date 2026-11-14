@@ -410,6 +410,16 @@ export function respostaVazia(base: RespostaApontamento = RESPOSTA_FICTICIA): Re
   }
 }
 
+/**
+ * Período dos filtros sem apontamento, mas com o mapa diário cheio (K-303): o mapa tem janela própria, então o vazio
+ * dos cartões do período não esvazia o mapa.
+ */
+export function respostaVaziaComMapa(
+  base: RespostaApontamento = RESPOSTA_FICTICIA,
+): RespostaApontamento {
+  return { ...respostaVazia(base), diario: base.diario }
+}
+
 const insuf = (n: number): PctComPiso => ({ status: 'insuficiente', n, minimo: MINIMO_AMOSTRA })
 
 /** Recorte de 1 a 19 apontamentos (CA-3): soma e contagem ficam; percentual e utilização viram amostra insuficiente. */

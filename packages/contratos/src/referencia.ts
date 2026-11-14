@@ -11,6 +11,8 @@ export const opcoesFiltroFluxoSchema = z
     equipes: z.array(opcao),
     tipos: z.array(opcao),
     sistemas: z.array(opcao),
+    /** L10a do 097 (E7): setores sem sobrenome; opcional para a resposta de servidor anterior seguir válida. */
+    setores: z.array(opcao).optional(),
     historico,
   })
   .strict()
