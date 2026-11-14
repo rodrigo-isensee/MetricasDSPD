@@ -657,15 +657,19 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
 
 /** Fonte cujas opções de Tipo, Sistema e Prioridade vêm vazias (recorte sem dado) ou nunca chegam (carregando). */
 class FonteOpcoes extends MockFonteMetricas {
-  private readonly modo: 'vazias' | 'carregando' | 'estranha'
-  constructor(modo: 'vazias' | 'carregando' | 'estranha') {
+  private readonly modo: 'vazias' | 'carregando' | 'estranha' | 'erro'
+  private falhas: number
+  constructor(modo: 'vazias' | 'carregando' | 'estranha' | 'erro', falhas = 0) {
     super({ latenciaMs: 0 })
     this.modo = modo
+    this.falhas = falhas
   }
   override async opcoesFiltro<D extends Dominio>(
     dominio: D,
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.modo === 'carregando') return new Promise(() => {})
+    if (this.modo === 'erro' && this.falhas-- > 0) throw new Error('falhou')
+    if (this.modo === 'erro') return super.opcoesFiltro(dominio)
     const real: OpcoesFiltro = await super.opcoesFiltro(dominio)
     let alterado: OpcoesFiltro
     if (real.dominio !== 'businessmap') alterado = { ...real, prioridades: [] }
@@ -702,6 +706,47 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     await userEvent.click(await screen.findByTestId('filtro-tipo'))
     expect(await screen.findByText('Carregando tipos...')).toBeInTheDocument()
     expect(screen.queryByText(/disponível neste recorte/)).toBeNull()
+  })
+
+  it('a lista vazia é uma região viva (role=status) que recebe o texto depois de montada', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('vazias'))
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    const regiao = await screen.findByTestId('tipo-vazio')
+    expect(regiao).toHaveAttribute('role', 'status')
+    expect(regiao).toHaveTextContent('Nenhum tipo disponível neste recorte.')
+  })
+
+  it('opções que falham: erro com texto claro em vez de Carregando', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('erro', 10))
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    const regiao = await screen.findByTestId('tipo-vazio')
+    expect(regiao).toHaveAttribute('role', 'status')
+    expect(regiao).toHaveTextContent('Não foi possível carregar tipos.')
+    expect(screen.queryByText(/Carregando/)).toBeNull()
+    expect(screen.queryByTestId('tipo-busca')).toBeNull()
+  })
+
+  it('Tentar de novo refaz a consulta e a lista volta com as opções', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('erro', 1))
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    await screen.findByText('Não foi possível carregar tipos.')
+    await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
+    expect(await screen.findByTestId('tipo-opcao-melhoria')).toBeInTheDocument()
+  })
+
+  it('o erro também vale para Equipe, Sistema e Prioridade', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('erro', 10))
+    await userEvent.click(await screen.findByTestId('filtro-equipe'))
+    expect(await screen.findByText('Não foi possível carregar equipes.')).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(screen.getByTestId('filtro-sistema'))
+    expect(await screen.findByText('Não foi possível carregar sistemas.')).toBeInTheDocument()
+  })
+
+  it('Prioridade com erro (Sustentação) diz que não carregou', async () => {
+    renderizarBarra('/sustentacao', new FonteOpcoes('erro', 10))
+    await userEvent.click(await screen.findByTestId('filtro-prioridade'))
+    expect(await screen.findByText('Não foi possível carregar prioridades.')).toBeInTheDocument()
   })
 
   it('com opções, a lista aparece com a busca e sem a mensagem', async () => {
