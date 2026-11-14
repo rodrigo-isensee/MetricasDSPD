@@ -22,6 +22,9 @@ import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap'
 import * as mock from '@metricas-dspd/mock'
 import type { OpcoesNucleo, Pedido, Resposta } from './protocolo'
 
+/** Equipes do Acelerato que o mock lista (o gerador só tem estas três). */
+const EQUIPES_AC = ['SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG'] as const
+
 type Carregado = {
   ctx: lib.ContextosMetricas
   /** Critérios da pesquisa (dominio 'pesquisa', T2.6), lidos do contexto da terceira fonte. */
@@ -234,11 +237,15 @@ export class NucleoMock {
         : {
             dominio: 'acelerato',
             // Slug do nome, como a API (dim_chamado.equipe); o mock não tem equipe por chamado.
-            equipes: ['SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG'].map((nome) => ({
-              id: lib.slug(nome),
-              nome,
-            })),
+            equipes: EQUIPES_AC.map((nome) => ({ id: lib.slug(nome), nome })),
             prioridades: PRIORIDADES.map((p) => ({ id: p.toLowerCase(), nome: p })),
+            // K-215: rótulos do recorte como o servidor os entrega (só texto; a organização e o tipo vêm dos chamados
+            // do gerador). Sem dado de pessoa.
+            recorte: {
+              organizacoes: [...new Set(base.ac.chamados.map((c) => c.organizacao))],
+              tipos: [...new Set(base.ac.chamados.map((c) => c.tipo_fila))],
+              equipes: [...EQUIPES_AC],
+            },
             historico: {
               inicio: lib.dataIso(
                 lib.minimo(base.ac.chamados.map((c) => c.aberto_em)),
