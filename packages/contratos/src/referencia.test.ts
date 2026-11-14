@@ -55,12 +55,31 @@ describe('schemas de referência', () => {
     const recorte = { organizacoes: ['ORG'], tipos: ['TIPO'], equipes: ['EQ A', 'EQ B'] }
     expect(opcoesFiltroSchema.safeParse(base).success).toBe(true)
     expect(opcoesFiltroSchema.safeParse({ ...base, recorte }).success).toBe(true)
-    expect(opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, extra: 1 } }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, organizacoes: [] } }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, tipos: [] } }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, equipes: [] } }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, equipes: [''] } }).success).toBe(false)
-    expect(opcoesFiltroSchema.safeParse({ dominio: 'businessmap', equipes: [], tipos: [], sistemas: [], historico, recorte }).success).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, extra: 1 } }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, organizacoes: [] } }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, tipos: [] } }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, equipes: [] } }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({ ...base, recorte: { ...recorte, equipes: [''] } }).success,
+    ).toBe(false)
+    expect(
+      opcoesFiltroSchema.safeParse({
+        dominio: 'businessmap',
+        equipes: [],
+        tipos: [],
+        sistemas: [],
+        historico,
+        recorte,
+      }).success,
+    ).toBe(false)
   })
   it('valida a referência (datas e instantes com deslocamento) e rejeita campo extra', () => {
     const ok = {

@@ -17,7 +17,11 @@ export const opcoesFiltroFluxoSchema = z
   })
   .strict()
 const recorte = z
-  .object({ organizacoes: z.array(z.string().min(1)).min(1), tipos: z.array(z.string().min(1)).min(1), equipes: z.array(z.string().min(1)).min(1) })
+  .object({
+    organizacoes: z.array(z.string().min(1)).min(1),
+    tipos: z.array(z.string().min(1)).min(1),
+    equipes: z.array(z.string().min(1)).min(1),
+  })
   .strict()
 export const opcoesFiltroSustentacaoSchema = z
   .object({
