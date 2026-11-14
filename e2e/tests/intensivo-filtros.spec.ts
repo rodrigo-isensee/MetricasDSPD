@@ -772,7 +772,7 @@ test('IF-I12 combinações sem dados: estado vazio/insuficiente correto, nunca e
     '/tatico?equipe=dados&sistema=crm',
     '/espera-invisivel?equipe=senior&sistema=core-5g',
     '/estrategico?sistema=portal-do-cliente&periodo=6m',
-    '/operacional?cadencia=sustentacao&sust_equipe=fluig&sust_prioridade=p1&sust_periodo=4s',
+    '/operacional?cadencia=sustentacao&sust_equipe=sssc-fluig&sust_prioridade=p1&sust_periodo=4s',
   ]) {
     await page.goto(url);
     const r = await retrato(page);

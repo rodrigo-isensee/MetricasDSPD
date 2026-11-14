@@ -189,9 +189,8 @@ test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
     const chamadas = await semear(page)
     await abrir(page, `${ABA}?pessoa=Ana%20Exemplo&tipo=%3Cscript%3E&nivelMatriz=xyz`)
     await expect(page.getByTestId('filtros-invalidos')).toBeVisible()
-    await expect(page.getByTestId('filtros-invalidos')).toContainText(
-      /em: Tipo, pessoa, Agrupar por\./,
-    )
+    await expect(page.getByTestId('filtros-invalidos')).toContainText(/em: Tipo, Agrupar por\./)
+    await expect(page.getByTestId('aviso-pessoa-retirada')).toBeVisible()
     await expect(aba(page)).not.toContainText('Ana Exemplo')
     await expect(aba(page)).not.toContainText('<script>')
     for (const c of chamadas) {
@@ -209,7 +208,7 @@ test.describe('recorte vazio e amostra insuficiente (CA-2, CA-3, o3)', () => {
   }) => {
     await semear(page)
     await abrir(page, `${ABA}?tipo=999&projeto=1042`)
-    await expect(page.getByText('Nenhum apontamento encontrado').first()).toBeVisible()
+    await expect(page.getByText('Nenhum apontamento no período dos filtros').first()).toBeVisible()
     const barra = page.getByTestId('barra-filtros-apontamento')
     await expect(barra.getByRole('button', { name: /Remover filtro/ })).toHaveCount(2)
     await expect(barra.getByRole('button', { name: 'Limpar filtros' })).toBeVisible()
@@ -272,7 +271,9 @@ test.describe('Outra área (decisão do dono de 2026-11-02)', () => {
       cartao(page, 'AP-CAPACIDADE-PESSOA').getByRole('rowheader', { name: /Outra área/ }),
     ).toHaveCount(0)
     // a nota mora junto do cartão de capacidade (097, Q-3), não na barra de filtros, que não tem mais Pessoa
-    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).toContainText(/Outra área: pessoas que não/)
+    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).toContainText(
+      /Outra área soma várias pessoas e por isso não entra na capacidade por pessoa/,
+    )
     await expect(page.getByTestId('barra-filtros-apontamento')).not.toContainText('Outra área')
     await expect(page.getByRole('button', { name: /^Pessoa/ })).toHaveCount(0)
   })
@@ -739,6 +740,29 @@ test.describe('acessibilidade automática (CT-65, WCAG 2.2 AA)', () => {
         await expect(page.locator('[aria-busy="true"]')).toHaveCount(0)
         const r = await rodarAxe(page)
         expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+      })
+    }
+  }
+
+  // K-289 (A1) e B1 da revisão de UX: o aviso novo do filtro Pessoa usa text-atencao; o contraste é medido nos dois temas e larguras.
+  for (const tema of ['claro', 'escuro'] as const) {
+    for (const largura of [1280, 375]) {
+      test(`aviso do filtro Pessoa retirado, tema ${tema} em ${largura}px: visível e zero violações críticas ou sérias`, async ({
+        page,
+      }) => {
+        await page.emulateMedia({ colorScheme: tema === 'escuro' ? 'dark' : 'light' })
+        await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), tema)
+        await page.setViewportSize({ width: largura, height: largura === 375 ? 812 : 900 })
+        await semear(page)
+        await abrir(page, `${ABA}?pessoa=Ana%20Exemplo`)
+        const aviso = page.getByTestId('aviso-pessoa-retirada')
+        await expect(aviso).toHaveText('O filtro Pessoa foi retirado; use Equipe.')
+        await expect(aviso.locator('svg')).not.toHaveCount(0)
+        const r = await rodarAxe(page, { incluir: '[data-testid="barra-filtros-apontamento"]' })
+        expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+        // contraste é regra "serious" do axe: nenhuma violação de color-contrast, nem informativa, no aviso
+        const todas = [...r.bloqueantes, ...r.informativas].filter((v) => v.id === 'color-contrast')
+        expect(todas, JSON.stringify(todas)).toEqual([])
       })
     }
   }

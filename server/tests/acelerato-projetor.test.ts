@@ -1,3 +1,5 @@
+import { acelerato } from '@metricas-dspd/metricas';
+import { CALENDARIO_PADRAO, horasUteisEntre } from '@metricas-dspd/metricas/core';
 import { describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { carregarNaturezaPorPrefixo, projetarAcelerato, TAMANHO_LOTE } from '../src/modulos/acelerato/projetor.js';
@@ -15,11 +17,12 @@ const etapaStg = (chamado: string, id: string, descricao: string, tempo: number)
   chamado_id: chamado, id_origem: id, stg_sk: '1', payload_sha256: Buffer.alloc(32), ausente_na_extracao: false, payload: { descricao, descricao_workflow: null, tempo_sla_segundos: tempo, quantidade_vezes: 1 },
 });
 
-type Cenario = { pendentes: ReturnType<typeof stg>[][]; etapas?: ReturnType<typeof etapaStg>[]; naturezas?: { codigo: string; rotulo: string }[]; semPendencia?: boolean };
+type Cenario = { pendentes: ReturnType<typeof stg>[][]; etapas?: ReturnType<typeof etapaStg>[]; naturezas?: { codigo: string; rotulo: string }[]; semPendencia?: boolean; versaoD7?: boolean };
 function montar(c: Cenario) {
   let lote = 0;
   const d = criarDublePg((q: Chamada) => {
     const t = q.texto;
+    if (t.includes('ref_versao_criterio')) return c.versaoD7 === true ? [{ '?column?': 1 }] : [];
     if (t.startsWith('SELECT 1 FROM')) return c.semPendencia === true ? [] : [{ '?column?': 1 }];
     if (t.includes("campo = 'natureza_prefixo'")) return c.naturezas ?? [{ codigo: 'PFX-I', rotulo: 'incidente' }, { codigo: 'PFX-R', rotulo: 'requisicao' }, { codigo: 'PFX-X', rotulo: 'outro' }];
     if (t.includes('INSERT INTO dspd_ac.ctl_coleta ')) return [{ coleta_id: '77' }];
@@ -98,6 +101,24 @@ describe('projetarAcelerato (F2)', () => {
     expect(r.versoes).toBe(TAMANHO_LOTE + 1);
     const consultas = com(d, 'FROM dspd_ac.stg_chamado s').filter((x) => !x.texto.startsWith('SELECT 1'));
     expect(consultas.map((x) => x.valores[0])).toEqual(['0', String(100 + TAMANHO_LOTE - 1), '5000']);
+  });
+
+  it('K-308 (ADR 0027, item 7.3): sem a versão 099:D-7-528 a projeção monta em 8 h; com ela, em 8 h 48 (calendário escolhido uma vez por rodada)', async () => {
+    const SUST = acelerato.CALENDARIO_SUSTENTACAO_PADRAO;
+    const rodar = async (versaoD7: boolean) => {
+      const d = montar({ pendentes: [[stg(40, '7', {})]], etapas: [etapaStg('7', '1', 'Pendente', 16 * 3600)], versaoD7 });
+      await projetarAcelerato(d.pool, S, () => AGORA);
+      const [, , entrada, saida] = com(d, 'INSERT INTO dspd_ac.fato_etapa_chamado')[0]!.valores as string[];
+      const gate = d.chamadas.filter((x) => x.texto.includes('ref_versao_criterio'));
+      expect(gate).toHaveLength(1); // uma vez por rodada
+      expect(gate[0]!.valores).toEqual(['099:D-7-528']);
+      return { e: new Date(entrada!).getTime(), s: new Date(saida!).getTime() };
+    };
+    const antes = await rodar(false);
+    expect(horasUteisEntre(antes.e, antes.s, CALENDARIO_PADRAO)).toBeCloseTo(16, 6);
+    const depois = await rodar(true);
+    expect(horasUteisEntre(depois.e, depois.s, SUST)).toBeCloseTo(16, 6);
+    expect(depois.e).not.toBe(antes.e);
   });
 
   it('falha no meio desfaz tudo (ROLLBACK) e propaga', async () => {

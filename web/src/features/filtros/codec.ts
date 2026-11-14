@@ -3,7 +3,6 @@ import {
   PERIODOS_PADRAO,
   TIPO_ID,
   TIPO_POR_ID,
-  idEquipeSustentacao,
   type FiltrosFluxo,
   type FiltrosSustentacao,
   type OpcoesFiltro,
@@ -35,15 +34,13 @@ function lerLista<T extends string>(
   validos: readonly T[] | null,
   rotulo: string,
   invalidos: string[],
-  apelido: (v: string) => string = (v) => v,
 ): T[] {
   const bruto = lista(params, chave)
   const ok: T[] = []
-  for (const original of bruto) {
-    const v = apelido(original)
+  for (const v of bruto) {
     if (validos === null || (validos as readonly string[]).includes(v)) {
       if (!ok.includes(v as T)) ok.push(v as T)
-    } else invalidos.push(`${rotulo} "${original}"`)
+    } else invalidos.push(`${rotulo} "${v}"`)
   }
   // selecionar todos equivale a "Todos" (URL omite o parâmetro)
   if (validos !== null && ok.length === validos.length) return []
@@ -126,15 +123,7 @@ export function lerSustentacao(
   const invalidos: string[] = []
   return {
     filtros: {
-      // equipe por slug do dado real; os ids antigos (totvs, senior, fluig) viram o slug novo (L7a)
-      equipe: lerLista(
-        p,
-        'equipe',
-        idsDe(opcoes, 'equipes'),
-        'equipe',
-        invalidos,
-        idEquipeSustentacao,
-      ),
+      equipe: lerLista(p, 'equipe', idsDe(opcoes, 'equipes'), 'equipe', invalidos),
       prioridade: lerLista(p, 'prioridade', idsPrioridade(opcoes), 'prioridade', invalidos).map(
         (x) => x.toUpperCase() as Prioridade,
       ),
