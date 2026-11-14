@@ -13829,33 +13829,51 @@
                           "type": "boolean"
                         },
                         "porCausa": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "causa": {
-                                "type": "string",
-                                "enum": [
-                                  "Requisito",
-                                  "Código",
-                                  "Configuração",
-                                  "Dados",
-                                  "Ambiente",
-                                  "Integração",
-                                  "Teste insuficiente",
-                                  "Não informada"
-                                ]
-                              },
-                              "n": {
-                                "type": "number"
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "causa": {
+                                    "type": "string",
+                                    "enum": [
+                                      "Requisito",
+                                      "Código",
+                                      "Configuração",
+                                      "Dados",
+                                      "Ambiente",
+                                      "Integração",
+                                      "Teste insuficiente",
+                                      "Não informada"
+                                    ]
+                                  },
+                                  "n": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "causa",
+                                  "n"
+                                ],
+                                "additionalProperties": false
                               }
                             },
-                            "required": [
-                              "causa",
-                              "n"
-                            ],
-                            "additionalProperties": false
-                          }
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "motivoCausaRaiz": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "porSistema": {
                           "type": "array",
@@ -13882,6 +13900,7 @@
                         "criterios",
                         "campoDisponivel",
                         "porCausa",
+                        "motivoCausaRaiz",
                         "porSistema"
                       ],
                       "additionalProperties": false
@@ -33084,6 +33103,21 @@
                                       "util"
                                     ]
                                   },
+                                  "exibirEm": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string",
+                                        "enum": [
+                                          "min",
+                                          "h",
+                                          "dia"
+                                        ]
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
                                   "n": {
                                     "type": "number"
                                   },
@@ -33243,6 +33277,7 @@
                                 "required": [
                                   "alvoHoras",
                                   "unidade",
+                                  "exibirEm",
                                   "n",
                                   "estatistica",
                                   "razaoMediana",
@@ -33264,6 +33299,21 @@
                                       "util"
                                     ]
                                   },
+                                  "exibirEm": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string",
+                                        "enum": [
+                                          "min",
+                                          "h",
+                                          "dia"
+                                        ]
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
                                   "n": {
                                     "type": "number"
                                   },
@@ -33423,6 +33473,7 @@
                                 "required": [
                                   "alvoHoras",
                                   "unidade",
+                                  "exibirEm",
                                   "n",
                                   "estatistica",
                                   "razaoMediana",

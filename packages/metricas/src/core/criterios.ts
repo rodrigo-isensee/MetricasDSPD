@@ -152,6 +152,15 @@ export const VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL: VersaoCriterio = {
   afeta: ['TENDENCIA_SUST'],
 }
 
+/** Pedido 099 (E3.20, B' da Q-099-7): o O17 passou de "Sem dado real" inteiro para dado real por sistema; a causa raiz segue sem dado real. */
+export const VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-12-o17-por-sistema-dado-real',
+  data: '2026-11-12',
+  descricao:
+    'Os defeitos por sistema passaram a ser calculados com o dado real do Acelerato (antes o cartão saía inteiro como "Sem dado real"); a causa raiz segue "sem dado real" até o Registro de Problemas com vínculo ao incidente',
+  afeta: ['O17'],
+}
+
 /** Pedido 099 (D9): o S12 entrou no mapa real só com o volume; a exceção de SLA por registro posterior sai nula (sem fonte), antes ficava no mock. */
 export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-12-s12-volume-real',
@@ -174,6 +183,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
+  VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
   VERSAO_CRITERIO_S12_VOLUME_REAL,
 ]
 
