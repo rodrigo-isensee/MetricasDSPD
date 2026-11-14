@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import { z } from 'zod'
 import { Botao } from './Botao'
 
@@ -7,7 +15,7 @@ export const CHAVE_RECOLHIDOS = 'metricas-dspd:recolhidos:v1'
 /** Teto de códigos por painel na leitura: o que passar é descartado em silêncio. */
 export const TETO_RECOLHIDOS = 100
 
-const CODIGO_CARTAO = /^[A-Z0-9-]{1,20}$/
+export const CODIGO_CARTAO = /^[A-Z0-9-]{1,20}$/
 const ID_PAINEL = /^[a-z0-9-]{1,30}$/
 
 const memoriaSchema = z.object({
@@ -59,6 +67,9 @@ interface ValorRecolhidos {
   recolhidos: ReadonlySet<string>
   alternar: (codigo: string) => void
   restaurar: () => void
+  /** Códigos dos cartões hoje montados na tela (os ocultados por "Ocultar" não contam). */
+  montados: ReadonlyMap<string, number>
+  registrar: (codigo: string) => () => void
 }
 
 const Ctx = createContext<ValorRecolhidos | null>(null)
@@ -81,9 +92,22 @@ export function ProvedorRecolhidos({ painel, children }: { painel: string; child
     setRecolhidos(new Set())
     gravarPainel(painel, [])
   }, [painel])
+  const [montados, setMontados] = useState<ReadonlyMap<string, number>>(new Map())
+  const registrar = useCallback((codigo: string) => {
+    const soma = (delta: number) =>
+      setMontados((m) => {
+        const proximo = new Map(m)
+        const n = (proximo.get(codigo) ?? 0) + delta
+        if (n > 0) proximo.set(codigo, n)
+        else proximo.delete(codigo)
+        return proximo
+      })
+    soma(1)
+    return () => soma(-1)
+  }, [])
   const valor = useMemo(
-    () => ({ recolhidos, alternar, restaurar }),
-    [recolhidos, alternar, restaurar],
+    () => ({ recolhidos, alternar, restaurar, montados, registrar }),
+    [recolhidos, alternar, restaurar, montados, registrar],
   )
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>
 }
@@ -96,6 +120,8 @@ export interface EstadoRecolhido {
 /** `null` fora de um provedor: o cartão não mostra o botão (testes isolados, Visão geral). */
 export function useRecolhido(codigo: string): EstadoRecolhido | null {
   const v = useContext(Ctx)
+  const registrar = v?.registrar
+  useEffect(() => registrar?.(codigo), [registrar, codigo])
   return v ? { recolhido: v.recolhidos.has(codigo), alternar: () => v.alternar(codigo) } : null
 }
 
@@ -104,16 +130,19 @@ export function RestaurarRecolhidos() {
   const v = useContext(Ctx)
   const [aviso, setAviso] = useState('')
   if (!v) return null
+  // Só conta o que está na tela: código de cartão oculto ou fora do painel não faz o botão aparecer (B2).
+  const visiveis = [...v.recolhidos].filter((c) => v.montados.has(c)).length
   const restaurar = () => {
     v.restaurar()
     setAviso('Cartões restaurados.')
-    document.querySelector<HTMLElement>('[data-cartao-titulo]')?.focus()
+    document.querySelector<HTMLElement>('main [data-cartao-titulo]')?.focus()
   }
+  // O aviso só vale enquanto nada está recolhido: ao recolher de novo ele some, e a segunda restauração anuncia de novo (B1).
   return (
     <div data-testid="restaurar-recolhidos">
-      {v.recolhidos.size > 0 && <Botao onClick={restaurar}>Restaurar cartões recolhidos</Botao>}
+      {visiveis > 0 && <Botao onClick={restaurar}>Restaurar cartões recolhidos</Botao>}
       <p role="status" className="sr-only">
-        {aviso}
+        {v.recolhidos.size === 0 ? aviso : ''}
       </p>
     </div>
   )

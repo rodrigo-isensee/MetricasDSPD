@@ -10,6 +10,7 @@ import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js
 import { migrar } from '../src/plataforma/db/migrar.js';
 import { cenarioWorklogVazio, registroWorklog, subirServidorWorklog, type CenarioWorklog, type Registro, type ServidorWorklog } from './apontamento-duble.js';
 import { novaColeta, poolDe, S, unico, url } from './pg/ctx.js';
+import { provarSemPessoa } from './pg/colunas-pessoa.js';
 
 // Pedido 059, A1 a A3 contra o PostgreSQL local: migrações, papéis (CA-AP-1), CHECKs, gatilhos, idempotência da staging e dos eventos,
 // coleta ponta a ponta (servidor falso do worklog, nenhuma chamada real), supressão, hierarquia e atomicidade (CT-79).
@@ -88,8 +89,8 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
     for (const t of ['stg_apontamento', 'evt_apontamento', 'fato_apontamento', 'dim_card_raiz', 'cfg_pessoa_eliminada', 'ref_apontamento_subgrupo', 'ref_apontamento_termo', 'ref_apontamento_regra_tipo', 'dim_responsavel']) {
       expect((await falha(api, `SELECT count(*) FROM ${S.bm}.${t}`)).code, t).toBe('42501');
     }
-    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.dim_responsavel`)).code).toBe('42501');
-    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.fato_apontamento`)).code).toBe('42501');
+    await provarSemPessoa(api, dono, 'dspd_bm.dim_responsavel', S.bm);
+    await provarSemPessoa(api, dono, 'dspd_bm.fato_apontamento', S.bm);
     const coleta = await novaColeta(dono, S.bm);
     const [sql, params] = linhaStg('9599000001', SHA('a'), { card_id: '9599000002' });
     params[9] = coleta;

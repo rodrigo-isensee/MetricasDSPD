@@ -1,5 +1,5 @@
 # FORGE0442-001 - falhas pré-existentes do `pnpm run pronto` vistas no upgrade 0.44.2
-- Status: aberto (não causado pelo upgrade; não bloqueia o pedido chore/forge-0442)
+- Status: corrigido na branch fix/forge0442-001 (aguarda review e QA) (não causado pelo upgrade; não bloqueia o pedido chore/forge-0442)
 - Severidade: média
 - Responsável sugerido: forge:node-backend (cobertura do server), forge:qa-engineer (trava do teste 4 e heap do eslint)
 - Ambiente: branch chore/forge-0442, commit 232bb85

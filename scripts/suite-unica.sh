@@ -5,7 +5,8 @@
 # A trava fica em /tmp/claude-<uid> (o diretório do TMPDIR dos agentes, que o sandbox grava; o dono no terminal
 # usa o mesmo caminho, pois ele não depende da variável TMPDIR): uma trava única por estação.
 # Não aninha: se este processo (ou um ancestral) já segura a trava, roda o comando direto.
-# METRICAS_DSPD_SUITE_LOCK troca o arquivo da trava (usado só pelo teste do script).
+# METRICAS_DSPD_SUITE_LOCK troca o arquivo da trava e METRICAS_DSPD_SUITE_DIR troca só o diretório dela
+# (os dois são usados só pelo teste do script, para não disputar a trava que o próprio pronto segura).
 set -uo pipefail
 
 [ "$#" -ge 1 ] || { echo "uso: suite-unica.sh <comando> [argumentos...]" >&2; exit 2; }
@@ -20,7 +21,7 @@ command -v flock >/dev/null || { echo "suite-unica: flock não encontrado (util-
 if [ -n "${METRICAS_DSPD_SUITE_LOCK:-}" ]; then
   TRAVA="$METRICAS_DSPD_SUITE_LOCK"
 else
-  DIR_TRAVA="/tmp/claude-$(id -u)"
+  DIR_TRAVA="${METRICAS_DSPD_SUITE_DIR:-/tmp/claude-$(id -u)}"
   [ -L "$DIR_TRAVA" ] && { echo "suite-unica: $DIR_TRAVA é um link simbólico; recusado" >&2; exit 1; }
   mkdir -p -m 700 "$DIR_TRAVA" 2>/dev/null || [ -d "$DIR_TRAVA" ] || { echo "suite-unica: não consegui criar $DIR_TRAVA" >&2; exit 1; }
   TRAVA="$DIR_TRAVA/metricas-dspd-suite.lock"

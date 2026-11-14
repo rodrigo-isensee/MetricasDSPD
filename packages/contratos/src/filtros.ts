@@ -4,33 +4,11 @@ import {
   PRIORIDADES,
   TIPOS_FILTRO,
   periodoSchema,
-  type EquipeSustentacao,
   type Prioridade,
 } from './comum'
 
-/**
- * Ids ANTIGOS das três equipes de sustentação (antes do 097 L7a). A equipe agora é texto/slug vindo do dado real
- * (`dim_chamado.equipe`, id = slug do nome); estes ids seguem aceitos como apelido por um ciclo de release.
- */
-export const EQUIPES_SUSTENTACAO_ID = ['totvs', 'senior', 'fluig'] as const
-export type EquipeSustentacaoId = (typeof EQUIPES_SUSTENTACAO_ID)[number]
-
-/** Apelido dos ids antigos para o slug do nome real (`slug('SSSC TOTVS')`). */
-export const APELIDO_EQUIPE_SUSTENTACAO: Record<EquipeSustentacaoId, string> = {
-  totvs: 'sssc-totvs',
-  senior: 'sssc-senior',
-  fluig: 'sssc-fluig',
-}
-
-/** Resolve o apelido antigo para o slug real; qualquer outro id passa como está. */
-export const idEquipeSustentacao = (id: string): string =>
-  (APELIDO_EQUIPE_SUSTENTACAO as Record<string, string | undefined>)[id] ?? id
-
-export const NOME_EQUIPE_SUSTENTACAO: Record<EquipeSustentacaoId, EquipeSustentacao> = {
-  totvs: 'SSSC TOTVS',
-  senior: 'SSSC SENIOR',
-  fluig: 'SSSC FLUIG',
-}
+/** Slug do nome da equipe (`dim_chamado.equipe`), o mesmo formato do fluxo e do apontamento. */
+const idEquipeSlug = z.string().regex(/^[a-z0-9][a-z0-9-]{0,59}$/)
 
 export const tipoFiltroSchema = z.enum(TIPOS_FILTRO)
 export type TipoFiltro = z.infer<typeof tipoFiltroSchema>
@@ -60,8 +38,8 @@ export type FiltrosFluxo = z.infer<typeof filtrosFluxoSchema>
 
 /** Filtros da sustentação (Acelerato). Tipo distinto do fluxo de propósito. Sem filtro por agente. */
 export const filtrosSustentacaoSchema = z.object({
-  /** Slugs do nome da equipe (`dim_chamado.equipe`); os ids antigos (`totvs`...) seguem aceitos. */
-  equipe: z.array(z.string()),
+  /** Slugs do nome da equipe (`dim_chamado.equipe`); só slug (os ids antigos saíram, K-287). */
+  equipe: z.array(idEquipeSlug),
   prioridade: z.array(z.enum(PRIORIDADES)),
   periodo: periodoSchema,
 })

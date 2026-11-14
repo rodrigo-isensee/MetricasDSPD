@@ -77,7 +77,7 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
     expect(within(tabela).queryByText('Projeto 11')).toBeNull()
     expect(
       within(cartao).getByRole('button', { name: 'Ver todos os 12 projetos' }),
-    ).toHaveAttribute('aria-expanded', 'false')
+    ).not.toHaveAttribute('aria-expanded')
   })
 
   it('singular com 11 projetos', async () => {
@@ -94,13 +94,17 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
     expect(regiao).toHaveAttribute('tabindex', '0')
     expect(regiao.className).toMatch(/max-h-\[360px\]/)
     expect(botao).toHaveTextContent('Ver só os 10 maiores')
-    expect(botao).toHaveAttribute('aria-expanded', 'true')
+    expect(botao).not.toHaveAttribute('aria-expanded')
+    expect(within(cartao).getByRole('status')).toHaveTextContent('Mostrando todos os 12 projetos.')
     expect(botao).toHaveFocus()
     expect(within(cartao).queryByTestId('projetos-demais')).toBeNull()
     expect(within(cartao).getAllByRole('row')).toHaveLength(13)
     await u.click(botao)
     expect(within(cartao).getByTestId('projetos-demais')).toBeInTheDocument()
-    expect(botao).toHaveAttribute('aria-expanded', 'false')
+    expect(botao).toHaveTextContent('Ver todos os 12 projetos')
+    expect(within(cartao).getByRole('status')).toHaveTextContent(
+      'Mostrando os 10 projetos com mais horas, de 12.',
+    )
   })
 
   it('CA-38: reabrir o cartão volta a mostrar só os 10 maiores', async () => {
@@ -113,15 +117,13 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
     const reaberto = await renderizar(resposta)
     expect(within(reaberto).getAllByRole('row')).toHaveLength(11)
     expect(within(reaberto).getByTestId('projetos-demais')).toBeInTheDocument()
-    expect(
-      within(reaberto).getByRole('button', { name: 'Ver todos os 12 projetos' }),
-    ).toHaveAttribute('aria-expanded', 'false')
+    expect(within(reaberto).getByRole('button', { name: 'Ver todos os 12 projetos' })).toBeVisible()
   })
 
   it('empate na 10ª vaga: o corte e o Ver todos mantêm a mesma ordem do servidor', async () => {
     const u = userEvent.setup()
     const resposta = com(12)
-    const ordem = ['zeta', 'Alfa', 'érico', 'Érico', 'alfa']
+    const ordem = ['zeta', 'Alfa', 'érico']
     const lista = projetos(12).map((l, i) =>
       i >= 9 && i < 12 ? { ...l, rotulo: ordem[i - 9]!, segundos: 7200 } : l,
     )
@@ -131,7 +133,6 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
       within(cartao)
         .getAllByRole('row')
         .slice(1)
-
         .map((r) => r.textContent)
     const dez = rotulos()
     expect(dez[9]).toMatch(/^zeta/)
@@ -151,5 +152,32 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
     const cartao = await renderizar(com(12, ['p11']))
     const selos = within(cartao).getByTestId('selos-projeto-incompleto')
     expect(selos).toHaveTextContent('Projeto 11')
+  })
+
+  it('B-2: a linha Demais leva o selo quando um projeto fora dos 10 está incompleto', async () => {
+    const cartao = await renderizar(com(12, ['p11']))
+    expect(
+      within(within(cartao).getByTestId('projetos-demais')).getByText('Horas incompletas'),
+    ).toBeInTheDocument()
+  })
+
+  it('B-2: sem incompleto entre os demais, a linha Demais não leva o selo', async () => {
+    const cartao = await renderizar(com(12, ['p0']))
+    expect(
+      within(within(cartao).getByTestId('projetos-demais')).queryByText('Horas incompletas'),
+    ).toBeNull()
+    cleanup()
+    const sem = await renderizar(com(12))
+    expect(
+      within(within(sem).getByTestId('projetos-demais')).queryByText('Horas incompletas'),
+    ).toBeNull()
+  })
+
+  it('B-3: a altura do gráfico tem teto com muitos projetos', async () => {
+    const u = userEvent.setup()
+    const cartao = await renderizar(com(60))
+    await u.click(within(cartao).getByRole('button', { name: 'Ver todos os 60 projetos' }))
+    const div = cartao.querySelector('figure > div[style]') as HTMLElement
+    expect(div.style.height).toBe('1200px')
   })
 })
