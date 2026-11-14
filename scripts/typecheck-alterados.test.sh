@@ -2,6 +2,7 @@
 # Teste do scripts/typecheck-alterados.sh: repositório descartável e pnpm falso, sem rodar tsc de verdade.
 # Casos: só docs, web, web+server, e2e, packages/* (inteiro), raiz (inteiro), tools sem typecheck e fallback sem origin/develop.
 set -uo pipefail
+unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 mkdir -p "$RAIZ/node_modules/.cache"
 TMP="$(mktemp -d "$RAIZ/node_modules/.cache/typecheck-alterados-test.XXXXXX")"
@@ -142,6 +143,22 @@ git commit -qm acento
 roda
 grep -qx 'pnpm --filter @metricas-dspd/server run typecheck' "$PNPM_LOG"
 verifica "arquivo acentuado em server/ roda o typecheck do server" $?
+
+# 8e) K-322: .ts acentuado não rastreado em server/ roda o typecheck do server (mata o mutante do ls-files).
+volta feature/acento-novo
+echo novo >'server/src/ñovo.ts'
+roda
+grep -qx 'pnpm --filter @metricas-dspd/server run typecheck' "$PNPM_LOG"
+verifica "arquivo acentuado não rastreado em server roda o typecheck do server" $?
+rm 'server/src/ñovo.ts'
+
+# 8f) K-322: nome com quebra de linha em web/ casa com web/* (leitura por NUL).
+volta feature/quebra
+printf b >$'web/src/qu\nebra.ts'
+roda
+grep -qx 'pnpm --filter @metricas-dspd/web run typecheck' "$PNPM_LOG"
+verifica "nome com quebra de linha em web roda o typecheck do web" $?
+rm -f -- $'web/src/qu\nebra.ts'
 
 # 8d) K-319: branch órfã (sem merge-base com origin/develop) cai no typecheck inteiro.
 git switch -q --orphan feature/orfa

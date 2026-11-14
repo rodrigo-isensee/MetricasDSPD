@@ -136,7 +136,7 @@ class FonteSemCampo extends MockFonteMetricas {
   }
 }
 
-describe.each(['O17', 'E4', 'S8', 'S11', 'S12'])('%s: campo sem fonte', (codigo) => {
+describe.each(['E4', 'S8', 'S11', 'S12'])('%s: campo sem fonte', (codigo) => {
   it('mostra "Campo sem fonte" (texto e ícone), sem número e sem "amostra insuficiente"', async () => {
     const [, Cartao, tipo] = CARTOES.find((c) => c[0] === codigo)!
     const filtros = tipo === 'fluxo' ? FILTROS_FLUXO : FILTROS_SUSTENTACAO

@@ -638,6 +638,23 @@ describe('CartaoMetrica: atualização, janela fixa e rodapé', () => {
       </MemoryRouter>,
     )
 
+  it('K-285 B-3: sem base a faixa de selos não reserva altura; com base reserva', () => {
+    const { unmount } = montar({ codigo: 'Z1' })
+    expect(screen.getByTestId('selos-Z1').className).not.toMatch(/min-h-6/)
+    unmount()
+    montar({
+      codigo: 'Z2',
+      base: { n: 30, unidade: 'itens', janela: { inicio: '2026-10-01', fim: '2026-10-09' } },
+    })
+    expect(screen.getByTestId('selos-Z2').className).toMatch(/min-h-6/)
+  })
+
+  it('K-285 B-4: o estado sem dado real é uma região de status', () => {
+    montar({ codigo: 'Z3', estado: 'sem-dado-real' })
+    const estado = screen.getByTestId('estado-sem-dado-real-Z3')
+    expect(estado).toHaveAttribute('role', 'status')
+  })
+
   it('atualizando: o painel anuncia e o cartão só esmaece se passar de 150 ms', async () => {
     const { rerender } = montar({ atualizando: true })
     const cartao = screen.getByTestId('metrica-O3')

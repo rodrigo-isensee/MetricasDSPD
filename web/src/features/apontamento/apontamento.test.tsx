@@ -702,9 +702,11 @@ describe('o4 e AP-8: exportação e nome real', () => {
   it('sem nomesReais não há faixa; uma linha explica o rótulo "Pessoa n"', async () => {
     await cartao('AP-KPIS')
     expect(screen.queryByTestId('aviso-nome-real')).toBeNull()
-    expect(screen.getByTestId('linha-nomes-ocultos')).toHaveTextContent(
-      "Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'...",
-    )
+    // uma por lugar que lista Pessoa n: matriz, qualidade, capacidade e mapa (K-320)
+    const linhas = screen.getAllByTestId('linha-nomes-ocultos')
+    expect(linhas).toHaveLength(4)
+    for (const l of linhas)
+      expect(l).toHaveTextContent("Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'...")
   })
 
   it('com nome real, a barra não oferece pessoa: o link nunca leva nome nem pessoaRef', async () => {
