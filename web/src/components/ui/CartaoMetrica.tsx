@@ -126,6 +126,22 @@ function notasDoCartaoVisiveis(
   return [...new Set([...fixas, ...(doResultado ?? [])])]
 }
 
+/** Linha do cartão recolhido: o estado (erro, carregando, sem dado real, vazio) nunca some atrás de um "Recolhido." calmo (M1, M2). */
+function resumoDoRecolhido(
+  estado: EstadoCartao,
+  atualizando: boolean,
+  resumoRecolhido: string | undefined,
+  base: CartaoMetricaProps['base'],
+): string {
+  if (estado === 'erro') return 'Não foi possível carregar este cartão.'
+  if (estado === 'carregando') return 'Recolhido. Carregando...'
+  if (estado === 'sem-dado-real') return 'Recolhido. Sem dado real nesta fonte.'
+  if (estado === 'vazio') return 'Recolhido. Sem dados no período.'
+  const total =
+    resumoRecolhido ?? `Recolhido.${base ? ` ${fmtInteiro(base.n)} ${base.unidade}.` : ''}`
+  return atualizando ? `${total} Atualizando...` : total
+}
+
 function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const [modo, setModo] = useState<ModoVisual>('grafico')
   const [notaAberta, setNotaAberta] = useState(false)
@@ -157,11 +173,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const atualizando = ok && !!p.atualizando
   const recolhivel = recolher !== null && p.recolhivel !== false
   const recolhido = recolhivel && recolher.recolhido
-  const resumo =
-    estado === 'erro'
-      ? 'Não foi possível carregar este cartão.'
-      : (p.resumoRecolhido ??
-        `Recolhido.${p.base ? ` ${fmtInteiro(p.base.n)} ${p.base.unidade}.` : ''}`)
+  const resumo = resumoDoRecolhido(estado, atualizando, p.resumoRecolhido, p.base)
 
   useEffect(() => {
     reportarAtualizando(id, atualizando)
@@ -265,23 +277,22 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             )}
           </div>
         </div>
-        {/* Base e selos na linha do título; a altura é reservada para não saltar ao carregar. */}
-        {!recolhido && (
-          <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
-            {p.base && (
-              <BadgeBase
-                base={p.base}
-                variante={p.baseVariante ?? 'ok'}
-                {...(p.baseK !== undefined ? { k: p.baseK } : {})}
-                data-testid={`base-${p.codigo}`}
-              />
-            )}
-            {janelaFixa && <SeloJanela janela={janelaTxt} />}
-            {calibrando && !semDadoReal && <SeloCalibracao />}
-            {p.selos}
-            <SeloOrigem origem={origem} />
-          </div>
-        )}
+        {/* Base e selos na linha do título; a altura é reservada para não saltar ao carregar.
+            Recolhido, ficam a origem e a calibração: o cartão calmo não pode esconder "sem dado real" (M1). */}
+        <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
+          {!recolhido && p.base && (
+            <BadgeBase
+              base={p.base}
+              variante={p.baseVariante ?? 'ok'}
+              {...(p.baseK !== undefined ? { k: p.baseK } : {})}
+              data-testid={`base-${p.codigo}`}
+            />
+          )}
+          {!recolhido && janelaFixa && <SeloJanela janela={janelaTxt} />}
+          {calibrando && !semDadoReal && <SeloCalibracao />}
+          {!recolhido && p.selos}
+          <SeloOrigem origem={origem} />
+        </div>
         {!recolhido && (
           <BlocoNota
             id={idNota}

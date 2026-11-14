@@ -39,8 +39,8 @@ while IFS= read -r f; do
     pnpm-lock.yaml | pnpm-workspace.yaml | tsconfig*.json) inteiro=1 ;;
   esac
 done < <({
-  git diff --name-only "$mb" -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
-  git ls-files --others --exclude-standard -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
+  git -c core.quotePath=false diff --name-only "$mb" -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
+  git -c core.quotePath=false ls-files --others --exclude-standard -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
 } | sort -u)
 
 # package.json da raiz: só conta se mudou algo além do bloco "scripts" (dependências, workspaces, etc.).

@@ -236,7 +236,10 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(s8.total.status).toBe('insuficiente');
     expect(s8.statusMeta).toBe('sem-referencia');
     expect((await get(app, '/api/v1/metricas/S11')).json().conversao.status).toBe('insuficiente');
-    expect((await get(app, '/api/v1/metricas/O17')).json().porCausa).toEqual([]);
+    const o17 = (await get(app, '/api/v1/metricas/O17')).json();
+    expect(o17.porCausa).toBeNull();
+    expect(o17.motivoCausaRaiz).toContain('causa aparente');
+    expect(o17.porSistema.reduce((t: number, x: { n: number }) => t + x.n, 0)).toBe(o17.base.n);
     const mock = await montar();
     expect((await get(mock.app, '/api/v1/metricas/S8')).json().campoDisponivel).toBe(true);
     expect((await get(mock.app, '/api/v1/metricas/O17')).json().campoDisponivel).toBe(true);
