@@ -50,7 +50,7 @@ export type CalculoApontamento = Pick<
 
 /**
  * Calcula os blocos da resposta de `GET /api/apontamento` a partir das linhas sem filtro. O recorte principal é o
- * período com todos os filtros; o mapa diário usa a própria janela e só o filtro de pessoa (CA-4); o valor atípico é
+ * período com todos os filtros; o mapa diário usa a própria janela e só os filtros de pessoa e equipe (CA-4, K-286); o valor atípico é
  * decidido sobre o dia inteiro da pessoa, antes dos filtros. Moldura da resposta (versão, frescor, opções, critérios)
  * é da rota.
  */
@@ -63,7 +63,7 @@ export function calcularApontamento(e: EntradaApontamento): CalculoApontamento {
   const noPeriodo = e.linhas.filter((l) => l.data >= e.periodo.de && l.data <= e.periodo.ate)
   const recorte = filtrar(noPeriodo, e.filtros, atipicos)
   const naJanela = e.linhas.filter((l) => l.data >= e.diario.de && l.data <= e.diario.ate)
-  const doDiario = filtrar(naJanela, e.filtros, atipicos, true)
+  const doDiario = filtrar(naJanela, e.filtros, atipicos, 'diario')
 
   const distribuicao = calcularDistribuicao(recorte)
   const qualidade = calcularQualidade(recorte, atipicos)

@@ -23,9 +23,14 @@ const ID_CAL = { businessmap: '1', acelerato: '2' } as const;
 /** Todos os dias de 2025 e 2026: nenhum dia útil (as horas úteis ficam zeradas). */
 const TODOS_OS_DIAS: string[] = Array.from({ length: 730 }, (_, i) => new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10));
 
-function responder(feriados: () => Feriados, opcoes: { versaoCriterio?: string } = {}): Respondedor {
+type Turnos = [number, number][];
+/** Turnos gravados do calendário do Acelerato (D3b): lidos só pelo domínio Acelerato; o BusinessMap nunca os pede. */
+function responder(feriados: () => Feriados, opcoes: { versaoCriterio?: string } = {}, turnos: () => Turnos = () => []): Respondedor {
   const interno = bancoDoMock(base, opcoes);
   return (c) => {
+    if (c.texto.includes('ref_calendario_turno')) {
+      return turnos().flatMap(([inicio, fim]) => [1, 2, 3, 4, 5].map((d) => ({ dia_semana: d, inicio_min: inicio, fim_min: fim })));
+    }
     if (c.texto.includes('ref_calendario_aplicacao')) {
       const dominio = c.valores[0] as keyof Feriados;
       return feriados()[dominio] === undefined ? [] : [{ calendario_id: ID_CAL[dominio], offset_minutos: -180 }];
@@ -55,8 +60,10 @@ describe('L7-b: métricas leem o calendário da referência', () => {
     const { d, s } = servico(responder(() => ({ businessmap: NACIONAIS, acelerato: NACIONAIS })));
     await calc(s, 'O3');
     await calc(s, 'S4');
-    const lidas = d.chamadas.filter((c) => c.texto.includes('ref_calendario_aplicacao')).map((c) => c.valores);
+    const lidas = d.chamadas.filter((c) => c.texto.includes('ref_calendario_aplicacao') && !c.texto.includes('ref_calendario_turno')).map((c) => c.valores);
     expect(lidas).toEqual([['businessmap', 'fluxo'], ['acelerato', 'sustentacao']]);
+    // D3b: os turnos só são pedidos para o Acelerato
+    expect(d.chamadas.filter((c) => c.texto.includes('ref_calendario_turno')).map((c) => c.valores)).toEqual([['acelerato', 'sustentacao']]);
   });
 
   it('feriado novo no BusinessMap muda o fluxo e não toca a sustentação (nunca se misturam)', async () => {
@@ -72,6 +79,21 @@ describe('L7-b: métricas leem o calendário da referência', () => {
     const mudou = await Promise.all((['S1', 'S4', 'S10'] as const).map(async (id) => JSON.stringify((await calc(ac.s, id)).resultado) !== JSON.stringify((await calc(padrao.s, id)).resultado)));
     expect(mudou).toContain(true);
     for (const id of ['O3', 'T1'] as const) expect((await calc(ac.s, id)).resultado, id).toEqual((await calc(padrao.s, id)).resultado);
+  }, 60_000);
+
+  it('D3b: os turnos gravados valem no Acelerato (480 min muda a S1 frente ao padrão de 528) e não tocam o fluxo; sem turnos gravados vale o de 528', async () => {
+    const padrao = servico(responder(() => ({})));
+    const semTurnos = servico(responder(() => ({ businessmap: NACIONAIS, acelerato: NACIONAIS })));
+    const t480 = servico(responder(() => ({ businessmap: NACIONAIS, acelerato: NACIONAIS }), {}, () => [[480, 720], [780, 1020]]));
+    const t528 = servico(responder(() => ({ businessmap: NACIONAIS, acelerato: NACIONAIS }), {}, () => [[480, 720], [780, 1068]]));
+    const s1 = (await calc(padrao.s, 'S1')).resultado as { horasPorDiaUtil: number };
+    expect(s1.horasPorDiaUtil).toBe(8.8);
+    expect((await calc(semTurnos.s, 'S1')).resultado).toEqual(s1);
+    expect((await calc(t528.s, 'S1')).resultado).toEqual(s1);
+    const m = (await calc(t480.s, 'S1')).resultado as { horasPorDiaUtil: number };
+    expect(m.horasPorDiaUtil).toBe(8);
+    expect(m).not.toEqual(s1);
+    for (const id of ['O3', 'T1'] as const) expect((await calc(t480.s, id)).resultado, id).toEqual((await calc(padrao.s, id)).resultado);
   }, 60_000);
 
   it('sem linha na referência vale o calendário padrão (o mesmo resultado de antes)', async () => {

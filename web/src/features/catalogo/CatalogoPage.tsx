@@ -79,7 +79,14 @@ export default function CatalogoPage() {
         ]}
         linhas={linhas.map((l) => ({
           c: l.codigo,
-          n: l.nome,
+          n: l.anotacao ? (
+            <>
+              {l.nome}
+              <span className="block text-xs text-texto-2">{l.anotacao}</span>
+            </>
+          ) : (
+            l.nome
+          ),
           p: l.painelRotulo,
           g: l.grupo,
           f: l.fonte,
