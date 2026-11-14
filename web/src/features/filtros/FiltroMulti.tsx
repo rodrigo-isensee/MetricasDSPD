@@ -24,9 +24,9 @@ interface Props {
   dica?: ReactNode
   genero?: 'f' | 'm'
   /** Texto da lista sem opções (carregando, erro ou recorte sem dado); sem ele, a lista fica em branco. */
-  vazio?: string
+  vazio?: string | undefined
   /** Com ele, a lista sem opções oferece "Tentar de novo" (consulta de opções que falhou). */
-  aoTentar?: () => void
+  aoTentar?: (() => void) | undefined
 }
 
 function resumo(opcoes: readonly OpcaoFiltro[], sel: readonly string[], genero: 'f' | 'm'): string {
