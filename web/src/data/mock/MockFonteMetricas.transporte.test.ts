@@ -285,4 +285,31 @@ describe('invólucro do Worker', () => {
       self.onmessage = null
     },
   )
+
+  it(
+    'resposta cuja falha lançada não é Error vira erro com nome Error e o texto',
+    { timeout: 40000 },
+    async () => {
+      const enviados: unknown[] = []
+      let primeira = true
+      vi.spyOn(self, 'postMessage').mockImplementation(((m: unknown) => {
+        if (primeira) {
+          primeira = false
+          throw 'texto solto'
+        }
+        enviados.push(m)
+      }) as never)
+      vi.resetModules()
+      await import('./nucleoMock.worker')
+      const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
+      onmessage({ data: { id: 6, metodo: 'iniciar', args: [{}] } })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+      expect(enviados[0]).toStrictEqual({
+        id: 6,
+        ok: false,
+        erro: { nome: 'Error', mensagem: 'Falha ao responder do Worker do mock: texto solto' },
+      })
+      self.onmessage = null
+    },
+  )
 })
