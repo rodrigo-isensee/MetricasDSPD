@@ -2,6 +2,7 @@ import { PRIORIDADES, type Prioridade } from '@metricas-dspd/contratos'
 import {
   PERIODOS_PADRAO,
   TIPO_ID,
+  TIPO_POR_ID,
   type FiltrosFluxo,
   type FiltrosSustentacao,
   type OpcoesFiltro,
@@ -131,11 +132,6 @@ export function lerSustentacao(
     invalidos,
   }
 }
-
-/** `lerLista` só deixa passar ids válidos, então a busca sempre acha o tipo. */
-const TIPO_POR_ID = new Map<string, TipoFiltro>(
-  (Object.keys(TIPO_ID) as TipoFiltro[]).map((t) => [TIPO_ID[t], t]),
-)
 
 /** Tipos válidos: os das opções da API (dado real) que o contrato conhece; sem opções, os ids do contrato. */
 const idsTipo = (o: Opcoes): string[] =>
