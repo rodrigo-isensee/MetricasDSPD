@@ -5,11 +5,11 @@
  * Uso: PORT=3199 pnpm exec tsx tests/pg/api-stub-065.ts. Só desenvolvimento.
  */
 import http from 'node:http'
-import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '../../../packages/contratos/src/index.ts'
+import { corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type MetricaId } from '../../../packages/contratos/src/index.ts'
 import { NucleoMock, paginarO2 } from '../../../web/src/data/mock/nucleoMock.ts'
 
 const nucleo = new NucleoMock({})
-const SUST = /^(S\d+|EI_SUST|T_SUST)/
+const ehSust = (id: MetricaId) => fonteDaMetrica(id) === 'acelerato'
 const porta = Number(process.env.PORT ?? 3199)
 
 const json = (res: http.ServerResponse, corpo: unknown, cab: Record<string, string> = {}) => {
@@ -26,8 +26,8 @@ http
       if ((m = p.match(/^\/metricas\/([A-Za-z0-9_]+)$/))) {
         const id = m[1] as MetricaId
         if (origemDaMetrica(id) === 'sem-dado') return json(res, corpoSemDadoReal(id), { 'x-estado-dado': 'sem-dado-real' })
-        const periodo = u.searchParams.get('periodo') ?? (SUST.test(id) ? '6m' : '12s')
-        const filtros = SUST.test(id)
+        const periodo = u.searchParams.get('periodo') ?? (ehSust(id) ? '6m' : '12s')
+        const filtros = ehSust(id)
           ? { equipe: [], prioridade: [], periodo: { tipo: periodo } }
           : { equipe: [], tipo: [], sistema: [], periodo: { tipo: periodo } }
         let r: unknown = await nucleo.obter(id, filtros as never)
