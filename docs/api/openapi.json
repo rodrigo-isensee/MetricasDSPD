@@ -412,6 +412,41 @@
                             "additionalProperties": false
                           }
                         },
+                        "recorte": {
+                          "type": "object",
+                          "properties": {
+                            "organizacoes": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "tipos": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "equipes": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
+                          },
+                          "required": [
+                            "organizacoes",
+                            "tipos",
+                            "equipes"
+                          ],
+                          "additionalProperties": false
+                        },
                         "historico": {
                           "type": "object",
                           "properties": {

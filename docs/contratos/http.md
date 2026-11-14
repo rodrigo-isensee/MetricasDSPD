@@ -42,7 +42,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos" (`schemas.ts:9`).
 - Filtro do mesmo domínio que não se aplica à métrica (ex.: `tipo` em O12) é aceito e ignorado, sem 400. Aplicabilidade: `APLICABILIDADE_FLUXO` (`packages/contratos/src/metricas.ts:103`).
 - Filtro de outro domínio (ex.: `sistema` em S1) ou de pessoa: 400 `VALIDATION_ERROR`.
 - `dataReferencia`: recalcula com corte no fim do dia; padrão = fim da última coleta bem-sucedida da fonte; futura = 400 (`server/src/modulos/metricas/servico.ts:142-144`). Em `VISAO_GERAL` vale o corte mais antigo das duas fontes (provisório).
-- `/filtros/{dominio}` devolve as opções (equipes, tipos ou prioridades, sistemas, `historico`), sem opção de pessoa.
+- `/filtros/{dominio}` devolve as opções (equipes, tipos ou prioridades, sistemas, `historico`), sem opção de pessoa. Na Sustentação traz também `recorte` (opcional: rótulos vigentes de organização, tipo e equipes do `ref_dominio`; omitido se alguma lista está vazia; K-215).
 
 ## 3. Resposta de métrica
 

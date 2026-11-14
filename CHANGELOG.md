@@ -48,7 +48,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Acelerato (pedido 099, K-308): os intervalos por etapa (D-7) passam a ser montados com o dia útil de 8 h 48 da Sustentação, por uma regra só no projetor e no novo comando `ac:reprojetar-etapas`, que refaz numa transação só o `fato_etapa_chamado` dos chamados fechados e grava a versão `099:D-7-528`; até o comando rodar, a projeção segue com 8 h, sem misturar os dois na mesma tabela; nada coletado é tocado (#389); a entrada do comando tem teste de código de saída e de saída só com contagens (K-321) (#403).
 - Sustentação (pedido 099, K-275, B' da Q-099-7): O17 com dado real por sistema (`categoria_sistema`); a causa raiz segue "Sem dado real" com o motivo (o Registro de Problemas não tem vínculo ao incidente), nunca lista vazia nem causa aparente (#406).
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
-
+- Sustentação (pedido 087, K-215, servidor): `GET /api/v1/filtros/acelerato` ganha o campo opcional `recorte` (rótulos vigentes de organização, tipo e equipes do `ref_dominio`; omitido se alguma lista está vazia); sem migração nem GRANT novo; a tela passa a usar em etapa seguinte.
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 - Suíte: trava em `/tmp/claude-uid` (pedido 079) (#263); teste da trava não pendura dentro do `pronto` (pedido 085) (#280); E2E L3-01 espera a altura da página estabilizar antes do axe (pedido 080) (#265).
