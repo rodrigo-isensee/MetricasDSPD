@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-roteiro-dono
-commit: e9bb171fa928339129c3205ac280f22cbe0c2fa1
+commit: b51cbe525193c1e7b3b013f8115e2e4b4f8c39ea
 parecer: reprovado
 revisor: tech-lead
 data: 2026-11-14
@@ -35,7 +35,22 @@ Conferido contra: `CHANGELOG.md` da `origin/docs/104-release` (3518966d), seçã
 - A2: na VM a migração é `docker compose run --rm migrate` (runbook-coleta-diaria.md:22), e a API do Compose já espera o `migrate` terminar (`depends_on: service_completed_successfully`). `pnpm run db:migrate` pressupõe pnpm e dependências no clone de root, que o runbook não prevê, e o passo 3 ("suba a API") não diz o comando. Escrever os comandos do Compose na ordem, com o que conferir.
 - A3: os itens 2, 3, 4 e 6 da seção "Ações do dono na base real depois da release 104" do CHANGELOG trazem os mesmos comandos sem carregar o `.env`; avisar o E1.1 para alinhar com o roteiro corrigido.
 
+## Delta (047757d4..b51cbe52)
+Lido só o diff da seção 2 (K-216) de `docs/devops/104-roteiro-dono.md`, contra `docker-compose.yml` e `docs/devops/runbook-coleta-diaria.md`. `forge-check parecer delta`: intervalo e9bb171f..b51cbe52, "nenhum arquivo do domínio mudou" (o diff é só `.md`).
+
+- A1 resolvido: o passo 1 manda conferir `DSPD_PWD_APONTAMENTO` no `.env` do Compose, sem valor, e diz que `PG_APONTAMENTO_URL` no arquivo não chega à API (docker-compose.yml:50; runbook-coleta-diaria.md:31).
+- A2 resolvido: migração pelo serviço `migrate` (docker-compose.yml:31-38, roda `migrar.ts`, todas as migrações), antes da API; subida por `up -d --build api` com `ps` saudável (healthcheck em `/health/ready`, docker-compose.yml:57-62); aba na porta 8080 do serviço `web` (docker-compose.yml:98); logs da API no erro. Pasta `/opt/metricas-dspd` e nomes dos serviços conferem.
+- A3 cortado pelo devops (E1.1 é outra etapa): aceito.
+
+Corrigido pelo revisor (forma, sem mudar sentido):
+- `sudo` em todos os `docker compose` da seção: o clone e o `.env` de `/opt/metricas-dspd` são de root com 600 (runbook-coleta-diaria.md:21, :45-46); sem root o Compose não lê o `.env` e as senhas viram as padrão.
+- Passo 2: `docker compose run --rm migrate` virou `run --rm --build migrate`: o `run` usa a imagem `migrate` que já existe, construída na versão anterior, e daria rc=0 sem aplicar a 0034.
+
 ## Achados
+- A4 (bloqueante) docs/devops/104-roteiro-dono.md:94 · nenhum passo leva o clone de /opt/metricas-dspd à release 104 antes do migrate (o build usa o clone, docker-compose.yml:32; runbook:95); sem isso a 0034 não sai e a aba falha. Escrever a atualização do clone e dizer se o web é refeito
+- A5 (recomendado) docs/devops/104-roteiro-dono.md:100 · em volume anterior ao pedido 059 o papel dspd_api_apontamento não existe (docker/postgres/reparar-papeis.sh:2-3), e o script não troca senha de papel existente; citar essa causa no passo 5 para o Jarvis saber o caminho
+
+## Achados da rodada anterior (047757d4)
 - A1 (bloqueante) docs/devops/104-roteiro-dono.md:94 · na VM o Compose monta PG_APONTAMENTO_URL a partir de DSPD_PWD_APONTAMENTO (docker-compose.yml:50); a variável no .env não chega à API e o grep confere a coisa errada
 - A2 (bloqueante) docs/devops/104-roteiro-dono.md:95 · na VM a migração e a subida da API são pelo Compose (runbook-coleta-diaria.md:22); pnpm run db:migrate não é o caminho e "suba a API" não tem comando
 - A3 (recomendado) docs/devops/104-roteiro-dono.md:43 · o CHANGELOG da docs/104-release traz os comandos dos passos 2, 3, 4 e 6 sem carregar o .env; alinhar no E1.1
