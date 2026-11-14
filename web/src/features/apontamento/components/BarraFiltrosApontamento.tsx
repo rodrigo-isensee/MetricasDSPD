@@ -4,8 +4,19 @@ import { Botao, Icone, SeletorCadencia } from '@/components/ui'
 import { ChipsFiltros } from '@/features/filtros/ChipsFiltros'
 import { FiltroMulti } from '@/features/filtros/FiltroMulti'
 import { filtrosUnicos } from '@/components/ui'
-import { opcoesDeEquipe, type AtivoApontamento, type UsoFiltrosApontamento } from '../filtros'
-import { ORDENS, QUALIDADE_FILTRO_OPCOES, ROTULO_CHIP_ORDEM, ROTULO_FILTRO_EQUIPE } from '../textos'
+import {
+  CHAVE_PESSOA_RETIRADA,
+  opcoesDeEquipe,
+  type AtivoApontamento,
+  type UsoFiltrosApontamento,
+} from '../filtros'
+import {
+  AVISO_PESSOA_RETIRADA,
+  ORDENS,
+  QUALIDADE_FILTRO_OPCOES,
+  ROTULO_CHIP_ORDEM,
+  ROTULO_FILTRO_EQUIPE,
+} from '../textos'
 import type { OpcoesApontamento } from '../types'
 
 const nomes = (ls: readonly { id: string; rotulo: string }[]) =>
@@ -30,6 +41,8 @@ export function BarraFiltrosApontamento({
   const idDe = useId()
   const idAte = useId()
   const c = uso.consulta
+  const pessoaRetirada = uso.invalidos.includes(CHAVE_PESSOA_RETIRADA)
+  const outrosInvalidos = [...new Set(uso.invalidos.filter((i) => i !== CHAVE_PESSOA_RETIRADA))]
   const de = c.de ?? ''
   const ate = c.ate ?? ''
   // De e até andam juntos: preencher um completa o outro com o limite do histórico; limpar um limpa o período.
@@ -160,14 +173,24 @@ export function BarraFiltrosApontamento({
           </Botao>
         </div>
       )}
-      {uso.invalidos.length > 0 && (
+      {pessoaRetirada && (
+        <p
+          role="status"
+          className="flex items-center gap-1 text-sm text-atencao"
+          data-testid="aviso-pessoa-retirada"
+        >
+          <Icone nome="alerta" className="size-4" />
+          {AVISO_PESSOA_RETIRADA}
+        </p>
+      )}
+      {outrosInvalidos.length > 0 && (
         <p
           role="status"
           className="flex items-center gap-1 text-sm text-atencao"
           data-testid="filtros-invalidos"
         >
           <Icone nome="alerta" className="size-4" />
-          Valor inválido ignorado em: {[...new Set(uso.invalidos)].join(', ')}.
+          Valor inválido ignorado em: {outrosInvalidos.join(', ')}.
         </p>
       )}
     </section>
