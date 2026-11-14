@@ -62,16 +62,6 @@ export function fmtDiasCorridos(n: number): string {
   return `${fmtInteiro(n)} ${n === 1 ? 'dia' : 'dias'}`
 }
 
-/**
- * Duração em horas úteis da sustentação: minutos abaixo de 1 h, horas úteis até 24 h
- * e dias úteis (8 h = 1 dia) acima disso.
- */
-export function fmtHorasUteis(h: number, horasPorDia = 8): string {
-  if (h < 1) return `${fmtInteiro(Math.round(h * 60))} min`
-  if (h < horasPorDia * 3) return `${fmtNumero(h, 1)} h úteis`
-  return fmtDiasUteis(h / horasPorDia)
-}
-
 /** Diferença em dias corridos entre duas datas civis. */
 export function diffDias(deIso: string, ateIso: string): number {
   const p = (s: string) => {

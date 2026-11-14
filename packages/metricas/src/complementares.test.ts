@@ -98,6 +98,8 @@ describe('métricas complementares: contratos e regras comuns', () => {
     const s12 = calcularMetrica('S12', FS, ctxSemExt)
     expect(s12.campoDisponivel).toBe(false)
     expect(s12.reincidencia.every((x) => x.proporcao.status === 'insuficiente')).toBe(true)
+    expect(s12.excecaoSla).toBeNull() // pedido 099 (D9): sem fonte, nunca 0%
+    expect(calcularMetrica('S12', FS, ctxMock).excecaoSla).not.toBeNull()
   })
 
   it('com extensão: campoDisponivel é true e a causa raiz vem do domínio fechado', () => {
@@ -358,7 +360,7 @@ describe('Sustentação: S8 e S9', () => {
     expect(cheia.cobertura.n).toBe(cheia.cobertura.total)
   })
 
-  it('S12: cobertura "n de N"; ausente fica fora do denominador; sem extensão só a reincidência some', () => {
+  it('S12: cobertura "n de N"; ausente fica fora do denominador; sem extensão a reincidência e a exceção de SLA somem (nulas)', () => {
     const ids = base.ac.chamados.map((c) => c.chamado_id)
     const ausente: Record<string, true> = {}
     ids.forEach((id, i) => {
@@ -381,7 +383,8 @@ describe('Sustentação: S8 e S9', () => {
     expect(sem.campoDisponivel).toBe(false)
     expect(sem.cobertura).toEqual({ n: 0, total: r.cobertura.total })
     expect(sem.meses.some((m) => m.total > 0)).toBe(true)
-    expect(sem.excecaoSla).toEqual(r.excecaoSla)
+    expect(sem.excecaoSla).toBeNull()
+    expect(r.excecaoSla).not.toBeNull()
   })
 })
 

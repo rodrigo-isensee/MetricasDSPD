@@ -177,7 +177,9 @@ sonda "query_to_xml em maiuscula" "SELECT QUERY_TO_XML('select 1',true,false,'')
 # A1 do review do K-277: U& sem UESCAPE tambem e recusado
 sonda "U& sem UESCAPE" "SELECT U&\"x\""
 # corpus de legitimos: os 31 .sql versionados passam na lista permitida (o caminho feliz acima ja exige 31 ok)
-verifica "os 31 .sql versionados cumprem a lista permitida" "$(roda | grep -q '^recusada  ' && echo 1 || echo 0)"
+verifica "os 31 .sql versionados cumprem a lista permitida" "$([ "$(roda | grep -c '^recusada  ')" -eq 0 ] && echo 0 || echo 1)"
+# Q-RO-1: o dspd_coletor nao tem SELECT em view (so a API); nenhum .sql versionado le vw_ (permission denied = psql rc 3)
+verifica "nenhum .sql versionado le view vw_ (coletor sem grant)" "$([ "$(cat "$RAIZ"/scripts/sql/consultas-098-099/*.sql | grep -v '^--' | grep -ciE '(^|[^[:alnum:]_])vw_')" -eq 0 ] && echo 0 || echo 1)"
 
 # A3: certificado fixado por ssl-fp, --defaults-file, --sandbox; sem ssl-ca nem desligar verificacao
 cat >"$TMP/bin/mysql" <<'EOF'

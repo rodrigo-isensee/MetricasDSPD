@@ -8,7 +8,7 @@ import { MIGRACOES } from './migracoes.js';
 const base = gerarBaseMock({ escala: 0.05 });
 const todas = (b = base): Tabela[] => [...mapearBM(b, 1, S_PADRAO), ...mapearAC(b, 1, S_PADRAO)];
 const ddl = Object.values(MIGRACOES).flatMap((m) => m.ddl(S_PADRAO).up);
-const criacao = (t: string): string => ddl.filter((s) => s.startsWith(`CREATE TABLE ${t} (`) || s.startsWith(`ALTER TABLE ${t} ADD COLUMN`)).join('\n');
+const criacao = (t: string): string => ddl.filter((s) => s.startsWith(`CREATE TABLE ${t} (`) || s.startsWith(`ALTER TABLE ${t} ADD COLUMN`) || s.startsWith(`ALTER TABLE ${t} RENAME COLUMN`)).join('\n');
 
 describe('seed (análise estática, sem banco)', () => {
   it('epoch ms vira timestamptz(3) UTC e data civil usa o fuso do calendário', () => {
