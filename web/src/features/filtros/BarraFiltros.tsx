@@ -28,7 +28,10 @@ const semOpcoes = (
   erro: boolean,
   plural: string,
   genero: 'm' | 'f' = 'm',
+  repetiu = false,
 ): string => {
+  if (erro && repetiu)
+    return `Ainda não foi possível carregar ${plural}. Tente de novo em instantes.`
   if (erro) return `Não foi possível carregar ${plural}.`
   return carregando
     ? `Carregando ${plural}...`
@@ -36,8 +39,10 @@ const semOpcoes = (
 }
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
-  const { config, opcoes, opcoesErro } = uso
+  const { config, opcoes, opcoesErro, opcoesTentando: tentando, opcoesRepetiu: repetiu } = uso
   const aoTentar = opcoesErro ? uso.recarregarOpcoes : undefined
+  const sem = (plural: string, genero: 'm' | 'f' = 'm') =>
+    semOpcoes(!opcoes, opcoesErro, plural, genero, repetiu)
   const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
@@ -52,8 +57,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           id="equipe"
           rotulo={rotuloEquipe}
           opcoes={opcoes?.equipes ?? []}
-          vazio={opcoesErro ? semOpcoes(false, true, 'equipes', 'f') : undefined}
+          vazio={sem('equipes', 'f')}
           aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="equipes"
           selecionados={f.equipe}
           variante={variante}
           onChange={(ids, replace) => definir({ equipe: ids }, { replace })}
@@ -65,8 +72,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Tipo de demanda"
           genero="m"
           opcoes={tiposOpc}
-          vazio={semOpcoes(!opcoes, opcoesErro, 'tipos')}
+          vazio={sem('tipos')}
           aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="tipos"
           selecionados={f.tipo.map((t) => TIPO_ID[t])}
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
@@ -79,8 +88,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Sistema"
           genero="m"
           opcoes={bm?.sistemas ?? []}
-          vazio={semOpcoes(!opcoes, opcoesErro, 'sistemas')}
+          vazio={sem('sistemas')}
           aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="sistemas"
           selecionados={f.sistema}
           variante={variante}
           onChange={(ids, replace) => definir({ sistema: ids }, { replace })}
@@ -91,8 +102,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           id="prioridade"
           rotulo="Prioridade"
           opcoes={ac?.prioridades ?? []}
-          vazio={semOpcoes(!opcoes, opcoesErro, 'prioridades', 'f')}
+          vazio={sem('prioridades', 'f')}
           aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="prioridades"
           selecionados={f.prioridade.map((p) => p.toLowerCase())}
           variante={variante}
           onChange={(ids, replace) =>

@@ -27,6 +27,10 @@ interface Props {
   vazio?: string | undefined
   /** Com ele, a lista sem opções oferece "Tentar de novo" (consulta de opções que falhou). */
   aoTentar?: (() => void) | undefined
+  /** Nova tentativa em andamento: o botão fica (aria-disabled) com "Tentando de novo...". */
+  tentando?: boolean | undefined
+  /** Nome do que se tenta carregar ("tipos"), para o nome acessível do botão (vários na folha). */
+  tentarDe?: string | undefined
 }
 
 function resumo(opcoes: readonly OpcaoFiltro[], sel: readonly string[], genero: 'f' | 'm'): string {
@@ -62,6 +66,22 @@ export function escLimpaBuscaFocada(alvo: EventTarget | null): boolean {
   return !!campo?.value
 }
 
+/**
+ * Região viva da lista sem opções: montada vazia e preenchida depois, para o texto inserido ser anunciado
+ * (N1 da UX do K-295). Um componente próprio monta o `<p>` sempre que a lista fica sem opções (S1 do review
+ * do K-323), e o texto chega como `string`, sem escape de tipo.
+ */
+function RegiaoVazia({ id, texto }: { id: string; texto: string }) {
+  const ref = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    // O efeito roda depois da montagem: o `<p>` já existe.
+    ;(ref.current as HTMLParagraphElement).textContent = texto
+  }, [texto])
+  return (
+    <p ref={ref} className="py-1 text-sm text-texto-2" role="status" data-testid={`${id}-vazio`} />
+  )
+}
+
 function Lista({
   id,
   rotulo,
@@ -77,6 +97,8 @@ function Lista({
   genero = 'f',
   vazio,
   aoTentar,
+  tentando = false,
+  tentarDe,
 }: Props & {
   busca: string
   setBusca: (t: string) => void
@@ -88,11 +110,13 @@ function Lista({
   // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
   const [retorno, setRetorno] = useState('')
-  // Região viva já montada e vazia, preenchida depois: o texto inserido é anunciado (N1 da UX do K-295).
-  const regiaoVazioRef = useRef<HTMLParagraphElement>(null)
+  // Ao terminar uma nova tentativa, o foco volta ao botão (que segue montado e com aria-disabled).
+  const tentarRef = useRef<HTMLButtonElement>(null)
+  const estavaTentando = useRef(false)
   useEffect(() => {
-    if (regiaoVazioRef.current) regiaoVazioRef.current.textContent = vazio as string
-  }, [vazio])
+    if (estavaTentando.current && !tentando) tentarRef.current?.focus()
+    estavaTentando.current = tentando
+  }, [tentando])
   const alternar = (opcaoId: string, marcado: boolean) => {
     // O retorno vale só até a próxima ação; o Enter o redefine logo depois (N1 da revisão de UX do K-278).
     setRetorno('')
@@ -160,15 +184,16 @@ function Lista({
     return (
       <fieldset className="m-0 min-w-0 border-0 p-0">
         <legend className="sr-only">{rotulo}</legend>
-        <p
-          ref={regiaoVazioRef}
-          className="py-1 text-sm text-texto-2"
-          role="status"
-          data-testid={`${id}-vazio`}
-        />
+        <RegiaoVazia id={id} texto={vazio} />
         {aoTentar && (
-          <Botao onClick={aoTentar} data-testid={`${id}-tentar`}>
-            Tentar de novo
+          <Botao
+            ref={tentarRef}
+            onClick={aoTentar}
+            aria-disabled={tentando || undefined}
+            aria-label={`${tentando ? 'Tentando de novo' : 'Tentar de novo'}${tentarDe ? ` carregar ${tentarDe}` : ''}`}
+            data-testid={`${id}-tentar`}
+          >
+            {tentando ? 'Tentando de novo...' : 'Tentar de novo'}
           </Botao>
         )}
       </fieldset>
@@ -348,8 +373,11 @@ export function FiltroMulti(props: Props) {
             aria-label={rotulo}
             sideOffset={6}
             onOpenAutoFocus={(e) => {
+              // Sem campo de busca (lista vazia ou com erro), o foco padrão do Radix vai ao primeiro
+              // elemento focável, o Tentar de novo (B1 da UX do K-323).
+              if (!buscaRef.current) return
               e.preventDefault()
-              buscaRef.current?.focus()
+              buscaRef.current.focus()
             }}
             onEscapeKeyDown={(e) => {
               // Mesma regra da folha (A6): só limpa com o foco na lista de opções com texto digitado;

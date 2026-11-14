@@ -657,9 +657,11 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
 
 /** Fonte cujas opções de Tipo, Sistema e Prioridade vêm vazias (recorte sem dado) ou nunca chegam (carregando). */
 class FonteOpcoes extends MockFonteMetricas {
-  private readonly modo: 'vazias' | 'carregando' | 'estranha' | 'erro'
+  private readonly modo: 'vazias' | 'carregando' | 'estranha' | 'erro' | 'semEquipes'
   private falhas: number
-  constructor(modo: 'vazias' | 'carregando' | 'estranha' | 'erro', falhas = 0) {
+  /** Segura a próxima resposta de erro até ser resolvida (para ver o estado "Tentando de novo..."). */
+  portao: Promise<void> | undefined
+  constructor(modo: 'vazias' | 'carregando' | 'estranha' | 'erro' | 'semEquipes', falhas = 0) {
     super({ latenciaMs: 0 })
     this.modo = modo
     this.falhas = falhas
@@ -668,11 +670,16 @@ class FonteOpcoes extends MockFonteMetricas {
     dominio: D,
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.modo === 'carregando') return new Promise(() => {})
-    if (this.modo === 'erro' && this.falhas-- > 0) throw new Error('falhou')
+    if (this.modo === 'erro' && this.falhas > 0) {
+      await this.portao
+      this.falhas--
+      throw new Error('falhou')
+    }
     if (this.modo === 'erro') return super.opcoesFiltro(dominio)
     const real: OpcoesFiltro = await super.opcoesFiltro(dominio)
     let alterado: OpcoesFiltro
-    if (real.dominio !== 'businessmap') alterado = { ...real, prioridades: [] }
+    if (this.modo === 'semEquipes') alterado = { ...real, equipes: [] }
+    else if (real.dominio !== 'businessmap') alterado = { ...real, prioridades: [] }
     else if (this.modo === 'estranha')
       alterado = { ...real, tipos: [{ id: 'xyz', nome: 'Xyz' }, ...real.tipos] }
     else alterado = { ...real, tipos: [], sistemas: [] }
@@ -716,6 +723,56 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     expect(regiao).toHaveTextContent('Nenhum tipo disponível neste recorte.')
   })
 
+  it('o texto entra no <p> depois de ele estar no DOM (não como filho do JSX, N1 do K-295)', () => {
+    const inseridos: string[] = []
+    const observador = new MutationObserver((registros) => {
+      for (const r of registros)
+        if (r.target instanceof Element && r.target.getAttribute('data-testid') === 'tipo-vazio')
+          inseridos.push(r.target.textContent)
+    })
+    observador.observe(document.body, { childList: true, subtree: true, characterData: true })
+    render(
+      <FiltroMulti
+        id="tipo"
+        rotulo="Tipo"
+        opcoes={[]}
+        selecionados={[]}
+        onChange={vi.fn()}
+        variante="lista"
+        vazio="Nenhum tipo disponível neste recorte."
+      />,
+    )
+    inseridos.push(...observador.takeRecords().map((r) => r.target.textContent ?? ''))
+    observador.disconnect()
+    // Se o texto fosse filho do JSX, o <p> entraria já preenchido e nenhuma mutação o teria como alvo.
+    expect(inseridos).toContain('Nenhum tipo disponível neste recorte.')
+  })
+
+  it('lista que passa de com opções a sem opções, com o mesmo texto, monta o <p> preenchido (S1)', () => {
+    const vazio = 'Nenhum tipo disponível neste recorte.'
+    const props = { id: 'tipo', rotulo: 'Tipo', selecionados: [], onChange: vi.fn(), vazio }
+    const { rerender } = render(
+      <FiltroMulti {...props} variante="lista" opcoes={[{ id: 'a', nome: 'Alfa' }]} />,
+    )
+    expect(screen.queryByTestId('tipo-vazio')).toBeNull()
+    rerender(<FiltroMulti {...props} variante="lista" opcoes={[]} />)
+    expect(screen.getByTestId('tipo-vazio')).toHaveTextContent(vazio)
+  })
+
+  it('sem texto de vazio, a região da lista sem opções fica em branco', () => {
+    render(
+      <FiltroMulti
+        id="x"
+        rotulo="Tipo"
+        opcoes={[]}
+        selecionados={[]}
+        onChange={vi.fn()}
+        variante="lista"
+      />,
+    )
+    expect(screen.queryByTestId('x-vazio')).toBeNull()
+  })
+
   it('opções que falham: erro com texto claro em vez de Carregando', async () => {
     renderizarBarra('/operacional', new FonteOpcoes('erro', 10))
     await userEvent.click(await screen.findByTestId('filtro-tipo'))
@@ -730,8 +787,102 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     renderizarBarra('/operacional', new FonteOpcoes('erro', 1))
     await userEvent.click(await screen.findByTestId('filtro-tipo'))
     await screen.findByText('Não foi possível carregar tipos.')
-    await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo carregar tipos' }))
     expect(await screen.findByTestId('tipo-opcao-melhoria')).toBeInTheDocument()
+  })
+
+  it('só com teclado: Enter abre o filtro com erro, o foco vai ao Tentar de novo e Enter o aciona (B1)', async () => {
+    renderizarBarra('/operacional', new FonteOpcoes('erro', 1))
+    // O erro já aparece quando as opções falham; espera a falha antes de abrir.
+    const botao = await screen.findByTestId('filtro-tipo')
+    botao.focus()
+    await userEvent.keyboard('{Enter}')
+    await screen.findByText('Não foi possível carregar tipos.')
+    const tentar = screen.getByTestId('tipo-tentar')
+    expect(tentar).toHaveFocus()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'Limpar seleção' })).toHaveFocus()
+    await userEvent.tab({ shift: true })
+    expect(tentar).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByTestId('tipo-opcao-melhoria')).toBeInTheDocument()
+  })
+
+  it('com campo de busca, o foco ao abrir continua nele', async () => {
+    renderizarBarra('/operacional')
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    expect(await screen.findByTestId('tipo-busca')).toHaveFocus()
+  })
+
+  it('durante a nova tentativa o botão fica (aria-disabled, foco nele); falhou de novo, o texto muda (M1)', async () => {
+    const fonte = new FonteOpcoes('erro', 10)
+    renderizarBarra('/operacional', fonte)
+    await userEvent.click(await screen.findByTestId('filtro-tipo'))
+    await screen.findByText('Não foi possível carregar tipos.')
+    let liberar = () => {}
+    fonte.portao = new Promise<void>((r) => (liberar = r))
+    const tentar = screen.getByTestId('tipo-tentar')
+    tentar.focus()
+    await userEvent.keyboard('{Enter}')
+    const tentando = await screen.findByRole('button', { name: 'Tentando de novo carregar tipos' })
+    expect(tentando).toBe(tentar)
+    expect(tentando).toHaveTextContent('Tentando de novo...')
+    expect(tentando).toHaveAttribute('aria-disabled', 'true')
+    expect(tentando).toHaveFocus()
+    // Clique durante a tentativa não dispara outra consulta (aria-disabled não bloqueia o clique).
+    await userEvent.click(tentando)
+    liberar()
+    expect(
+      await screen.findByText('Ainda não foi possível carregar tipos. Tente de novo em instantes.'),
+    ).toBeInTheDocument()
+    const depois = screen.getByTestId('tipo-tentar')
+    expect(depois).toHaveTextContent('Tentar de novo')
+    expect(depois).not.toHaveAttribute('aria-disabled')
+    await waitFor(() => expect(depois).toHaveFocus())
+  })
+
+  it('na folha, cada Tentar de novo diz o que tenta carregar (B2)', () => {
+    render(
+      <>
+        <FiltroMulti
+          id="tipo"
+          rotulo="Tipo"
+          opcoes={[]}
+          selecionados={[]}
+          onChange={vi.fn()}
+          variante="lista"
+          vazio="x"
+          aoTentar={vi.fn()}
+          tentarDe="tipos"
+        />
+        <FiltroMulti
+          id="sistema"
+          rotulo="Sistema"
+          opcoes={[]}
+          selecionados={[]}
+          onChange={vi.fn()}
+          variante="lista"
+          vazio="y"
+          aoTentar={vi.fn()}
+        />
+      </>,
+    )
+    expect(
+      screen.getByRole('button', { name: 'Tentar de novo carregar tipos' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeInTheDocument()
+  })
+
+  it('Equipe usa o mesmo texto de vazio dos outros filtros: carregando e sem equipes (M2)', async () => {
+    const { unmount } = renderizarBarra('/operacional', new FonteOpcoes('carregando'))
+    await userEvent.click(await screen.findByTestId('filtro-equipe'))
+    expect(await screen.findByText('Carregando equipes...')).toBeInTheDocument()
+    expect(screen.queryByTestId('equipe-busca')).toBeNull()
+    unmount()
+    renderizarBarra('/operacional', new FonteOpcoes('semEquipes'))
+    await userEvent.click(await screen.findByTestId('filtro-equipe'))
+    expect(await screen.findByText('Nenhuma equipe disponível neste recorte.')).toBeInTheDocument()
+    expect(screen.queryByTestId('equipe-busca')).toBeNull()
   })
 
   it('o erro também vale para Equipe, Sistema e Prioridade', async () => {
