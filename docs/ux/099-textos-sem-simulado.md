@@ -29,7 +29,7 @@ Texto atual:
 "Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na seção "Mais métricas" da visão. Até a coleta real existir, todas as métricas usam dados fictícios; a coluna "Dados" lembra isso."
 
 Texto novo:
-"Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na seção "Mais métricas" da visão. A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de exemplo."
+"Tudo o que existe no DSPD, uma linha por métrica; a espera invisível aparece em uma linha por nível e a pesquisa de valor do serviço vem da pesquisa de percepção. As complementares ficam na seção "Mais métricas" da visão. A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de exemplo."
 
 Motivo: o texto antigo afirma que tudo é fictício, o que é falso para as métricas do mapa real, e a frase nova só descreve a coluna.
 
