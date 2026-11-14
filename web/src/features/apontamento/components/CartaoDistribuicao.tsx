@@ -52,6 +52,7 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
   const corte = bloco === 'projeto' ? dezMaiores(projetos) : undefined
   const cortado = corte !== undefined && corte.demais.quantidade > 0
   const projetosMostrados = corte && cortado && !verTodos ? corte.visiveis : projetos
+  // A tabela de dados leva a linha sem projeto por último; o gráfico só tem projetos.
   const linhas = semProjeto ? [...projetosMostrados, semProjeto] : projetosMostrados
   const n = r.distribuicao.base.n
   const incompletos = new Set(
@@ -69,9 +70,9 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
       unidade="h"
       formatar={(v) => fmtNumero(v, 1)}
       larguraRotulos={200}
-      altura={alturaGrafico(linhas.length)}
+      altura={alturaGrafico(projetosMostrados.length)}
       semLegenda
-      categorias={linhas.map((l) => ({
+      categorias={projetosMostrados.map((l) => ({
         rotulo: rotuloLinha(l),
         valores: { h: l.segundos / 3600 },
       }))}
@@ -90,7 +91,7 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
           {verTodos ? MAIORES.mostrandoTodos(projetos.length) : MAIORES.mostrando(projetos.length)}
         </p>
       )}
-      {cortado && verTodos ? (
+      {projetosMostrados.length === 0 ? null : cortado && verTodos ? (
         <div
           role="region"
           tabIndex={0}
@@ -115,6 +116,11 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
             {verTodos ? MAIORES.verMaiores : MAIORES.verTodos(projetos.length)}
           </Botao>
         </div>
+      )}
+      {semProjeto && (
+        <p className="text-sm text-texto-2" data-testid="linha-sem-projeto">
+          {MAIORES.semProjeto(rotuloLinha(semProjeto), fmtHoras(semProjeto.segundos))}
+        </p>
       )}
       {comSelo.length > 0 && (
         <ul

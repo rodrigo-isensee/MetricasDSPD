@@ -80,6 +80,52 @@ describe('097 K-341: linha sem projeto fixa embaixo do AP-PROJETO', () => {
     expect(linhas).toHaveLength(11)
     expect(linhas[10]).toMatch(/^Sem iniciativa50 h/)
     expect(linhas[0]).toMatch(/^Projeto 00/)
+    expect(within(cartao).getByTestId('linha-sem-projeto')).toHaveTextContent(
+      'Sem iniciativa, não conta como projeto: 50 h',
+    )
+  })
+
+  it('decisão a: a linha sem projeto fica depois de Demais e do Ver todos, fora do gráfico', async () => {
+    const cartao = await renderizar(com([semProjeto(50), ...projetos(12)]))
+    const linha = within(cartao).getByTestId('linha-sem-projeto')
+    const demais = within(cartao).getByTestId('projetos-demais')
+    const botao = within(cartao).getByRole('button', { name: 'Ver todos os 12 projetos' })
+    expect(demais.compareDocumentPosition(linha) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(botao.compareDocumentPosition(linha) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // Fora do gráfico: o rótulo só aparece na linha própria e na tabela de dados.
+    expect(within(cartao).getAllByText(/Sem iniciativa/)).toHaveLength(2)
+  })
+
+  it('decisão a: com Ver todos, a linha sem projeto fica fora da região rolável', async () => {
+    const u = userEvent.setup()
+    const cartao = await renderizar(com([semProjeto(50), ...projetos(12)]))
+    await u.click(within(cartao).getByRole('button', { name: 'Ver todos os 12 projetos' }))
+    const regiao = within(cartao).getByTestId('projetos-todos')
+    const linha = within(cartao).getByTestId('linha-sem-projeto')
+    expect(regiao.contains(linha)).toBe(false)
+    expect(regiao.compareDocumentPosition(linha) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('A1 do QA: linha sem projeto incompleta no fim e mais de 10 projetos, o selo de Demais não acende', async () => {
+    const resposta = com([...projetos(12), semProjeto(3)])
+    resposta.registroIncompleto = {
+      total: 1,
+      cards: [
+        {
+          cardId: '9100000001',
+          titulo: 'Card incompleto',
+          projeto: { id: ID_SEM_PROJETO, rotulo: 'Sem iniciativa', foraDoEscopo: false },
+        },
+      ],
+      projetoIds: [ID_SEM_PROJETO],
+    }
+    const cartao = await renderizar(resposta)
+    expect(within(cartao).getByTestId('projetos-demais')).not.toHaveTextContent(
+      'Horas incompletas',
+    )
+    expect(within(cartao).getByTestId('selos-projeto-incompleto')).toHaveTextContent(
+      'Sem iniciativa',
+    )
   })
 
   it('CA-33/CA-34: 12 projetos e a linha sem projeto: os 10 maiores são projetos, N e Demais sem ela', async () => {

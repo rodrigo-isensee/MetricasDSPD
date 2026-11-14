@@ -354,6 +354,7 @@ export const MAIORES = {
   verTodos: (n: number) => `Ver todos os ${n} projetos`,
   verMaiores: `Ver só os ${LIMITE_MAIORES} maiores`,
   regiao: 'Todos os projetos, com rolagem',
+  semProjeto: (rotulo: string, horas: string) => `${rotulo}, não conta como projeto: ${horas}`,
 } as const
 
 /**
