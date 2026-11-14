@@ -57,9 +57,10 @@ describe('bm:ref-sync: o arquivo versionado', () => {
       area_solicitante: [{ codigo: 'a1', rotulo: 'Area Um' }],
       sistema: [{ codigo: 's1', rotulo: 'Sistema Um' }],
       motivo_bloqueio: [],
+      setor_quadro: [],
       prioridade_severidade: [],
     });
-    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], prioridade_severidade: [] });
+    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], setor_quadro: [], prioridade_severidade: [] });
   });
 
   it.each(PROIBIDOS)('CA-069-1: o field %s no arquivo recusa a carga inteira, sem valor na mensagem', (id) => {
@@ -189,7 +190,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
     const versao = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio'))!;
     expect(versao.valores).toEqual([HOJE, 'Teste do bm:ref-sync', 'Teste', `069:ref-bm-campos:${lido.sha256}`, AGORA.toISOString()]);
-    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'prioridade_severidade']]);
+    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade']]);
   });
 
   it('já vigente e igual: nada é gravado e nenhuma versão é registrada; versão já existente não duplica', async () => {
@@ -209,6 +210,45 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(d.chamadas.filter((c) => c.texto.startsWith('UPDATE dspd_bm.ref_dominio SET vigente_ate')).map((c) => c.valores)).toEqual([[HOJE, 'campo_customizado', '7']]);
     const retro = criarDublePg((c) => (c.texto.startsWith('SELECT campo, codigo, rotulo, vigente_de') ? vigentes : c.texto.includes('max(greatest') ? [{ campo: 'campo_customizado', ultima: '2026-11-10' }] : []));
     await expect(sincronizarDominioBm(retro.pool, S, vazio, HOJE, AGORA)).rejects.toBeInstanceOf(ErroDominio);
+  });
+});
+
+// L10a do pedido 097 (E7): dicionário quadro -> setor. Casos de abuso escritos aqui, sem importar a regra do código.
+describe('bm:ref-sync: lista setores (097 L10a)', () => {
+  const comSetores = (setores: unknown[]): string => arquivo([], { setores });
+  const bom = [{ codigo: '23', rotulo: 'Plataformas' }, { codigo: '35', rotulo: 'Desenv Sistemas Plataformas Digitais - Gerencial' }];
+
+  it('o arquivo versionado nasce com a lista vazia (as 7 linhas esperam a P-097-9)', () => {
+    expect(lerDominioBm().arquivo.setores).toEqual([]);
+  });
+
+  it('arquivo sem a lista é aceito (padrão vazio) e a lista vira a lista setor_quadro de ref_dominio', () => {
+    expect(analisarDominioBm(arquivo([])).arquivo.setores).toEqual([]);
+    expect(listasDoArquivo(analisarDominioBm(comSetores(bom)).arquivo).setor_quadro).toEqual(bom);
+  });
+
+  it.each([
+    ['rótulo com sobrenome em caixa alta', [{ codigo: '23', rotulo: 'Plataformas - SILVA' }]],
+    ['rótulo com sobrenome e espaço no fim', [{ codigo: '23', rotulo: 'Plataformas - SILVA ' }]],
+    ['rótulo com e-mail', [{ codigo: '23', rotulo: 'fulano@empresa.com' }]],
+    ['rótulo vazio', [{ codigo: '23', rotulo: '' }]],
+    ['rótulo com caractere de controle', [{ codigo: '23', rotulo: 'Plata\u0000formas' }]],
+    ['código não numérico', [{ codigo: 'abc', rotulo: 'Plataformas' }]],
+    ['código com sinal', [{ codigo: '-5', rotulo: 'Plataformas' }]],
+    ['código vazio', [{ codigo: '', rotulo: 'Plataformas' }]],
+    ['código repetido', [{ codigo: '23', rotulo: 'Plataformas' }, { codigo: '23', rotulo: 'Ciência de Dados' }]],
+    ['código repetido com zeros à esquerda', [{ codigo: '23', rotulo: 'Plataformas' }, { codigo: '023', rotulo: 'Ciência de Dados' }]],
+    ['rótulo repetido', [{ codigo: '23', rotulo: 'Plataformas' }, { codigo: '24', rotulo: 'Plataformas' }]],
+    ['campo extra (nome do quadro)', [{ codigo: '23', rotulo: 'Plataformas', nome_quadro: 'Plataformas - SILVA' }]],
+  ])('recusa a carga inteira: %s, sem o valor na mensagem', (_n, setores) => {
+    const msg = recusa(comSetores(setores));
+    expect(msg).toContain('inválido');
+    expect(msg).not.toContain('SILVA');
+    expect(msg).not.toContain('empresa');
+  });
+
+  it('mais de 50 setores recusa', () => {
+    recusa(comSetores(Array.from({ length: 51 }, (_v, i) => ({ codigo: String(i + 1), rotulo: `Setor ${i + 1}` }))));
   });
 });
 

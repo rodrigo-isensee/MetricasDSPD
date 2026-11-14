@@ -27,8 +27,8 @@ while IFS= read -r f; do
     *) raiz+=("$f") ;;
   esac
 done < <({
-  git diff --name-only --diff-filter=d "$mb" -- '*.ts' '*.tsx'
-  git ls-files --others --exclude-standard -- '*.ts' '*.tsx'
+  git -c core.quotePath=false diff --name-only --diff-filter=d "$mb" -- '*.ts' '*.tsx'
+  git -c core.quotePath=false ls-files --others --exclude-standard -- '*.ts' '*.tsx'
 } | sort -u)
 
 if [ "${#raiz[@]}" -eq 0 ] && [ "${#servidor[@]}" -eq 0 ]; then
