@@ -240,13 +240,14 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     expect(await botao('resumo-fluxo', 'Equipe: Todas')).toBeInTheDocument()
   })
 
-  it('as duas normalizações da URL se somam: o fluxo descarta o valor inválido e a Sustentação troca o id antigo pelo slug', async () => {
+  it('as duas normalizações da URL se somam: o fluxo descarta o valor inválido e a Sustentação descarta o id antigo', async () => {
     const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=totvs', new FonteEquipe())
     expect(
       await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
     ).toHaveTextContent('equipe "xyz"')
-    await waitFor(() => expect(busca(r).toString()).toBe('sust_equipe=sssc-totvs'))
-    expect(await botao('resumo-sustentacao', 'Equipe: SSSC TOTVS')).toBeInTheDocument()
+    expect(screen.getByTestId('aviso-filtros-invalidos')).toHaveTextContent('equipe "totvs"')
+    await waitFor(() => expect(busca(r).toString()).toBe(''))
+    expect(await botao('resumo-sustentacao', 'Equipe: Todas')).toBeInTheDocument()
   })
 
   it('carregando: o botão fica desabilitado enquanto as opções não chegam', async () => {
