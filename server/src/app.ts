@@ -6,7 +6,7 @@ import {
 import { rotasApontamento } from './modulos/apontamento/index.js';
 import { rotasWebhook } from './modulos/businessmap/index.js';
 import { ServicoMetricas, criarFontePesquisaReal, filtrosPadraoDe, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
-import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
+import type { ExtensoesMetricas } from './modulos/metricas/index.js';
 import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { rotasOperacao } from './modulos/operacao/index.js';
 import { rotasReferencia } from './modulos/referencia/index.js';

@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { dezMaiores, LIMITE_MAIORES } from './dezMaiores'
+import { alturaGrafico, dezMaiores, LIMITE_MAIORES } from './dezMaiores'
 
 const linha = (rotulo: string, segundos: number) => ({ rotulo, segundos })
 
@@ -64,5 +64,15 @@ describe('dezMaiores (097 L9)', () => {
     const copia = [...ls]
     dezMaiores(ls)
     expect(ls).toEqual(copia)
+  })
+})
+
+describe('alturaGrafico (097 K-299, B-3)', () => {
+  it('tem piso de 200, 40 por linha e teto de 1200', () => {
+    expect(alturaGrafico(0)).toBe(200)
+    expect(alturaGrafico(5)).toBe(200)
+    expect(alturaGrafico(12)).toBe(480)
+    expect(alturaGrafico(30)).toBe(1200)
+    expect(alturaGrafico(500)).toBe(1200)
   })
 })
