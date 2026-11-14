@@ -2,7 +2,7 @@
 
 Para quem não é técnico. Nada deste documento foi executado pelo time: os comandos são seus, depois do merge da release 104 na `main`. Os comandos vêm do CHANGELOG da release ("Ações do dono na base real depois da release 104"). Nenhuma senha, chave ou nome de pessoa aparece aqui.
 
-Como usar: abra o terminal do WSL na pasta do projeto (`cd ~/Metricas/MetricasDSPD`), com a `main` já atualizada (`git checkout main && git pull`). Copie um comando por vez. Depois de cada um, rode `echo "rc=$?"`: **rc=0 é sucesso**; qualquer outro número é erro.
+Como usar: abra o terminal do WSL na pasta do projeto (`cd ~/Metricas/MetricasDSPD`), com a `main` já atualizada (`git checkout main && git pull`). Copie um comando por vez. Os passos 2, 3, 4 e 6 vêm entre parênteses com `set -a; . ./.env; set +a`: isso carrega o `.env` só para aquele comando (sem mostrar o conteúdo); sem isso eles param com rc=1. Depois de cada um, rode `echo "rc=$?"`: **rc=0 é sucesso**; qualquer outro número é erro.
 
 **Regra de ouro:** deu erro, PARE. Não tente o passo seguinte. Copie a mensagem de erro inteira (sem senhas) e mande ao Jarvis. Os tempos abaixo são estimativas, não medidas: se um passo passar de 15 minutos sem imprimir nada, também pare e avise.
 
@@ -12,16 +12,16 @@ A coleta não pode rodar enquanto você mexe na base. Onde a agenda está depend
 
 1. Servidor interno (VM), se a agenda de lá estiver ativa:
    ```
-   systemctl disable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer
+   sudo systemctl disable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer
    systemctl list-timers 'metricas-coleta-*'
    ```
    Conferir: a lista final deve vir vazia (`0 timers listed`). Se a coleta estiver rodando agora, espere terminar: `systemctl list-units 'metricas-coleta-*.service' --state=running` deve vir vazio.
-2. Nesta máquina, no Agendador de Tarefas do Windows: abra o programa, procure tarefas que chamem a coleta (BusinessMap ou Acelerato) e use "Desabilitar". Anote os nomes para religar no passo 5.
+2. Nesta máquina, no Agendador de Tarefas do Windows: abra o programa, procure tarefas que chamem a coleta (BusinessMap ou Acelerato) e use "Desabilitar". Anote os nomes para religar na seção 4.
 3. Nesta máquina, no cron do WSL: `crontab -l`. Se houver linha de coleta, edite com `crontab -e` e ponha `#` na frente (anote qual).
 
 Conferir que nada roda agora:
 ```
-ps aux | grep -E "coleta|tsx" | grep -v grep
+ps aux | grep "entradas/coleta" | grep -v grep
 ```
 Deve imprimir nada. Se imprimir, espere e repita. Se você nunca agendou coleta nesta máquina, os itens 2 e 3 não têm nada a desligar.
 
@@ -40,7 +40,7 @@ pnpm run db:migrate; echo "rc=$?"
 
 ### Passo 2. Calendário da Sustentação
 ```
-pnpm --filter @metricas-dspd/server run ref:sync-calendario; echo "rc=$?"
+(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run ref:sync-calendario); echo "rc=$?"
 ```
 - Tempo: segundos.
 - Deve mostrar: calendário gravado (turnos de 8 h 48) e rc=0.
@@ -48,9 +48,9 @@ pnpm --filter @metricas-dspd/server run ref:sync-calendario; echo "rc=$?"
 - Se der erro: pare e avise (rc=1 sem detalhe costuma ser variável do `.env` faltando; só os nomes, nunca os valores). Pode repetir.
 
 ### Passo 3. Alvos de prioridade do Acelerato
-**Só rode se o último `ac:ref-sync` foi em outro dia (não hoje).** Não sabe quando foi o último? Não rode e pergunte ao Jarvis, que confere na base.
+**Só rode se o último `ac:ref-sync` foi em outro dia (não hoje).** Não sabe quando foi o último? Não rode: pare aqui e pergunte ao Jarvis, que confere na base; só siga para o passo 4 depois da resposta.
 ```
-pnpm --filter @metricas-dspd/server run ac:ref-sync; echo "rc=$?"
+(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run ac:ref-sync); echo "rc=$?"
 ```
 - Tempo: segundos.
 - Deve mostrar: alvos carregados com a unidade de cada prazo e rc=0.
@@ -59,7 +59,7 @@ pnpm --filter @metricas-dspd/server run ac:ref-sync; echo "rc=$?"
 
 ### Passo 4. Dicionários do BusinessMap
 ```
-pnpm --filter @metricas-dspd/server run bm:ref-sync; echo "rc=$?"
+(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:ref-sync); echo "rc=$?"
 ```
 - Tempo: segundos.
 - Deve mostrar: dicionário de setores (vazio por enquanto, é esperado) e de-para de severidade, rc=0.
@@ -77,7 +77,7 @@ pnpm run coleta ac --reconhecer-mudanca; echo "rc=$?"
 
 ### Passo 6. Refazer os intervalos por etapa (com a coleta ainda parada)
 ```
-pnpm --filter @metricas-dspd/server run ac:reprojetar-etapas; echo "rc=$?"
+(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-etapas); echo "rc=$?"
 ```
 - Tempo: de segundos a alguns minutos.
 - Deve mostrar: só contagens (cards e intervalos refeitos) e rc=0. Grava a versão de critério `099:D-7-528` com a data de hoje.
@@ -99,13 +99,13 @@ Só para o servidor interno (VM). Desenho em `docs/analises/086-prontidao-dado-r
 
 ## 3. Dicionário de setores (K-332): só quando o K-332 estiver na main
 
-Reservado. Se o K-332 entrar nesta mesma release, o passo 4 já o carregou: nada a fazer aqui. Se entrar numa release depois, depois do merge dele rode uma vez:
+Reservado. Se o K-332 entrar nesta mesma release, o passo 4 já o carregou: nada a fazer aqui. Se entrar numa release depois, peça antes ao Jarvis para confirmar a data (a carga grava versão de critério com a data de hoje) e, depois do merge dele, rode uma vez:
 ```
-pnpm --filter @metricas-dspd/server run bm:ref-sync; echo "rc=$?"
+(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:ref-sync); echo "rc=$?"
 ```
 - Deve mostrar: setores carregados (23, 24, 25, 27, 31, 35 e 79) e rc=0.
 - Conferir: o filtro de setor aparece com os nomes na tela do BusinessMap.
-- Se der erro: pare e avise. Peça ao Jarvis para confirmar a data antes de rodar (a carga grava versão de critério com a data de hoje).
+- Se der erro: pare e avise.
 
 ## 4. Voltar a coleta e conferir a Sustentação
 
@@ -115,10 +115,10 @@ pnpm --filter @metricas-dspd/server run bm:ref-sync; echo "rc=$?"
    pnpm run coleta ac; echo "rc=$?"
    ```
    Tempo: minutos cada. Deve dar rc=0 (rc=3 é parcial: avise). Podem ser repetidos; não duplicam dados.
-2. Religar a agenda que você parou no passo 0 (na VM: `systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer`; no Windows, "Habilitar" a tarefa; no cron, tire o `#`).
-3. Conferir a Sustentação, só a do Acelerato, nunca somada com a do BusinessMap: o selo de frescor mostra hoje; S1 mostra prazos com unidade; nenhuma tela mostra "parametros-mudaram" nem erro.
-4. Conferir o BusinessMap separado: selo de frescor de hoje e o fluxo sem erro.
-5. Se algo estiver estranho, avise o Jarvis antes de religar a agenda.
+2. Conferir a Sustentação, só a do Acelerato, nunca somada com a do BusinessMap: o selo de frescor mostra hoje; S1 mostra prazos com unidade; nenhuma tela mostra "parametros-mudaram" nem erro.
+3. Conferir o BusinessMap separado: selo de frescor de hoje e o fluxo sem erro.
+4. Se algo estiver estranho, pare e avise o Jarvis; não religue a agenda.
+5. Só com tudo certo, religue a agenda que você parou no passo 0 (na VM: `sudo systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer`, e `systemctl list-timers 'metricas-coleta-*'` deve listar os 3; no Windows, "Habilitar" a tarefa; no cron, tire o `#`).
 
 ## 5. Mensagens prontas para você encaminhar
 
