@@ -91,11 +91,13 @@ Veja a seção 4 (voltar a coleta) abaixo: este passo é a coleta manual dos doi
 
 Só para o servidor interno (VM). Desenho em `docs/analises/086-prontidao-dado-real-vm.md` e pedido 076.
 
-1. No `.env` da VM, inclua a variável `PG_APONTAMENTO_URL` apontando para o banco com o papel `dspd_api_apontamento`. A senha desse papel é a da VM (diferente da sua máquina local); você a escreve no arquivo, nunca aqui nem em mensagem. Confira só se o nome da variável existe: `grep -c '^PG_APONTAMENTO_URL=' .env` deve imprimir 1.
-2. **Antes de subir a API**, rode a migração (a 0034 vem junto na `db:migrate`): `pnpm run db:migrate; echo "rc=$?"` deve dar rc=0.
-3. Só então suba a API.
-4. Conferir: abra a aba Apontamento. Ela deve carregar (sem a mensagem de erro de rota) e sem o aviso "registro de horas incompleto" por falta de tabela. Depois, peça ao Jarvis para rodar a consulta Q20 de novo.
-5. Se a aba mostrar erro: pare, não mexa em mais nada, avise o Jarvis (provável `PG_APONTAMENTO_URL` ausente ou senha diferente).
+Na VM tudo é pelo Docker Compose, na pasta `/opt/metricas-dspd` (`cd /opt/metricas-dspd`). Não use `pnpm` aqui: a migração e a API rodam em contêineres.
+
+1. No arquivo de ambiente do Compose da VM (o da pasta do projeto, permissão 600), confirme que existe a variável `DSPD_PWD_APONTAMENTO`, com a senha do papel `dspd_api_apontamento` da VM (diferente da sua máquina local). Você escreve o valor no arquivo, nunca aqui nem em mensagem. O Compose monta sozinho a conexão da API a partir dela; não crie `PG_APONTAMENTO_URL` nesse arquivo, ela não chega à API. Se `DSPD_PWD_APONTAMENTO` faltar, vale a senha padrão pública de desenvolvimento: por isso ela precisa estar definida. Quem confere é você, olhando o arquivo; ninguém cola o valor.
+2. **Antes de subir a API**, rode a migração pelo Compose (a 0034 vem junto): `docker compose run --rm migrate; echo "rc=$?"` deve dar rc=0.
+3. Suba ou reinicie a API pelo Compose, para ela ler a variável: `docker compose up -d --build api; echo "rc=$?"` deve dar rc=0. Com a API já no ar, isso a recria com a configuração atual. Espere ficar saudável: `docker compose ps api` deve mostrar `healthy` (leva alguns segundos).
+4. Conferir que a aba funciona (é isso que vale): abra o painel no navegador da VM (`http://127.0.0.1:8080`, ou o endereço que você já usa) e entre na aba Apontamento. Ela deve carregar os dados (sem mensagem de erro de rota ou de conexão) e sem o aviso "registro de horas incompleto" por falta de tabela. Depois, peça ao Jarvis para rodar a consulta Q20 de novo.
+5. Se a aba mostrar erro: pare, não mexa em mais nada e avise o Jarvis com a mensagem da tela e a saída de `docker compose logs --tail 30 api` (sem senhas). Causas prováveis: `DSPD_PWD_APONTAMENTO` ausente ou diferente da senha do papel no banco, ou migração não rodada.
 
 ## 3. Dicionário de setores (K-332): só quando o K-332 estiver na main
 
