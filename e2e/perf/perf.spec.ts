@@ -106,7 +106,7 @@ test.describe('perf', () => {
 
     // F4 é medido COM a latência simulada ligada; F5 SEM ela (ADR 0003). O mock é o mesmo: se SEM_LATENCIA estiver
     // vazio, F5 inclui a latência simulada e o resultado é reportado como "com latência" (não vale para a pré-entrega).
-    const alternativas = ['Incidente', 'Melhoria'];
+    const alternativas = ['Melhoria', 'Bug interno'];
     // ADR 0003, "Medição do F4" (2026-10-23, decisão F4 = A): a primeira medição (a frio) fica fora do p95 e é reportada
     // à parte; o p95 vale só com N_F4 medições de verdade (trocas que geraram resposta visual). Troca sem medição
     // (o observador não viu "ocupado" nem chip novo) não conta: o laço segue até juntar a amostra, com teto de tentativas.
