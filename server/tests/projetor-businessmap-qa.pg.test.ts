@@ -8,6 +8,7 @@ import { migrar } from '../src/plataforma/db/migrar.js';
 import { criarPool, urlDoPapel } from '../src/plataforma/db/pool.js';
 import type { Cartao } from './businessmap-coleta-duble.js';
 import { poolDe, url } from './pg/ctx.js';
+import { provarSemPessoa } from './pg/colunas-pessoa.js';
 
 // QA da F4 (pedido 052, E2.61, K-182): caixa-preta sobre o projetor contra PostgreSQL real, em schemas só deste arquivo.
 // Escrito a partir do plano (F4) e das decisões H-9, H-10, H-11, H-23, U-2 e ADR 0020, sem reaproveitar o arquivo do autor.
@@ -160,7 +161,7 @@ d('QA F4 do plano 052: projetor contra PostgreSQL', () => {
     };
     expect(await nega(`SELECT * FROM ${E.bm}.stg_card LIMIT 1`)).toBe('42501');
     expect(await nega(`SELECT * FROM ${E.bm}.stg_revision LIMIT 1`)).toBe('42501');
-    expect(await nega(`SELECT responsavel_nome FROM ${E.bm}.dim_responsavel LIMIT 1`)).toBe('42501');
+    await provarSemPessoa(api, dono, 'dspd_bm.dim_responsavel', E.bm);
     expect(await nega(`UPDATE ${E.bm}.dim_card SET tipo = 'x'`)).toBe('42501');
     expect(await nega(`DELETE FROM ${E.bm}.fato_transicao`)).toBe('42501');
     expect(await nega(`SELECT card_id, concluido_em FROM ${E.bm}.dim_card LIMIT 1`)).toBeUndefined();

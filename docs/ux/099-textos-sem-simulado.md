@@ -28,10 +28,10 @@ Depois de aplicar: `grep -rniE "fict|mock|simulad" web/src/features/*/notas.ts` 
 Texto atual:
 "Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na seção "Mais métricas" da visão. Até a coleta real existir, todas as métricas usam dados fictícios; a coluna "Dados" lembra isso."
 
-Texto novo:
-"Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na seção "Mais métricas" da visão. A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de exemplo."
+Texto novo (K-297, aprovado em 2026-11-12 na branch fix/k297-catalogo-sem-numero; sem número que mude a cada métrica nova, a contagem fica no contador "contagem-catalogo" da página):
+"Tudo o que existe no DSPD: as métricas do briefing, as complementares acrescentadas depois dele e a de percepção (a pesquisa de valor do serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na seção "Mais métricas" da visão. A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de exemplo."
 
-Motivo: o texto antigo afirma que tudo é fictício, o que é falso para as métricas do mapa real, e a frase nova só descreve a coluna.
+Motivo: o texto antigo afirma que tudo é fictício, o que é falso para as métricas do mapa real, e a frase nova só descreve a coluna. Sem número porque o catálogo tem 65 linhas e 62 códigos (60 métricas, EI e PV1) e o "45 + 1" não bate com o código; o texto igual está em `docs/ux/099-k297-k314.md`.
 
 ### Coluna "Dados" (`linhas.ts:14-15` tipo e `:39` valor; `CatalogoPage.tsx:68` legenda)
 

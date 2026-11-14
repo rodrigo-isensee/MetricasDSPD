@@ -15,6 +15,7 @@ import {
 } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
+import { NotaNomesOcultos } from './NotaNomesOcultos'
 
 /** Faixas fixas (M-6): a mesma cor significa sempre a mesma faixa; o valor em horas está em cada célula. */
 const ESTILO_FAIXA: Record<FaixaDiario, React.CSSProperties | undefined> = {
@@ -275,6 +276,7 @@ function Diario({ r }: { r: RespostaApontamento }) {
       <p className="text-sm font-medium" data-testid="intervalo-diario">
         Período do mapa: {fmtData(diario.de)} a {fmtData(diario.ate)}
       </p>
+      {linhas.length > 0 && <NotaNomesOcultos r={r} />}
       {linhas.length === 0 ? (
         <div className="flex flex-col items-start gap-2 text-sm" data-testid="diario-sem-pessoas">
           <p>{equipes.length > 0 ? DIARIO_VAZIO.comEquipe : DIARIO_VAZIO.semEquipe}</p>

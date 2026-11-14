@@ -58,8 +58,8 @@ test.describe('Resumo: filtro Equipe por bloco', () => {
     await d.getByRole('checkbox').nth(0).check();
     await d.getByRole('checkbox').nth(1).check();
     await page.keyboard.press('Escape');
-    await expect(fluxo(page).getByTestId('aviso-consolidado')).toHaveText('Resultado consolidado de 2 equipes. O sistema não compara equipes.');
-    await expect(sust(page).getByTestId('aviso-consolidado')).toHaveCount(0);
+    await expect(fluxo(page).getByTestId('aviso-consolidado-fluxo')).toHaveText('Resultado consolidado de 2 equipes. O sistema não compara equipes.');
+    await expect(sust(page).getByTestId('aviso-consolidado-sustentacao')).toHaveCount(0);
     await expect(fluxo(page).getByTestId('numeros-fluxo')).toHaveCount(1);
     await expect(fluxo(page).getByTestId('numeros-fluxo').locator('> *')).toHaveCount(4);
     await expect(sust(page).getByTestId('numeros-sustentacao').locator('> *')).toHaveCount(3);
@@ -75,17 +75,24 @@ test.describe('Resumo: filtro Equipe por bloco', () => {
     const d = await abrir(page, fluxo(page));
     const caixas = d.getByRole('checkbox');
     const total = await caixas.count();
+    let achouPoucos = false;
     for (let i = 0; i < total; i++) {
       await caixas.nth(i).check();
-      await expect(fluxo(page).getByTestId('numero-p85')).toBeVisible();
+      // espera a consulta da equipe terminar (valor ou motivo), senão o teste lê o estado carregando
+      await expect(fluxo(page).getByTestId('numero-p85-carregando')).toHaveCount(0);
+      await expect(fluxo(page).locator('[data-testid="numero-p85-valor"], [data-testid="numero-p85-insuficiente"]')).toHaveCount(1);
       const poucos = await fluxo(page).getByTestId('numero-p85-insuficiente').count();
       if (poucos > 0) {
         await expect(fluxo(page).getByTestId('numero-p85-insuficiente')).toContainText('Estatística não publicada');
         await expect(fluxo(page).getByTestId('numero-p85-valor')).toHaveCount(0);
+        achouPoucos = true;
         break;
       }
       await caixas.nth(i).uncheck();
     }
+    // Sem equipe pequena na semente o laço não prova nada: o teste fica PULADO e visível no relatório (nunca verde em branco).
+    // Hoje a menor equipe do mock tem 27 itens; o CA-6 é provado no Vitest (equipe.test.tsx). Com uma equipe pequena na semente, vira prova.
+    test.skip(!achouPoucos, 'nenhuma equipe da semente tem menos de 20 itens: CA-6 provado só no Vitest');
     expect(problemas).toEqual([]);
   });
 

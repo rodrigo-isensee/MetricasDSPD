@@ -5,6 +5,8 @@ import {
   EstadoVazio,
   ProvedorContextoPainel,
   ProvedorOrigemCartoes,
+  ProvedorRecolhidos,
+  RestaurarRecolhidos,
   Secao,
   type EstadoCartao,
 } from '@/components/ui'
@@ -103,78 +105,81 @@ export default function ApontamentoPage({
     >
       <ProvedorOrigemCartoes origem={origemReal}>
         <ProvedorDadosAba valor={valor}>
-          <section
-            aria-label={
-              dados.resposta?.nomesReais ? `Apontamento. ${AVISO_NOME_REAL}` : 'Apontamento'
-            }
-            className="flex flex-col gap-6"
-            data-testid="aba-apontamento"
-          >
-            {dados.resposta?.nomesReais && <AvisoNomeReal />}
-            <CabecalhoPainel
-              titulo="Apontamento"
-              pergunta="Onde o tempo apontado foi gasto e a capacidade acompanha o período?"
-              publico="Para quem acompanha o painel · fonte única: BusinessMap."
-              fonte="BusinessMap"
-              slug="apontamento"
-              frescor={<FrescorEPeriodo resposta={dados.resposta} />}
+          <ProvedorRecolhidos painel="apontamento">
+            <section
+              aria-label={
+                dados.resposta?.nomesReais ? `Apontamento. ${AVISO_NOME_REAL}` : 'Apontamento'
+              }
+              className="flex flex-col gap-6"
+              data-testid="aba-apontamento"
             >
-              <SeletorVisao
-                visao={VISAO_APONTAMENTO}
-                onEscolher={irParaVisao}
-                focoPendenteRef={focoPendenteRef}
-              />
-              <LegendaFinalidade />
-              {temIncompleto(resposta?.registroIncompleto) && (
-                <AvisoRegistroIncompleto registro={resposta.registroIncompleto} />
-              )}
-              {resposta ? (
-                <BarraFiltrosApontamento opcoes={resposta.opcoes} uso={uso} ativos={ativos} />
+              {dados.resposta?.nomesReais && <AvisoNomeReal />}
+              <CabecalhoPainel
+                titulo="Apontamento"
+                pergunta="Onde o tempo apontado foi gasto e a capacidade acompanha o período?"
+                publico="Para quem acompanha o painel · fonte única: BusinessMap."
+                fonte="BusinessMap"
+                slug="apontamento"
+                frescor={<FrescorEPeriodo resposta={dados.resposta} />}
+              >
+                <SeletorVisao
+                  visao={VISAO_APONTAMENTO}
+                  onEscolher={irParaVisao}
+                  focoPendenteRef={focoPendenteRef}
+                />
+                <LegendaFinalidade />
+                {temIncompleto(resposta?.registroIncompleto) && (
+                  <AvisoRegistroIncompleto registro={resposta.registroIncompleto} />
+                )}
+                {resposta ? (
+                  <BarraFiltrosApontamento opcoes={resposta.opcoes} uso={uso} ativos={ativos} />
+                ) : (
+                  ativos.length > 0 && <ChipsFiltros chips={ativos} onRemover={uso.remover} />
+                )}
+              </CabecalhoPainel>
+              <div
+                role="status"
+                aria-live="polite"
+                className="sr-only"
+                data-testid="anuncio-carregando"
+              >
+                {estado === 'carregando' ? CARREGANDO : vazio ? VAZIO.anuncio : ''}
+              </div>
+              {!vazio && <IndiceDeSecoes secoes={INDICE} />}
+              <RestaurarRecolhidos />
+              {vazio ? (
+                <Secao id="secao-periodo" titulo={VAZIO.secao}>
+                  <EstadoVazio codigo="AP" titulo={VAZIO.titulo} texto={VAZIO.texto} />
+                </Secao>
               ) : (
-                ativos.length > 0 && <ChipsFiltros chips={ativos} onRemover={uso.remover} />
+                <>
+                  <Secao id="secao-kpis" titulo={SECOES.kpis}>
+                    <CartaoKpis />
+                  </Secao>
+                  <Secao id="secao-distribuicao" titulo={SECOES.distribuicao}>
+                    <CartaoDistribuicao bloco="projeto" />
+                    <CartaoDistribuicao bloco="tipo" />
+                    <CartaoDistribuicao bloco="subgrupo" />
+                  </Secao>
+                  <Secao id="secao-qualidade" titulo={SECOES.qualidade}>
+                    <CartaoQualidadeGeral />
+                    <CartaoMatriz />
+                    <CartaoQualidadePessoa />
+                  </Secao>
+                  <Secao id="secao-capacidade" titulo={SECOES.capacidade}>
+                    <CartaoCapacidadeMensal />
+                    <CartaoCapacidadePessoa />
+                  </Secao>
+                  <Secao id="secao-achados" titulo={SECOES.achados}>
+                    <CartaoAchados />
+                  </Secao>
+                </>
               )}
-            </CabecalhoPainel>
-            <div
-              role="status"
-              aria-live="polite"
-              className="sr-only"
-              data-testid="anuncio-carregando"
-            >
-              {estado === 'carregando' ? CARREGANDO : vazio ? VAZIO.anuncio : ''}
-            </div>
-            {!vazio && <IndiceDeSecoes secoes={INDICE} />}
-            {vazio ? (
-              <Secao id="secao-periodo" titulo={VAZIO.secao}>
-                <EstadoVazio codigo="AP" titulo={VAZIO.titulo} texto={VAZIO.texto} />
+              <Secao id="secao-diario" titulo={SECOES.diario}>
+                <CartaoDiario />
               </Secao>
-            ) : (
-              <>
-                <Secao id="secao-kpis" titulo={SECOES.kpis}>
-                  <CartaoKpis />
-                </Secao>
-                <Secao id="secao-distribuicao" titulo={SECOES.distribuicao}>
-                  <CartaoDistribuicao bloco="projeto" />
-                  <CartaoDistribuicao bloco="tipo" />
-                  <CartaoDistribuicao bloco="subgrupo" />
-                </Secao>
-                <Secao id="secao-qualidade" titulo={SECOES.qualidade}>
-                  <CartaoQualidadeGeral />
-                  <CartaoMatriz />
-                  <CartaoQualidadePessoa />
-                </Secao>
-                <Secao id="secao-capacidade" titulo={SECOES.capacidade}>
-                  <CartaoCapacidadeMensal />
-                  <CartaoCapacidadePessoa />
-                </Secao>
-                <Secao id="secao-achados" titulo={SECOES.achados}>
-                  <CartaoAchados />
-                </Secao>
-              </>
-            )}
-            <Secao id="secao-diario" titulo={SECOES.diario}>
-              <CartaoDiario />
-            </Secao>
-          </section>
+            </section>
+          </ProvedorRecolhidos>
         </ProvedorDadosAba>
       </ProvedorOrigemCartoes>
     </ProvedorContextoPainel>

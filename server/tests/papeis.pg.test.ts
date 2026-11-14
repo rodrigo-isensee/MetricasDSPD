@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { aplicarGrants } from '../src/plataforma/db/migrar.js';
 import { hash, novaColeta, poolDe, S, unico, url } from './pg/ctx.js';
+import { provarSemPessoa } from './pg/colunas-pessoa.js';
 
 const d = describe.skipIf(!url);
 
@@ -25,7 +26,7 @@ d('papéis e privilégios (conectando como cada papel)', () => {
 
   it('api lê o card sem a coluna de pessoa; pedir responsaveis ou SELECT * falha com 42501', async () => {
     expect((await api.query(`SELECT card_id, titulo FROM ${S.bm}.dim_card WHERE card_id = $1`, [card])).rows).toEqual([{ card_id: card, titulo: 'T' }]);
-    await expect(api.query(`SELECT responsaveis FROM ${S.bm}.dim_card`)).rejects.toMatchObject({ code: '42501' });
+    await provarSemPessoa(api, dono, 'dspd_bm.dim_card', S.bm);
     await expect(api.query(`SELECT * FROM ${S.bm}.dim_card`)).rejects.toMatchObject({ code: '42501' });
     // K-096: `fato_transicao.usuario` foi removida (migração 0015); nem existe coluna para pedir.
     await expect(api.query(`SELECT usuario FROM ${S.bm}.fato_transicao`)).rejects.toMatchObject({ code: '42703' });

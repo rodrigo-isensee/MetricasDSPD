@@ -63,3 +63,27 @@ describe('PainelFluxo sem público informado', () => {
     expect(await screen.findByText('conteúdo')).toBeInTheDocument()
   })
 })
+
+describe('recolher cartão nos painéis (097 E5, L8b)', () => {
+  it.each([
+    '/operacional?cadencia=diaria',
+    '/tatico',
+    '/estrategico',
+    '/operacional?cadencia=sustentacao',
+  ])('%s: o cartão recolhe, o "Restaurar" aparece e devolve o cartão', async (url) => {
+    localStorage.clear()
+    renderizarApp(url)
+    const botoes = await screen.findAllByRole(
+      'button',
+      { name: /^Recolher cartão:/ },
+      { timeout: 8000 },
+    )
+    expect(screen.queryByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeNull()
+    await userEvent.click(botoes[0]!)
+    const restaurar = await screen.findByRole('button', { name: 'Restaurar cartões recolhidos' })
+    expect(screen.getAllByRole('button', { name: /^Expandir cartão:/ })).toHaveLength(1)
+    await userEvent.click(restaurar)
+    expect(screen.queryByRole('button', { name: /^Expandir cartão:/ })).toBeNull()
+    localStorage.clear()
+  })
+})

@@ -81,7 +81,7 @@ describe('useFiltros: definir, limpar e normalização da URL', () => {
   })
 
   it('sustentação: valores inválidos são corrigidos e viram aviso; dispensar limpa o estado', async () => {
-    const r = montar('sustentacao', '/sustentacao?equipe=fluig,xyz&prioridade=p9')
+    const r = montar('sustentacao', '/sustentacao?equipe=sssc-fluig,xyz&prioridade=p9')
     await waitFor(() => expect(r.result.current.loc.search).toBe('?equipe=sssc-fluig'))
     expect(r.result.current.uso.invalidos).toEqual(['equipe "xyz"', 'prioridade "p9"'])
     act(() => r.result.current.uso.dispensarInvalidos())
@@ -158,9 +158,9 @@ describe('useFiltros: ações em sequência rápida (IF-001, IS-003)', () => {
     await aguardarOpcoes(r)
     act(() => {
       r.result.current.uso.definir({ equipe: ['fluig'] })
-      r.result.current.uso.definir({ tipo: ['Incidente'] })
+      r.result.current.uso.definir({ tipo: ['Melhoria'] })
     })
-    expect(r.result.current.loc.search).toBe('?cadencia=semanal&equipe=fluig&tipo=incidente')
+    expect(r.result.current.loc.search).toBe('?cadencia=semanal&equipe=fluig&tipo=melhoria')
   })
 
   it('remover dois chips em sequência remove os dois', async () => {

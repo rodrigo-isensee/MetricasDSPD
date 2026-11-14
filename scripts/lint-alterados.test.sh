@@ -3,6 +3,7 @@
 # Casos: só docs, .ts/.tsx alterados, .ts removido, server/ (eslint do pacote, K-317), erro plantado,
 # alteração não commitada e fallback sem origin/develop.
 set -uo pipefail
+unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 mkdir -p "$RAIZ/node_modules/.cache"
 TMP="$(mktemp -d "$RAIZ/node_modules/.cache/lint-alterados-test.XXXXXX")"
@@ -62,7 +63,7 @@ echo c >'dir com espaco/novo.tsx'
 git add -A
 git commit -qm ts
 roda
-grep -qF 'pnpm exec eslint --cache --cache-location node_modules/.cache/eslint --no-warn-ignored dir com espaco/novo.tsx velho.ts' "$PNPM_LOG"
+grep -qF 'pnpm exec eslint --cache --cache-location node_modules/.cache/eslint --no-warn-ignored -- dir com espaco/novo.tsx velho.ts' "$PNPM_LOG"
 verifica ".ts/.tsx alterados vão ao eslint com cache" $?
 ! grep -q 'doc.md' "$PNPM_LOG"
 verifica "arquivo não-ts fica fora do eslint" $?
@@ -80,7 +81,7 @@ git switch -q -c feature/srv develop
 echo b >>server/src/s.ts
 git commit -qam srv
 roda
-grep -qF 'pnpm --filter @metricas-dspd/server exec eslint --cache --cache-location node_modules/.cache/eslint src/s.ts' "$PNPM_LOG"
+grep -qF 'pnpm --filter @metricas-dspd/server exec eslint --cache --cache-location node_modules/.cache/eslint -- src/s.ts' "$PNPM_LOG"
 verifica "server/ alterado vai ao eslint do pacote server" $?
 ! grep -q '^pnpm exec eslint' "$PNPM_LOG"
 verifica "server/ alterado não vai ao eslint da raiz" $?
@@ -124,9 +125,9 @@ echo b >server/src/ção.ts
 git add -A
 git commit -qm acento
 roda
-grep -qF 'eslint --cache --cache-location node_modules/.cache/eslint --no-warn-ignored açaí.ts' "$PNPM_LOG"
+grep -qF 'eslint --cache --cache-location node_modules/.cache/eslint --no-warn-ignored -- açaí.ts' "$PNPM_LOG"
 verifica "arquivo acentuado na raiz chega inteiro ao eslint" $?
-grep -qF 'exec eslint --cache --cache-location node_modules/.cache/eslint src/ção.ts' "$PNPM_LOG"
+grep -qF 'exec eslint --cache --cache-location node_modules/.cache/eslint -- src/ção.ts' "$PNPM_LOG"
 verifica "arquivo acentuado em server/ vai ao eslint do pacote server" $?
 ! grep -q '\\[0-9][0-9][0-9]' "$PNPM_LOG"
 verifica "nenhum caminho em octal chega ao eslint" $?
@@ -135,6 +136,34 @@ roda
 grep -qF 'açaí.ts ñovo.ts' "$PNPM_LOG"
 verifica "arquivo acentuado novo não rastreado também chega inteiro" $?
 rm 'ñovo.ts'
+
+# 3h) K-322: nome começando por traço vai depois de "--"; nome com quebra de linha e com aspas chega inteiro (listagem com -z).
+git switch -q -c feature/nomes develop
+echo b >-traco.ts
+echo b >server/-st.ts
+git add -A
+git commit -qm tracos
+roda
+grep -qF -- '--no-warn-ignored -- -traco.ts' "$PNPM_LOG"
+verifica "nome começando por traço vai logo após o --, no eslint da raiz" $?
+grep -qF -- 'exec eslint --cache --cache-location node_modules/.cache/eslint -- -st.ts' "$PNPM_LOG"
+verifica "nome começando por traço vai logo após o --, no eslint do server" $?
+git switch -q -c feature/quebra develop
+printf 'ERRO_LINT' >$'quebra\nlinha.ts'
+roda
+[ "$rc" -ne 0 ]
+verifica "erro de lint em arquivo com quebra de linha no nome reprova" $?
+rm -f -- $'quebra\nlinha.ts'
+printf 'ERRO_LINT' >'aspas"x.ts'
+roda
+[ "$rc" -ne 0 ]
+verifica "erro de lint em arquivo com aspas no nome reprova" $?
+rm -f -- 'aspas"x.ts'
+printf 'ERRO_LINT' >'barra\y.ts'
+roda
+[ "$rc" -ne 0 ]
+verifica "erro de lint em arquivo com barra invertida no nome reprova" $?
+rm -f -- 'barra\y.ts'
 
 # 3g) K-319: branch órfã (sem merge-base com origin/develop) cai no lint inteiro.
 git switch -q --orphan feature/orfa

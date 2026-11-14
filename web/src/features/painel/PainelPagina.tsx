@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react'
-import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
+import {
+  CabecalhoPainel,
+  ErroPagina,
+  ProvedorContextoPainel,
+  ProvedorRecolhidos,
+  RestaurarRecolhidos,
+} from '@/components/ui'
 import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
@@ -81,45 +87,48 @@ function Casca({
       limparFiltros={uso.limpar}
     >
       <ProvedorPainelPreferencias painel={painelDoCorpo}>
-        <div className="flex flex-col gap-4">
-          <CabecalhoPainel
-            titulo={base.titulo}
-            pergunta={base.pergunta}
-            dataCorte={dataCorte}
-            fonte={fonte}
-            slug={base.slug}
-            frescor={
-              <div className="flex flex-col gap-1">
-                <FrescorFonte dominio={dominio} />
-                <NotaSemDadoRealPainel painel={painelDoCorpo} />
-              </div>
-            }
-            {...(base.publico ? { publico: base.publico } : {})}
-          />
-          {aguardando ? (
-            <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
-          ) : (
-            <>
-              <FaixaCalibracaoFonte dominio={dominio} />
-              {base.extra}
-              <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
-                <BotaoMetricas />
-                <BotaoExportar base={painelDoCorpo} />
-                <BotaoExportar base="personalizada" />
-              </div>
-              <BarraFiltros
-                uso={uso}
-                {...(estrategico ? { estrategico } : {})}
-                {...(base.legendaFiltros ? { legenda: base.legendaFiltros } : {})}
-                {...(base.ondeFiltros ? { onde: base.ondeFiltros } : {})}
-              />
-              {base.depoisDosFiltros}
-              <FaixaOcultas />
-              <PainelOcultoVazio />
-              <CorpoDaFonte dominio={dominio}>{children}</CorpoDaFonte>
-            </>
-          )}
-        </div>
+        <ProvedorRecolhidos painel={painelDoCorpo}>
+          <div className="flex flex-col gap-4">
+            <CabecalhoPainel
+              titulo={base.titulo}
+              pergunta={base.pergunta}
+              dataCorte={dataCorte}
+              fonte={fonte}
+              slug={base.slug}
+              frescor={
+                <div className="flex flex-col gap-1">
+                  <FrescorFonte dominio={dominio} />
+                  <NotaSemDadoRealPainel painel={painelDoCorpo} />
+                </div>
+              }
+              {...(base.publico ? { publico: base.publico } : {})}
+            />
+            {aguardando ? (
+              <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
+            ) : (
+              <>
+                <FaixaCalibracaoFonte dominio={dominio} />
+                {base.extra}
+                <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
+                  <BotaoMetricas />
+                  <BotaoExportar base={painelDoCorpo} />
+                  <BotaoExportar base="personalizada" />
+                </div>
+                <BarraFiltros
+                  uso={uso}
+                  {...(estrategico ? { estrategico } : {})}
+                  {...(base.legendaFiltros ? { legenda: base.legendaFiltros } : {})}
+                  {...(base.ondeFiltros ? { onde: base.ondeFiltros } : {})}
+                />
+                {base.depoisDosFiltros}
+                <FaixaOcultas />
+                <PainelOcultoVazio />
+                <RestaurarRecolhidos />
+                <CorpoDaFonte dominio={dominio}>{children}</CorpoDaFonte>
+              </>
+            )}
+          </div>
+        </ProvedorRecolhidos>
       </ProvedorPainelPreferencias>
     </ProvedorContextoPainel>
   )

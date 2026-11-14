@@ -26,7 +26,8 @@ adiciona() { # pacote; sem duplicar
   filtros+=("$p")
 }
 
-while IFS= read -r f; do
+# Listagem com -z e leitura por NUL: nome com quebra de linha, aspas ou barra invertida chega inteiro (K-322).
+while IFS= read -r -d '' f; do
   case "$f" in
     packages/*) inteiro=1 ;;
     web/*) adiciona web ;;
@@ -39,9 +40,9 @@ while IFS= read -r f; do
     pnpm-lock.yaml | pnpm-workspace.yaml | tsconfig*.json) inteiro=1 ;;
   esac
 done < <({
-  git -c core.quotePath=false diff --name-only "$mb" -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
-  git -c core.quotePath=false ls-files --others --exclude-standard -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
-} | sort -u)
+  git diff -z --name-only "$mb" -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
+  git ls-files -z --others --exclude-standard -- '*.ts' '*.tsx' '*tsconfig*.json' '*package.json' 'pnpm-lock.yaml' 'pnpm-workspace.yaml'
+} | sort -zu)
 
 # package.json da raiz: só conta se mudou algo além do bloco "scripts" (dependências, workspaces, etc.).
 if [ "$raiz_pkg" -eq 1 ] && [ "$inteiro" -eq 0 ]; then

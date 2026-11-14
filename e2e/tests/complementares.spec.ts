@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test'
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
 // Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios". O S12 saiu daqui no D9 (pedido 099): é real só com o volume.
-const MOCK = new Set(['O17', 'O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11'])
+const MOCK = new Set(['O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11'])
 
 const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 14, ids: ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16'] },
@@ -129,7 +129,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Real" ou "Sem dado real" nas 65', async ({ page }) => {
     await page.goto('/metricas')
-    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Sem dado real')
+    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Real')
     await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Real')
     await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Real')
     const reais = await page.getByRole('cell', { name: 'Real', exact: true }).count()

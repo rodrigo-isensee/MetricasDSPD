@@ -37,7 +37,7 @@ describe('MockFonteMetricas', () => {
       const filtros = [
         s ? sust({ tipo: '6m' }) : fluxo({ tipo: '12s' }),
         s
-          ? { ...sust({ tipo: '4s' }), equipe: ['fluig' as const], prioridade: ['P2' as const] }
+          ? { ...sust({ tipo: '4s' }), equipe: ['sssc-fluig'], prioridade: ['P2' as const] }
           : { ...fluxo({ tipo: '12m' }), equipe: ['fluig'], tipo: ['Melhoria' as const] },
         s
           ? sust({ tipo: 'custom', de: '2026-01-01', ate: '2026-03-31' })

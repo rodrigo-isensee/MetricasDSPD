@@ -7,6 +7,7 @@ import { CARTOES, EXECUCAO_TECNICA, FLAGS } from '../textos'
 import type { PctComPiso, QualidadePorFlag, RespostaApontamento } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
+import { NotaNomesOcultos } from './NotaNomesOcultos'
 import { NotaOutraArea } from './NotaOutraArea'
 
 /** Contagem sempre; percentual só quando a biblioteca o publicou (piso de 20, o3). */
@@ -173,6 +174,7 @@ function QualidadePessoa({ r }: { r: RespostaApontamento }) {
           ...Object.fromEntries(flags.map((f) => [f, celulaFlag(l.porFlag, f)])),
         }))}
       />
+      <NotaNomesOcultos r={r} />
       <NotaNaoIdentificada r={r} />
       <NotaOutraArea linhas={linhas} />
     </div>

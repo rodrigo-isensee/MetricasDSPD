@@ -14,7 +14,7 @@ import {
   selecionarAC,
 } from './comum'
 import type { ContextoAC } from './indice'
-import type { AlvoPrioridade, UnidadePrazo } from './modelo'
+import type { AlvoPrioridade, UnidadeExibicao, UnidadePrazo } from './modelo'
 
 /** Campo do índice que cada unidade lê (nomes literais: o teste de calendário segue o código por eles). */
 const MEDIDAS = {
@@ -41,6 +41,7 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
     medidas: (typeof MEDIDAS)[keyof typeof MEDIDAS],
     alvoHoras: number,
     unidade: UnidadePrazo,
+    exibirEm: UnidadeExibicao | null,
   ) => {
     const medida = medidas[unidade]
     const vals = apuraveis
@@ -52,6 +53,8 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
     return {
       alvoHoras,
       unidade,
+      // só repassa a unidade do PROC (K-314): nenhuma conta usa; alvo e estatística seguem em horas
+      exibirEm,
       n: vals.length,
       estatistica: est,
       razaoMediana: p50 === null ? null : r2(p50 / alvoHoras),
@@ -79,8 +82,15 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
           MEDIDAS.primeiroAtendimento,
           a.primeiro_atendimento_horas,
           a.unidade_primeiro_atendimento,
+          a.exibir_primeiro_atendimento,
         ),
-        restauracao: classe(p, MEDIDAS.restauracao, a.restauracao_horas, a.unidade_restauracao),
+        restauracao: classe(
+          p,
+          MEDIDAS.restauracao,
+          a.restauracao_horas,
+          a.unidade_restauracao,
+          a.exibir_restauracao,
+        ),
       }
     }),
   }

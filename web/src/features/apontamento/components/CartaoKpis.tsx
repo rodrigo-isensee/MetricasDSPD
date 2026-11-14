@@ -85,6 +85,7 @@ export function CartaoKpis() {
       base={k ? { n: k.apontamentos, unidade: 'apontamentos' } : undefined}
       baseInsuficiente={k?.completos.status === 'insuficiente'}
       semTabela
+      recolhivel={false}
       className="lg:col-span-12"
     >
       {(r) => <Kpis r={r} />}

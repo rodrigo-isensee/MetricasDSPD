@@ -8,6 +8,7 @@ import type { RespostaApontamento } from '../types'
 
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
+import { NotaNomesOcultos } from './NotaNomesOcultos'
 import { NotaOutraArea } from './NotaOutraArea'
 
 function Matriz({ r }: { r: RespostaApontamento }) {
@@ -47,6 +48,7 @@ function Matriz({ r }: { r: RespostaApontamento }) {
           t: `${fmtHoras(l.segundos)} · ${fmtInteiro(l.apontamentos)} apontamentos`,
         }))}
       />
+      <NotaNomesOcultos r={r} />
       <NotaNaoIdentificada r={r} />
       <NotaOutraArea linhas={linhas} />
     </div>

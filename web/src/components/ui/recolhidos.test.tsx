@@ -2,9 +2,12 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { CATALOGO_CARTOES } from '@metricas-dspd/contratos'
 import {
   CHAVE_RECOLHIDOS,
+  CODIGO_CARTAO,
   CartaoMetrica,
+  ProvedorOrigemCartoes,
   ProvedorRecolhidos,
   RestaurarRecolhidos,
   TETO_RECOLHIDOS,
@@ -44,7 +47,7 @@ const Painel = ({
   <MemoryRouter>
     <ProvedorRecolhidos painel={painel}>
       <RestaurarRecolhidos />
-      {cartoes}
+      <main>{cartoes}</main>
     </ProvedorRecolhidos>
   </MemoryRouter>
 )
@@ -148,18 +151,56 @@ describe('recolher cartão (097 E5, CA-25 a CA-32)', () => {
     expect(screen.getByRole('heading', { name: 'Tempo de ciclo' })).toHaveFocus()
   })
 
-  it('"Restaurar" sem cartões na tela não quebra e fora do provedor não mostra nada', async () => {
+  it('B2: código recolhido sem cartão na tela não faz o "Restaurar" aparecer; fora do provedor não mostra nada', () => {
     guardar({ versao: 1, paineis: { operacional: ['O3'] } })
     render(
       <ProvedorRecolhidos painel="operacional">
         <RestaurarRecolhidos />
       </ProvedorRecolhidos>,
     )
-    await userEvent.click(screen.getByRole('button', { name: 'Restaurar cartões recolhidos' }))
-    expect(memoria()).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeNull()
     cleanup()
     render(<RestaurarRecolhidos />)
     expect(screen.queryByTestId('restaurar-recolhidos')).toBeNull()
+  })
+
+  it('B2: ao ocultar um cartão recolhido (some da tela), ele deixa de contar para o "Restaurar"', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    const { rerender } = render(<Painel />)
+    expect(screen.getByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeInTheDocument()
+    rerender(<Painel cartoes={[]} />)
+    expect(screen.queryByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeNull()
+  })
+
+  it('B1: o aviso "Cartões restaurados." some ao recolher de novo e é anunciado outra vez na segunda restauração', async () => {
+    render(<Painel />)
+    const u = userEvent.setup()
+    await u.click(screen.getByTestId('recolher-O3'))
+    await u.click(screen.getByRole('button', { name: 'Restaurar cartões recolhidos' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Cartões restaurados.')
+    await u.click(screen.getByTestId('recolher-O3'))
+    expect(screen.getByRole('status')).toHaveTextContent(/^$/)
+    await u.click(screen.getByRole('button', { name: 'Restaurar cartões recolhidos' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Cartões restaurados.')
+  })
+
+  it('A2: o foco do "Restaurar" vai ao título dentro do main, não a um título de fora', async () => {
+    render(
+      <MemoryRouter>
+        <ProvedorRecolhidos painel="operacional">
+          <h3 data-cartao-titulo tabIndex={-1}>
+            Fora do painel
+          </h3>
+          <RestaurarRecolhidos />
+          <main>
+            <Cartao />
+          </main>
+        </ProvedorRecolhidos>
+      </MemoryRouter>,
+    )
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    await userEvent.click(screen.getByRole('button', { name: 'Restaurar cartões recolhidos' }))
+    expect(screen.getByRole('heading', { name: 'Tempo de ciclo' })).toHaveFocus()
   })
 
   it('CA-31: recolhido com erro mostra "Não foi possível carregar este cartão." no resumo', () => {
@@ -183,6 +224,52 @@ describe('recolher cartão (097 E5, CA-25 a CA-32)', () => {
     expect(screen.getByTestId('resumo-recolhido-O3')).toHaveTextContent(/^Recolhido\.$/)
     expect(screen.queryByText(/Ana/)).toBeNull()
     expect(screen.getByTestId('resumo-recolhido-O5')).toHaveTextContent('Recolhido. 24 projetos.')
+  })
+
+  it.each([
+    ['sem-dado-real', 'Recolhido. Sem dado real nesta fonte.'],
+    ['vazio', 'Recolhido. Sem dados no período.'],
+  ] as const)(
+    'M1: recolhido em %s, o resumo diz o estado e a origem continua visível',
+    (estado, texto) => {
+      guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+      render(
+        <ProvedorOrigemCartoes origem={() => ({ ficticio: true, motivo: null })}>
+          <Painel cartoes={[<Cartao key="a" estado={estado} />]} />
+        </ProvedorOrigemCartoes>,
+      )
+      expect(screen.getByTestId('resumo-recolhido-O3')).toHaveTextContent(texto)
+      expect(screen.getByTestId('selo-ficticio')).toBeInTheDocument()
+    },
+  )
+
+  it('M2: recolhido durante o carregamento diz "Carregando..."; atualizando acrescenta "Atualizando..."', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    const { rerender } = render(<Painel cartoes={[<Cartao key="a" estado="carregando" />]} />)
+    expect(screen.getByTestId('resumo-recolhido-O3')).toHaveTextContent('Recolhido. Carregando...')
+    rerender(<Painel cartoes={[<Cartao key="a" atualizando />]} />)
+    expect(screen.getByTestId('resumo-recolhido-O3')).toHaveTextContent(
+      'Recolhido. 1.312 itens concluídos. Atualizando...',
+    )
+  })
+
+  it('recolhido esconde os selos extras do cartão; expandido, eles voltam', async () => {
+    render(<Painel cartoes={[<Cartao key="a" selos={<span>selo extra</span>} />]} />)
+    expect(screen.getByText('selo extra')).toBeInTheDocument()
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(screen.queryByText('selo extra')).toBeNull()
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(screen.getByText('selo extra')).toBeInTheDocument()
+  })
+
+  it('A1: todo código de cartão do catálogo e da aba Apontamento passa no formato que a memória aceita', () => {
+    const codigos = [
+      ...CATALOGO_CARTOES.map((c) => c.id.toUpperCase()),
+      ...['AP-KPIS', 'AP-PROJETO', 'AP-TIPO', 'AP-SUBGRUPO', 'AP-QUALIDADE', 'AP-MATRIZ'],
+      ...['AP-ACHADOS', 'AP-DIARIO', 'AP-CAPACIDADE-MENSAL', 'AP-CAPACIDADE-PESSOA'],
+    ]
+    expect(codigos.length).toBeGreaterThan(20)
+    for (const c of codigos) expect(c).toMatch(CODIGO_CARTAO)
   })
 
   it('recolhivel={false} (KPI) não mostra o botão nem recolhe, mesmo com o código na memória', () => {
