@@ -13,7 +13,9 @@ import {
 } from '@metricas-dspd/contratos'
 import { textoSeloFrescor, type FonteDoCartao, type TextoNota } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
+import type { FiltrosFluxoSetor } from '@/features/filtros/codec'
 import { ROTULO_FILTRO, ROTULO_PERIODO } from '@/features/filtros/paineis'
+import { aplicaveisDe } from '@/features/painel/propsCartao'
 import { fmtData, fmtDataHora, fmtInteiro, fmtNumero, textoJanela } from '@/lib/formatar'
 
 /**
@@ -194,6 +196,12 @@ export function textoFiltros(
     const aplicaveis = APLICABILIDADE_FLUXO[id] as readonly FiltroFluxoChave[]
     const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
     if (!aplicaveis.includes('equipe')) partes.pop()
+    // Setor (097 L11): só com seleção, para o arquivo dizer o recorte sem mudar o texto de quem não filtra por setor.
+    const setores = (f as FiltrosFluxoSetor).setor ?? []
+    if (setores.length > 0 && aplicaveisDe(id).includes('setor'))
+      partes.unshift(
+        `${ROTULO_FILTRO.setor}: ${lista(setores.map((x) => nomeDe(opcoes?.dominio === 'businessmap' ? opcoes.setores : undefined, x)))}`,
+      )
     if (aplicaveis.includes('tipo')) partes.push(`${ROTULO_FILTRO.tipo}: ${lista(f.tipo)}`)
     if (aplicaveis.includes('sistema'))
       partes.push(`${ROTULO_FILTRO.sistema}: ${lista(f.sistema.map((s) => nomeDe(sistemas, s)))}`)

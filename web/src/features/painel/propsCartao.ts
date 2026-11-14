@@ -1,17 +1,24 @@
 import { APLICABILIDADE_FLUXO } from '@metricas-dspd/contratos'
-import type {
-  BaseAmostral,
-  CriteriosResultado,
-  FiltroFluxoChave,
-  MetricaId,
-} from '@metricas-dspd/contratos'
+import type { BaseAmostral, CriteriosResultado, MetricaId } from '@metricas-dspd/contratos'
 import type { TextoNota } from '@/components/ui'
+import type { FiltroCartaoChave } from '@/components/ui/CartaoMetrica'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import type { MetricaQuery } from '@/data'
 
-/** Filtros que atuam na métrica (tabela 2.2); métrica sem aplicabilidade de fluxo declarada: nenhum. */
-export const aplicaveisDe = (id: MetricaId): readonly FiltroFluxoChave[] =>
-  APLICABILIDADE_FLUXO[id] ?? []
+/**
+ * Métricas em que a Equipe atua mas o Setor não declara atuar até o L10b decidir: no T14 a equipe só diz qual é
+ * "meu time" e não recorta a população (o cartão diz "Não afetado por: Setor" em vez de prometer um recorte).
+ */
+const SEM_SETOR: ReadonlySet<MetricaId> = new Set<MetricaId>(['T14'])
+
+/**
+ * Filtros que atuam na métrica (tabela 2.2); métrica sem aplicabilidade de fluxo declarada: nenhum. O Setor atua
+ * onde a Equipe atua (recorte por cards); nos cartões de projeto (FL3), que não têm equipe, ele não atua (P-097-10).
+ */
+export const aplicaveisDe = (id: MetricaId): readonly FiltroCartaoChave[] => {
+  const base = APLICABILIDADE_FLUXO[id] ?? []
+  return base.includes('equipe') && !SEM_SETOR.has(id) ? ['setor', ...base] : base
+}
 
 /** Props comuns de um cartão do Operacional (nome, pergunta, meta e fonte vêm do catálogo; base e critérios, do DTO). */
 export function propsCartao(
