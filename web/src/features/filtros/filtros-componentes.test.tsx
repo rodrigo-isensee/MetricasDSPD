@@ -666,17 +666,13 @@ class FonteOpcoes extends MockFonteMetricas {
     dominio: D,
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.modo === 'carregando') return new Promise(() => {})
-    const real = await super.opcoesFiltro(dominio)
-    if (this.modo === 'estranha' && real.dominio === 'businessmap')
-      return { ...real, tipos: [{ id: 'xyz', nome: 'Xyz' }, ...real.tipos] } as Extract<
-        OpcoesFiltro,
-        { dominio: D }
-      >
-    const vazio: OpcoesFiltro =
-      real.dominio === 'businessmap'
-        ? { ...real, tipos: [], sistemas: [] }
-        : { ...real, prioridades: [] }
-    return vazio as Extract<OpcoesFiltro, { dominio: D }>
+    const real: OpcoesFiltro = await super.opcoesFiltro(dominio)
+    let alterado: OpcoesFiltro
+    if (real.dominio !== 'businessmap') alterado = { ...real, prioridades: [] }
+    else if (this.modo === 'estranha')
+      alterado = { ...real, tipos: [{ id: 'xyz', nome: 'Xyz' }, ...real.tipos] }
+    else alterado = { ...real, tipos: [], sistemas: [] }
+    return alterado as Extract<OpcoesFiltro, { dominio: D }>
   }
 }
 
