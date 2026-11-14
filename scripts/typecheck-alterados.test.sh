@@ -120,6 +120,19 @@ roda
 grep -qx 'pnpm --filter @metricas-dspd/web run typecheck' "$PNPM_LOG"
 verifica ".ts removido em web roda o typecheck do web" $?
 
+# 8b) alteração ainda não commitada (árvore e arquivo novo) também conta: sem commit não dá verde em branco.
+volta feature/suja
+echo b >>web/src/a.ts
+roda
+grep -qx 'pnpm --filter @metricas-dspd/web run typecheck' "$PNPM_LOG"
+verifica "mudança não commitada em web roda o typecheck do web" $?
+git checkout -q -- web/src/a.ts
+echo novo >server/src/novo.ts
+roda
+grep -qx 'pnpm --filter @metricas-dspd/server run typecheck' "$PNPM_LOG"
+verifica "arquivo novo não rastreado em server roda o typecheck do server" $?
+rm server/src/novo.ts
+
 # 9) fallback: sem origin/develop, typecheck inteiro.
 novo_repo sem-base
 git switch -q -c feature/z
