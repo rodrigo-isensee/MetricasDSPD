@@ -5,9 +5,9 @@ Pedido 102-forge-0460, E1.37 e E3. Decisão 5a do dono (2026-11-14 08:47): o arq
 ## Resumo
 - Mantém tudo o que o atual faz: bloqueio de envio para a `main` (mesma mensagem), lint e typecheck dos alterados (K-317 e K-322, com a regra da árvore suja) e o desvio spec e código do Siegard.
 - Acrescenta, do modelo do Forge 0.46.0 (`templates/projeto/.githooks/pre-push`): recusa de envio que não é fast-forward (branch e tag movida), recusa quando o commit remoto não existe aqui (pede `git fetch`), só `refs/heads/` e `refs/tags/` (barra `refs/notes/`, `refs/remotes/` e o envio espelho), no máximo uma branch com código e uma remoção por envio (PREPUSH-REFS e PREPUSH-DELETE).
-- Divergência declarada do modelo: o modelo do Forge não tem lista de nomes de branch. A lista pedida pelo brief (branch com código só em `feature/*`, `fix/*`, `docs/*`, `chore/*`, `develop` e `homolog`; tags liberadas; apagar não passa pela lista) foi acrescentada num bloco à parte, "PREPUSH-REFS (nomes)", que o dono pode apagar sem afetar o resto. Um envio de `hotfix/*` ou `melhoria/*` fica recusado por esse bloco.
+- Divergência declarada do modelo: o modelo do Forge não tem lista de nomes de branch. A lista pedida pelo brief (branch com código só em `feature/*`, `fix/*`, `docs/*`, `chore/*`, `develop` e `homolog`, mais as correções A1 e A2 do review; tags liberadas; apagar não passa pela lista) foi acrescentada num bloco à parte, "PREPUSH-REFS (nomes)", que o dono pode apagar sem afetar o resto. A lista aceita também `hotfix/*`, `forge/upgrade-*` e `refactor/*` (previstos no fluxo do projeto, no `fluxo-homologacao.md` §6 e no R-FLUXO). Um envio de `melhoria/*` fica recusado por esse bloco. `test/*` e `integracao/*` estão em uso no remoto e ficam aceitos num bloco à parte, comentado, que depende da resposta do dono (ver "Pergunta ao dono" na seção 3).
 - O modelo do Forge traz também a fila e a trava de `pre-push.local` (flock, timeout, prioridade, `so_docs`). Não foram trazidas: este projeto não usa `pre-push.local`, o lint e o typecheck rápidos já rodam direto, e o ganho não paga a complexidade. Se o dono quiser a trava completa, é outra proposta.
-- Validado numa cópia descartável (remoto bare, envios reais pelo `git push` com `core.hooksPath` apontando para a cópia): 16 casos verdes, `shellcheck` do hook sem avisos.
+- Validado numa cópia descartável (remoto bare, envios reais pelo `git push` com `core.hooksPath` apontando para a cópia): casos do roteiro verdes (seção 2), `shellcheck` do hook sem avisos.
 
 ## 1. Arquivo proposto (`.githooks/pre-push` inteiro)
 
@@ -31,7 +31,7 @@ while read -r _ local_sha remote_ref remote_sha; do
       if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
         case "$remote_ref" in
           refs/tags/*) echo "pre-push: R-VERIFY: mover a tag ${ref_nome} para outro commit (histórico reescrito) bloqueado; reescrever histórico é decisão do usuário." >&2 ;;
-          *) echo "pre-push: R-VERIFY: envio não fast-forward para ${ref_nome} (histórico reescrito) bloqueado; faça rebase sobre a remota e envie normalmente, reescrever histórico é decisão do usuário." >&2 ;;
+          *) echo "pre-push: R-VERIFY: envio não fast-forward para ${ref_nome} (histórico reescrito) bloqueado; traga a remota (git pull --rebase ou git merge) e envie normalmente; reescrever histórico é decisão do usuário." >&2 ;;
         esac
         exit 1
       fi ;;
@@ -48,12 +48,16 @@ while read -r _ local_sha remote_ref remote_sha; do
     *) echo "pre-push: R-FLUXO: a ref remota '${remote_ref}' não é branch (refs/heads/) nem tag (refs/tags/); envio bloqueado (o envio espelho leva refs/remotes/, refs/notes/ e afins)." >&2
        exit 1 ;;
   esac
-  # PREPUSH-REFS (nomes): branch com código só em feature/*, fix/*, docs/*, chore/*, develop e homolog; nunca main.
+  # PREPUSH-REFS (nomes): branch com código só em feature/*, fix/*, docs/*, chore/*, hotfix/*, refactor/*, forge/upgrade-*,
+  # develop e homolog; nunca main.
   # Apagar ref e tag não passam por esta lista.
   case "$local_sha" in *[!0]*)
     case "$remote_ref" in
-      refs/heads/feature/?*|refs/heads/fix/?*|refs/heads/docs/?*|refs/heads/chore/?*|refs/heads/develop|refs/heads/homolog|refs/tags/?*) ;;
-      *) echo "pre-push: R-FLUXO: a branch '${remote_ref#refs/heads/}' fora da política (feature/*, fix/*, docs/*, chore/*, develop, homolog); envio bloqueado." >&2
+      refs/heads/feature/?*|refs/heads/fix/?*|refs/heads/docs/?*|refs/heads/chore/?*|refs/heads/hotfix/?*|refs/heads/refactor/?*|refs/heads/forge/upgrade-?*|refs/heads/develop|refs/heads/homolog|refs/tags/?*) ;;
+      # PREPUSH-REFS (nomes, depende do dono): test/* e integracao/* estão em uso no remoto. Apague a linha abaixo
+      # para recusá-los (e tire-os da mensagem); a decisão é do dono, não foi inferida.
+      refs/heads/test/?*|refs/heads/integracao/?*) ;;
+      *) echo "pre-push: R-FLUXO: a branch '${remote_ref#refs/heads/}' fora da política (feature/*, fix/*, docs/*, chore/*, hotfix/*, refactor/*, forge/upgrade-*, test/*, integracao/*, develop, homolog); envio bloqueado." >&2
          exit 1 ;;
     esac ;;
   esac
@@ -97,7 +101,7 @@ exit 0
 
 ## 2. Roteiro de teste
 
-A proposta perdida tinha 11 casos (os dois do K-317 já estão em `scripts/pre-push.test.sh`). Esta refeita tem 16, cobrindo as quatro frentes do hook: fast-forward, política de refs, nomes e o que o atual já fazia. O roteiro automático está no bloco 2.1; ele monta o repositório descartável, empurra de verdade para um remoto bare e confere o SHA remoto depois de cada recusa.
+A proposta perdida tinha 11 casos (os dois do K-317 já estão em `scripts/pre-push.test.sh`). Esta refeita tem 25, cobrindo as quatro frentes do hook: fast-forward, política de refs, nomes e o que o atual já fazia. O roteiro automático está no bloco 2.1; ele monta o repositório descartável, empurra de verdade para um remoto bare e confere o SHA remoto depois de cada recusa.
 
 | # | Caso | Comando (no repositório descartável) | Resultado esperado |
 |---|---|---|---|
@@ -109,16 +113,25 @@ A proposta perdida tinha 11 casos (os dois do K-317 já estão em `scripts/pre-p
 | 06 | Envio para a main | `git push origin HEAD:refs/heads/main` | rc 1, "envio para a main bloqueado"; `main` não nasce |
 | 07 | Ref que não é branch nem tag | `git push origin HEAD:refs/notes/x` | rc 1, "não é branch"; ref não nasce |
 | 08 | Nome fora da política | `git push origin HEAD:refs/heads/melhoria/x` | rc 1, "fora da política"; ref não nasce |
-| 09 | Duas branches com código num envio | `git push origin fix/a docs/b` | rc 1, "mais de uma branch"; nenhuma sobe |
-| 10 | Prefixos permitidos, um por vez | `git push origin fix/a`, `docs/b`, `HEAD:refs/heads/chore/c` | rc 0 nos três |
+| 09 | Duas branches com código num envio | `git push origin fix/a docs/b` | rc 1, "mais de uma branch"; nem `fix/a` nem `docs/b` sobem |
+| 10 | Prefixos permitidos, um por vez | `git push origin fix/a`, `docs/b`, `HEAD:refs/heads/chore/c` | rc 0 nos três; as três refs no remoto |
 | 11 | Duas remoções num envio | `git push origin --delete fix/a docs/b` | rc 1, "mais de uma remoção"; as duas continuam |
 | 12 | Uma remoção | `git push origin --delete chore/c` | rc 0; ref some |
 | 13 | Tag nova | `git push origin v0.0.1` | rc 0 |
 | 14 | Mover tag para commit não descendente | `git tag -f v0.0.1 <commit órfão>` e `git push --force origin v0.0.1` | rc 1, "mover a tag"; tag no SHA anterior |
 | 15 | Erro de lint plantado (K-317 preservado) | `ERRO_LINT` em `server/src/s.ts`, commit, `git push origin feature/lint` | rc 1, "corrija antes de enviar"; ref não nasce |
 | 16 | Lint corrigido | `git revert HEAD` e `git push origin feature/lint` | rc 0 |
+| 17 | `develop` e `homolog` (A4) | `git push origin HEAD:refs/heads/develop` e `.../homolog` (fast-forward) | rc 0; as duas refs no remoto |
+| 18 | `hotfix/*` (S1) | `git push origin HEAD:refs/heads/hotfix/x` | rc 0; ref no remoto |
+| 19 | `forge/upgrade-*` (S2) | `git push origin HEAD:refs/heads/forge/upgrade-0.47.0` | rc 0; ref no remoto |
+| 20 | `refactor/*` (S3) | `git push origin HEAD:refs/heads/refactor/x` | rc 0; ref no remoto |
+| 21 | `test/*` (S4, depende do dono) | `git push origin HEAD:refs/heads/test/k1` | rc 0; ref no remoto |
+| 22 | `integracao/*` (S5, depende do dono) | `git push origin HEAD:refs/heads/integracao/2026-11-14` | rc 0; ref no remoto |
+| 23 | Feature com merge da develop (S6) | feature enviada, develop avança no remoto, `git merge --no-edit origin/develop` na feature e `git push origin feature/f` | rc 0 |
+| 24 | Remoto avançou por outro clone (S7) | commit local e `git push` sem fetch | rc 1 (pede `git fetch`) |
+| 25 | Depois do `git pull --rebase` (S7) | `git pull --rebase` e `git push` | rc 0 |
 
-Resultado na cópia descartável (saída do roteiro): `ok` nos casos 01 a 16, "TUDO OK". Não coberto: bloco do Siegard (depende de plugin instalado na máquina, trecho inalterado) e a trava do `pre-push.local` (não existe neste projeto).
+Resultado na cópia descartável (saída do roteiro): `ok` nos casos 01 a 25, "TUDO OK". Não coberto: bloco do Siegard (depende de plugin instalado na máquina, trecho inalterado) e a trava do `pre-push.local` (não existe neste projeto).
 
 ### 2.1 Roteiro automático
 
@@ -226,14 +239,14 @@ verifica "08 branch melhoria/x recusada" $?
 git branch -f fix/a HEAD
 git branch -f docs/b HEAD
 envia origin fix/a docs/b
-[ "$rc" -ne 0 ] && grep -q 'mais de uma branch' <<<"$saida" && [ -z "$(topo refs/heads/fix/a)" ]
+[ "$rc" -ne 0 ] && grep -q 'mais de uma branch' <<<"$saida" && [ -z "$(topo refs/heads/fix/a)" ] && [ -z "$(topo refs/heads/docs/b)" ]
 verifica "09 duas branches no mesmo envio recusadas" $?
 
-# 10) develop e homolog e prefixos permitidos (um por vez)
+# 10) prefixos permitidos fix, docs e chore (um por vez)
 git push -q origin fix/a 2>/dev/null
 git push -q origin docs/b 2>/dev/null
 envia origin HEAD:refs/heads/chore/c
-[ "$rc" -eq 0 ] && [ -n "$(topo refs/heads/fix/a)" ] && [ -n "$(topo refs/heads/chore/c)" ]
+[ "$rc" -eq 0 ] && [ -n "$(topo refs/heads/fix/a)" ] && [ -n "$(topo refs/heads/docs/b)" ] && [ -n "$(topo refs/heads/chore/c)" ]
 verifica "10 fix/*, docs/* e chore/* seguem" $?
 
 # 11) duas remoções no mesmo envio
@@ -271,6 +284,50 @@ envia origin feature/lint
 [ "$rc" -eq 0 ]
 verifica "16 sem erro de lint o envio segue" $?
 
+# 17) develop e homolog (fast-forward, A4): o envio é conferido no remoto
+git switch -q develop
+echo d >>server/src/s.ts
+git commit -qam d1
+envia origin HEAD:refs/heads/develop
+[ "$rc" -eq 0 ] && [ "$(topo refs/heads/develop)" = "$(git rev-parse HEAD)" ]
+verifica "17a develop segue" $?
+envia origin HEAD:refs/heads/homolog
+[ "$rc" -eq 0 ] && [ "$(topo refs/heads/homolog)" = "$(git rev-parse HEAD)" ]
+verifica "17b homolog segue" $?
+
+# 18 a 22) um caso por nome aceito da lista (S1 a S5)
+for nome in hotfix/x forge/upgrade-0.47.0 refactor/x test/k1 integracao/2026-11-14; do
+  envia origin "HEAD:refs/heads/$nome"
+  [ "$rc" -eq 0 ] && [ "$(topo "refs/heads/$nome")" = "$(git rev-parse HEAD)" ]
+  verifica "18-22 $nome segue" $?
+done
+
+# 23) S6: feature enviada, develop avança no remoto, merge da develop na feature e envio
+git switch -q -c feature/f develop
+echo f >>server/src/s.ts
+git commit -qam f1
+envia origin feature/f
+git clone -q "$TMP/remoto.git" "$TMP/dev2" 2>/dev/null
+( cd "$TMP/dev2" && git switch -q develop && echo e >e.txt && git add e.txt && git commit -qm e1 && git push -q origin develop ) >/dev/null 2>&1
+git fetch -q origin
+git merge -q --no-edit origin/develop >/dev/null 2>&1
+envia origin feature/f
+[ "$rc" -eq 0 ] && [ "$(topo refs/heads/feature/f)" = "$(git rev-parse HEAD)" ]
+verifica "23 feature com merge da develop segue (S6)" $?
+
+# 24 e 25) S7: outro clone avança a feature; sem fetch recusa; depois do pull --rebase segue
+( cd "$TMP/dev2" && git fetch -q origin && git switch -q feature/f && echo g >g.txt && git add g.txt && git commit -qm g1 && git push -q origin feature/f ) >/dev/null 2>&1
+echo h >h.txt
+git add h.txt
+git commit -qm h1
+envia origin feature/f
+[ "$rc" -ne 0 ] && grep -q "git fetch" <<<"$saida"
+verifica "24 remoto avançou, sem fetch recusa (S7)" $?
+git pull -q --rebase origin feature/f >/dev/null 2>&1
+envia origin feature/f
+[ "$rc" -eq 0 ] && [ "$(topo refs/heads/feature/f)" = "$(git rev-parse HEAD)" ]
+verifica "25 depois do pull --rebase segue (S7)" $?
+
 [ "$falhas" -eq 0 ] && echo "TUDO OK" || echo "FALHAS: $falhas"
 [ "$falhas" -eq 0 ]
 ```
@@ -296,6 +353,8 @@ git restore --source=HEAD --staged --worktree -- .githooks/pre-push
 ```
 
 Depois de commitado e mesclado, voltar atrás é reverter o commit da aplicação (`git revert <sha>`) por PR, como qualquer mudança.
+
+Pergunta ao dono (A3, não inferida): `test/*` e `integracao/*` estão em uso no remoto (`origin/test/k283-provas-pessoa-helper`, `origin/integracao/2026-11-07`). Esta proposta os aceita num bloco separado e comentado (as duas linhas "PREPUSH-REFS (nomes, depende do dono)"); apagar a linha recusa os dois e os casos 21 e 22 do roteiro passam a esperar rc 1. A resposta é do dono.
 
 Observações para o dono:
 - O pre-push local não vale como única barreira: a proteção de `develop`, `homolog` e `main` no GitHub continua sendo a trava de verdade.
