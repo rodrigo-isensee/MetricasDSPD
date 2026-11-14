@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-release
-commit: a881630bd20e900f258137f50ed42d24753d0561
+commit: 24ce5f921d5184bcd37cc0df0d30dfeec991a83e
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-14
@@ -42,6 +42,16 @@ Desde o parecer em `71f9ff8e` (develop `b544000d`) entrou só o PR 402 (K-295, `
 - **Segredos: nenhum.** A mesma busca do parecer nas linhas adicionadas não acha nada fora de texto de documentação.
 - **Regras invioláveis:** o mock e a lista de tipos do fluxo deixam de oferecer "Incidente" (que é do Acelerato), o que reforça a separação entre BusinessMap e Acelerato.
 - **Suíte:** não rodei; vale o QA da release (E1.3) e o portão da `homolog` (E1.5). Os achados A1 e A2 seguem como estão; nenhum achado novo.
+
+## Delta 2 (develop 61286dac até 64826e90, branch em 24ce5f92)
+Desde o Delta (develop `61286dac`) entraram o PR 411 (`09c8d269`, Dependabot) e o PR 412 (`64826e90`, K-326); a branch soma o merge da develop (`d4522fe3`) e documentação (CHANGELOG, review e QA da release). `24ce5f92` contém `64826e90`, e `git diff 64826e90 24ce5f92` só toca `CHANGELOG.md` e `docs/`. Li `git diff 61286dac 64826e90` (6 arquivos) inteiro.
+- **mariadb 3.5.4 para 3.5.5 (`server/package.json:52`): conforme, e a atualização é desejável.** Li as notas da 3.5.5 (releases do conector no GitHub, leitura pública). Correções de segurança: CONJS-378 (`Pool.escape()` sob `NO_BACKSLASH_ESCAPES`), CONJS-379 e CONJS-380 (injeção por escape em big5, gbk, sjis e cp932), CONJS-381 (charset não suportado caía em utf8mb4 em silêncio), CONJS-371 (`changeUser` após TLS autoassinado) e CONJS-389 (`destroy()` não matava a consulta em TLS com verificação de certificado). Nenhuma nos atinge hoje: o cliente do Acelerato (`server/src/modulos/acelerato/cliente-mysql.ts:41-51`) usa `createConnection` (sem pool), não fixa charset (padrão utf8mb4), não chama `escape()` e passa valores só por `execute` com parâmetros (`:102`). Nada muda em TLS nem em autenticação do nosso lado: `ssl` explícito, `restrictedAuth` em `caching_sha2_password` e `mysql_native_password`, `permitRedirect: false`, `allowPublicKeyRetrieval: false`, `multipleStatements: false`, `permitLocalInfile: false` (`:44-47`). A leitura segue só de leitura nas três camadas (conta, sessão `READ ONLY` e transação somente leitura, `:104-106`); a versão nova não traz opção que escreva. O CONJS-385 só acerta tipos (`restrictedAuth` e `permitRedirect` passam a ser declarados), sem efeito em execução.
+- **@tanstack/react-query 5.105.3 para 5.107.1 (`web/package.json:27`): conforme.** As notas de 5.106 a 5.107.1 são patch de `query-core`; nada de armazenamento do navegador, rede nova nem renderização de HTML.
+- **Lockfile (`pnpm-lock.yaml`): conforme.** Toda entrada nova traz `integrity` sha512 (de 1083 para 1085 linhas: `@babel/runtime@7.29.13` e `ws@8.22.2`); nenhum nome de pacote novo, só versões novas de pacotes que já estavam: `@babel/runtime` (de `@testing-library/dom`), `ws` e `lilconfig` (de puppeteer e lighthouse, ferramentas de desenvolvimento), `@tanstack/query-core` e `mariadb`. Nenhum `tarball:` nem registro alternativo. A outra linha é a marca `deprecated` em `tldts-core@7.4.20` (publicação parcial no registro, issue 2735 do tldts), versão que já estava e vem só do lighthouse (`tldts-icann`), fora do que vai à produção: informativo.
+- **PR 412 (K-326): conforme.** Só soma `server/tests/pg/colunas-pessoa.test.ts` (projeto `unit`, roda sempre, sem banco). `server/tests/pg/colunas-pessoa.ts`, `server/src/plataforma/db/lgpd.ts` (`COLUNAS_PESSOA`) e `grants.ts` não mudam desde `b544000d`, e as provas `.pg` seguem chamando `provarSemPessoa` para `dim_card`, `dim_card_versao`, `dim_responsavel`, `fato_apontamento` e `apt_pessoa_time`. O teste novo fecha as falhas silenciosas do helper: lista vazia lança, coluna legível falha, coluna inexistente falha (42703 não passa por 42501). Rodei `vitest run --project unit tests/pg/colunas-pessoa.test.ts`: 4 de 4 verdes.
+- **Segredos: nenhum.** A mesma busca nas linhas adicionadas não acha nada; o teste novo usa só `responsaveis` e `schema_t`.
+- **Suíte:** não rodei a suíte; CI de `64826e90` verde (`testes`, `banco`, `seguranca`, `build`, `rapida`, `filtro`, `openapi`, `imagem`). Valem o QA da release (E1.3) e o portão da `homolog` (E1.5). A1 e A2 seguem como estão; nenhum achado novo.
+- **Lacunas de ferramenta:** as mesmas do parecer; `osv-scanner` não está no PATH, e a auditoria de dependências fica com o job `seguranca` da CI (verde em `64826e90`).
 
 ## Achados
 - A1 (recomendado) .github/workflows/ci.yml:186 · herdado das releases 101 e 103, ainda aberto: a guarda G1 (web/scripts/sem-mock.mjs) não roda na CI; os jobs com pnpm run build (ci.yml:186, ci.yml:266, homolog.yml:82, homolog.yml:195) não chamam sem-mock. Dono: devops-engineer.
