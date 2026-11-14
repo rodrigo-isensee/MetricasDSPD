@@ -1,5 +1,6 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, rotuloDeSetorSeguro } from './setor.js';
 import { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
 
 export type OpcaoLinha = { id: string; nome: string };
@@ -26,6 +27,17 @@ export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmb
     `SELECT codigo, rotulo FROM ${S.bm}.ref_dominio
      WHERE campo = 'sistema' AND vigente_ate IS NULL ORDER BY ordem, codigo`);
   return r.rows.map((x) => ({ id: x.codigo, nome: x.rotulo }));
+}
+
+/**
+ * Setores vigentes (L10a do 097, E7): `ref_dominio` campo `setor_quadro` (codigo = id do quadro, rotulo = nome sem sobrenome). Lê o banco com a mesma
+ * desconfiança do arquivo: ignora código não numérico e rótulo com sobrenome ou arroba. Nunca lê o nome do quadro.
+ */
+export async function lerSetoresBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<OpcaoLinha[]> {
+  const r = await db.query<{ codigo: string; rotulo: string }>(
+    `SELECT codigo, rotulo FROM ${S.bm}.ref_dominio
+     WHERE campo = $1 AND vigente_ate IS NULL ORDER BY ordem, codigo`, [CAMPO_SETOR_QUADRO]);
+  return r.rows.filter((x) => CODIGO_QUADRO.test(x.codigo) && x.rotulo.trim().length > 0 && rotuloDeSetorSeguro(x.rotulo)).map((x) => ({ id: x.codigo, nome: x.rotulo }));
 }
 
 /** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */
