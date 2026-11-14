@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-release
-commit: 09c8d26919018b74d6a65d12a2aa0962a29d8e49
+commit: 64826e906e23ae10cd034f9b83ce1d5e877aaba9
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-14
@@ -35,7 +35,7 @@ Escopo: `git log --first-parent origin/main..origin/develop`, 25 PRs (#383, #384
 - **Migração e base real:** nenhuma migração, nenhum comando novo; as ações do dono da release 104 não mudam.
 - **Critério de cálculo:** nenhum; o PR só mexe em listas de opção, abas do T11, mensagens de lista vazia, mock e testes (unitários e e2e de filtros). Regras invioláveis mantidas: BusinessMap e Acelerato separados, sem pessoa nem comparação.
 - **CI:** `gh run list --branch develop`: push na `develop` em 61286dac, workflow CI, run 43587005536 `completed success` (rapida, testes, build, banco, openapi, seguranca, filtro, imagem; e2e e perf pulados, push sem PR).
-- **CHANGELOG:** linha do #402 em `### Corrigido` da seção [Não publicado], com "sem migração, sem mudança no contrato da API e sem ação do dono". O #412 (K-326) e o lote K-236/K-243 não entram na 104.
+- **CHANGELOG:** linha do #402 em `### Corrigido` da seção [Não publicado], com "sem migração, sem mudança no contrato da API e sem ação do dono". O lote K-236/K-243 não entra na 104 (o #412 entrou depois; delta abaixo).
 - **Achados:** nenhum novo; A1 e A2 seguem como estão.
 
 ## Delta: 61286dac até 09c8d269 (#411)
@@ -46,9 +46,17 @@ Escopo: `git log --first-parent origin/main..origin/develop`, 25 PRs (#383, #384
 - **Migração, contrato, critério de cálculo e base real:** nenhum; as ações do dono da release 104 não mudam.
 - **CI:** `gh pr checks 411`: rapida, testes, seguranca, imagem, openapi e filtro `pass`; e2e e perf `skipping`. `gh run list --branch develop`: push na `develop` em 09c8d269, run 43588046343 `completed success` (rapida, testes, build, banco, openapi, seguranca, filtro, imagem; e2e e perf pulados). O e2e da release fica com o portão da homolog (E1.5).
 - **CHANGELOG:** linha do #411 em `### Dependências e Forge`, com o que subiu e "sem ação do dono".
-- **Fora:** a `origin/develop` andou para 64826e90 (#412, K-326) depois do #411. O pedido o deixa fora da 104 e este parecer não o revisa; mas outro papel o trouxe por merge para esta branch (a32aa62e, `Merge branch 'develop'`), e a E1.5 leva a `develop` inteira para a `homolog`. Pendente de decisão do Jarvis: aceitar o #412 na 104 (só teste em `server/tests/pg/colunas-pessoa.test.ts` e pareceres 097, com review e QA próprios) ou segurar a promoção. O K-236/K-243 e o K-325 não entram.
+- **Fora:** o #412 (64826e90) é tratado no delta seguinte. O K-236/K-243 e o K-325 não entram.
+- **Achados:** nenhum novo; A1 e A2 seguem como estão.
+
+## Delta: 09c8d269 até 64826e90 (#412)
+
+- **Decisão:** o Jarvis pôs o #412 (K-326) na release 104 (já na `develop`, review e QA do pedido 097 aprovados em `docs/reviews/097-k326.md` e `docs/qa/097-k326.md`); fica sem efeito a pendência que registrei no delta anterior. A `origin/develop` está em 64826e90, congelada até a promoção para a `homolog`; nada além do #412.
+- **Diff lido:** `git diff 09c8d269 64826e90`: `server/tests/pg/colunas-pessoa.test.ts` (+27, novo, unidade com pool falso de `provarSemPessoa`: lista vazia lança, GRANT negado com 42501 passa, coluna legível falha, coluna inexistente falha) e os pareceres `docs/reviews/097-k326.md` e `docs/qa/097-k326.md`. A guarda de lista vazia já estava em `server/tests/pg/colunas-pessoa.ts:10` (#349); o #412 só a prova. Nenhum código de produção, migração, contrato, critério de cálculo ou dado de pessoa muda.
+- **CI:** `gh run list --branch develop`: push na `develop` em 64826e90, workflow CI, run 43589920043 `completed success` (rapida, testes, build, banco, openapi, seguranca, filtro, imagem; e2e e perf pulados, push sem PR).
+- **CHANGELOG:** linha do #412 em `### Corrigido` da seção [Não publicado], junto das provas de pessoa (#391), com "sem ação do dono"; as ações do dono da release 104 não mudam.
 - **Achados:** nenhum novo; A1 e A2 seguem como estão.
 
 ## Parecer
 
-Aprovado sobre a develop em 09c8d269 (deltas acima: #402 e #411). Na primeira leitura, sobre b544000d: se o #402 ou o lote K-236/K-243 entrarem antes da E1.4, a develop vem por merge para esta branch e este parecer ganha a atualização do delta. A release segue para a homolog com os pareceres de segurança (E1.2) e QA (E1.3) gravados; o meu não depende deles.
+Aprovado sobre a develop em 64826e90 (deltas acima: #402, #411 e #412). Na primeira leitura, sobre b544000d: se o #402 ou o lote K-236/K-243 entrarem antes da E1.4, a develop vem por merge para esta branch e este parecer ganha a atualização do delta. A release segue para a homolog com os pareceres de segurança (E1.2) e QA (E1.3) gravados; o meu não depende deles.

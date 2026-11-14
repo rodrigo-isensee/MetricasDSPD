@@ -86,6 +86,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Aba Apontamento: vazio só para os cartões do período, atípico do mapa diário e ajustes do L3, com o aviso do link antigo "O filtro Pessoa foi retirado; use Equipe." (K-303, K-302, K-289) (#390); AP-PROJETO depois do L9, "Ver todos" acessível, selo no Demais e teto do gráfico (K-299) (#395); linha de nomes ocultos na matriz, na qualidade por pessoa e no mapa (K-320) (#404).
 - Catálogo (K-297): parágrafo e comentários sem número fixo (#396).
 - Testes (K-283): as provas de pessoa dos testes no PostgreSQL usam o helper de `COLUNAS_PESSOA`; o que cada prova afirma não muda (#391).
+- Testes (097 K-326): teste de unidade de `provarSemPessoa`, com pool falso, prova que a prova de GRANT falha com lista vazia de colunas de pessoa, com coluna legível e com coluna inexistente; só teste, sem mudança de código de produção, migração, contrato ou ação do dono (#412).
 - Lint: o servidor barra a raiz de `@metricas-dspd/metricas` fora do módulo de métricas (K-318) (#394); o eslint da raiz roda com heap explícito de 4 GB e o teste da suíte única usa trava própria (FORGE0442-001, K-256) (#407).
 - Ferramentas (pre-push): lint do servidor nos alterados, árvore suja e bit de execução (K-317) (#386); nomes de arquivo não ASCII e o ramo sem merge-base (K-319) (#398); nomes com traço inicial, quebra de linha, aspas e barra (K-322) (#409).
 
