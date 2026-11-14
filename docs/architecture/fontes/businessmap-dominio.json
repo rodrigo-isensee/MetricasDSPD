@@ -11,10 +11,35 @@
   },
   "schema": "dspd_bm",
   "tabela": "ref_dominio",
-  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio até a resposta do dono (P-097-9), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6)",
+  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio e foi preenchido com os nomes que o dono passou (P-097-9, pedido 099 de 12 e 13/11 e pedido 097 de 12/11; o quadro 35 fica fora até a P-097-10), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6)",
   "campos": [],
   "motivo_bloqueio": [],
-  "setores": [],
+  "setores": [
+    {
+      "codigo": "23",
+      "rotulo": "Sistemas Corporativos"
+    },
+    {
+      "codigo": "24",
+      "rotulo": "Escritório de Projetos"
+    },
+    {
+      "codigo": "25",
+      "rotulo": "Sistemas de Vendas e Operações"
+    },
+    {
+      "codigo": "27",
+      "rotulo": "Plataformas"
+    },
+    {
+      "codigo": "31",
+      "rotulo": "Ciência de Dados"
+    },
+    {
+      "codigo": "79",
+      "rotulo": "Marketing e Vendas"
+    }
+  ],
   "prioridade_severidade": [
     {
       "codigo": "1",

@@ -218,8 +218,15 @@ describe('bm:ref-sync: lista setores (097 L10a)', () => {
   const comSetores = (setores: unknown[]): string => arquivo([], { setores });
   const bom = [{ codigo: '23', rotulo: 'Plataformas' }, { codigo: '35', rotulo: 'Desenv Sistemas Plataformas Digitais - Gerencial' }];
 
-  it('o arquivo versionado nasce com a lista vazia (as 7 linhas esperam a P-097-9)', () => {
-    expect(lerDominioBm().arquivo.setores).toEqual([]);
+  it('o arquivo versionado traz os 6 quadros que o dono nomeou (o 35 fica fora até a P-097-10)', () => {
+    expect(lerDominioBm().arquivo.setores).toEqual([
+      { codigo: '23', rotulo: 'Sistemas Corporativos' },
+      { codigo: '24', rotulo: 'Escritório de Projetos' },
+      { codigo: '25', rotulo: 'Sistemas de Vendas e Operações' },
+      { codigo: '27', rotulo: 'Plataformas' },
+      { codigo: '31', rotulo: 'Ciência de Dados' },
+      { codigo: '79', rotulo: 'Marketing e Vendas' },
+    ]);
   });
 
   it('arquivo sem a lista é aceito (padrão vazio) e a lista vira a lista setor_quadro de ref_dominio', () => {
