@@ -211,6 +211,17 @@ describe('recolher cartão (097 E5, CA-25 a CA-32)', () => {
     )
   })
 
+  it('M-1: só o resumo em erro é anunciado (status); os demais resumos ficam sem papel', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3', 'O5'] } })
+    render(
+      <Painel
+        cartoes={[<Cartao key="a" estado="erro" />, <Cartao key="b" codigo="O5" estado="ok" />]}
+      />,
+    )
+    expect(screen.getByTestId('resumo-recolhido-O3')).toHaveAttribute('role', 'status')
+    expect(screen.getByTestId('resumo-recolhido-O5')).not.toHaveAttribute('role')
+  })
+
   it('CA-32: o resumo é neutro (sem base, só "Recolhido."), nunca a frase de leitura; aceita resumo próprio', () => {
     guardar({ versao: 1, paineis: { operacional: ['O3', 'O5'] } })
     render(
