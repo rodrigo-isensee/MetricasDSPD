@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 104-release-2026-11-14
 branch: docs/104-roteiro-dono
-commit: a1896e540f63bd1c6690954610db95541ff00542
-parecer: reprovado
+commit: a5106425e3f033e35261eb3172d271980e588e08
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-14
 ---
@@ -59,7 +59,23 @@ Corrigido pelo revisor (forma, sem mudar sentido):
 
 Detalhe do A6: os três ref-sync usam `carregarConfigRef` (server/src/entradas/ref-sync-calendario.ts:20, ref-sync-ac.ts:23, ref-sync-businessmap.ts:21), cujo esquema exige `PG_REF_URL` (server/src/plataforma/config.ts:72, 147) sem derivá-la de `DSPD_PWD_REF`; a derivação só existe no esquema da coleta do BusinessMap (config.ts:95-106). O `coleta` recebe só `PG_COLETOR_URL` e `DSPD_PWD_REF` (docker-compose.yml:86-87) e o `coleta.env` não traz `PG_REF_URL` (runbook-coleta-diaria.md:28): os três param em "Configuração inválida (variáveis: PG_REF_URL)" com rc=1 já no passo 2, e o passo 6 depende do calendário. Nenhum serviço do Compose recebe `PG_REF_URL`, e passá-la na linha de comando poria a senha do `dspd_ref` no histórico do shell. Caminho possível (decisão do devops-engineer): montar a URL dentro do contêiner a partir de `DSPD_PWD_REF`, com a senha codificada, ou mudar Compose ou config num item próprio de código, conferido com `docker compose config`.
 
+## Delta 3 (a1fb5608..a5106425)
+Decisão do dono de 14/11 12:43: os dados reais ficam neste computador; a parte da VM (e o A6) saiu para o K-340. Lido só o diff de `docs/devops/104-roteiro-dono.md` (+24 −59), contra a seção "Ações do dono na base real depois da release 104" do `CHANGELOG.md` da `origin/develop` (:144-152), `package.json` (`db:migrate`, `coleta`), `server/package.json`, `scripts/db.sh`, `scripts/coleta.sh`, `server/src/plataforma/config.ts` e `docker-compose.yml`. `forge-check parecer delta`: intervalo a1896e54..a5106425, "nenhum arquivo do domínio mudou" (só `.md`). Nada rodado na base real; o `.env` não foi lido.
+
+- A6 fora do escopo por decisão do dono (K-340): o roteiro não tem mais passo na VM; a linha "Escopo" diz isso no topo.
+- Passos 1 a 7 na ordem do CHANGELOG, com os nomes exatos. Passo 1: `db:migrate` chama `scripts/db.sh`, que carrega o `.env` sozinho (db.sh:5) e monta `PG_MIGRADOR_URL` de `DSPD_PWD_MIGRADOR` se faltar (:6); sem parênteses, certo. Passos 2, 3, 4 e 6 e a seção 3 com o `.env` entre parênteses, a forma da primeira rodada. Passo 5 e a coleta do Acelerato na seção 4: `coleta.sh` já carrega o `.env` (coleta.sh:6); os parênteses não mudam nada e mantêm a regra única do "Como usar". Coleta do BusinessMap igual ao comando padrão (`incremental --projetar`, docker-compose.yml:81).
+- Parada da coleta: confere com o repositório. Os timers de `deploy/systemd/` são da VM, e a agenda local de `docs/engineering/operacao-banco.md` (:54-79, Agendador do Windows ou cron do WSL) é a do backup; o roteiro manda olhar os dois lugares, `ps` por `entradas/coleta` e `docker ps` (o serviço `coleta` é de perfil e não sobe com `up`, docker-compose.yml:78), e parar na dúvida. A seção 4 religa só os mesmos lugares.
+- K-216 local: o Compose monta `PG_APONTAMENTO_URL` da API a partir de `DSPD_PWD_APONTAMENTO` (docker-compose.yml:50), lido do `.env` da raiz que o Compose carrega; um `PG_APONTAMENTO_URL` no `.env` não chega ao contêiner, como o item 1 diz, sem valor nenhum. A 0034 entra no passo 1 (ou no `db:migrate` do item 2); `up -d --build api web` refaz as imagens com o código da `main` e, pelo `depends_on` (docker-compose.yml:55-56), roda o `migrate` antes da API. Porta `WEB_PORT`, padrão 8080 (:98); saúde por `/health/ready` (:58). Item 6: usuário `postgres` e base `metricas` conferem (docker-compose.yml:10, :25).
+
+Sem correção do revisor nesta rodada (o brief pede commit só do parecer). Dois recomendados, que não mudam a ordem nem o resultado de nenhum passo:
+- A7: o passo 6 roda por `pnpm --filter`, sem passar pelo `db.sh`; `carregarConfigMigrar` exige `PG_MIGRADOR_URL` (config.ts:70, 148) e não a deriva de `DSPD_PWD_MIGRADOR`. Se o `.env` local só tiver a senha, o passo para com rc=1 antes de tocar a base (falha segura: a regra de ouro manda parar). O "Se der erro" do passo 6 só cita o código 4; vale a mesma dica do passo 2 (variável do `.env` faltando, só o nome).
+- A8: o último marcador do item 6 da seção 2 atribui a recusa a um superusuário com outro nome, mas o Compose fixa `POSTGRES_USER: postgres` (docker-compose.yml:10). A causa provável de erro ali é o contêiner `postgres` fora do ar ou outro `COMPOSE_PROJECT_NAME`; a instrução (parar e avisar) já está certa, só a causa citada não.
+
 ## Achados
+- A7 (recomendado) docs/devops/104-roteiro-dono.md:82 · passo 6 exige PG_MIGRADOR_URL no .env (config.ts:70) sem derivá-la de DSPD_PWD_MIGRADOR; citar no "Se der erro" a variável faltando, como no passo 2 (:45)
+- A8 (recomendado) docs/devops/104-roteiro-dono.md:102 · o Compose fixa o superusuário postgres (docker-compose.yml:10); a causa provável da recusa é o contêiner fora do ar, não outro nome de usuário
+
+## Achados da rodada anterior (a1896e54)
 - A6 (bloqueante) docs/devops/104-roteiro-dono.md:65 · na VM os ref-sync dos passos 2, 3, 4 e da seção 3 (:76, :86, :139) rodam no serviço coleta, que não recebe PG_REF_URL (docker-compose.yml:86-87; config.ts:72): param com rc=1
 
 ## Achados da rodada anterior (b51cbe52)
