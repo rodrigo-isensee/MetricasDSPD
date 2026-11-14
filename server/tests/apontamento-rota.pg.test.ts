@@ -18,6 +18,8 @@ const FILHO = String(FAIXA + 2);
 const SOLTO = String(FAIXA + 3); // card sem hierarquia na referência
 const ANTIGO = String(FAIXA + 5); // card do escopo cujo responsavel saiu antes dos 12 meses
 const OUTRO = String(FAIXA + 6); // card de outra categoria (Defeito), para provar que o filtro por tipo separa categorias
+const QUADRO_ALFA = String(FAIXA + 701); // 097 K-337: quadro mapeado a um setor no dicionário
+const QUADRO_SEM_SETOR = String(FAIXA + 702); // quadro fora do dicionário
 const FORA = String(FAIXA + 4); // card fora do escopo do DSPD (raiz fora dos quadros coletados)
 const AGORA = new Date('2031-02-10T15:00:00Z');
 const SHA = (c: string): string => c.repeat(64).slice(0, 64);
@@ -55,6 +57,10 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await raiz(OUTRO, RAIZ, 1, true);
     await dono.query(`UPDATE ${S.bm}.dim_card SET equipe = $2 WHERE card_id = $1`, [FILHO, 'Time Alfa Teste 097']); // 097 L2: time do card; OUTRO e SOLTO ficam em outros times / sem time
     await dono.query(`UPDATE ${S.bm}.dim_card SET equipe = $2 WHERE card_id = $1`, [OUTRO, 'Time Beta Teste 097']);
+    // 097 K-337: quadro do card e dicionario `setor_quadro` (nome sem sobrenome); OUTRO fica em quadro nao mapeado e SOLTO sem quadro
+    await dono.query(`UPDATE ${S.bm}.dim_card SET quadro_id = $2 WHERE card_id = $1`, [FILHO, QUADRO_ALFA]);
+    await dono.query(`UPDATE ${S.bm}.dim_card SET quadro_id = $2 WHERE card_id = $1`, [OUTRO, QUADRO_SEM_SETOR]);
+    await dono.query(`INSERT INTO ${S.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('setor_quadro', $1, '2026-01-01', 'Setor Alfa Teste 097', 0)`, [QUADRO_ALFA]);
     await card(FORA, null, null, 'Card fora do escopo', null);
     await card(ANTIGO, null, null, 'Card antigo', null);
     await dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $1, 0, false, false, now(), $2)`, [ANTIGO, coleta]);
@@ -123,6 +129,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
 
   afterAll(async () => {
     await dono.query(`DELETE FROM ${S.bm}.fato_apontamento WHERE logged_time_id = ANY($1::text[])`, [logged]);
+    await dono.query(`DELETE FROM ${S.bm}.ref_dominio WHERE campo = 'setor_quadro' AND codigo = $1`, [QUADRO_ALFA]);
     await dono.query(`DELETE FROM ${S.bm}.dim_card_raiz WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO, OUTRO]]);
     await dono.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO, OUTRO]]);
     await dono.query(`DELETE FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[])`, [[ids.a, ids.b, ids.c, ids.d, ids.e]]);
@@ -254,6 +261,53 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     // colunas de pessoa de dim_card vêm de COLUNAS_PESSOA (K-282); card_pai não é de pessoa, é guarda de hierarquia fora do GRANT da aba
     await provarSemPessoa(aba, dono, 'dspd_bm.dim_card', S.bm);
     expect((await falha(aba, `SELECT card_pai FROM ${S.bm}.dim_card`)).code, 'card_pai').toBe('42501');
+  });
+
+  it('filtro por setor ponta a ponta com o papel da aba: o quadro do card pelo dicionario, "Sem setor", e o GRANT de dim_card.quadro_id e do mapa de ref_dominio sem coluna de pessoa (097 K-337)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const ler = async (filtro: string) => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return respostaApontamentoSchema.parse(r.json());
+    };
+    const ALFA = 3600 + 7200; // FILHO, type_id 12 e 34
+    const todos = await ler('');
+    expect(todos.opcoes.setores?.map((e) => e.id).sort()).toEqual(['sem-setor', 'setor-alfa-teste-097']);
+    expect(todos.kpis.segundos).toBe(ALFA + 900 + 1800);
+    expect((await ler('&setor=setor-alfa-teste-097')).kpis).toMatchObject({ segundos: ALFA, apontamentos: 2 });
+    expect((await ler('&setor=sem-setor')).kpis).toMatchObject({ segundos: 900 + 1800, apontamentos: 2 }); // OUTRO (quadro nao mapeado) e SOLTO (sem quadro)
+    expect((await ler('&setor=setor-alfa-teste-097,sem-setor')).kpis.segundos).toBe(ALFA + 900 + 1800);
+    expect((await ler('&setor=nao-existe')).kpis.segundos).toBe(0);
+    expect((await ler('&setor=setor-alfa-teste-097&equipe=time-beta-teste-097')).kpis.segundos).toBe(0);
+    // o papel da aba le o quadro do card e o mapa do dicionario, mas nada de pessoa a mais
+    await expect(aba.query(`SELECT quadro_id FROM ${S.bm}.dim_card LIMIT 1`)).resolves.toBeDefined();
+    await expect(aba.query(`SELECT campo, codigo, rotulo, ordem, vigente_ate FROM ${S.bm}.ref_dominio WHERE campo = 'setor_quadro'`)).resolves.toBeDefined();
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card', S.bm);
+    expect((await falha(aba, `SELECT vigente_de FROM ${S.bm}.ref_dominio`)).code).toBe('42501');
+    // o dspd_api continua sem a aba: o GRANT novo e do papel da aba, nao do papel da API
+    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.fato_apontamento`)).code).toBe('42501');
+  });
+
+  it('cards incompletos filtrados por setor ponta a ponta: o setor do quadro do card, "Sem setor" e slug inexistente com resultado vazio (097 K-337)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const cobertura = await novaColeta(dono, S.bm);
+    const marcar = (estado: 'incompleto' | 'completo') =>
+      dono.query(
+        `INSERT INTO ${S.bm}.ctl_apontamento_cobertura (card_id, estado, coleta_id, detectado_em) SELECT c, $2::text, $3::bigint, now() FROM unnest($1::text[]) AS c`,
+        [[FILHO, OUTRO, SOLTO], estado, cobertura]);
+    const incompletos = async (filtro: string): Promise<string[]> => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return (respostaApontamentoSchema.parse(r.json()).registroIncompleto?.cards ?? []).map((c) => c.cardId).sort();
+    };
+    await marcar('incompleto');
+    try {
+      expect(await incompletos('&setor=setor-alfa-teste-097')).toEqual([FILHO]);
+      expect(await incompletos('&setor=sem-setor')).toEqual([OUTRO, SOLTO].sort()); // quadro nao mapeado e sem quadro
+      expect(await incompletos('&setor=nao-existe')).toEqual([]); // slug inexistente: vazio, nunca "todos"
+    } finally {
+      await marcar('completo');
+    }
   });
 
   it('cards incompletos filtrados por equipe ponta a ponta: o time do card, "Sem time" e slug inexistente com resultado vazio (097 L2, A1)', async () => {
