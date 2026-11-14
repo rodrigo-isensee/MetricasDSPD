@@ -24,7 +24,7 @@ type Chamada = { id: MetricaId; filtros: Record<string, unknown> }
 
 class FonteSetor extends MockFonteMetricas {
   chamadas: Chamada[] = []
-  modo: 'ok' | 'erro' | 'vazio' | 'trava' = 'ok'
+  modo: 'ok' | 'erro' | 'erro-uma-vez' | 'vazio' | 'trava' = 'ok'
   constructor() {
     super({ latenciaMs: 0 })
   }
@@ -40,6 +40,10 @@ class FonteSetor extends MockFonteMetricas {
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
     if (this.modo === 'trava' && dominio === 'businessmap') return new Promise(() => undefined)
     if (this.modo === 'erro' && dominio === 'businessmap') throw new Error('falha')
+    if (this.modo === 'erro-uma-vez' && dominio === 'businessmap') {
+      this.modo = 'ok'
+      throw new Error('falha')
+    }
     const r = await super.opcoesFiltro(dominio)
     if (r.dominio !== 'businessmap') return r
     const setores =
@@ -189,6 +193,21 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     expect(within(alerta).getByRole('button', { name: 'Tentar de novo' })).toBeEnabled()
     expect(
       await screen.findByTestId('numero-p85', undefined, { timeout: 8000 }),
+    ).toBeInTheDocument()
+  })
+
+  it('"Tentar de novo" refaz a consulta das opções e o filtro volta a "Setor: Todos"', async () => {
+    const f = new FonteSetor()
+    f.modo = 'erro-uma-vez'
+    renderizarApp('/operacional', f)
+    const fluxo = await bloco('resumo-fluxo')
+    const caixa = await within(fluxo).findByTestId('filtro-setor-bloco-fluxo', undefined, {
+      timeout: 8000,
+    })
+    const alerta = await within(caixa).findByRole('alert', undefined, { timeout: 15000 })
+    await userEvent.click(within(alerta).getByRole('button', { name: 'Tentar de novo' }))
+    expect(
+      await within(fluxo).findByRole('button', { name: 'Setor: Todos' }, { timeout: 8000 }),
     ).toBeInTheDocument()
   })
 })
