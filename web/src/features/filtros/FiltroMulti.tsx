@@ -25,6 +25,8 @@ interface Props {
   genero?: 'f' | 'm'
   /** Texto da lista sem opções (carregando, erro ou recorte sem dado); sem ele, a lista fica em branco. */
   vazio?: string
+  /** Com ele, a lista sem opções oferece "Tentar de novo" (consulta de opções que falhou). */
+  aoTentar?: () => void
 }
 
 function resumo(opcoes: readonly OpcaoFiltro[], sel: readonly string[], genero: 'f' | 'm'): string {
@@ -74,6 +76,7 @@ function Lista({
   buscaRef,
   genero = 'f',
   vazio,
+  aoTentar,
 }: Props & {
   busca: string
   setBusca: (t: string) => void
@@ -85,6 +88,11 @@ function Lista({
   // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
   const [retorno, setRetorno] = useState('')
+  // Região viva já montada e vazia, preenchida depois: o texto inserido é anunciado (N1 da UX do K-295).
+  const regiaoVazioRef = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (regiaoVazioRef.current) regiaoVazioRef.current.textContent = vazio as string
+  }, [vazio])
   const alternar = (opcaoId: string, marcado: boolean) => {
     // O retorno vale só até a próxima ação; o Enter o redefine logo depois (N1 da revisão de UX do K-278).
     setRetorno('')
@@ -152,9 +160,17 @@ function Lista({
     return (
       <fieldset className="m-0 min-w-0 border-0 p-0">
         <legend className="sr-only">{rotulo}</legend>
-        <p className="py-1 text-sm text-texto-2" role="status" data-testid={`${id}-vazio`}>
-          {vazio}
-        </p>
+        <p
+          ref={regiaoVazioRef}
+          className="py-1 text-sm text-texto-2"
+          role="status"
+          data-testid={`${id}-vazio`}
+        />
+        {aoTentar && (
+          <Botao onClick={aoTentar} data-testid={`${id}-tentar`}>
+            Tentar de novo
+          </Botao>
+        )}
       </fieldset>
     )
   return (
