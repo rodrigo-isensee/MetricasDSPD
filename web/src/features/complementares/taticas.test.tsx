@@ -302,6 +302,12 @@ describe('T11: abas de tipo vêm das opções (097 K-295, E4.35)', () => {
     )
     expect(within(el).queryByRole('tab', { name: 'Melhoria' })).toBeNull()
     expect(within(el).queryByTestId('t11-sem-outros-tipos')).toBeNull()
+    // voltar a "Todos os tipos" limpa o tipo da consulta
+    await userEvent.setup().click(within(el).getByRole('tab', { name: 'Todos os tipos' }))
+    expect(within(el).getByRole('tab', { name: 'Todos os tipos' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
   })
 
   it('id que o contrato não conhece não vira aba', async () => {
