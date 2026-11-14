@@ -300,4 +300,4 @@ Depois de commitado e mesclado, voltar atrás é reverter o commit da aplicaçã
 Observações para o dono:
 - O pre-push local não vale como única barreira: a proteção de `develop`, `homolog` e `main` no GitHub continua sendo a trava de verdade.
 - Para tirar só a lista de nomes, apague o bloco "PREPUSH-REFS (nomes)" (do comentário até o `esac ;;` e `esac` que o fecham); o resto não depende dele.
-- A promoção `homolog` e `main` por PR não é afetada; o envio de tag de release local, se existir, passa (tag nova ou fast-forward).
+- As promoções `develop` → `homolog` e `homolog` → `main` são merges de PR feitos no GitHub, sem envio local, e não passam por este hook; o envio de tag de release local, se existir, passa (tag nova ou fast-forward).
