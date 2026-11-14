@@ -177,6 +177,36 @@ describe('transporte do MockFonteMetricas', () => {
     await expect(pb).rejects.toThrow('mensagem não clonável')
   })
 
+  it('postMessage que lança rejeita o pedido, sem deixá-lo pendente', async () => {
+    class Lanca extends FalsoWorker {
+      override postMessage(): void {
+        throw new DOMException('não clonável', 'DataCloneError')
+      }
+    }
+    vi.stubGlobal('Worker', Lanca)
+    const f = new MockFonteMetricas({ latenciaMs: 0 })
+    await expect(f.dataReferencia()).rejects.toThrow(
+      'Falha ao enviar ao Worker do mock: não clonável',
+    )
+  })
+
+  it('pedido antes do iniciar é recusado com erro claro, sem mudar o fluxo normal', async () => {
+    const estado: EstadoWorker = {}
+    const r = await tratarPedido(estado, { id: 7, metodo: 'criterios', args: [] })
+    expect(r).toStrictEqual({
+      id: 7,
+      ok: false,
+      erro: {
+        nome: 'Error',
+        mensagem: "Núcleo do mock não iniciado: o pedido 'criterios' veio antes de 'iniciar'",
+      },
+    })
+    expect((await tratarPedido(estado, { id: 8, metodo: 'iniciar', args: [{}] })).ok).toBe(true)
+    expect((await tratarPedido(estado, { id: 9, metodo: 'dataReferencia', args: [] })).ok).toBe(
+      true,
+    )
+  })
+
   it('resposta com id desconhecido é ignorada', async () => {
     vi.stubGlobal('Worker', FalsoWorker)
     const f = new MockFonteMetricas({ latenciaMs: 0 })
