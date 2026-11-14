@@ -18,6 +18,8 @@ export const colunasDePessoa = (chave: string): string[] => {
 export const provarSemPessoa = async (papel: pg.Pool, dono: pg.Pool, chave: string, schemaReal: string): Promise<void> => {
   const tabela = chave.split('.')[1] as string;
   const colunas = colunasDePessoa(chave);
+  // K-326: guarda depois do filtro; lista vazia faria a prova passar verde sem provar nada.
+  if (colunas.length === 0) throw new Error(`provarSemPessoa: nenhuma coluna de pessoa a provar para ${chave} (prova vazia)`);
   const existentes = (await dono.query<{ column_name: string }>(
     'SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2', [schemaReal, tabela])).rows.map((r) => r.column_name);
   for (const col of colunas) {
