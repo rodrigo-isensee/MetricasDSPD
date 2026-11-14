@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/k285-sem-dado-real-ux
-commit: 79c5cab7f9345144fbfb35a58a122e2dc1afb9e1
+commit: 0d1fae199da5736fa95cac71b2addddcc87d1203
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -16,6 +16,7 @@ data: 2026-11-14
 
 ## Achados
 - A1 (recomendado) web/src/components/ui/CartaoMetrica.tsx:269 · nenhum teste prova que selos (269) e nota (288) somem com o cartão recolhido: o mutante `{true && (` sobrevive. Lacuna herdada do L8a, nas linhas da resolução da junção. Cobrir em recolhidos.test.tsx.
+- A2 (recomendado) web/src/components/ui/CartaoMetrica.tsx:285 · nenhum teste prova que recolhido com base não reserva `min-h-6`: o mutante `p.base && 'min-h-6'` (sem `!recolhido`) sobrevive. Cobrir em recolhidos.test.tsx: cartão recolhido com base, sem a classe em selos-<cod>.
 
 ## Escopo
 Diff `origin/develop...5dcf0e4d`: `CartaoMetrica.tsx` (faixa de selos), `EstadoSemDadoReal.tsx`, `NumeroChave.tsx` e dois arquivos de teste. Obrigações: B-2, B-3 e B-4 de `docs/ux/099-revisao-l2b-l2c.md`. Suíte completa e check-run `bateria` ficam com o CI do PR. Nada rodou contra banco real nem leu `.env*`. Worktree na branch certa, árvore limpa antes e depois (as mutações foram revertidas por cópia).
@@ -61,3 +62,19 @@ Mutação à mão (cada um restaurado por git show HEAD):
 - M7 idem na linha 288 (nota): 68 passam. SOBREVIVENTE.
 - M8 idem nas linhas 226 (botão de nota) e 396 (rodapé): 68 passam. Sobreviventes, fora do que a junção resolveu; mesma lacuna do L8a.
 Os sobreviventes estão em linhas que o L8a já trazia; nenhum atinge o código do K-285 (B-2, B-3 e B-4 mortos). Registrado como A1 recomendado, não bloqueia; vira cartão baixo no quadro (R-QA).
+
+## Revalidação incremental 2 (segunda junção com a develop, 0d1fae19, review em 9473f97c)
+Delta (forge-check parecer delta, intervalo 79c5cab7..9473f97c) e git show --remerge-diff 0d1fae19: um conflito só, em CartaoMetrica.tsx, entre o K-285 (faixa de selos com min-h-6 só com base) e o L8b (#405, recolher ligado nos painéis; recolhido mantém origem e calibração e esconde base e selos). Resolução: uma faixa única, sempre presente, data-testid selos-<cod>, min-h-6 só em `!recolhido && p.base`, base e p.selos atrás de `!recolhido`, SeloOrigem sempre. Fiel às duas intenções. Entrou também resumoDoRecolhido (o estado nunca some atrás de "Recolhido." calmo), vindo da develop.
+
+| Obrigação | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| B-2, B-3, B-4 do K-285 e recolher do L8b na junção | vitest --maxWorkers=2: ui/recolhidos.test.tsx, ui/componentes.test.tsx, operacional/resumo/componentes.test.tsx | sem base, com base, recolhido, sem dado real | 3 arquivos, 110 testes passam |
+| Axe AA, cartão sem dado real aberto, claro e escuro, 4 painéis | Playwright chromium --workers=1, build VITE_FONTE=api, /api/v1/metricas/* respondendo sem-dado-real (spec e config temporários), tema por metricas-dspd:tema | zero críticas ou sérias, contraste real | 8 de 8 passam: operacional semanal (9 cartões), sustentação (9), tático (8), estratégico (4); 0 violações |
+| Axe AA, mesmo cartão recolhido (botão recolher-<cod>, resumo com "Sem dado real") | idem, após clicar em recolher | zero críticas ou sérias, contraste real, aria-expanded=false | 8 de 8 passam; 0 violações nos dois temas |
+
+O recolher agora é alcançável em produção (L8b), então o limite da revalidação anterior (recolhido sem medição em navegador) fica fechado: o contraste do resumo recolhido foi medido pelo axe nos dois temas. Temporários apagados, árvore limpa.
+
+Mutação à mão no min-h-6 condicional (linha 285; restaurado por git show HEAD):
+- M9 `!recolhido && p.base && 'min-h-6'` virou `'min-h-6'`: cai K-285 B-3 (1 falha, 75 passam). Morto.
+- M10 o mesmo virou `p.base && 'min-h-6'`: 76 de 76 passam. SOBREVIVENTE (A2). Efeito: cartão recolhido com base reservaria 24 px na faixa de origem; não atinge dado nem acessibilidade. Recomendado, vira cartão baixo no quadro (R-QA).
+Bugs: nenhum. Parecer: aprovado.
