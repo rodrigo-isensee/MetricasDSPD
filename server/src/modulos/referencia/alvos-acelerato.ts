@@ -12,13 +12,18 @@ import { lerTurnosVigentes } from './repositorio.js';
  * `corrido` ou `util`). Só INSERT e `UPDATE (vigente_ate)`: valor gravado nunca é alterado (mudança = nova vigência) e o arquivo inteiro é
  * validado antes de qualquer escrita (tudo ou nada, numa transação). Com mudança, registra uma versão de critério (T2.6) só com a S1 (exceção
  * à D-3, decidida na Q-099-11). D3b (Decisão 13): `versao` 2 traz `horas_por_dia_util` (8,8), a conversão de dias em horas do PROC; antes de gravar, o carregador recusa se o expediente vigente
- * do calendário da Sustentação (`ref_calendario_turno`) não somar essas horas (rode `ref:sync-calendario` antes). Sem dado de pessoa. Escrita pelo papel de referência (`dspd_ref`); chamado pelo `ac:ref-sync`.
+ * do calendário da Sustentação (`ref_calendario_turno`) não somar essas horas (rode `ref:sync-calendario` antes). K-314 (B1, Q-099-11): cada prazo
+ * também grava a unidade de exibição do PROC (`min`, `h` ou `dia`), derivada do `texto_proc` por expressão fechada (`unidadeDeExibicao`); só exibição,
+ * o cálculo segue em horas. Sem dado de pessoa. Escrita pelo papel de referência (`dspd_ref`); chamado pelo `ac:ref-sync`.
  */
 export const ARQUIVO_ALVOS = new URL('../../../../docs/architecture/fontes/acelerato-alvos.json', import.meta.url);
 
 export const PRIORIDADES_ALVO = ['P1', 'P2', 'P3', 'P4', 'P5'] as const;
 export const UNIDADES_PRAZO = ['corrido', 'util'] as const;
 export type UnidadeAlvo = (typeof UNIDADES_PRAZO)[number];
+export const UNIDADES_EXIBICAO = ['min', 'h', 'dia'] as const;
+/** Unidade em que o PROC escreve o prazo (K-314): só exibição; alvo e estatística continuam em horas. */
+export type UnidadeExibicaoAlvo = (typeof UNIDADES_EXIBICAO)[number];
 /** Métricas que mudam com a unidade do alvo: a S1 (Q-099-11) e a Visão geral, que lê `calcularS1` (A1 do QA; T2.6). */
 export const METRICAS_ALVOS: readonly string[] = ['S1', 'VISAO_GERAL'];
 
@@ -34,6 +39,28 @@ const horas = z.number().gt(0).lt(1_000_000).refine((h) => Math.round(h * 100) /
 const prazo = z.object({ horas, unidade: z.enum(UNIDADES_PRAZO), texto_proc: textoSeguro(80) }).strict();
 const alvoSchema = z.object({ prioridade: z.enum(PRIORIDADES_ALVO), primeiro_atendimento: prazo, restauracao: prazo }).strict();
 
+const EXPRESSAO_PRAZO = /^até (\d+) (minuto|minutos|hora|horas|dia|dias)( útil| úteis)?$/;
+const DE_PALAVRA: Record<string, UnidadeExibicaoAlvo> = { minuto: 'min', minutos: 'min', hora: 'h', horas: 'h', dia: 'dia', dias: 'dia' };
+const arred2 = (x: number): number => Math.round(x * 100) / 100;
+
+/**
+ * K-314 (Q-099-11): a unidade em que o PROC escreve o prazo, tirada do `texto_proc` por uma expressão fechada (só "Até N minuto(s) | hora(s) | dia(s)",
+ * com "útil/úteis" opcional) depois de normalizar (NFC, aparar, espaços repetidos, minúsculas). Qualquer outro texto recusa o arquivo. A quantidade é
+ * conferida contra `horas` em duas casas (guarda, não conversão: min = n/60, h = n, dia = n x horas por dia útil). `dia` com relógio `corrido` recusa
+ * (dia corrido não está definido no PROC e não se infere 24 h). "Útil" não é conferido contra o relógio: trocar o relógio no arquivo segue sem mexer no texto.
+ */
+export function unidadeDeExibicao(textoProc: string, horasDoPrazo: number, horasPorDiaUtil: number, relogio: UnidadeAlvo): UnidadeExibicaoAlvo {
+  const texto = textoProc.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
+  const m = EXPRESSAO_PRAZO.exec(texto);
+  if (m === null) throw new ErroAlvos('arquivo', 'unidade de exibição: o texto do prazo não segue "Até N minutos, horas ou dias"');
+  const n = Number(m[1]);
+  const unidade = DE_PALAVRA[m[2]!]!;
+  if (unidade === 'dia' && relogio === 'corrido') throw new ErroAlvos('arquivo', 'unidade de exibição: prazo em dias com relógio corrido não é definido');
+  const esperado = unidade === 'min' ? n / 60 : unidade === 'h' ? n : n * horasPorDiaUtil;
+  if (arred2(esperado) !== horasDoPrazo) throw new ErroAlvos('arquivo', `unidade de exibição: a quantidade do texto (${n} ${unidade}) não bate com as horas do prazo`);
+  return unidade;
+}
+
 export const esquemaAlvos = z.object({
   versao: z.literal(2),
   /** Horas do dia útil da Sustentação usadas para converter os prazos em dias do PROC (Decisão 13: 8,8). Tem de bater com o expediente gravado. */
@@ -46,6 +73,15 @@ export const esquemaAlvos = z.object({
   for (const [i, a] of d.alvos.entries()) {
     if (vistas.has(a.prioridade)) ctx.addIssue({ code: 'custom', path: ['alvos', i, 'prioridade'], message: 'prioridade repetida' });
     vistas.add(a.prioridade);
+    for (const campo of ['primeiro_atendimento', 'restauracao'] as const) {
+      const p = a[campo];
+      try {
+        unidadeDeExibicao(p.texto_proc, p.horas, d.horas_por_dia_util, p.unidade);
+      } catch (e) {
+        // só `ErroAlvos` sai da função pura; a mensagem fixa já diz a regra violada
+        ctx.addIssue({ code: 'custom', path: ['alvos', i, campo], message: (e as ErroAlvos).message });
+      }
+    }
   }
 });
 export type ArquivoAlvos = z.infer<typeof esquemaAlvos>;
@@ -62,7 +98,8 @@ export function analisarAlvos(texto: string): AlvosLidos {
   const r = esquemaAlvos.safeParse(bruto);
   if (!r.success) {
     const onde = [...new Set(r.error.issues.map((i) => i.path.slice(0, 3).join('.') || 'raiz'))].join(', ');
-    throw new ErroAlvos('arquivo', `o arquivo de alvos é inválido (${onde})`);
+    const exibicao = [...new Set(r.error.issues.filter((i) => i.message.startsWith('unidade de exibição')).map((i) => `${i.path.slice(0, 3).join('.')}: ${i.message}`))];
+    throw new ErroAlvos('arquivo', `o arquivo de alvos é inválido (${onde})${exibicao.length > 0 ? `; ${exibicao.join('; ')}` : ''}`);
   }
   return { arquivo: r.data, sha256: createHash('sha256').update(texto, 'utf8').digest('hex') };
 }
@@ -71,7 +108,11 @@ export const lerArquivoAlvos = (caminho: URL | string = ARQUIVO_ALVOS): AlvosLid
 export const referenciaDaVersaoAlvos = (sha256: string): string => `099:alvos:${sha256}`;
 const PREFIXO_REFERENCIA = '099:alvos:';
 
-export interface VigenteAlvo { vigenteDe: string; paHoras: number; unidadePa: UnidadeAlvo; rHoras: number; unidadeR: UnidadeAlvo }
+export interface VigenteAlvo {
+  vigenteDe: string; paHoras: number; unidadePa: UnidadeAlvo; rHoras: number; unidadeR: UnidadeAlvo;
+  /** `null` = vigência anterior ao K-314, sem unidade de exibição registrada. */
+  exibirPa: UnidadeExibicaoAlvo | null; exibirR: UnidadeExibicaoAlvo | null;
+}
 export interface EstadoAlvos {
   /** Vigência aberta (`vigente_ate` nulo) por prioridade. */
   vigentes: ReadonlyMap<string, VigenteAlvo>;
@@ -80,46 +121,60 @@ export interface EstadoAlvos {
   /** Maior `vigente_desde` das versões deste carregador. */
   ultimaVersao: string | undefined;
 }
-export interface LinhaAlvoNova { prioridade: string; paHoras: number; unidadePa: UnidadeAlvo; rHoras: number; unidadeR: UnidadeAlvo }
-export interface PlanoAlvos { inserir: LinhaAlvoNova[]; fechar: string[]; mudou: boolean }
+export interface LinhaAlvoNova {
+  prioridade: string; paHoras: number; unidadePa: UnidadeAlvo; rHoras: number; unidadeR: UnidadeAlvo; exibirPa: UnidadeExibicaoAlvo; exibirR: UnidadeExibicaoAlvo;
+}
+export interface PlanoAlvos {
+  inserir: LinhaAlvoNova[]; fechar: string[]; mudou: boolean;
+  /** Horas ou relógio mudaram (ou prioridade nova): é mudança de critério de cálculo, com versão (T2.6). */
+  mudouCriterio: boolean;
+  /** Só a unidade de exibição mudou: nenhum número calculado muda, então nenhuma versão de critério. */
+  mudouExibicao: boolean;
+}
 
 /**
- * Compara o arquivo com o que está gravado e devolve o que gravar, sem tocar no banco. Vigente igual (valor e unidade): nada. Diferente: fecha a
- * vigente e abre a nova. Recusa (ErroAlvos) data que não seja posterior à última vigência da prioridade (sem períodos sobrepostos) e versão de
- * critério com data anterior à última registrada.
+ * Compara o arquivo com o que está gravado e devolve o que gravar, sem tocar no banco. Vigente igual (valor, relógio e unidade de exibição): nada.
+ * Diferente: fecha a vigente e abre a nova (nunca UPDATE da exibição). Só a exibição diferente (inclui a vigente com exibição nula) não é mudança de
+ * critério. Recusa (ErroAlvos) data que não seja posterior à última vigência da prioridade (sem períodos sobrepostos) e, só com mudança de critério,
+ * versão com data anterior à última registrada.
  */
 export function planejarAlvos(arquivo: ArquivoAlvos, estado: EstadoAlvos, hoje: string): PlanoAlvos {
-  const plano: PlanoAlvos = { inserir: [], fechar: [], mudou: false };
+  const plano: PlanoAlvos = { inserir: [], fechar: [], mudou: false, mudouCriterio: false, mudouExibicao: false };
   for (const a of arquivo.alvos) {
     const novo: LinhaAlvoNova = {
       prioridade: a.prioridade, paHoras: a.primeiro_atendimento.horas, unidadePa: a.primeiro_atendimento.unidade,
       rHoras: a.restauracao.horas, unidadeR: a.restauracao.unidade,
+      exibirPa: unidadeDeExibicao(a.primeiro_atendimento.texto_proc, a.primeiro_atendimento.horas, arquivo.horas_por_dia_util, a.primeiro_atendimento.unidade),
+      exibirR: unidadeDeExibicao(a.restauracao.texto_proc, a.restauracao.horas, arquivo.horas_por_dia_util, a.restauracao.unidade),
     };
     const v = estado.vigentes.get(a.prioridade);
-    if (v !== undefined && v.paHoras === novo.paHoras && v.unidadePa === novo.unidadePa && v.rHoras === novo.rHoras && v.unidadeR === novo.unidadeR) continue;
+    const criterioIgual = v !== undefined && v.paHoras === novo.paHoras && v.unidadePa === novo.unidadePa && v.rHoras === novo.rHoras && v.unidadeR === novo.unidadeR;
+    if (criterioIgual && v.exibirPa === novo.exibirPa && v.exibirR === novo.exibirR) continue;
     const ultima = estado.ultimas.get(a.prioridade);
     if (ultima !== undefined && hoje <= ultima) {
       throw new ErroAlvos('vigencia', `alvo ${a.prioridade}: a data ${hoje} não é posterior à última vigência (${ultima}); use uma data posterior`);
     }
+    if (criterioIgual) plano.mudouExibicao = true;
+    else plano.mudouCriterio = true;
     if (v !== undefined) plano.fechar.push(a.prioridade);
     plano.inserir.push(novo);
   }
   plano.mudou = plano.inserir.length > 0;
-  if (plano.mudou && estado.ultimaVersao !== undefined && hoje < estado.ultimaVersao) {
+  if (plano.mudouCriterio && estado.ultimaVersao !== undefined && hoje < estado.ultimaVersao) {
     throw new ErroAlvos('vigencia', `alvos: a data ${hoje} é anterior à última versão de critério dos alvos (${estado.ultimaVersao}); use essa data ou uma posterior`);
   }
   return plano;
 }
 
 async function lerEstado(db: Consultavel, S: Esquemas): Promise<EstadoAlvos> {
-  const linhas = (await db.query<{ prioridade: string; vigente_de: string; vigente_ate: string | null; prazo_pa_horas: string; unidade_pa: UnidadeAlvo; prazo_r_horas: string; unidade_r: UnidadeAlvo }>(
-    `SELECT prioridade, vigente_de::text AS vigente_de, vigente_ate::text AS vigente_ate, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r
+  const linhas = (await db.query<{ prioridade: string; vigente_de: string; vigente_ate: string | null; prazo_pa_horas: string; unidade_pa: UnidadeAlvo; prazo_r_horas: string; unidade_r: UnidadeAlvo; exibir_pa: UnidadeExibicaoAlvo | null; exibir_r: UnidadeExibicaoAlvo | null }>(
+    `SELECT prioridade, vigente_de::text AS vigente_de, vigente_ate::text AS vigente_ate, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r, exibir_pa, exibir_r
        FROM ${S.ac}.ref_alvo_prioridade WHERE prioridade = ANY($1::text[])`, [PRIORIDADES_ALVO])).rows;
   const vigentes = new Map<string, VigenteAlvo>();
   const ultimas = new Map<string, string>();
   for (const l of linhas) {
     if (l.vigente_ate === null) {
-      vigentes.set(l.prioridade, { vigenteDe: l.vigente_de, paHoras: Number(l.prazo_pa_horas), unidadePa: l.unidade_pa, rHoras: Number(l.prazo_r_horas), unidadeR: l.unidade_r });
+      vigentes.set(l.prioridade, { vigenteDe: l.vigente_de, paHoras: Number(l.prazo_pa_horas), unidadePa: l.unidade_pa, rHoras: Number(l.prazo_r_horas), unidadeR: l.unidade_r, exibirPa: l.exibir_pa, exibirR: l.exibir_r });
     }
     const fim = l.vigente_ate !== null && l.vigente_ate > l.vigente_de ? l.vigente_ate : l.vigente_de;
     if (fim > (ultimas.get(l.prioridade) ?? '')) ultimas.set(l.prioridade, fim);
@@ -140,35 +195,37 @@ async function conferirExpediente(db: Consultavel, S: Esquemas, horasPorDiaUtil:
 
 export interface ResultadoAlvos { sha256: string; inseridos: number; fechados: number; versaoRegistrada: boolean }
 
+/** Registra a versão de critério (T2.6) uma vez por hash do arquivo, com a S1 e a Visão geral. Devolve se registrou. */
+async function registrarVersao(db: Consultavel, S: Esquemas, lido: AlvosLidos, hoje: string, agora: Date): Promise<boolean> {
+  const referencia = referenciaDaVersaoAlvos(lido.sha256);
+  const existe = await db.query<{ versao_id: string }>(`SELECT versao_id FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [referencia]);
+  if (existe.rows[0] !== undefined) return false;
+  const v = lido.arquivo.versao_criterio;
+  const r = await db.query<{ versao_id: string }>(
+    `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+     VALUES ($1, 'acelerato', $2, $3, $4, $5) RETURNING versao_id`, [hoje, v.descricao, v.motivo, referencia, agora.toISOString()]);
+  for (const m of METRICAS_ALVOS) await db.query(`INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, $2)`, [r.rows[0]!.versao_id, m]);
+  return true;
+}
+
 /**
- * Lê o estado, planeja e grava numa transação só (tudo ou nada). Sem diferença nada é gravado (idempotente); com diferença grava as vigências e
- * registra a versão de critério (uma por hash do arquivo) com a S1.
+ * Lê o estado, planeja e grava numa transação só (tudo ou nada). Sem diferença nada é gravado (idempotente); com diferença grava as vigências e,
+ * só se houve mudança de critério (horas ou relógio), registra a versão de critério (uma por hash do arquivo) com a S1.
  */
 export async function sincronizarAlvos(pool: PoolLike, S: Esquemas, lido: AlvosLidos, hoje: string, agora: Date): Promise<ResultadoAlvos> {
   if (!dataCivilValida(hoje)) throw new ErroAlvos('vigencia', 'data de vigência inválida');
   return emTransacao(pool, async (db) => {
     const plano = planejarAlvos(lido.arquivo, await lerEstado(db, S), hoje);
     if (plano.mudou) await conferirExpediente(db, S, lido.arquivo.horas_por_dia_util);
-    let versaoRegistrada = false;
-    if (plano.mudou) {
-      const referencia = referenciaDaVersaoAlvos(lido.sha256);
-      const existe = await db.query<{ versao_id: string }>(`SELECT versao_id FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [referencia]);
-      if (existe.rows[0] === undefined) {
-        const v = lido.arquivo.versao_criterio;
-        const r = await db.query<{ versao_id: string }>(
-          `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
-           VALUES ($1, 'acelerato', $2, $3, $4, $5) RETURNING versao_id`, [hoje, v.descricao, v.motivo, referencia, agora.toISOString()]);
-        for (const m of METRICAS_ALVOS) await db.query(`INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, $2)`, [r.rows[0]!.versao_id, m]);
-        versaoRegistrada = true;
-      }
-      for (const p of plano.fechar) {
-        await db.query(`UPDATE ${S.ac}.ref_alvo_prioridade SET vigente_ate = $1 WHERE vigente_ate IS NULL AND prioridade = $2`, [hoje, p]);
-      }
-      for (const a of plano.inserir) {
-        await db.query(
-          `INSERT INTO ${S.ac}.ref_alvo_prioridade (prioridade, vigente_de, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r) VALUES ($1, $2, $3, $4, $5, $6)`,
-          [a.prioridade, hoje, a.paHoras, a.unidadePa, a.rHoras, a.unidadeR]);
-      }
+    const versaoRegistrada = plano.mudouCriterio ? await registrarVersao(db, S, lido, hoje, agora) : false;
+    for (const p of plano.fechar) {
+      await db.query(`UPDATE ${S.ac}.ref_alvo_prioridade SET vigente_ate = $1 WHERE vigente_ate IS NULL AND prioridade = $2`, [hoje, p]);
+    }
+    for (const a of plano.inserir) {
+      await db.query(
+        `INSERT INTO ${S.ac}.ref_alvo_prioridade (prioridade, vigente_de, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r, exibir_pa, exibir_r)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [a.prioridade, hoje, a.paHoras, a.unidadePa, a.rHoras, a.unidadeR, a.exibirPa, a.exibirR]);
     }
     return { sha256: lido.sha256, inseridos: plano.inserir.length, fechados: plano.fechar.length, versaoRegistrada };
   });
