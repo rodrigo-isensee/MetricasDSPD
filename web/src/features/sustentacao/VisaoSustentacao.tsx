@@ -10,6 +10,7 @@ import {
 import { textoPeriodoCurto } from '@/features/filtros/paineis'
 import { itensSustentacao } from '@/features/operacional/atencao'
 import { CartaoEISust } from '@/features/espera-invisivel/components/CartaoEI'
+import { RecorteSustentacao } from './components/RecorteSustentacao'
 import { CartaoS1 } from './components/CartaoS1'
 import { CartaoS2 } from './components/CartaoS2'
 import { CartaoS3 } from './components/CartaoS3'
@@ -57,14 +58,7 @@ const SECOES: readonly SecaoDoIndice[] = [
 export default function VisaoSustentacao({ filtros }: { filtros: FiltrosSustentacao }) {
   return (
     <>
-      <p
-        className="rounded-md border border-borda bg-superficie p-3 text-sm"
-        data-testid="recorte-sustentacao"
-      >
-        Chamados da organização DSPD Sustentação, tipo DSPD - SSSC, equipes SSSC TOTVS, SENIOR e
-        FLUIG, excluídos os removidos. Tempos e aderência usam somente chamados fechados. Chamados
-        com exceção de SLA por registro posterior ficam fora destas apurações.
-      </p>
+      <RecorteSustentacao />
       <Atencao filtros={filtros} />
       <IndiceDeSecoes secoes={SECOES} />
       <SecaoPainel
