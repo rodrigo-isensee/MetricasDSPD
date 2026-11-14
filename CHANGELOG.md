@@ -44,6 +44,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Aba Apontamento (pedido 097, K-286): o mapa diário passa a ser recortado também pelo filtro Equipe (time do card), além de Pessoa; várias equipes valem como um só recorte, nunca comparação, e o dia atípico segue decidido sobre o dia inteiro da pessoa. Sem piso de pessoas por recorte, por decisão do dono (1c, confirmada na Decisão 28); a forma da resposta não muda (#377).
 
 ### Corrigido
+- Aba Apontamento: o resumo do gráfico de horas por projeto recolhido deixa de contar a linha sem projeto como projeto, mantendo as horas dela no total (pedido 097, K-324, parte B).
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 - Suíte: trava em `/tmp/claude-uid` (pedido 079) (#263); teste da trava não pendura dentro do `pronto` (pedido 085) (#280); E2E L3-01 espera a altura da página estabilizar antes do axe (pedido 080) (#265).
 - Testes: regra de fronteira do eslint cobre todo `src` fora de `modulos` (pedido 073, E4) (#240); sustentação sem início de histórico do Acelerato (077, lote 3b) (#273); colunas e GRANT de `fato_bloqueio` e `evt_bloqueio` (075, lote 4c) (#274).
