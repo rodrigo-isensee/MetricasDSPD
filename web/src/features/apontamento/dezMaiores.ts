@@ -1,6 +1,14 @@
 /** Quantos projetos o cartão AP-PROJETO mostra antes do "ver todos" (097, E5, CA-33). */
 export const LIMITE_MAIORES = 10
 
+/** Altura de cada barra e limites da altura do gráfico de projetos (097, B-3): com muitos projetos o gráfico não cresce sem fim. */
+export const ALTURA_BARRA = 40
+export const ALTURA_MINIMA_GRAFICO = 200
+export const ALTURA_MAXIMA_GRAFICO = 1200
+
+export const alturaGrafico = (linhas: number): number =>
+  Math.min(ALTURA_MAXIMA_GRAFICO, Math.max(ALTURA_MINIMA_GRAFICO, linhas * ALTURA_BARRA))
+
 export interface ParteDosDemais {
   quantidade: number
   segundos: number
