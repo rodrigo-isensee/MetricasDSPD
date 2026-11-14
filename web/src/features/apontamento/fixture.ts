@@ -552,7 +552,7 @@ export function respostaComLinhaSemProjeto(
   soEla = false,
   base: RespostaApontamento = RESPOSTA_FICTICIA,
 ): RespostaApontamento {
-  const semProjeto = linha(ID_SEM_PROJETO, 'Sem projeto', 12, 7)
+  const semProjeto = linha(ID_SEM_PROJETO, 'Sem iniciativa', 12, 7)
   return {
     ...base,
     distribuicao: {

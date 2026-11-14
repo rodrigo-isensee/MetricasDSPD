@@ -173,7 +173,7 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
   const projetos = linhas.filter((l) => l.id !== ID_SEM_PROJETO).length
   const resumoRecolhido =
     bloco === 'projeto'
-      ? RESUMO_PROJETO(projetos, fmtHoras(totalSegundos), projetos === 0 && linhas.length > 0)
+      ? RESUMO_PROJETO(projetos, fmtHoras(totalSegundos), linhas.some((l) => l.id === ID_SEM_PROJETO))
       : undefined
   const marcasDicionario = (r?.criterios ?? []).filter((c) => c.id.startsWith('dicionario'))
   return (

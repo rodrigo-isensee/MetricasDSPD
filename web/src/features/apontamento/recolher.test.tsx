@@ -98,11 +98,11 @@ describe('recolher cartão na aba Apontamento (097 E5, L8b)', () => {
 
   it('com a linha sem projeto, a contagem a exclui e as horas a incluem (K-324)', async () => {
     expect(await resumoCom(respostaComLinhaSemProjeto())).toHaveTextContent(
-      /^Recolhido\. 6 projetos, 685,5 h no total\.$/,
+      'Recolhido. 6 projetos e horas sem projeto, 685,5 h no total.',
     )
   })
 
-  it('só com a linha sem projeto, o resumo diz zero projetos e horas sem projeto (K-324)', async () => {
+  it('só com a linha sem projeto, o resumo diz 0 projetos e horas sem projeto (K-324)', async () => {
     expect(await resumoCom(respostaComLinhaSemProjeto(true))).toHaveTextContent(
       'Recolhido. 0 projetos e horas sem projeto, 12 h no total.',
     )
@@ -117,6 +117,6 @@ describe('recolher cartão na aba Apontamento (097 E5, L8b)', () => {
         porProjeto: [base.distribuicao.porProjeto[0]!, base.distribuicao.porProjeto[6]!],
       },
     }
-    expect(await resumoCom(um)).toHaveTextContent(/^Recolhido\. 1 projeto, /)
+    expect(await resumoCom(um)).toHaveTextContent('Recolhido. 1 projeto e horas sem projeto, ')
   })
 })

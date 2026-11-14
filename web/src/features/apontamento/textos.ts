@@ -354,12 +354,10 @@ export const MAIORES = {
 
 /**
  * AP-PROJETO recolhido (097, K-324): `n` conta só projetos de verdade; a linha sem projeto fica fora da contagem e
- * dentro das horas. Sem projeto nenhum e com a linha, o texto diz isso (Q-2 do desenho, a UX confirma).
+ * dentro das horas. Sempre que a linha existe, o texto diz "e horas sem projeto" (desenho, parte B; UX, L8b).
  */
-export const RESUMO_PROJETO = (n: number, horas: string, soSemProjeto: boolean) =>
-  soSemProjeto
-    ? `Recolhido. 0 projetos e horas sem projeto, ${horas} no total.`
-    : `Recolhido. ${fmtInteiro(n)} ${n === 1 ? 'projeto' : 'projetos'}, ${horas} no total.`
+export const RESUMO_PROJETO = (n: number, horas: string, temSemProjeto: boolean) =>
+  `Recolhido. ${fmtInteiro(n)} ${n === 1 ? 'projeto' : 'projetos'}${temSemProjeto ? ' e horas sem projeto' : ''}, ${horas} no total.`
 
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 
