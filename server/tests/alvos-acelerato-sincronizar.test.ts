@@ -8,14 +8,15 @@ import { criarDublePg, type Chamada } from './duble-pg.js';
 const S = montarEsquemas();
 const AGORA = new Date('2031-01-10T12:00:00.000Z');
 const lido = lerArquivoAlvos();
-type LinhaEstado = { prioridade: string; vigente_de: string; vigente_ate: string | null; prazo_pa_horas: string; unidade_pa: string; prazo_r_horas: string; unidade_r: string };
+type LinhaEstado = { prioridade: string; vigente_de: string; vigente_ate: string | null; prazo_pa_horas: string; unidade_pa: string; prazo_r_horas: string; unidade_r: string; exibir_pa: string | null; exibir_r: string | null };
+const EXIBIR: Record<string, [string, string]> = { P1: ['min', 'h'], P2: ['min', 'h'], P3: ['h', 'dia'], P4: ['h', 'dia'], P5: ['dia', 'dia'] };
 
 /** Uma vigência aberta por prioridade, iguais ao arquivo (o que o carregador grava). */
 const gravadas = (de: string): LinhaEstado[] =>
   lido.arquivo.alvos.map((a) => ({
     prioridade: a.prioridade, vigente_de: de, vigente_ate: null,
     prazo_pa_horas: a.primeiro_atendimento.horas.toFixed(2), unidade_pa: a.primeiro_atendimento.unidade,
-    prazo_r_horas: a.restauracao.horas.toFixed(2), unidade_r: a.restauracao.unidade,
+    prazo_r_horas: a.restauracao.horas.toFixed(2), unidade_r: a.restauracao.unidade, exibir_pa: EXIBIR[a.prioridade]![0], exibir_r: EXIBIR[a.prioridade]![1],
   }));
 
 type LinhaTurno = { dia_semana: number; inicio_min: number; fim_min: number };
@@ -47,7 +48,8 @@ describe('sincronizarAlvos (pool falso)', () => {
     const metricas = d.chamadas.filter((c) => c.texto.includes('ref_versao_criterio_metrica')).map((c) => c.valores);
     expect(metricas).toEqual([['9', 'S1'], ['9', 'VISAO_GERAL']]);
     const ins = d.chamadas.find((c) => c.texto.includes('ref_alvo_prioridade (prioridade'))!;
-    expect(ins.valores).toEqual(['P1', '2031-01-10', 0.25, 'corrido', 4, 'corrido']);
+    expect(ins.valores).toEqual(['P1', '2031-01-10', 0.25, 'corrido', 4, 'corrido', 'min', 'h']);
+    expect(ins.texto).toContain('exibir_pa, exibir_r');
   });
 
   it('arquivo igual ao gravado: não escreve nada (idempotente), mesmo em outra data', async () => {
@@ -63,6 +65,27 @@ describe('sincronizarAlvos (pool falso)', () => {
     expect(await sincronizarAlvos(d.pool, S, lido, '2031-02-01', AGORA)).toEqual({ sha256: lido.sha256, inseridos: 1, fechados: 1, versaoRegistrada: true });
     const fecha = d.chamadas.filter((c) => c.texto.startsWith('UPDATE'));
     expect(fecha.map((c) => c.valores)).toEqual([['2031-02-01', 'P3']]);
+  });
+
+  it('K-314: vigentes sem unidade de exibição (anteriores à migração): fecha e abre as 5 com a unidade, sem versão de critério, sem expediente a mais e só com INSERT e UPDATE de vigente_ate', async () => {
+    const antigas = gravadas('2031-01-01').map((l) => ({ ...l, exibir_pa: null, exibir_r: null }));
+    const d = montar(antigas, '2031-01-01');
+    expect(await sincronizarAlvos(d.pool, S, lido, '2031-02-01', AGORA)).toEqual({ sha256: lido.sha256, inseridos: 5, fechados: 5, versaoRegistrada: false });
+    expect(d.chamadas.some((c) => /INSERT INTO .*ref_versao_criterio|SELECT versao_id/.test(c.texto))).toBe(false);
+    const esc = escritas(d.chamadas);
+    expect(esc.filter((t) => t.startsWith('UPDATE')).every((t) => /SET vigente_ate = \$1 WHERE vigente_ate IS NULL/.test(t) && !t.includes('exibir'))).toBe(true);
+    expect(esc.filter((t) => t.includes('INSERT INTO ' + S.ac + '.ref_alvo_prioridade'))).toHaveLength(5);
+    const ins = d.chamadas.filter((c) => c.texto.includes('ref_alvo_prioridade (prioridade')).map((c) => c.valores);
+    expect(ins.map((v) => [v![0], v![6], v![7]])).toEqual([['P1', 'min', 'h'], ['P2', 'min', 'h'], ['P3', 'h', 'dia'], ['P4', 'h', 'dia'], ['P5', 'dia', 'dia']]);
+    expect(d.chamadas.some((c) => c.texto.includes('ref_calendario_turno'))).toBe(true); // a conferência dos dias depende de horas_por_dia_util
+  });
+
+  it('K-314: só exibição mudou e a última versão de critério tem data posterior: grava (não há versão a registrar); com critério mudando, recusa', async () => {
+    const antigas = gravadas('2031-01-01').map((l) => ({ ...l, exibir_pa: null, exibir_r: null }));
+    const d = montar(antigas, '2031-06-01');
+    await expect(sincronizarAlvos(d.pool, S, lido, '2031-02-01', AGORA)).resolves.toMatchObject({ inseridos: 5, versaoRegistrada: false });
+    const com = montar(antigas.map((l, i) => (i === 0 ? { ...l, prazo_pa_horas: '1.00' } : l)), '2031-06-01');
+    await expect(sincronizarAlvos(com.pool, S, lido, '2031-02-01', AGORA)).rejects.toThrow(/anterior à última versão de critério/);
   });
 
   it('versão de critério do mesmo arquivo já registrada: grava as vigências sem duplicar a versão', async () => {
