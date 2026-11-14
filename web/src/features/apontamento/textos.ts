@@ -283,8 +283,12 @@ export function fraseDoAchado(a: AchadoLido, rotuloForaDoEscopo = false): FraseD
       if (pct === null) return null
       const nome = txt(a.rotuloRef)
       const sufixo = rotuloForaDoEscopo ? ' (fora dos quadros coletados)' : ''
+      // Horas sem projeto (K-324, decisão 1a): dito à parte, sem entrar como projeto que concentra. Vêm em horas.
+      const semProjeto = num(v.horasSemProjeto)
+      const aParte =
+        semProjeto === null ? '' : ` À parte, ${fmtNumero(semProjeto, 1)} h ficaram sem projeto.`
       return {
-        frase: `${nome ? `O projeto '${nome}${sufixo}'` : 'Um projeto'} concentra ${fmtNumero(pct, 0)}% das horas apontadas no período.`,
+        frase: `${nome ? `O projeto '${nome}${sufixo}'` : 'Um projeto'} concentra ${fmtNumero(pct, 0)}% das horas apontadas no período.${aParte}`,
         atalho: { tipo: 'projeto', rotulo: 'Ver apontamentos' },
       }
     }
