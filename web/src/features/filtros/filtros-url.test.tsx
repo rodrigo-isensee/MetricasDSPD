@@ -135,7 +135,7 @@ describe('filtros ↔ URL', () => {
   })
 
   it('filtros do fluxo não são herdados pela Sustentação e vice-versa', async () => {
-    const r = renderizarBarra('/sustentacao?equipe=fluig&prioridade=p2')
+    const r = renderizarBarra('/sustentacao?equipe=sssc-fluig&prioridade=p2')
     expect(
       await screen.findByRole('button', {
         name: 'Remover filtro Equipe de sustentação: SSSC FLUIG',
