@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ARQUIVO_ALVOS, ErroAlvos, METRICAS_ALVOS, analisarAlvos, lerArquivoAlvos, planejarAlvos, referenciaDaVersaoAlvos, unidadeDeExibicao,
   type EstadoAlvos, type UnidadeExibicaoAlvo,
@@ -203,5 +203,22 @@ describe('planejarAlvos (puro)', () => {
     const e: EstadoAlvos = { ...iguais, vigentes: nulas, ultimaVersao: '2026-12-01' };
     expect(() => planejarAlvos(arquivo, e, '2026-11-12')).not.toThrow();
     expect(() => planejarAlvos(arquivo, { ...e, ultimas: new Map(iguais.ultimas).set('P1', '2026-11-12') }, '2026-11-12')).toThrow(/P1.*não é posterior/);
+  });
+});
+
+describe('analisarAlvos: erro que não é ErroAlvos (A5 do review)', () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+  it('sobe como veio, sem virar issue do arquivo (a guarda não engole bug inesperado)', () => {
+    const marca = 'até 15 minutos (marca do teste)';
+    const original = String.prototype.normalize;
+    vi.spyOn(String.prototype, 'normalize').mockImplementation(function (this: string, ...args: [string?]) {
+      if (String(this) === marca) throw new RangeError('falha inesperada');
+      return original.apply(this, args as [string]);
+    });
+    const t = texto((d) => { d.alvos[0]!.primeiro_atendimento.texto_proc = marca; });
+    let erro: unknown;
+    try { analisarAlvos(t); } catch (e) { erro = e; }
+    expect(erro).toBeInstanceOf(RangeError);
+    expect(erro).not.toBeInstanceOf(ErroAlvos);
   });
 });
