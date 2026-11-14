@@ -21,3 +21,6 @@ overrides:
   # Alertas Dependabot #18 a #25 (fast-uri, produção via fastify): override de patch na mesma linha maior (pedido 062)
   "fast-uri@3": "3.1.9"
   "fast-uri@4": "4.2.3"
+  # Alerta Dependabot minimatch (< 11.0.1), só ferramenta de desenvolvimento: o typescript-estree 8.72.2 ainda pede ^10.2.2;
+  # a API usada (import nomeado minimatch) é igual na 11. Escopo só dele, para não tocar o glob 13 do node-pg-migrate (produção).
+  "@typescript-eslint/typescript-estree>minimatch": "11.0.8"
