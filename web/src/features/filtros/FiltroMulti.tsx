@@ -110,11 +110,12 @@ function Lista({
   // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
   const [retorno, setRetorno] = useState('')
-  // Ao terminar uma nova tentativa, o foco volta ao botão (que segue montado e com aria-disabled).
+  // Ao terminar uma nova tentativa, o foco volta ao botão (que segue montado e com aria-disabled);
+  // se deu certo o botão sai e o foco vai ao campo de busca, para não cair no body.
   const tentarRef = useRef<HTMLButtonElement>(null)
   const estavaTentando = useRef(false)
   useEffect(() => {
-    if (estavaTentando.current && !tentando) tentarRef.current?.focus()
+    if (estavaTentando.current && !tentando) (tentarRef.current ?? buscaRef.current)?.focus()
     estavaTentando.current = tentando
   }, [tentando])
   const alternar = (opcaoId: string, marcado: boolean) => {

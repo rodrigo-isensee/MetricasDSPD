@@ -661,6 +661,7 @@ class FonteOpcoes extends MockFonteMetricas {
   private falhas: number
   /** Segura a próxima resposta de erro até ser resolvida (para ver o estado "Tentando de novo..."). */
   portao: Promise<void> | undefined
+  chamadas = 0
   constructor(modo: 'vazias' | 'carregando' | 'estranha' | 'erro' | 'semEquipes', falhas = 0) {
     super({ latenciaMs: 0 })
     this.modo = modo
@@ -669,6 +670,7 @@ class FonteOpcoes extends MockFonteMetricas {
   override async opcoesFiltro<D extends Dominio>(
     dominio: D,
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
+    this.chamadas++
     if (this.modo === 'carregando') return new Promise(() => {})
     if (this.modo === 'erro' && this.falhas > 0) {
       await this.portao
@@ -806,6 +808,8 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     expect(tentar).toHaveFocus()
     await userEvent.keyboard('{Enter}')
     expect(await screen.findByTestId('tipo-opcao-melhoria')).toBeInTheDocument()
+    // Com o botão fora, o foco vai ao campo de busca e não ao body (A5).
+    await waitFor(() => expect(screen.getByTestId('tipo-busca')).toHaveFocus())
   })
 
   it('com campo de busca, o foco ao abrir continua nele', async () => {
@@ -830,7 +834,9 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     expect(tentando).toHaveAttribute('aria-disabled', 'true')
     expect(tentando).toHaveFocus()
     // Clique durante a tentativa não dispara outra consulta (aria-disabled não bloqueia o clique).
+    const antes = fonte.chamadas
     await userEvent.click(tentando)
+    expect(fonte.chamadas).toBe(antes)
     liberar()
     expect(
       await screen.findByText('Ainda não foi possível carregar tipos. Tente de novo em instantes.'),
