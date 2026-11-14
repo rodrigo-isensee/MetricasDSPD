@@ -20,22 +20,22 @@ const falso = (respostas: (unknown | Error)[]) => {
     },
   } as never as Parameters<typeof lerContagemComentario>[0] & { chamadas: typeof chamadas };
 };
-const cards = { data: { data: [{ card_id: 10 }, { card_id: 11 }, { card_id: 'x' }, null, { card_id: 0 }], pagination: { all_pages: 3 } } };
+const cards = { data: { data: [{ card_id: 10 }, { card_id: 11 }, { card_id: 10.5 }, { card_id: 'x' }, null, { card_id: 0 }], pagination: { all_pages: 3 } } };
 
 describe('contarComentarios', () => {
-  it('conta texto não vazio de um lado e ausente, nulo, vazio, só espaço e não texto do outro', () => {
+  it('separa texto, chave ausente ou nula (semChave) e chave presente vazia, só espaço ou não texto (comentarioVazio)', () => {
     const itens = [worklog('texto'), worklog('  x '), worklog(''), worklog('   '), worklog(null), worklog(5), semChave, 'lixo', null];
-    expect(contarComentarios(itens)).toEqual({ comComentario: 2, semComentario: 7, total: 9 });
+    expect(contarComentarios(itens)).toEqual({ comComentario: 2, semChave: 4, comentarioVazio: 3, total: 9 });
   });
   it('lista vazia: tudo zero', () => {
-    expect(contarComentarios([])).toEqual({ comComentario: 0, semComentario: 0, total: 0 });
+    expect(contarComentarios([])).toEqual({ comComentario: 0, semChave: 0, comentarioVazio: 0, total: 0 });
   });
 });
 
 describe('lerContagemComentario', () => {
   it('lê uma página de cards (só card_id) e UMA de worklogs, só dos ids válidos', async () => {
     const c = falso([cards, { data: { data: [worklog('a'), worklog(''), semChave], pagination: { all_pages: 9 } } }]);
-    expect(await lerContagemComentario(c)).toEqual({ comComentario: 1, semComentario: 2, total: 3 });
+    expect(await lerContagemComentario(c)).toEqual({ comComentario: 1, semChave: 1, comentarioVazio: 1, total: 3 });
     expect(c.chamadas.map((x) => x.caminho)).toEqual(['/cards', '/loggedTime']);
     expect(c.chamadas[0]!.consulta).toMatchObject({ fields: 'card_id', page: 1 });
     expect(c.chamadas[1]!.consulta).toMatchObject({ card_ids: '10,11', page: 1 });
@@ -48,7 +48,7 @@ describe('lerContagemComentario', () => {
   });
   it('sem cards válidos: zeros e nenhuma chamada de worklog', async () => {
     const c = falso([{ data: [] }]);
-    expect(await lerContagemComentario(c)).toEqual({ comComentario: 0, semComentario: 0, total: 0 });
+    expect(await lerContagemComentario(c)).toEqual({ comComentario: 0, semChave: 0, comentarioVazio: 0, total: 0 });
     expect(c.chamadas).toHaveLength(1);
   });
   it('a consulta passa nas listas fechadas do cliente real (só GET, sem rede)', async () => {
@@ -59,19 +59,19 @@ describe('lerContagemComentario', () => {
       return new Response(JSON.stringify(corpo), { status: 200 });
     }) as unknown as typeof fetch;
     const cliente = criarClienteHttp({ urlBase: 'https://exemplo.invalid/api/v2', apikey: 'k', limitePorMinuto: 25, timeoutMs: 5000 }, { fetchImpl });
-    expect(await lerContagemComentario(cliente)).toEqual({ comComentario: 1, semComentario: 0, total: 1 });
+    expect(await lerContagemComentario(cliente)).toEqual({ comComentario: 1, semChave: 0, comentarioVazio: 0, total: 1 });
     expect(urls).toHaveLength(2);
     expect(urls.every((u) => u.startsWith('GET https://exemplo.invalid/api/v2/'))).toBe(true);
   });
 });
 
 describe('executarD1', () => {
-  it('saída é só uma linha JSON com as três contagens: nada de nome, id, texto ou campo do worklog', async () => {
+  it('saída é só uma linha JSON com as quatro contagens: nada de nome, id, texto ou campo do worklog', async () => {
     const c = falso([cards, { data: [worklog(SEGREDO, { title: 'Título secreto', email: 'a@b.c' }), semChave] }]);
     const r = await executarD1(c);
     expect(r.erro).toBeNull();
-    expect(JSON.parse(r.saida)).toEqual({ comComentario: 1, semComentario: 1, total: 2 });
-    expect(Object.keys(JSON.parse(r.saida))).toEqual(['comComentario', 'semComentario', 'total']);
+    expect(JSON.parse(r.saida)).toEqual({ comComentario: 1, semChave: 1, comentarioVazio: 0, total: 2 });
+    expect(Object.keys(JSON.parse(r.saida))).toEqual(['comComentario', 'semChave', 'comentarioVazio', 'total']);
     for (const proibido of [SEGREDO, NOME, '777', 'Título', 'a@b.c', 'card_id', 'user_id']) expect(r.saida).not.toContain(proibido);
     expect(r.saida.endsWith('\n')).toBe(true);
   });

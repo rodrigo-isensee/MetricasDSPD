@@ -1,11 +1,11 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { executarD1 } from '../modulos/businessmap/apontamento/d1-comentario.js';
+import { executarD1 } from '../modulos/businessmap/index.js';
 import { carregarConfigBusinessMap } from '../plataforma/config.js';
 import { criarClienteHttp } from '../plataforma/http.js';
 
 // Entrada do `pnpm --filter @metricas-dspd/server run bm:d1-comment` (pedido 087, K-330, decisão 4a): só leitura, só GET, sem banco. Imprime uma
-// linha JSON com três contagens (com comentário, sem comentário, total) de UMA página de worklogs. O `.env` da raiz é lido só aqui; nada dele,
+// linha JSON com quatro contagens (com comentário, sem chave, comentário vazio, total) de UMA página de worklogs. O `.env` da raiz é lido só aqui; nada dele,
 // nem campo do worklog, é impresso. Erro sai como código fechado em stderr, sem eco de valor.
 const raiz = fileURLToPath(new URL('../../../', import.meta.url));
 try {

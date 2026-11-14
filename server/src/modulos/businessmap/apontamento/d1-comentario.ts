@@ -9,13 +9,18 @@ import { itensDoWorklog, LOTE_CARDS } from './lotes.js';
 
 export interface ContagemComentario {
   comComentario: number;
-  semComentario: number;
+  semChave: number;
+  comentarioVazio: number;
   total: number;
 }
 
-const temTexto = (item: unknown): boolean => {
+type Classe = 'comComentario' | 'semChave' | 'comentarioVazio';
+
+// semChave: `comment` ausente ou nulo (e item que nem objeto é). comentarioVazio: chave presente, mas vazia, só espaços ou não texto.
+const classificar = (item: unknown): Classe => {
   const c = typeof item === 'object' && item !== null ? (item as Record<string, unknown>).comment : undefined;
-  return typeof c === 'string' && c.trim() !== '';
+  if (c === undefined || c === null) return 'semChave';
+  return typeof c === 'string' && c.trim() !== '' ? 'comComentario' : 'comentarioVazio';
 };
 
 const idDoCard = (card: unknown): string | null => {
@@ -23,10 +28,11 @@ const idDoCard = (card: unknown): string | null => {
   return typeof id === 'number' && Number.isInteger(id) && id > 0 ? String(id) : null;
 };
 
-/** Conta, em uma página de worklogs, os que têm `comment` com texto não vazio e os que não têm (ausente, nulo ou vazio). */
+/** Conta, em uma página de worklogs: com texto, sem a chave `comment` (ausente ou nula) e com a chave mas vazia. */
 export function contarComentarios(itens: readonly unknown[]): ContagemComentario {
-  const com = itens.filter(temTexto).length;
-  return { comComentario: com, semComentario: itens.length - com, total: itens.length };
+  const n = { comComentario: 0, semChave: 0, comentarioVazio: 0 };
+  for (const i of itens) n[classificar(i)] += 1;
+  return { ...n, total: itens.length };
 }
 
 /** Lê uma página de cards (só `card_id`), depois UMA página de worklogs desses cards, e devolve só as contagens. */
