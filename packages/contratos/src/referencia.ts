@@ -16,11 +16,16 @@ export const opcoesFiltroFluxoSchema = z
     historico,
   })
   .strict()
+const recorte = z
+  .object({ organizacoes: z.array(z.string().min(1)).min(1), tipos: z.array(z.string().min(1)).min(1), equipes: z.array(z.string().min(1)).min(1) })
+  .strict()
 export const opcoesFiltroSustentacaoSchema = z
   .object({
     dominio: z.literal('acelerato'),
     equipes: z.array(opcao),
     prioridades: z.array(opcao),
+    /** K-215: listas vigentes do recorte; opcional (ausente se alguma lista está vazia, e para o servidor anterior). */
+    recorte: recorte.optional(),
     historico,
   })
   .strict()

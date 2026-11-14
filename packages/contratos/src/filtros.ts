@@ -69,10 +69,19 @@ export interface OpcoesFiltroFluxo {
   historico: { inicio: string; fim: string }
 }
 
+/** K-215: listas vigentes do recorte da Sustentação (`ref_dominio`), só rótulos, literais como estão no Acelerato. */
+export interface RecorteSustentacao {
+  organizacoes: string[]
+  tipos: string[]
+  equipes: string[]
+}
+
 export interface OpcoesFiltroSustentacao {
   dominio: 'acelerato'
   equipes: OpcaoFiltro[]
   prioridades: OpcaoFiltro[]
+  /** K-215: ausente quando alguma das três listas está vazia (a tela mantém o texto de hoje). Nunca traz chave numérica. */
+  recorte?: RecorteSustentacao | undefined
   historico: { inicio: string; fim: string }
 }
 
