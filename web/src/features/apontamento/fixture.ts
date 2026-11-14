@@ -1,4 +1,4 @@
-import { MINIMO_AMOSTRA, type Taxa } from '@metricas-dspd/contratos'
+import { ID_SEM_PROJETO, MINIMO_AMOSTRA, type Taxa } from '@metricas-dspd/contratos'
 import { PESSOA_OUTRA_AREA } from './types'
 import type {
   CapacidadeApontamento,
@@ -542,6 +542,23 @@ export function respostaComOutraArea(
     matriz: { ...base.matriz, linhas: deOutra(base.matriz.linhas) },
     capacidade: { ...base.capacidade, porPessoa: deOutra(base.capacidade.porPessoa) },
     diario: { ...base.diario, linhas: deOutra(base.diario.linhas) },
+  }
+}
+
+/**
+ * Resposta com a linha sem projeto (K-324) no AP-PROJETO. Com `soEla`, é a única linha. A resposta padrão não muda.
+ */
+export function respostaComLinhaSemProjeto(
+  soEla = false,
+  base: RespostaApontamento = RESPOSTA_FICTICIA,
+): RespostaApontamento {
+  const semProjeto = linha(ID_SEM_PROJETO, 'Sem projeto', 12, 7)
+  return {
+    ...base,
+    distribuicao: {
+      ...base.distribuicao,
+      porProjeto: soEla ? [semProjeto] : [...base.distribuicao.porProjeto, semProjeto],
+    },
   }
 }
 

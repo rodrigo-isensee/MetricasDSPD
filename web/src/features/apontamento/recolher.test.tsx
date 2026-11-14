@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { CHAVE_RECOLHIDOS } from '@/components/ui'
 import ApontamentoPage from './ApontamentoPage'
-import { RESPOSTA_FICTICIA, fonteFicticia } from './fixture'
+import { RESPOSTA_FICTICIA, fonteFicticia, respostaComLinhaSemProjeto } from './fixture'
 import type { FonteApontamento } from './types'
 
 function renderizar(fonte: FonteApontamento = fonteFicticia) {
@@ -81,5 +81,42 @@ describe('recolher cartão na aba Apontamento (097 E5, L8b)', () => {
     expect(screen.getByTestId('resumo-recolhido-AP-PROJETO')).toHaveTextContent(
       /^Recolhido\. 1 projeto, /,
     )
+  })
+
+  async function resumoCom(resposta: typeof RESPOSTA_FICTICIA) {
+    renderizar({ buscar: () => Promise.resolve(resposta) })
+    await esperar('AP-PROJETO')
+    await userEvent.click(screen.getByTestId('recolher-AP-PROJETO'))
+    return screen.getByTestId('resumo-recolhido-AP-PROJETO')
+  }
+
+  it('sem a linha sem projeto, o resumo conta todos os projetos (K-324)', async () => {
+    expect(await resumoCom(RESPOSTA_FICTICIA)).toHaveTextContent(
+      /^Recolhido\. 6 projetos, 673,5 h no total\.$/,
+    )
+  })
+
+  it('com a linha sem projeto, a contagem a exclui e as horas a incluem (K-324)', async () => {
+    expect(await resumoCom(respostaComLinhaSemProjeto())).toHaveTextContent(
+      /^Recolhido\. 6 projetos, 685,5 h no total\.$/,
+    )
+  })
+
+  it('só com a linha sem projeto, o resumo diz zero projetos e horas sem projeto (K-324)', async () => {
+    expect(await resumoCom(respostaComLinhaSemProjeto(true))).toHaveTextContent(
+      'Recolhido. 0 projetos e horas sem projeto, 12 h no total.',
+    )
+  })
+
+  it('com um projeto e a linha sem projeto, o resumo usa o singular (K-324)', async () => {
+    const base = respostaComLinhaSemProjeto()
+    const um = {
+      ...base,
+      distribuicao: {
+        ...base.distribuicao,
+        porProjeto: [base.distribuicao.porProjeto[0]!, base.distribuicao.porProjeto[6]!],
+      },
+    }
+    expect(await resumoCom(um)).toHaveTextContent(/^Recolhido\. 1 projeto, /)
   })
 })

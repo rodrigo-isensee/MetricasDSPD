@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { ID_SEM_PROJETO } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
 import { AmostraInsuficiente, Botao, CelulaInsuficiente, TabelaDados } from '@/components/ui'
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
 import { alturaGrafico, dezMaiores } from '../dezMaiores'
 import { fmtApontamentos, fmtHoras } from '../formatar'
-import { CARTOES, INCOMPLETO, MAIORES, SUBGRUPO_SEM_COMENTARIO } from '../textos'
+import { CARTOES, INCOMPLETO, MAIORES, RESUMO_PROJETO, SUBGRUPO_SEM_COMENTARIO } from '../textos'
 import type { LinhaDistribuicao, RespostaApontamento } from '../types'
 import { SeloHorasIncompletas, temIncompleto } from './AvisoRegistroIncompleto'
 import { CartaoApontamento } from './CartaoApontamento'
@@ -169,9 +170,10 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
     : undefined
   // Resumo do AP-PROJETO recolhido (CA-32: total de projetos e de horas, nunca por pessoa, equipe ou setor).
   const totalSegundos = linhas.reduce((t, l) => t + l.segundos, 0)
+  const projetos = linhas.filter((l) => l.id !== ID_SEM_PROJETO).length
   const resumoRecolhido =
     bloco === 'projeto'
-      ? `Recolhido. ${fmtInteiro(linhas.length)} ${linhas.length === 1 ? 'projeto' : 'projetos'}, ${fmtHoras(totalSegundos)} no total.`
+      ? RESUMO_PROJETO(projetos, fmtHoras(totalSegundos), projetos === 0 && linhas.length > 0)
       : undefined
   const marcasDicionario = (r?.criterios ?? []).filter((c) => c.id.startsWith('dicionario'))
   return (

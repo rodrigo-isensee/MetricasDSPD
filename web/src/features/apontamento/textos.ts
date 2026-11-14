@@ -1,6 +1,6 @@
 import type { TextoNota } from '@/components/ui'
 import { LIMITE_MAIORES } from './dezMaiores'
-import { fmtMes, fmtNumero } from '@/lib/formatar'
+import { fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
 import type { FaixaDiario, FiltroQualidade, FlagQualidade, NivelMatriz } from './types'
 
 /**
@@ -351,6 +351,15 @@ export const MAIORES = {
   verMaiores: `Ver só os ${LIMITE_MAIORES} maiores`,
   regiao: 'Todos os projetos, com rolagem',
 } as const
+
+/**
+ * AP-PROJETO recolhido (097, K-324): `n` conta só projetos de verdade; a linha sem projeto fica fora da contagem e
+ * dentro das horas. Sem projeto nenhum e com a linha, o texto diz isso (Q-2 do desenho, a UX confirma).
+ */
+export const RESUMO_PROJETO = (n: number, horas: string, soSemProjeto: boolean) =>
+  soSemProjeto
+    ? `Recolhido. 0 projetos e horas sem projeto, ${horas} no total.`
+    : `Recolhido. ${fmtInteiro(n)} ${n === 1 ? 'projeto' : 'projetos'}, ${horas} no total.`
 
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 
