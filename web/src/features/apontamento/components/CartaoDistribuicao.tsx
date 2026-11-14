@@ -3,7 +3,7 @@ import { Barras } from '@/components/charts'
 import { AmostraInsuficiente, Botao, CelulaInsuficiente, TabelaDados } from '@/components/ui'
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
-import { dezMaiores } from '../dezMaiores'
+import { alturaGrafico, dezMaiores } from '../dezMaiores'
 import { fmtApontamentos, fmtHoras } from '../formatar'
 import { CARTOES, INCOMPLETO, MAIORES, SUBGRUPO_SEM_COMENTARIO } from '../textos'
 import type { LinhaDistribuicao, RespostaApontamento } from '../types'
@@ -53,6 +53,8 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
       : [],
   )
   const comSelo = todas.filter((l) => incompletos.has(l.id))
+  const demaisIncompleto =
+    corte !== undefined && todas.slice(corte.visiveis.length).some((l) => incompletos.has(l.id))
   const grafico = (
     <Barras
       orientacao="horizontal"
@@ -60,7 +62,7 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
       unidade="h"
       formatar={(v) => fmtNumero(v, 1)}
       larguraRotulos={200}
-      altura={Math.max(200, linhas.length * 40)}
+      altura={alturaGrafico(linhas.length)}
       semLegenda
       categorias={linhas.map((l) => ({
         rotulo: rotuloLinha(l),
@@ -76,9 +78,9 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
           {SUBGRUPO_SEM_COMENTARIO.explicacao}
         </p>
       )}
-      {cortado && !verTodos && (
-        <p className="text-sm text-texto-2" data-testid="projetos-mostrando">
-          {MAIORES.mostrando(todas.length)}
+      {cortado && (
+        <p role="status" className="text-sm text-texto-2" data-testid="projetos-mostrando">
+          {verTodos ? MAIORES.mostrandoTodos(todas.length) : MAIORES.mostrando(todas.length)}
         </p>
       )}
       {cortado && verTodos ? (
@@ -95,17 +97,14 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
         grafico
       )}
       {cortado && !verTodos && (
-        <p className="text-sm" data-testid="projetos-demais">
+        <p className="flex flex-wrap items-center gap-2 text-sm" data-testid="projetos-demais">
           {MAIORES.demais(corte.demais.quantidade, fmtHoras(corte.demais.segundos))}
+          {demaisIncompleto && <SeloHorasIncompletas />}
         </p>
       )}
       {cortado && (
         <div>
-          <Botao
-            className="text-xs"
-            aria-expanded={verTodos}
-            onClick={() => setVerTodos((v) => !v)}
-          >
+          <Botao className="text-xs" onClick={() => setVerTodos((v) => !v)}>
             {verTodos ? MAIORES.verMaiores : MAIORES.verTodos(todas.length)}
           </Botao>
         </div>
@@ -168,6 +167,12 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
           : ` em ${fmtApontamentos(topo.apontamentos)}`
       }.`
     : undefined
+  // Resumo do AP-PROJETO recolhido (CA-32: total de projetos e de horas, nunca por pessoa, equipe ou setor).
+  const totalSegundos = linhas.reduce((t, l) => t + l.segundos, 0)
+  const resumoRecolhido =
+    bloco === 'projeto'
+      ? `Recolhido. ${fmtInteiro(linhas.length)} ${linhas.length === 1 ? 'projeto' : 'projetos'}, ${fmtHoras(totalSegundos)} no total.`
+      : undefined
   const marcasDicionario = (r?.criterios ?? []).filter((c) => c.id.startsWith('dicionario'))
   return (
     <CartaoApontamento
@@ -195,6 +200,7 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
             ),
           }
         : {})}
+      resumoRecolhido={resumoRecolhido}
       className={bloco === 'projeto' ? 'lg:col-span-12' : 'lg:col-span-6'}
     >
       {(r) => <Corpo bloco={bloco} r={r} />}
