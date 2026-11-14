@@ -251,8 +251,18 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     expect(await botao('resumo-fluxo', 'Equipe: Todas')).toBeInTheDocument()
   })
 
-  it('as duas normalizações da URL se somam: o fluxo descarta o valor inválido e a Sustentação troca o id antigo pelo slug', async () => {
+  it('as duas normalizações da URL se somam: o fluxo descarta o valor inválido e a Sustentação descarta o id antigo', async () => {
     const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=totvs', new FonteEquipe())
+    expect(
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
+    ).toHaveTextContent('equipe "xyz"')
+    expect(screen.getByTestId('aviso-filtros-invalidos')).toHaveTextContent('equipe "totvs"')
+    await waitFor(() => expect(busca(r).toString()).toBe(''))
+    expect(await botao('resumo-sustentacao', 'Equipe: Todas')).toBeInTheDocument()
+  })
+
+  it('as duas normalizações se somam também quando uma só ajusta o valor (maiúscula vira slug)', async () => {
+    const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=SSSC-TOTVS', new FonteEquipe())
     expect(
       await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
     ).toHaveTextContent('equipe "xyz"')
