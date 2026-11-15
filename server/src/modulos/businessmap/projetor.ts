@@ -200,7 +200,7 @@ async function projetarLote(
 
   const paisPedidos = new Set<string>();
   for (const l of stg) for (const v of Array.isArray(l.payload.linked_cards) ? (l.payload.linked_cards as { card_id?: unknown; link_type?: unknown }[]) : []) {
-    if (v?.link_type === 'parent' && (typeof v.card_id === 'number' || typeof v.card_id === 'string')) paisPedidos.add(String(v.card_id));
+    if ((v?.link_type === 'parent' || v?.link_type === 'relative') && (typeof v.card_id === 'number' || typeof v.card_id === 'string')) paisPedidos.add(String(v.card_id));
   }
   const tiposDosPais = new Map<string, string>();
   if (paisPedidos.size > 0) {
@@ -269,7 +269,7 @@ async function projetarLote(
   // dim_card: projeção, refeita por card (a história fica no staging e em dim_card_versao); `responsaveis` nunca vem do staging
   await db.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [ok]);
   const COLUNAS_DIM = ['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em', 'motivo_descarte', 'titulo',
-    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'fase_deteccao', ...COLUNAS_LISTA] as const;
+    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'fase_deteccao', 'origem_bug', ...COLUNAS_LISTA] as const;
   await inserir(db, `${S.bm}.dim_card`, [...COLUNAS_DIM, 'responsaveis', 'coletado_em', 'atualizado_por_coleta_id'],
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
 

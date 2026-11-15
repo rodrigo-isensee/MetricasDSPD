@@ -110,6 +110,8 @@ export interface LinhaDimCard {
   tamanho_declarado: string | null; responsabilidade_atraso: string | null; origem_demanda: string | null; fase_deteccao: string | null; severidade: string | null;
   /** Prazo nativo do card (`deadline`), dia civil `AAAA-MM-DD`; nulo se ausente ou fora da forma (099-o12-deadline §2). */
   data_acordada: string | null;
+  /** Entrega a que o bug pertence pelo vínculo do BusinessMap (pai e filho ou relacionado); nulo fora de bug ou sem vínculo com entrega (pedido 105, O18). */
+  origem_bug: string | null;
 }
 
 const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null])) as Record<(typeof COLUNAS_LISTA)[number], null>;
@@ -208,6 +210,32 @@ function colunaDoPasso(ref: Referencia, quadro: string | null, coluna: string, d
   };
 }
 
+/** Vínculos que ligam um bug à entrega (decisão do dono, O18 = c): pai e filho (a entrega é o pai do bug) e relacionado (`relative`). */
+const VINCULOS_BUG_ENTREGA: readonly string[] = ['parent', 'relative'];
+const CATEGORIAS_DE_BUG: readonly string[] = ['bug_interno', 'defeito_producao'];
+
+/**
+ * Pedido 105 (O18): entrega do bug pelos vínculos do próprio bug. Só card de tipo bug tem origem; vale vínculo `parent` ou `relative` com um card
+ * item que não seja bug (vínculo de bug com bug não liga a entrega; card ligado fora do staging ou de tipo sem referência não vale, sem palpite).
+ * Várias entregas: a de menor id, contada em `varias_entregas_bug`; bug sem entrega ligada: nulo, contado em `bug_sem_entrega`. Só o id do card, nunca texto.
+ */
+function origemDoBug(e: EntradaCard, tipoRef: LinhaTipo | undefined, ref: Referencia, criado: number, notas: string[]): string | null {
+  if (tipoRef?.eh_item !== true || !CATEGORIAS_DE_BUG.includes(tipoRef.categoria ?? '')) return null;
+  const candidatas = Array.isArray(e.card.linked_cards)
+    ? [...new Set((e.card.linked_cards as unknown[]).flatMap((l) => {
+      const v = l as { card_id?: unknown; link_type?: unknown } | null;
+      const id = v !== null && typeof v === 'object' && typeof v.link_type === 'string' && VINCULOS_BUG_ENTREGA.includes(v.link_type) ? texto(v.card_id) : null;
+      if (id === null || id === e.id) return [];
+      const tipo = e.tipoDoPai(id);
+      const t = tipo === undefined ? undefined : noDia(ref.tipos.get(tipo), diaDe(criado), notas);
+      return t?.eh_item === true && !CATEGORIAS_DE_BUG.includes(t.categoria ?? '') ? [id] : [];
+    }))].sort((a, b) => Number(a) - Number(b))
+    : [];
+  if (candidatas.length > 1) notas.push('varias_entregas_bug');
+  if (candidatas.length === 0) notas.push('bug_sem_entrega');
+  return candidatas[0] ?? null;
+}
+
 /**
  * Normaliza um card. `null` = o card não tem data de criação utilizável (nada é inventado: fica só no staging, contado em quem chama).
  * Decisões H aplicadas aqui: granularidade e equipe pelo instante do evento medido (H-1, U-2), Sprint e tipo sem referência fora (H-2),
@@ -273,6 +301,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   const pai = pais[0] === undefined || (paiTipo !== undefined && !paiTipo.eh_item) ? null : pais[0];
   if (pais[0] !== undefined && pai === null) notas.push('pai_sprint');
 
+  const origemBug = origemDoBug(e, tipoRef, ref, criado, notas);
   const severidade = severidadeDaPrioridade(e.card.priority, ref.prioridades, notas);
   const titulo = texto(e.card.title);
   const eventos: EventoCard[] = [{ card_id: e.id, tipo: 'criado', ocorrido_em: new Date(criado) }];
@@ -285,7 +314,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
-      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), ...colunasDeLista(e.card, ref.camposLista, notas),
+      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), origem_bug: origemBug, ...colunasDeLista(e.card, ref.camposLista, notas),
       // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
       fase_deteccao: null,
       ...(severidade === undefined ? {} : { severidade }),

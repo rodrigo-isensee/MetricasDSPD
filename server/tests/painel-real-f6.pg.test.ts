@@ -1,3 +1,4 @@
+import { MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import type pg from 'pg';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -119,7 +120,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     }
   }, 60_000);
 
-  it('(d2) O8 (A4, Q-099-4): o tempo em execução é o da base real (não o do seed) e a divisão por tamanho é nula com o motivo quando a base não traz tamanho', async () => {
+  it('(d2) O8 (A4, Q-099-4): o tempo em execução é o da base real (não o do seed) e a divisão por tamanho segue a regra por tipo (K-359)', async () => {
     const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const a = await mock.inject('/api/v1/metricas/O8');
     const b = await (await app()).inject('/api/v1/metricas/O8');
@@ -129,13 +130,29 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     expect(b.body).not.toBe(a.body);
     const o8 = b.json() as { tipos: { porTamanho: unknown[] | null }[]; motivoPorTamanho: string | null };
     expect(o8.tipos.length).toBeGreaterThan(0);
-    // A divisão por tamanho só é publicada se algum card da base real traz tamanho; sem nenhum, vem nula com o motivo (nunca lista vazia).
-    const algumTamanho = o8.tipos.some((t) => t.porTamanho !== null);
-    expect(o8.motivoPorTamanho === null).toBe(algumTamanho);
+    // Regra do K-359: a divisão por tamanho é decidida por tipo, pelos entregues da janela medida. Um tipo publica `porTamanho`
+    // (lista não vazia) ou fica nulo; o motivo do contrato só existe quando nenhum tipo publica. O seed dá tamanho às stories,
+    // então no CI o ramo sem tamanho é provado pelo (d3), não aqui.
+    const publicam = o8.tipos.filter((t) => t.porTamanho !== null);
     for (const t of o8.tipos) expect(t.porTamanho === null || t.porTamanho.length > 0).toBe(true);
+    if (publicam.length === 0) {
+      expect(o8.motivoPorTamanho).toBe(MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL);
+    } else {
+      expect(o8.motivoPorTamanho).toBeNull();
+    }
   }, 60_000);
 
-  it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
+  it('(d3) O8 (A4, Q-099-4): sem nenhum tamanho declarado na base real, toda a divisão por tamanho é nula e o motivo é exatamente o do contrato', async () => {
+    await mig.query(`UPDATE ${R.bm}.dim_card SET tamanho_declarado = NULL`);
+    const r = await (await app()).inject('/api/v1/metricas/O8');
+    expect(r.statusCode).toBe(200);
+    const o8 = r.json() as { tipos: { porTamanho: unknown[] | null }[]; motivoPorTamanho: string | null };
+    expect(o8.tipos.length).toBeGreaterThan(0);
+    expect(o8.motivoPorTamanho).toBe(MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL);
+    for (const t of o8.tipos) expect(t.porTamanho).toBeNull();
+  }, 60_000);
+
+  it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 (sem os fluxos do PROC carregados) e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
     await mig.query(`UPDATE ${R.ac}.dim_chamado SET categoria_sistema = 'Sistema só da base real'`);
     const real = await app();
     for (const id of ['S1', 'S3', 'S9', 'S12']) {

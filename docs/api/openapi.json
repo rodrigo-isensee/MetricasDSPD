@@ -34957,7 +34957,8 @@
                             "type": "string",
                             "enum": [
                               "ajuste-prioridade-sem-dado-real",
-                              "excecao-sla-sem-fonte"
+                              "excecao-sla-sem-fonte",
+                              "s7-nao-igual-vazio"
                             ]
                           }
                         },
@@ -35977,7 +35978,8 @@
                                   "Sem solução ou contorno conhecido",
                                   "Risco de estouro de SLA",
                                   "Múltiplos sistemas ou dependências",
-                                  "Necessidade de atuação especializada"
+                                  "Necessidade de atuação especializada",
+                                  "Outro"
                                 ]
                               },
                               "n": {
@@ -36024,7 +36026,8 @@
                                         "Sem solução ou contorno conhecido",
                                         "Risco de estouro de SLA",
                                         "Múltiplos sistemas ou dependências",
-                                        "Necessidade de atuação especializada"
+                                        "Necessidade de atuação especializada",
+                                        "Outro"
                                       ]
                                     },
                                     "n": {
@@ -36057,6 +36060,19 @@
                         },
                         "naoInformado": {
                           "type": "number"
+                        },
+                        "foraDoFluxo": {
+                          "type": "number"
+                        },
+                        "notas": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "s5-risco-sla-sem-fonte",
+                              "s7-nao-igual-vazio"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -36064,7 +36080,8 @@
                         "criterios",
                         "motivos",
                         "evolucao",
-                        "naoInformado"
+                        "naoInformado",
+                        "foraDoFluxo"
                       ],
                       "additionalProperties": false
                     },
@@ -36437,7 +36454,8 @@
                                   "Contorno aplicado",
                                   "Reclassificado, não é incidente",
                                   "Encerrado sem retorno",
-                                  "Duplicado"
+                                  "Duplicado",
+                                  "Outro"
                                 ]
                               },
                               "n": {
@@ -36484,7 +36502,8 @@
                                         "Contorno aplicado",
                                         "Reclassificado, não é incidente",
                                         "Encerrado sem retorno",
-                                        "Duplicado"
+                                        "Duplicado",
+                                        "Outro"
                                       ]
                                     },
                                     "n": {
@@ -36582,6 +36601,9 @@
                               "additionalProperties": false
                             }
                           ]
+                        },
+                        "foraDoFluxo": {
+                          "type": "number"
                         }
                       },
                       "required": [
@@ -36590,7 +36612,8 @@
                         "motivos",
                         "evolucao",
                         "naoInformado",
-                        "taxaContorno"
+                        "taxaContorno",
+                        "foraDoFluxo"
                       ],
                       "additionalProperties": false
                     },
@@ -36951,6 +36974,19 @@
                           ],
                           "additionalProperties": false
                         },
+                        "foraDoFluxo": {
+                          "type": "number"
+                        },
+                        "notas": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "s5-risco-sla-sem-fonte",
+                              "s7-nao-igual-vazio"
+                            ]
+                          }
+                        },
                         "ajusteDePrioridade": {
                           "type": "object",
                           "properties": {
@@ -37210,6 +37246,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "foraDoFluxo",
                         "ajusteDePrioridade",
                         "reclassificacaoDeTipo"
                       ],

@@ -13,8 +13,8 @@ import {
   METRICA_IDS,
   FASES_DETECCAO,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
-  MOTIVOS_ENCERRAMENTO,
-  MOTIVOS_ESCALACAO,
+  MOTIVOS_ENCERRAMENTO_PUBLICADOS,
+  MOTIVOS_ESCALACAO_PUBLICADOS,
   NATUREZAS_ENTREGA,
   NIVEIS_RESOLUCAO,
   ORIGENS_DEMANDA,
@@ -34,7 +34,9 @@ import {
   taxaSchema,
 } from './comum'
 import {
+  NOTA_SUSTENTACAO_IDS,
   notaCartaoIdSchema,
+  notaMotivosIdSchema,
   notaS12IdSchema,
   notaS1IdSchema,
   notaSustentacaoIdSchema,
@@ -681,7 +683,8 @@ export const resultadoS3 = z.object({
       ajustesManuais: z.number().nullable(),
     }),
   ),
-  notas: z.array(notaSustentacaoIdSchema).optional(),
+  /** Pedido 105 (D2, A2): o S3 real também traz a nota `s7-nao-igual-vazio` (texto neutro do ajuste, comum ao S7). */
+  notas: z.array(z.enum([...NOTA_SUSTENTACAO_IDS, 's7-nao-igual-vazio'])).optional(),
   /**
    * Janela inteira do período filtrado (chamados abertos entre `periodo.inicio` e `periodo.fim`), não a soma de
    * meses: o volume e a proporção de P1+P2 já calculados pela biblioteca (a tela não soma nem divide).
@@ -729,14 +732,22 @@ const distMotivo = <T extends readonly [string, ...string[]]>(valores: T) =>
       }),
     ),
   })
-export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO).extend({
+/**
+ * Pedido 105 (D2, P1 e P3 do dono): a faixa `Outro` (motivo preenchido sem par no domínio) entra em `motivos`, separada de `naoInformado` (campo
+ * vazio). `foraDoFluxo` = chamados do período e dos filtros fora dos cinco fluxos do PROC, que não entram na métrica (0 quando a base não separa fluxo).
+ */
+const foraDoFluxo = z.number()
+export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO_PUBLICADOS).extend({
   /** Escalados (N2, N3 ou fornecedor) sem motivo de escalação: "Não informado", nunca inferido. */
   naoInformado: z.number(),
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
 })
-export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({
+export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO_PUBLICADOS).extend({
   /** Chamados fechados sem motivo de encerramento ("Não informado"). */
   naoInformado: z.number(),
   taxaContorno: taxaSchema,
+  foraDoFluxo,
 })
 
 const blocoS7 = z.object({
@@ -753,6 +764,8 @@ const blocoS7 = z.object({
 })
 export const resultadoS7 = z.object({
   ...comum,
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
   ajusteDePrioridade: blocoS7.extend({ justificados: z.object({ k: z.number(), n: z.number() }) }),
   reclassificacaoDeTipo: blocoS7,
 })
@@ -909,31 +922,46 @@ export const resultadoO6 = z.object({
 })
 
 /** O8: tamanho das demandas (tempo em execução, dias úteis), nunca média isolada. */
-export const resultadoO8 = z.object({
-  ...comum,
-  janelaPercentis: janelaSchema,
-  tipos: z.array(
-    z.object({
-      tipo,
-      n: z.number(),
-      estatistica: estatisticaSchema(
-        z.object({
-          mediana: z.number(),
-          media: z.number(),
-          p85: z.number(),
-          /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
-          acimaP85AnteriorPct: z.number().nullable(),
-        }),
-      ),
-      /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
-      porTamanho: z
-        .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
-        .nullable(),
-    }),
-  ),
-  /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
-  motivoPorTamanho: z.string().min(1).nullable(),
-})
+export const resultadoO8 = z
+  .object({
+    ...comum,
+    janelaPercentis: janelaSchema,
+    tipos: z.array(
+      z.object({
+        tipo,
+        n: z.number(),
+        estatistica: estatisticaSchema(
+          z.object({
+            mediana: z.number(),
+            media: z.number(),
+            p85: z.number(),
+            /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
+            acimaP85AnteriorPct: z.number().nullable(),
+          }),
+        ),
+        /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+        porTamanho: z
+          .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
+          .nullable(),
+      }),
+    ),
+    /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
+    motivoPorTamanho: z.string().min(1).nullable(),
+  })
+  // Pedido 105 (L24 (a) do K-359): o motivo é obrigatório só quando NENHUM tipo publica `porTamanho`; com algum tipo publicando, os demais podem ter `porTamanho` nulo e motivo nulo.
+  .superRefine((r, ctx) => {
+    if (
+      r.motivoPorTamanho === null &&
+      r.tipos.length > 0 &&
+      r.tipos.every((t) => t.porTamanho === null)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['motivoPorTamanho'],
+        message: 'porTamanho nulo em todos os tipos exige motivoPorTamanho',
+      })
+    }
+  })
 
 /** O11: composição do backlog (retrato no fim de cada mês). */
 export const resultadoO11 = z.object({

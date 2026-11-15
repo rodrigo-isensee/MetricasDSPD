@@ -319,6 +319,36 @@ describe('qualidade (O15, O18)', () => {
     expect(r.meses.find((m) => m.mes === '2026-10')?.emApuracaoAte).not.toBeNull()
   })
 
+  it('O18 (pedido 105): o bug sem fase de detecção conta pelo vínculo com a entrega; bug sem vínculo não conta', () => {
+    const base: EspecCard[] = [
+      {
+        id: 'E1',
+        criado: '2026-07-01T09:00-03:00',
+        trilha: trilhaSimples(
+          '2026-07-01T09:00-03:00',
+          '2026-07-01T10:00-03:00',
+          '2026-07-02T08:00-03:00',
+          '2026-07-10T17:00-03:00',
+        ),
+      },
+      {
+        id: 'B1',
+        tipo: 'Bug interno',
+        origemBug: 'E1',
+        criado: '2026-07-12T09:00-03:00',
+        trilha: [['Aguardando priorização', '2026-07-12T09:00-03:00']],
+      },
+      {
+        id: 'B2',
+        tipo: 'Bug interno',
+        criado: '2026-07-13T09:00-03:00',
+        trilha: [['Aguardando priorização', '2026-07-13T09:00-03:00']],
+      },
+    ]
+    const r = calcularO18(ctxDe(base), { ...F, periodo: { tipo: '6m' } })
+    expect(r.totais).toMatchObject({ entregues: 1, comBug: 1, bugs: 1 })
+  })
+
   it('O15 calcula contenção e escape pela fase; abaixo de 20 bugs só sobram contagens', () => {
     const bugs: EspecCard[] = (['Desenvolvimento', 'Revisão de código', 'Produção'] as const).map(
       (fase, i) => ({

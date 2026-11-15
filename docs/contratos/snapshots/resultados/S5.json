@@ -135,7 +135,8 @@
               "Sem solução ou contorno conhecido",
               "Risco de estouro de SLA",
               "Múltiplos sistemas ou dependências",
-              "Necessidade de atuação especializada"
+              "Necessidade de atuação especializada",
+              "Outro"
             ]
           },
           "n": {
@@ -182,7 +183,8 @@
                     "Sem solução ou contorno conhecido",
                     "Risco de estouro de SLA",
                     "Múltiplos sistemas ou dependências",
-                    "Necessidade de atuação especializada"
+                    "Necessidade de atuação especializada",
+                    "Outro"
                   ]
                 },
                 "n": {
@@ -215,6 +217,19 @@
     },
     "naoInformado": {
       "type": "number"
+    },
+    "foraDoFluxo": {
+      "type": "number"
+    },
+    "notas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "s5-risco-sla-sem-fonte",
+          "s7-nao-igual-vazio"
+        ]
+      }
     }
   },
   "required": [
@@ -222,7 +237,8 @@
     "criterios",
     "motivos",
     "evolucao",
-    "naoInformado"
+    "naoInformado",
+    "foraDoFluxo"
   ],
   "additionalProperties": false
 }
