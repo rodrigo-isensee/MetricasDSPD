@@ -184,13 +184,13 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   },
   S12: {
     oQueE:
-      'Quais sistemas geram mais chamados, a reincidência por sistema e a exceção de SLA por registro posterior.',
+      'Quais sistemas geram mais chamados, a reincidência por sistema e quantos chamados foram registrados depois do atendimento.',
     comoSeCalcula:
-      'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % com exceção de SLA por registro posterior.',
+      'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % de chamados registrados depois do atendimento.',
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
     cuidados:
-      'Reincidência depende do preenchimento do campo. Hoje só o volume por sistema vem da base real. Reincidência e exceção de SLA por registro posterior ficam sem fonte até a coleta trazer os campos; sem fonte não é zero.',
+      'Reincidência depende do preenchimento do campo. Hoje só o volume por sistema vem da base real. Reincidência e chamados registrados depois do atendimento ficam sem fonte (o Acelerato hoje não traz essa marca); sem fonte não é zero.',
   },
   O19: {
     oQueE: 'Quantos dias úteis de bloqueio cada causa somou e quantas vezes ela travou o trabalho.',

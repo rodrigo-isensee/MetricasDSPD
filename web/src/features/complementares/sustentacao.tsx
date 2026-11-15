@@ -310,7 +310,7 @@ const totaisPorSistema = (d: R12): [string, number][] => {
 
 /** Exceção de SLA sem fonte mostra "campo sem fonte" (padrão do painel), nunca 0%. */
 export const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
-  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${d.excecaoSla ? textoTaxa(d.excecaoSla) : 'campo sem fonte'}.`
+  `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Chamados registrados depois do atendimento: ${d.excecaoSla ? textoTaxa(d.excecaoSla) : 'campo sem fonte'}.`
 
 const TEXTO_S12_REINCIDENCIA_SEM_FONTE =
   'Reincidência: campo sem fonte. O campo de reincidência ainda não vem da coleta, por isso a proporção não é publicada. Isto não significa zero. O volume por sistema acima é dado real.'

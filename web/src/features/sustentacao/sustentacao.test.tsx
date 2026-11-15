@@ -84,7 +84,7 @@ describe('S3 e S2 sem zero falso (pedido 069, L9-a)', () => {
     const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 })
     await waitFor(() =>
       expect(within(s2).getByTestId('notas-cartao-S2')).toHaveTextContent(
-        'Exceção de SLA por registro posterior sem fonte',
+        'Chamados registrados depois do atendimento (fora da apuração pela regra)',
       ),
     )
   })
