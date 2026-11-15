@@ -4,6 +4,9 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ## [Não publicado]
 
+### Corrigido
+- Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
+
 ### Adicionado
 - Teste do destino do item O12 da faixa de atenção: código `O12` e `#o12` quando há vencidos por causa interna (pedido 105, K-362, E3.1).
 - Teste e2e B3-002 (O12): com o O12 sem dado real a faixa "Pede atenção" mostra a lacuna e não o link "Ver O12"; o teste deixa de supor o mock antigo e segue provando que `#o12` abre a Semanal com o O12 (pedido 105, E5.1).
