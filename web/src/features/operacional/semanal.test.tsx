@@ -360,6 +360,32 @@ describe('O15 fase de detecção com dado real (CA-1 a CA-11)', () => {
     await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
     expect(within(el).queryByRole('table')).toBeNull()
   })
+  it('K-365 e CA-5: base.n = 0 com bugs fora não cai no vazio e mostra a nota e a leitura', async () => {
+    const el = await abrir(mk([null, null, null, null, null], 0, 1))
+    expect(within(el).queryByTestId('estado-vazio-O15')).toBeNull()
+    expect(within(el).getByTestId('o15-fora')).toHaveTextContent(
+      '1 de 1 bug do período ficou fora desta conta: não tem fase de detecção na base. O O15 conta só bugs ligados a um card da demanda;',
+    )
+    expect(el).toHaveTextContent(
+      'Percentuais indisponíveis: 0 de 20 bugs mínimos. Nenhum bug com fase de detecção no período.',
+    )
+  })
+  it('K-365: base.n = 0 e sem bug fora segue no estado vazio, sem a nota', async () => {
+    renderizarApp(URL, new FonteFixa({ O15: mk([null, null, null, null, null], 0, 0) }))
+    const el = await screen.findByTestId('metrica-O15')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'))
+    expect(within(el).getByTestId('estado-vazio-O15')).toBeInTheDocument()
+    expect(within(el).queryByTestId('o15-fora')).toBeNull()
+  })
+  it('CA-7: taxas ok com todas as fases nulas', async () => {
+    const el = await abrir(mk([null, null, null, null, null], 30, 0))
+    expect(el).toHaveTextContent(
+      'dos bugs foram contidos antes da homologação; 3,3% chegaram à produção. Nenhuma fase chegou a 20 bugs, por isso o gráfico não mostra contagens.',
+    )
+    expect(within(el).queryByRole('img', { name: /Bugs por fase de detecção/ })).toBeNull()
+    await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
+    expect(within(el).queryByText('Desenvolvimento')).toBeNull()
+  })
   it('CA-6, CA-8 e CA-9: parte nula mantém gráfico com traço e lista a fase', async () => {
     const el = await abrir(mk([25, null, 22, null, 21], 90, 0))
     expect(el).toHaveTextContent('Fases com menos de 20 bugs aparecem sem contagem (—).')

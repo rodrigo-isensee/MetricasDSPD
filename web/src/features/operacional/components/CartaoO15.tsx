@@ -20,10 +20,10 @@ function juntarNomes(nomes: string[]): string {
   return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`
 }
 
-/** `m` tem sempre 2 ou mais: o cartão só desenha o corpo com base maior que zero (estado vazio, `ehVazio`), então `m` passa de `n`. */
+/** `m` = `base.n` + `n`; vale 1 só com `base.n` = 0 e um bug fora (K-365): "1 de 1 bug". */
 function textoFora(n: number, m: number): string {
   return n === 1
-    ? `1 de ${fmtInteiro(m)} bugs do período ficou fora desta conta: não tem fase de detecção na base.`
+    ? `1 de ${fmtInteiro(m)} ${m === 1 ? 'bug' : 'bugs'} do período ficou fora desta conta: não tem fase de detecção na base.`
     : `${fmtInteiro(n)} de ${fmtInteiro(m)} bugs do período ficaram fora desta conta: não têm fase de detecção na base.`
 }
 
