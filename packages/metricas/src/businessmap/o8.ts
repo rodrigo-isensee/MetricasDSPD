@@ -13,8 +13,9 @@ const TAMANHOS = ['P', 'M', 'G', 'Sem tamanho'] as const
 /**
  * O8: tamanho das demandas = tempo em execução (dias úteis, o mesmo ciclo do O3). Mediana e média
  * só junto do P85 (nunca média isolada, 7.2), e % acima do P85 da janela anterior.
- * Pedido 099 (A4, Q-099-4): a divisão por tamanho só sai com `tamanho_declarado` preenchido em algum card da base; sem
- * nenhum, `porTamanho` é nulo com o motivo (nunca tudo em "Sem tamanho", que pareceria dado).
+ * Pedido 099 (A4, Q-099-4; L24 a): a divisão por tamanho é por tipo e só sai se o próprio tipo tem
+ * `tamanho_declarado` em algum card; sem, o tipo fica com `porTamanho` nulo (nunca tudo em "Sem tamanho",
+ * que pareceria dado) e `motivoPorTamanho` traz o motivo quando nenhum tipo publica a divisão.
  */
 export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
   const periodo = periodoDe(ctx, f)
@@ -24,7 +25,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
   const ini = diaDeIso(janela.inicio)
   const fim = diaDeIso(janela.fim)
   let total = 0
-  const comTamanho = ctx.idx.base.cards.some((c) => c.tamanho_declarado !== null)
+  // L24 (a), A2: a divisão por tipo é decidida pelos entregues da janela (e filtros) do próprio tipo.
   const tipos = TIPOS_CARD.map((tipo) => {
     const todos = entreguesDe(
       ctx,
@@ -32,6 +33,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
     )
     const es = todos.filter((e) => e.dia >= ini && e.dia <= fim)
     total += es.length
+    const tipoComTamanho = es.some((e) => e.m.card.tamanho_declarado !== null)
     const amostra = amostraBM(
       'story',
       es.map((e) => e.ciclo),
@@ -58,7 +60,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
       tipo,
       n: es.length,
       estatistica,
-      porTamanho: !comTamanho
+      porTamanho: !tipoComTamanho
         ? null
         : TAMANHOS.map((tamanho) => {
             const xs = es.filter((e) => (e.m.card.tamanho_declarado ?? 'Sem tamanho') === tamanho)
@@ -80,11 +82,14 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
           }).filter((t) => t.n > 0),
     }
   }).filter((c) => c.n > 0)
+  // O motivo (texto fixo) só sai quando nenhum tipo publica a divisão; com algum tipo publicando, o
+  // tipo sem tamanho fica com `porTamanho` nulo e o painel já trata por tipo.
+  const algumPublica = tipos.some((t) => t.porTamanho !== null)
   return {
     base: baseAmostral(total, 'itens concluídos', janela),
     criterios: criterios('O8', periodo, janela, ctx),
     janelaPercentis: janela,
     tipos,
-    motivoPorTamanho: comTamanho ? null : MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
+    motivoPorTamanho: algumPublica ? null : MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   }
 }
