@@ -96,6 +96,8 @@ export type LinhaProjecao = {
   etapa: string | null;
   prioridade: PrioridadeEscala | null;
   aberto_em: Date | null;
+  /** Primeiro atendimento (Q-099-5b = A, D-13): `data_primeiro_comentario` da tabela. Inclui resposta automática; sem separar atendente de solicitante. */
+  primeiro_atendimento_em: Date | null;
   restaurado_em: Date | null;
   data_finalizado: Date | null;
   status_sla_r: 'REALIZADO_NO_PRAZO' | 'REALIZADO_APOS_VENCIMENTO' | null;
@@ -125,7 +127,8 @@ const ehSim = (v: string | null): boolean => v !== null && v.trim().toLocaleUppe
 
 /**
  * Registro do staging -> linha da projeção. Fechado = `data_pronto` preenchida (D-8); `encerrado` nunca define fechamento. `restaurado_em`
- * = `data_pronto` (fim do relógio de resolução, S1). `primeiro_atendimento_em` não é projetado: o MTTA espera a D-13 (CT-56).
+ * = `data_pronto` (fim do relógio de resolução, S1). `primeiro_atendimento_em` = `data_primeiro_comentario` (Q-099-5b = A, D-13 mantida): o
+ * instante só, nunca autor nem texto; inclui resposta automática (a nota do S1 diz isso). Nulo = sem comentário.
  * `status_sla_r` só em chamado fechado (nulo só em aberto); o veredito de primeiro atendimento vale em qualquer estado.
  */
 export function normalizarChamado(
@@ -167,6 +170,7 @@ export function normalizarChamado(
     etapa: etapaDaBiblioteca(texto(p.status)),
     prioridade: prioridadeP,
     aberto_em: instanteDe(texto(p.data_criacao)),
+    primeiro_atendimento_em: instanteDe(texto(p.data_primeiro_comentario)),
     restaurado_em: dataPronto,
     data_finalizado: dataPronto,
     status_sla_r: fechado && r.veredito !== null ? (r.veredito === 'dentro' ? 'REALIZADO_NO_PRAZO' : 'REALIZADO_APOS_VENCIMENTO') : null,
