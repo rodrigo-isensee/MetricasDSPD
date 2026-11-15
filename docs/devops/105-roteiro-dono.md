@@ -10,7 +10,7 @@ cd ~/Metricas/MetricasDSPD && git checkout main && git pull
 ```
 Rode **da raiz do projeto, no ramo `main`**, um comando por vez. Cada comando vem entre parênteses com `set -a; . ./.env; set +a`: isso carrega o `.env` só para aquele comando, sem mostrar o conteúdo. Depois de cada um, rode `echo "rc=$?"` (já vai junto abaixo): **rc=0 é sucesso**; qualquer outro número é erro.
 
-**Regra de ouro:** deu erro, PARE. Não tente o passo seguinte. Copie a mensagem de erro inteira (sem senhas) e mande ao Jarvis, junto com o número do passo e a duração. Nenhum passo apaga dado; todos podem ser repetidos (exceção do passo 5, explicada lá). Não use `--force` nem apague tabelas. Os tempos não foram medidos: anote cada duração e devolva. Se um passo passar de 15 minutos sem imprimir nada (o passo 3 pode passar, ver lá), pare e avise.
+**Regra de ouro:** deu erro, PARE. Não tente o passo seguinte. Copie a mensagem de erro inteira (sem senhas) e mande ao Jarvis, junto com o número do passo e a duração. Nenhum passo apaga dado; todos podem ser repetidos. Não use `--force` nem apague tabelas. Os tempos não foram medidos: anote cada duração e devolva. Se um passo passar de 15 minutos sem imprimir nada (o passo 3 pode passar, ver lá), pare e avise.
 
 ## Linha de base (tirada pelo assistente na base real em 15/11, antes das cargas)
 
@@ -18,6 +18,8 @@ Rode **da raiz do projeto, no ramo `main`**, um comando por vez. Cada comando ve
 - 0 com `classe_servico`, 0 com `origem_bug`, 0 com `fase_deteccao`.
 - `dspd_bm.ref_dominio` com 10 linhas.
 - O coletor lê as três colunas: `has_column_privilege` = `t`.
+- Migrações: a última aplicada é a **0037**; a **0038** (`dim_chamado.fluxo`, Acelerato) **falta**, então o `db:migrate` do passo 0.2 é obrigatório.
+- `dspd_ac.dim_chamado` tem **5144 chamados**, todos com `fluxo` nulo (a coluna ainda não existe).
 
 ## 0. Antes de começar
 
@@ -48,6 +50,19 @@ O banco do Compose precisa estar de pé: `pnpm run db:up; echo "rc=$?"` (rc=0). 
 - Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existe a **0038** (pedido 099, D1); por isso este passo é obrigatório.
 - Se der erro: pare e avise. Pode repetir.
 
+### 0.3 Acelerato: preencher o fluxo dos chamados já na base (`ac:reprojetar-fluxo`)
+
+Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes das cargas do BusinessMap** (passos 1 a 4). Comando novo, da branch `feature/105-ac-reprojetar-fluxo` (aprovado em review e QA; precisa estar mesclado na `main` junto com a release):
+```
+(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo); echo "rc=$?"
+```
+- O que faz: a migração 0038 criou `dim_chamado.fluxo` vazia e a coleta de costume só projeta versões novas do staging; este comando reaplica a regra de fluxo que já existe às etapas guardadas no staging e preenche `fluxo` **só onde ele é nulo**. Nunca troca valor existente, não chama o Acelerato e não toca no staging. Roda em lotes, numa transação só (tudo ou nada), com a credencial do migrador.
+- Não recebe argumento. Imprime só contagens, em uma linha JSON: `coletaId`, `lidos`, `preenchidos`, `fluxoMultiplo`, `semFluxo`. Rc=0 é sucesso; rc=1 é erro (`ac:reprojetar-fluxo falhou: <categoria>`): pare e avise. Como é uma transação só, o erro não deixa nada pela metade.
+- Repetir é seguro e não muda nenhum dado (só soma uma linha de execução em `ctl_coleta`); mesmo assim, não precisa repetir.
+- Resultado esperado: `lidos` = 5144 e `preenchidos` quase todos. Chamado com **fluxo múltiplo** e chamado **sem etapa** seguem nulos de propósito (aparecem em `fluxoMultiplo` e `semFluxo`).
+- Atenção: o "última carga" da tela do Acelerato passa a mostrar a hora desta reprojeção até a próxima coleta do Acelerato. Não é erro nem dado novo.
+- Tempo: não medido; anote a duração e devolva.
+
 ## 1. Passos
 
 ### Passo 1. Acelerato: listas do PROC e alvos (S5, S6, S7)
@@ -59,7 +74,7 @@ O banco do Compose precisa estar de pé: `pnpm run db:up; echo "rc=$?"` (rc=0). 
 - Tempo: segundos.
 - Deve mostrar: uma linha JSON com `vigenteDesde` e contagens (incluindo `alvos`), rc=0.
 - **Se o último `ac:ref-sync` foi hoje, não rode de novo:** duas cargas no mesmo dia confundem a data de vigência dos alvos (regra do roteiro da 104). Não sabe quando foi o último? Pare e pergunte ao Jarvis, que confere na base.
-- Conferir: S5, S6 e S7 deixam de dizer "sem dado real: fluxos do PROC não carregados" **só se os chamados já tiverem o fluxo preenchido** (ver o aviso do passo 6).
+- Conferir: S5, S6 e S7 deixam de dizer "sem dado real: fluxos do PROC não carregados" **só se os chamados já tiverem o fluxo preenchido** (passo 0.3).
 - Se der erro: `ac:ref-sync falhou: <categoria>`. Variável ausente no `.env`: confira só os nomes, nunca os valores. Pare e avise.
 
 ### Passo 2. BusinessMap: dicionário, com a tabela coluna para fase do O15
@@ -102,12 +117,11 @@ Troque `AAAA-MM-DD` pela data anotada no passo 3 (a da primeira coleta com etiqu
 - Deve mostrar: `{"vigenteDesde":"AAAA-MM-DD","gravadas":["105:classe-por-etiqueta"]}` e rc=0.
 - Se der erro: `bm:criterios-classe-servico falhou: <categoria>`; se for variável ausente, confira só os nomes no `.env` (URL e senha do migrador). Pode repetir (idempotente).
 
-### Passo 5. Acelerato: coleta para preencher o fluxo dos chamados (a confirmar)
+### Passo 5. Acelerato: coleta de costume
 ```
 (set -a; . ./.env; set +a; pnpm run coleta ac); echo "rc=$?"
 ```
-- Isto **não estava no rascunho do assistente**; entra porque a migração 0038 cria `dim_chamado.fluxo` nula e o CHANGELOG diz que ela é "preenchida só pela reprojeção do dono". Pelo código (`server/src/modulos/acelerato/projetor.ts`), a projeção só trata versões de staging ainda não projetadas, então chamados antigos podem **continuar com `fluxo` nulo** depois de uma coleta de costume.
-- **A confirmar (pergunta ao time, antes de contar com S5, S6 e S7 reais):** qual comando preenche `fluxo` dos chamados já projetados. Não achei esse comando no código da `develop`; não improvise nem use `--releitura` por conta própria. Rode este passo só depois do aval do Jarvis; se ele mandar rodar, use o comando acima ou o que ele indicar, com a coleta ainda parada.
+- O preenchimento do fluxo dos chamados já na base **não é deste passo**: é o `ac:reprojetar-fluxo` do passo 0.3, que já deve ter rodado. Esta coleta só traz chamados novos e mudanças, e a projeção deles já preenche o `fluxo`. Não use `--releitura` por conta própria.
 - Se a coleta recusar com `parametros-mudaram`, o reconhecimento da 103/104 não foi feito: pare e avise (o reconhecimento é `pnpm run coleta ac --reconhecer-mudanca`, uma vez, só com ordem do Jarvis).
 - Tempo: vários minutos; não interrompa. Deve dar rc=0 (rc=3 é parcial: avise).
 
@@ -151,22 +165,23 @@ Versão de critério gravada (passo 4):
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select vigente_desde, referencia from dspd_core.ref_versao_criterio where referencia in ('105:classe-por-etiqueta') order by 1"
 ```
 
-Fluxo dos chamados do Acelerato (relacionado ao passo 5; a base de comparação é a de antes e depois):
+Fluxo dos chamados do Acelerato (conferência do passo 0.3):
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) as chamados, count(fluxo) as com_fluxo from dspd_ac.dim_chamado"
 ```
+Esperado: `chamados` = 5144 (ou mais, se a coleta já trouxe novos) e `com_fluxo` subindo de **0** para **quase todos** (a diferença são os de fluxo múltiplo e sem etapa, que seguem nulos de propósito; deve bater com `fluxoMultiplo` + `semFluxo` impressos pelo comando). `com_fluxo` ainda 0: pare e avise.
 
 ### Nas telas (só o que cada passo prova)
 
 - Operacional: O15 (Onde os bugs são encontrados), cada fase só com contagem a partir de 20 bugs; O18 (Entregas com e sem bug), mínimo de 20 entregas; O24 por classe.
 - Tático: T1, T2, T4, T6 e O6 só com as quatro classes, com a marca de mudança de critério na data do passo 4.
-- Sustentação (só Acelerato, nunca somada ao BusinessMap): S5, S6 e S7 com números e a nota de chamados fora do fluxo, **se** o fluxo estiver preenchido (passo 5).
+- Sustentação (só Acelerato, nunca somada ao BusinessMap): S5, S6 e S7 com números e a nota de chamados fora do fluxo, **se** o fluxo estiver preenchido (passo 0.3).
 - Métrica abaixo do mínimo de itens mostra "sem dado" por regra do projeto; não é erro.
 
 ## 3. Voltar a coleta
 
 1. Se algo estiver estranho nas conferências, pare e avise o Jarvis; não religue a agenda.
-2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e, se o passo 5 já tiver rodado, `(set -a; . ./.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
+2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e `(set -a; . ./.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
 3. Só então religue o que parou no 0.1 (no Windows, "Habilitar" a tarefa; no cron, tire o `#`). Se não havia agenda de coleta aqui, nada a religar.
 
 ## O que fica fora deste roteiro
