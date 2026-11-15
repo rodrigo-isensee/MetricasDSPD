@@ -98,6 +98,26 @@ describe('POST /webhooks/businessmap', () => {
     expect(r.json().error.code).toBe('PAYLOAD_INVALIDO');
     expect(wh.chamadas).toHaveLength(0);
   });
+  it('ADR 0020 B-4: corpo inválido com marcador não aparece na resposta nem no log (só o código do erro)', async () => {
+    const MARCA = 'MARCADOR-K086-WEBHOOK';
+    const { post, wh, linhas } = await montar();
+    for (const corpo of [`{${MARCA}`, `["${MARCA}"]`, `"${MARCA}"`, `{"a":"${MARCA}\\u0000"}`]) {
+      const r = await post(corpo);
+      expect(r.statusCode).toBe(400);
+      expect(r.json().error.code).toBe('PAYLOAD_INVALIDO');
+      expect(r.body).not.toContain(MARCA);
+    }
+    expect(wh.chamadas).toHaveLength(0);
+    expect(linhas.join('')).not.toContain(MARCA);
+  });
+  it('ADR 0020 B-4: falha de banco com marcador na mensagem não vai à resposta nem ao log', async () => {
+    const MARCA = 'MARCADOR-K086-PG';
+    const { post, linhas } = await montar((c) => (c.texto.includes('outbox') ? new Error(`valor ${MARCA}`) : [{ webhook_sk: '1' }]));
+    const r = await post(JSON.stringify({ evento: 'card_moved', card: { id: 10, title: MARCA }, text: MARCA }));
+    expect(r.statusCode).toBe(500);
+    expect(r.body).not.toContain(MARCA);
+    expect(linhas.join('')).not.toContain(MARCA);
+  });
   it('256 KB é o limite: exatamente o limite passa, um byte a mais = 413', async () => {
     const { post } = await montar();
     const base = '{"a":""}';

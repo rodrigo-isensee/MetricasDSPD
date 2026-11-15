@@ -47,7 +47,7 @@ jobs:
           docker run -d --name pgci -p 127.0.0.1:5432:5432 \
             -e POSTGRES_PASSWORD -e DSPD_PWD_MIGRADOR -e DSPD_PWD_COLETOR -e DSPD_PWD_API -e DSPD_PWD_REF -e DSPD_PWD_WEBHOOK -e DSPD_PWD_AUTOMACAO -e DSPD_PWD_PESQUISA -e DSPD_PWD_APONTAMENTO \
             -v "$PWD/docker/postgres/init:/docker-entrypoint-initdb.d:ro" postgres:17
-          until docker exec pgci pg_isready -U postgres -d metricas_test >/dev/null 2>&1; do sleep 2; done
+          until docker exec pgci pg_isready -h 127.0.0.1 -U postgres -d metricas >/dev/null 2>&1; do sleep 2; done
       - name: Migrar e semear (mock)
         run: |
           pnpm --filter @metricas-dspd/server run migrate up
