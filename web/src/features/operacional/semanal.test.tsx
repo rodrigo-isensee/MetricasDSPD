@@ -284,6 +284,7 @@ describe('O15 bugs por fase (E1 a E3)', () => {
     ...COMUM,
     base: { n, unidade: 'bugs', janela: J },
     fases,
+    bugsSemFase: 0,
     contencao: n >= 20 ? taxaOk(12, n) : taxaIns(12, n),
     escape: n >= 20 ? taxaOk(1, n) : taxaIns(1, n),
     serieMensal: [],
@@ -309,6 +310,79 @@ describe('O15 bugs por fase (E1 a E3)', () => {
       .map((r) => r.textContent)
     expect(linhas[0]).toContain('Desenvolvimento')
     expect(linhas[4]).toContain('Produção')
+  })
+})
+
+describe('O15 fase de detecção com dado real (CA-1 a CA-11)', () => {
+  const nomes = [
+    'Desenvolvimento',
+    'Revisão de código',
+    'Teste interno',
+    'Homologação do negócio',
+    'Produção',
+  ]
+  const grupos = ['contido', 'contido', 'contido', 'negocio', 'producao']
+  const mk = (contagens: (number | null)[], n: number, bugsSemFase: number) => ({
+    ...COMUM,
+    base: { n, unidade: 'bugs', janela: J },
+    fases: nomes.map((fase, i) => ({ fase, grupo: grupos[i], contagem: contagens[i] })),
+    bugsSemFase,
+    contencao: n >= 20 ? taxaOk(12, n) : taxaIns(12, n),
+    escape: n >= 20 ? taxaOk(1, n) : taxaIns(1, n),
+    serieMensal: [],
+  })
+  const abrir = async (dto: unknown) => {
+    renderizarApp(URL, new FonteFixa({ O15: dto }))
+    return cartao('O15')
+  }
+  it('CA-1 e CA-2: nota com N e M, plural e singular', async () => {
+    const el = await abrir(mk([20, 5, 5, 5, 5], 40, 3))
+    expect(within(el).getByTestId('o15-fora')).toHaveTextContent(
+      '3 de 43 bugs do período ficaram fora desta conta: não têm fase de detecção na base. O O15 conta só bugs ligados a um card da demanda; bug sem card da demanda, ligado a Sprint ou a item em backlog não entra.',
+    )
+  })
+  it('CA-2: singular', async () => {
+    const el = await abrir(mk([20, 5, 5, 5, 5], 40, 1))
+    expect(within(el).getByTestId('o15-fora')).toHaveTextContent(
+      '1 de 41 bugs do período ficou fora desta conta: não tem fase de detecção na base.',
+    )
+  })
+  it('CA-3: sem bugsSemFase não há nota', async () => {
+    const el = await abrir(mk([20, 5, 5, 5, 5], 40, 0))
+    expect(within(el).queryByTestId('o15-fora')).toBeNull()
+  })
+  it('CA-4, CA-5 e CA-7: todas nulas com base', async () => {
+    const el = await abrir(mk([null, null, null, null, null], 12, 0))
+    expect(el).toHaveTextContent(
+      'Percentuais indisponíveis: 12 de 20 bugs mínimos. Nenhuma fase chegou a 20 bugs, por isso o gráfico não mostra contagens.',
+    )
+    expect(el).not.toHaveTextContent('As contagens por fase estão no gráfico')
+    await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
+    expect(within(el).queryByRole('table')).toBeNull()
+  })
+  it('CA-6, CA-8 e CA-9: parte nula mantém gráfico com traço e lista a fase', async () => {
+    const el = await abrir(mk([25, null, 22, null, 21], 90, 0))
+    expect(el).toHaveTextContent('Fases com menos de 20 bugs aparecem sem contagem (—).')
+    expect(within(el).getByTestId('o15-fases-sem-contagem')).toHaveTextContent(
+      'Fases sem contagem (menos de 20 bugs cada): Revisão de código e Homologação do negócio.',
+    )
+    await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
+    const linhas = within(el).getAllByRole('row').slice(1)
+    expect(linhas[1].textContent).toContain('—')
+    expect(linhas[1].textContent).not.toMatch(/\b0\b/)
+  })
+  it('CA-8: singular com uma fase nula', async () => {
+    const el = await abrir(mk([25, null, 22, 20, 21], 90, 0))
+    expect(within(el).getByTestId('o15-fases-sem-contagem')).toHaveTextContent(
+      'Fase sem contagem (menos de 20 bugs): Revisão de código.',
+    )
+  })
+  it('CA-10 e CA-11: sem fase nula, sem linha nem frase; números mantidos', async () => {
+    const el = await abrir(mk([25, 20, 22, 20, 21], 108, 0))
+    expect(within(el).queryByTestId('o15-fases-sem-contagem')).toBeNull()
+    expect(el).not.toHaveTextContent('aparecem sem contagem')
+    expect(within(el).getByTestId('o15-contencao')).toHaveTextContent('11,1%')
+    expect(within(el).getByTestId('o15-escape')).toBeInTheDocument()
   })
 })
 
