@@ -757,6 +757,17 @@ describe('CartaoMetrica: atualização, janela fixa e rodapé', () => {
     expect(screen.getByText(/Não afetado por/)).toHaveTextContent('Sistema')
   })
 
+  it('o Setor (097 L11) aparece em "Filtros aplicados" onde atua e em "Não afetado por" onde não atua', () => {
+    const chips = [
+      { chave: 'setor', rotulo: 'Setor', valor: 'Plataformas', valorId: 'plataformas' },
+    ]
+    montar({ aplicaveis: ['setor', 'equipe'] }, chips)
+    expect(screen.queryByText(/Não afetado por/)).toBeNull()
+    cleanup()
+    montar({ aplicaveis: ['sistema'] }, chips)
+    expect(screen.getByText(/Não afetado por/)).toHaveTextContent('Setor')
+  })
+
   it('erro sem exceção informada e sem como tentar de novo', () => {
     montar({ estado: 'erro' })
     expect(screen.getByTestId('estado-erro-O3')).toBeInTheDocument()

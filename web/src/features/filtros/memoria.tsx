@@ -1,13 +1,21 @@
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 
 /**
- * Memória de sessão dos filtros de FLUXO (spec 1.2 e 2.6.1): equipe, tipo, sistema e período
+ * Memória de sessão dos filtros de FLUXO (spec 1.2 e 2.6.1): setor, equipe, tipo, sistema e período
  * (+ de/ate). Fica só em memória (nunca `localStorage`; recarregar zera). Alimenta os links entre
  * painéis de fluxo, de modo que um parâmetro que o painel atual não usa (equipe no Estratégico)
  * volte quando o usuário abrir outro painel de fluxo. Prioridade e filtros da Sustentação não
  * entram aqui (a Sustentação é independente).
  */
-export const CHAVES_MEMORIA = ['equipe', 'tipo', 'sistema', 'periodo', 'de', 'ate'] as const
+export const CHAVES_MEMORIA = [
+  'setor',
+  'equipe',
+  'tipo',
+  'sistema',
+  'periodo',
+  'de',
+  'ate',
+] as const
 export type ChaveMemoria = (typeof CHAVES_MEMORIA)[number]
 export type Memoria = Partial<Record<ChaveMemoria, string>>
 

@@ -11446,36 +11446,43 @@
                                 ]
                               },
                               "porTamanho": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "tamanho": {
-                                      "type": "string",
-                                      "enum": [
-                                        "P",
-                                        "M",
-                                        "G",
-                                        "Sem tamanho"
-                                      ]
-                                    },
-                                    "n": {
-                                      "type": "number"
-                                    },
-                                    "mediana": {
-                                      "type": [
-                                        "number",
-                                        "null"
-                                      ]
+                                "anyOf": [
+                                  {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "tamanho": {
+                                          "type": "string",
+                                          "enum": [
+                                            "P",
+                                            "M",
+                                            "G",
+                                            "Sem tamanho"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "number"
+                                        },
+                                        "mediana": {
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "tamanho",
+                                        "n",
+                                        "mediana"
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   },
-                                  "required": [
-                                    "tamanho",
-                                    "n",
-                                    "mediana"
-                                  ],
-                                  "additionalProperties": false
-                                }
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               }
                             },
                             "required": [
@@ -11486,13 +11493,25 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "motivoPorTamanho": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "base",
                         "criterios",
                         "janelaPercentis",
-                        "tipos"
+                        "tipos",
+                        "motivoPorTamanho"
                       ],
                       "additionalProperties": false
                     },
@@ -46140,6 +46159,19 @@
               "type": "array",
               "items": {
                 "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,59}$"
+              }
+            },
+            "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
                 "maxLength": 40,
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
               }
@@ -46412,6 +46444,26 @@
                           }
                         },
                         "equipes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "setores": {
                           "type": "array",
                           "items": {
                             "type": "object",

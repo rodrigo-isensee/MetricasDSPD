@@ -308,7 +308,12 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     fonte.modoOpcoes = 'erro-uma-vez'
     renderizarApp('/operacional', fonte)
     const fluxo = await bloco('resumo-fluxo')
-    const alerta = await within(fluxo).findByRole('alert', undefined, { timeout: 15000 })
+    // O bloco Fluxo tem também o filtro Setor (097 L11), com a própria falha: o alerta da Equipe é o do seu filtro.
+    const alerta = await within(await within(fluxo).findByTestId('filtro-bloco-fluxo')).findByRole(
+      'alert',
+      undefined,
+      { timeout: 15000 },
+    )
     expect(alerta).toHaveTextContent('Não foi possível carregar as opções de Equipe.')
     expect(within(alerta).getByRole('button', { name: 'Equipe: indisponível' })).toBeDisabled()
     expect(await espera('p85')).toBeInTheDocument()

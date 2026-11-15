@@ -14,6 +14,7 @@ import {
   ESTADO_SEM_DADO_REAL,
   METRICAS_ORIGEM_REAL,
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
+  MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   MOTIVO_ORIGEM_MOCK,
   motivoDaOrigemSemDado,
@@ -40,6 +41,7 @@ describe('origemDaMetrica (H-13)', () => {
       [
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
+        ...['O20'], // pedido 099 (lote A2)
         ...['O25'], // pedido 099 (lote A3)
         ...['O21'], // pedido 099 (lote A1)
         ...['PV1'],
@@ -48,6 +50,8 @@ describe('origemDaMetrica (H-13)', () => {
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
         ...['O17'], // pedido 099 (E3.20)
         ...['S1'], // pedido 099 (D4, Q-099-5b = A)
+        ...['O8'], // pedido 099 (A4, Q-099-4): tempo real; divisão por tamanho sem dado real
+        ...['O16'], // pedido 099 (lote C8)
       ].sort(),
     )
   })
@@ -78,11 +82,17 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O8, O12, O14, O15, O16 e O18', () => {
-    for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O18'] as const) {
+  it('é sem dado, com o motivo, para O12, O14, O15 e O18', () => {
+    for (const id of ['O12', 'O14', 'O15', 'O18'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
+  })
+
+  it('O8 é real no tempo em execução (pedido 099, A4, Q-099-4) e a divisão por tamanho tem motivo próprio', () => {
+    expect(origemDaMetrica('O8')).toBe('real')
+    expect(motivoDaOrigemSemDado('O8')).toBeNull()
+    expect(MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL).toContain('tamanho')
   })
 
   it('O17 é real por sistema (pedido 099, B da Q-099-7) e a causa raiz tem motivo próprio', () => {
@@ -128,7 +138,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
       expect(motivoSemDadoReal(id).length, id).toBeGreaterThan(0)
       expect(semDadoRealSchema.safeParse(corpoSemDadoReal(id)).success, id).toBe(true)
     }
-    expect(motivoSemDadoReal('O8')).toBe('aguardando campo no quadro')
+    expect(motivoSemDadoReal('O12')).toBe('aguardando campo no quadro')
     expect(motivoSemDadoReal('VISAO_GERAL')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
     expect(motivoSemDadoReal('T1')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
   })

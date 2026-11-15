@@ -50,7 +50,7 @@ export type CalculoApontamento = Pick<
 
 /**
  * Calcula os blocos da resposta de `GET /api/apontamento` a partir das linhas sem filtro. O recorte principal é o
- * período com todos os filtros; o mapa diário usa a própria janela e só os filtros de pessoa e equipe (CA-4, K-286); o valor atípico é
+ * período com todos os filtros; o mapa diário usa a própria janela e só os filtros de pessoa, equipe e setor (CA-4, K-286, K-337); o valor atípico é
  * decidido sobre o dia inteiro da pessoa, antes dos filtros. Moldura da resposta (versão, frescor, opções, critérios)
  * é da rota.
  */
