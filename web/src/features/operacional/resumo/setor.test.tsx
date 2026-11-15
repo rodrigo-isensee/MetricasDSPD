@@ -102,6 +102,20 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     expect(within(fluxo).queryByTestId('aviso-consolidado-setor-fluxo')).toBeNull()
   })
 
+  it('CA-44 e CA-49: a TENDENCIA_FLUXO do bloco Fluxo leva o setor escolhido', async () => {
+    const fonte = new FonteSetor()
+    renderizarApp('/operacional?setor=plataformas', fonte)
+    await waitFor(
+      () =>
+        expect(
+          fonte
+            .com('TENDENCIA_FLUXO')
+            .some((c) => (c.filtros.setor as string[] | undefined)?.[0] === 'plataformas'),
+        ).toBe(true),
+      { timeout: 8000 },
+    )
+  })
+
   it('CA-49: o setor não chega ao bloco Sustentação (nenhuma consulta da Sustentação leva `setor`)', async () => {
     const fonte = new FonteSetor()
     const r = renderizarApp('/operacional', fonte)

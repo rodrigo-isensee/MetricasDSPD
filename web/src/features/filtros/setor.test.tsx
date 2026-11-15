@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { Dominio, OpcoesFiltro } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
-import { renderizarBarra } from '@/test/helpers'
+import { renderizarApp, renderizarBarra } from '@/test/helpers'
 import { contarAtivos } from './contarAtivos'
 import { colapsarTodos, escreverFluxo, lerFluxo, paramsDeFluxo } from './codec'
 import { PAINEIS } from './paineis'
@@ -75,6 +75,40 @@ describe('filtro Setor na BarraFiltros (097 L11)', () => {
         ).toBeTruthy()
     },
   )
+
+  it('CA-39: no Estratégico, marcar um setor grava `setor` na URL e mostra o chip', async () => {
+    const r = renderizarBarra('/estrategico', new FonteSetor())
+    const d = await marcar('Plataformas')
+    await waitFor(() => expect(busca(r).get('setor')).toBe('plataformas'))
+    expect(await screen.findByTestId('chip-filtro-setor')).toHaveTextContent('Setor: Plataformas')
+    await userEvent.click(within(d).getByRole('button', { name: 'Fechar' }))
+  })
+
+  it('o setor escolhido no Operacional volta ao abrir o Tático pelo menu (memória de sessão)', async () => {
+    const r = renderizarApp('/operacional?setor=plataformas', new FonteSetor())
+    // a memória só guarda o setor depois que as opções chegam e a URL é validada: o chip prova isso
+    expect(
+      await screen.findByTestId('chip-filtro-setor', undefined, { timeout: 8000 }),
+    ).toBeInTheDocument()
+    const nav = await screen.findByRole('navigation', { name: 'Navegação principal' })
+    await waitFor(() =>
+      expect(within(nav).getByRole('link', { name: 'Tático' })).toHaveAttribute(
+        'href',
+        expect.stringContaining('setor=plataformas'),
+      ),
+    )
+    await userEvent.click(within(nav).getByRole('link', { name: 'Tático' }))
+    await waitFor(() => expect(r.roteador.state.location.pathname).toBe('/tatico'))
+    await waitFor(() => expect(busca(r).get('setor')).toBe('plataformas'))
+    await userEvent.click(
+      within(await screen.findByRole('navigation', { name: 'Navegação principal' })).getByRole(
+        'link',
+        { name: 'Operacional' },
+      ),
+    )
+    await waitFor(() => expect(r.roteador.state.location.pathname).toBe('/operacional'))
+    expect(busca(r).get('setor')).toBe('plataformas')
+  })
 
   it('CA-40: lista os sete setores em ordem alfabética, com busca', async () => {
     renderizarBarra('/operacional', new FonteSetor())
