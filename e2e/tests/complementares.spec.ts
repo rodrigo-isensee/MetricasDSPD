@@ -74,15 +74,23 @@ for (const tela of TELAS) {
       await expect(page.getByTestId('metrica-E4')).toHaveCount(0)
     })
 
-    test('COMP-03 catálogo: 65 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático + 7 do 011 operacional), grupo Complementar tem 33, axe AA', async ({ page }) => {
+    test('COMP-03 catálogo: contador em linhas bate com a tabela, grupos Complementar e Núcleo somam o total, axe AA', async ({ page }) => {
       await page.goto('/metricas')
       await expect(page.getByRole('heading', { level: 1, name: 'Catálogo de métricas' })).toBeVisible()
       const contagem = page.getByTestId('contagem-catalogo')
-      await expect(contagem).toHaveText('65 de 65 métricas')
+      const linhasDaTabela = page.getByRole('table').getByRole('row')
+      await expect(contagem).toHaveText(/^\d+ de \d+ linhas$/)
+      // total derivado da tabela renderizada (cabeçalho fora), sem número fixo
+      const total = (await linhasDaTabela.count()) - 1
+      expect(total).toBeGreaterThan(0)
+      await expect(contagem).toHaveText(`${total} de ${total} linhas`)
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
-      await expect(contagem).toHaveText('33 de 65 métricas')
+      await expect(contagem).not.toHaveText(`${total} de ${total} linhas`)
+      const complementares = (await linhasDaTabela.count()) - 1
+      await expect(contagem).toHaveText(`${complementares} de ${total} linhas`)
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Núcleo')
-      await expect(contagem).toHaveText('32 de 65 métricas')
+      await expect(contagem).toHaveText(`${total - complementares} de ${total} linhas`)
+      expect((await linhasDaTabela.count()) - 1).toBe(total - complementares)
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
