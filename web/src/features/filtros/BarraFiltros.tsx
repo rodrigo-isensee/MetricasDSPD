@@ -8,11 +8,10 @@ import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
 import { FiltroMulti, escLimpaBuscaFocada } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
-import type { FiltrosFluxoSetor } from './codec'
 import { ROTULO_FILTRO, rotuloDoFiltro } from './paineis'
 import type { UseFiltros } from './useFiltros'
 
-type Uso = UseFiltros<FiltrosFluxoSetor> | UseFiltros<FiltrosSustentacao>
+type Uso = UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
 
 const TEXTO_ESTRATEGICO =
   'O nível estratégico olha projetos, que envolvem várias equipes. Por isso não há filtro por equipe.'
@@ -45,7 +44,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
   const sem = (plural: string, genero: 'm' | 'f' = 'm') =>
     semOpcoes(!opcoes, opcoesErro, plural, genero, repetiu)
   const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
-  const f = uso.filtros as FiltrosFluxoSetor & FiltrosSustentacao
+  const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
   const bm = opcoes?.dominio === 'businessmap' ? opcoes : undefined
   const ac = opcoes?.dominio === 'acelerato' ? opcoes : undefined
@@ -178,7 +177,7 @@ export function BarraFiltros({
   useAlturaCss(barra, '--h-filtros')
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
-  const f = uso.filtros as FiltrosFluxoSetor & FiltrosSustentacao
+  const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   // Setores somados: só a seleção (sem seleção é "Todos", sem aviso); nunca números por setor (CA-45, CA-46).
   const setores = uso.config.filtros.includes('setor') ? (f.setor ?? []).length : 0
   // Equipes somadas no resultado: seleção, ou todas (padrão) quando o painel tem filtro de equipe.

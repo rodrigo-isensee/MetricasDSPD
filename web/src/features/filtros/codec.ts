@@ -22,12 +22,6 @@ export interface Leitura<F> {
 
 type Opcoes = OpcoesFiltro | undefined
 
-/**
- * Filtros do fluxo na web: os do contrato mais o setor (097 L11). `setor` só existe com seleção; sem ele o objeto é
- * idêntico ao de antes (mesma chave de cache e mesma consulta). Lista vazia = "Todos".
- */
-export type FiltrosFluxoSetor = FiltrosFluxo & { setor?: string[] }
-
 const lista = (params: URLSearchParams, chave: string): string[] =>
   (params.get(chave) ?? '')
     .split(',')
@@ -105,7 +99,7 @@ export function lerFluxo(
   padrao: PeriodoPadrao,
   prefixo = '',
   restricao: RestricaoPeriodo = SEM_RESTRICAO,
-): Leitura<FiltrosFluxoSetor> {
+): Leitura<FiltrosFluxo> {
   const p = prefixar(params, prefixo)
   const invalidos: string[] = []
   const setor = lerLista(p, 'setor', idsDe(opcoes, 'setores'), 'setor', invalidos)
@@ -198,7 +192,7 @@ function gravarPeriodo(
 /** Escreve só os valores fora do padrão. Devolve novos parâmetros, preservando os demais (cadência, mock...). */
 export function escreverFluxo(
   base: URLSearchParams,
-  f: FiltrosFluxoSetor,
+  f: FiltrosFluxo,
   padrao: PeriodoPadrao,
   prefixo = '',
 ): URLSearchParams {
@@ -226,7 +220,7 @@ export function escreverSustentacao(
 
 /** Texto de URL de cada filtro de fluxo (para a memória de sessão e para os links). */
 export function paramsDeFluxo(
-  f: FiltrosFluxoSetor,
+  f: FiltrosFluxo,
 ): Record<'setor' | 'equipe' | 'tipo' | 'sistema' | 'periodo' | 'de' | 'ate', string | null> {
   return {
     setor: f.setor?.join(',') || null,
@@ -262,7 +256,7 @@ export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
 ): F {
   const todos = (sel: readonly string[], validos: readonly string[] | null): boolean =>
     validos !== null && validos.length > 0 && validos.every((v) => sel.includes(v))
-  const r = { ...f } as FiltrosFluxoSetor & FiltrosSustentacao
+  const r = { ...f } as FiltrosFluxo & FiltrosSustentacao
   if (todos(r.setor ?? [], idsDe(opcoes, 'setores'))) delete r.setor
   if (todos(r.equipe, idsDe(opcoes, 'equipes'))) r.equipe = []
   if (sustentacao) {

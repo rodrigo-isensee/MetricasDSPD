@@ -1,9 +1,9 @@
+import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Botao, Icone } from '@/components/ui'
 import { useOpcoesFiltro } from '@/data'
 import { ChipsFiltros } from '@/features/filtros/ChipsFiltros'
 import { FiltroMulti } from '@/features/filtros/FiltroMulti'
 import type { UseFiltros } from '@/features/filtros'
-import type { FiltrosFluxoSetor } from '@/features/filtros/codec'
 
 const ROTULO = 'Setor'
 
@@ -12,7 +12,7 @@ const ROTULO = 'Setor'
  * no da Sustentação (o Acelerato não tem setor). Valor inicial "Todos", estado na URL (`setor`). Com dois ou mais
  * setores o resultado é um conjunto só (aviso consolidado); nunca há números, séries nem linhas por setor.
  */
-export function FiltroSetorBloco({ uso }: { uso: UseFiltros<FiltrosFluxoSetor> }) {
+export function FiltroSetorBloco({ uso }: { uso: UseFiltros<FiltrosFluxo> }) {
   const opcoes = useOpcoesFiltro('businessmap')
   const setores = opcoes.data?.dominio === 'businessmap' ? (opcoes.data.setores ?? []) : []
   const selecionados = uso.filtros.setor ?? []

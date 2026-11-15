@@ -50,7 +50,7 @@ export const filtrosTendencia = (
   dataReferencia: string | undefined,
   equipe: readonly string[] = [],
   setor: readonly string[] = [],
-): FiltrosDe<'TENDENCIA_FLUXO'> & { setor?: string[] } => ({
+): FiltrosDe<'TENDENCIA_FLUXO'> => ({
   ...(dataReferencia ? { dataReferencia } : {}),
   ...(setor.length > 0 ? { setor: [...setor] } : {}),
   ...(equipe.length > 0 ? { equipe: [...equipe] } : {}),

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
-import type { FiltrosSustentacao, OpcoesFiltro } from '@metricas-dspd/contratos'
+import type { FiltrosFluxo, FiltrosSustentacao, OpcoesFiltro } from '@metricas-dspd/contratos'
 import { PERIODOS_PADRAO, TIPO_ID } from '@metricas-dspd/contratos'
 import { useOpcoesFiltro } from '@/data'
 import type { FiltroAtivo } from '@/components/ui'
@@ -9,7 +9,6 @@ import {
   colapsarTodos,
   escreverSustentacao,
   lerFluxo,
-  type FiltrosFluxoSetor,
   lerSustentacao,
   paramsDeFluxo,
   textoBusca,
@@ -106,7 +105,7 @@ const rotuloDe = (lista: readonly { id: string; nome: string }[] | undefined, id
   lista?.find((x) => x.id === id)?.nome ?? id
 
 function chipsDe(
-  filtros: FiltrosFluxoSetor | FiltrosSustentacao,
+  filtros: FiltrosFluxo | FiltrosSustentacao,
   padrao: string,
   opcoes: OpcoesFiltro | undefined,
   visiveis: readonly ChaveFiltro[],
@@ -115,7 +114,7 @@ function chipsDe(
   const chips: ChipFiltro[] = []
   const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
   const setores = opcoes?.dominio === 'businessmap' ? opcoes.setores : undefined
-  const f = filtros as FiltrosFluxoSetor & FiltrosSustentacao
+  const f = filtros as FiltrosFluxo & FiltrosSustentacao
   if (visiveis.includes('setor'))
     for (const id of f.setor ?? [])
       chips.push({
@@ -169,7 +168,7 @@ export function useFiltros(painel: 'sustentacao', o?: OpcaoHook): UseFiltros<Fil
 export function useFiltros(
   painel: Exclude<PainelId, 'sustentacao'>,
   o?: OpcaoHook,
-): UseFiltros<FiltrosFluxoSetor>
+): UseFiltros<FiltrosFluxo>
 /**
  * Único ponto de leitura e escrita dos filtros: a URL é a fonte da verdade. Valores inválidos
  * caem no padrão, a URL é corrigida com `replace` e o aviso (2.6) fica disponível em `invalidos`.
@@ -178,7 +177,7 @@ export function useFiltros(
 export function useFiltros(
   painel: PainelId,
   o: OpcaoHook = {},
-): UseFiltros<FiltrosFluxoSetor> | UseFiltros<FiltrosSustentacao> {
+): UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao> {
   const prefixo = o.prefixo ?? ''
   const {
     config,
@@ -209,7 +208,7 @@ export function useFiltros(
 
   // Filtros que o painel não oferece (equipe e tipo no Estratégico) não entram nos cálculos.
   const efetivo = useMemo(() => {
-    const f = leitura.filtros as FiltrosFluxoSetor & FiltrosSustentacao
+    const f = leitura.filtros as FiltrosFluxo & FiltrosSustentacao
     if (ehSust) return f
     const { setor, ...resto } = f
     return {
@@ -264,7 +263,7 @@ export function useFiltros(
             config.periodoPadrao,
             prefixo,
           )
-        : escreverFluxo(params, leitura.filtros as FiltrosFluxoSetor, config.periodoPadrao, prefixo)
+        : escreverFluxo(params, leitura.filtros as FiltrosFluxo, config.periodoPadrao, prefixo)
     if (prefixo === '') {
       for (const k of PARAMS_CONHECIDOS) if (!config.params.includes(k)) p.delete(k)
       // Período válido, mas fora das opções do painel (periodo=4s no Estratégico): não aplicável.
@@ -343,12 +342,12 @@ export function useFiltros(
       (ehSust
         ? lerSustentacao(paramsVigentes(), opcoes, config.periodoPadrao, prefixo, restricao)
         : lerFluxo(paramsVigentes(), opcoes, config.periodoPadrao, prefixo, restricao)
-      ).filtros as FiltrosFluxoSetor & FiltrosSustentacao,
+      ).filtros as FiltrosFluxo & FiltrosSustentacao,
     [paramsVigentes, opcoes, config.periodoPadrao, ehSust, prefixo, restricao],
   )
 
   const aplicar = useCallback(
-    (bruto: FiltrosFluxoSetor | FiltrosSustentacao, replace: boolean) => {
+    (bruto: FiltrosFluxo | FiltrosSustentacao, replace: boolean) => {
       const novo = colapsarTodos(bruto, opcoes, ehSust)
       const p = ehSust
         ? escreverSustentacao(
@@ -357,10 +356,10 @@ export function useFiltros(
             config.periodoPadrao,
             prefixo,
           )
-        : escreverFluxo(paramsVigentes(), novo as FiltrosFluxoSetor, config.periodoPadrao, prefixo)
+        : escreverFluxo(paramsVigentes(), novo as FiltrosFluxo, config.periodoPadrao, prefixo)
       if (memorizaFluxo) {
         // Ação do usuário é autoridade: os filtros do painel atualizam a memória (período padrão = apaga).
-        const f = novo as FiltrosFluxoSetor
+        const f = novo as FiltrosFluxo
         const txt = paramsDeFluxo(f)
         const padraoP = f.periodo.tipo === config.periodoPadrao
         memoria.atualizar({
@@ -392,12 +391,12 @@ export function useFiltros(
   )
 
   const definir = useCallback(
-    (parcial: Partial<FiltrosFluxoSetor & FiltrosSustentacao>, op: { replace?: boolean } = {}) =>
+    (parcial: Partial<FiltrosFluxo & FiltrosSustentacao>, op: { replace?: boolean } = {}) =>
       aplicar({ ...lerAgora(), ...parcial }, op.replace ?? false),
     [aplicar, lerAgora],
   )
   const vazio = useCallback(
-    (): FiltrosFluxoSetor & FiltrosSustentacao => ({
+    (): FiltrosFluxo & FiltrosSustentacao => ({
       ...lerAgora(),
       setor: [],
       equipe: [],
