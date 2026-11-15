@@ -45,7 +45,7 @@ const REF: Referencia = {
   ], (t) => String(t.time_id)),
   tipos: agrupar([
     { ...V, tipo_id: '10', eh_item: true, categoria: 'bug_interno' }, { ...V, tipo_id: '11', eh_item: true, categoria: 'produto' },
-    { ...V, tipo_id: '12', eh_item: false, categoria: null },
+    { ...V, tipo_id: '12', eh_item: false, categoria: null }, { ...V, tipo_id: '13', eh_item: true, categoria: null },
   ], (t) => t.tipo_id),
   camposLista: new Map(),
 };
@@ -236,6 +236,11 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
     const produto = origem([{ card_id: 20, link_type: 'parent' }], porTipo, { type_id: 11 });
     expect(produto.dim.origem_bug).toBeNull();
     expect(produto.notas).not.toContain('bug_sem_entrega');
+    // item sem categoria: como origem vale como entrega (não é bug); como card ligado não é bug, então não tem origem
+    expect(origem([{ card_id: 24, link_type: 'parent' }], { tipoDoPai: () => '13' }).dim.origem_bug).toBe('24');
+    const semCategoria = origem([{ card_id: 20, link_type: 'parent' }], porTipo, { type_id: 13 });
+    expect(semCategoria.dim.origem_bug).toBeNull();
+    expect(semCategoria.notas).not.toContain('bug_sem_entrega');
     // o vínculo parent segue valendo para o card_pai do bug
     expect(origem([{ card_id: 20, link_type: 'parent' }]).dim.card_pai).toBe('20');
   });
