@@ -31,12 +31,30 @@ test.describe('K-008 Sustentacao', () => {
     for (const p of ['p2', 'p3', 'p4', 'p5']) await expect(page.getByTestId(`s1-mtta`)).toContainText(p.toUpperCase());
   });
 
-  test('SUS-05/14 unidades em horas uteis e sem "dias"', async ({ page }) => {
-    const texto = await page.getByRole('main').innerText();
-    // L2 fechada: exibição por prioridade (P4/P5 em dias úteis). Proibidos: minutos e tempo corrido.
-    expect(texto).not.toMatch(/\bmin\b|minutos?|horas corridas|h corridas|dias corridos/i);
+  test('SUS-05/14 prazo do S1 na unidade e no relogio do PROC; resto em hora ou dia util', async ({ page }) => {
+    // K-314 / Q-099-11: cada prazo sai na unidade em que o PROC o escreve. Relogio corrido so onde o PROC define:
+    // P1 (primeiro atendimento e restauracao) e primeiro atendimento do P2. O resto segue em hora ou dia util,
+    // sem minuto nem tempo corrido (nenhuma outra unidade foi afrouxada).
+    const mtta = await page.getByTestId('s1-mtta').innerText();
+    const mttr = await page.getByTestId('s1-mttr').innerText();
+    expect(mtta).toMatch(/P1 · alvo 15 min\s*corridos/);
+    expect(mtta).toMatch(/P2 · alvo 30 min\s*corridos/);
+    expect(mttr).toMatch(/P1 · alvo 4 h\s*corridas/);
+
+    const proibido = /\bmin\b|minutos?|\bcorrid/i;
+    // Linhas com valor de prazo ("P<n> · alvo ..." do grafico e "P<n>\t<alvo>..." da tabela), por prioridade e bloco.
+    const permitida = (bloco: 'mtta' | 'mttr', linha: string) => /^P1\b/.test(linha) || (bloco === 'mtta' && /^P2\b/.test(linha));
+    for (const [bloco, texto] of [['mtta', mtta], ['mttr', mttr]] as const) {
+      for (const l of texto.split('\n').map((x) => x.trim()).filter((x) => /^P[1-5]\b/.test(x))) {
+        if (!permitida(bloco, l)) expect(l, `${bloco}: so P1 e o MTTA do P2 aceitam minuto ou corrido`).not.toMatch(proibido);
+      }
+    }
+    // Fora desses dois blocos, a tela inteira continua sem minuto nem tempo corrido.
+    const fora = (await page.getByRole('main').innerText()).replace(mtta, '').replace(mttr, '');
+    expect(fora, 'minuto ou tempo corrido fora do S1').not.toMatch(/\bmin\b|minutos?|horas corridas|h corridas|dias corridos|\bcorrid/i);
+
     await expect(page.getByTestId('metrica-S1')).toContainText(/h úteis/);
-    await expect(page.getByTestId('metrica-S1')).toContainText(/P4 · alvo 5 dias úteis/);
+    await expect(page.getByTestId('metrica-S1')).toContainText(/P5 · alvo \d+(?:,\d+)? dias? úteis?/);
   });
 
   test('SUS-07 alternador S3 grava s3=prop', async ({ page, painel }) => {
