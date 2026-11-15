@@ -364,7 +364,7 @@ export function useFiltros(
         const txt = paramsDeFluxo(f)
         const padraoP = f.periodo.tipo === config.periodoPadrao
         memoria.atualizar({
-          ...(config.filtros.includes('setor') ? { setor: txt.setor } : {}),
+          setor: txt.setor,
           ...(config.filtros.includes('equipe') ? { equipe: txt.equipe } : {}),
           ...(config.filtros.includes('tipo') ? { tipo: txt.tipo } : {}),
           sistema: txt.sistema,
