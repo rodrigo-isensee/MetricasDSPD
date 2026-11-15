@@ -4,7 +4,7 @@ import { Barras } from '@/components/charts'
 import { AmostraInsuficiente, Botao, CelulaInsuficiente, TabelaDados } from '@/components/ui'
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
-import { alturaGrafico, dezMaiores } from '../dezMaiores'
+import { alturaGrafico, dezMaiores, separarSemProjeto } from '../dezMaiores'
 import { fmtApontamentos, fmtHoras } from '../formatar'
 import { CARTOES, INCOMPLETO, MAIORES, RESUMO_PROJETO, SUBGRUPO_SEM_COMENTARIO } from '../textos'
 import type { LinhaDistribuicao, RespostaApontamento } from '../types'
@@ -42,20 +42,27 @@ const rotuloLinha = (l: LinhaDistribuicao): string =>
 
 function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
   const cfg = CFG[bloco]
-  const todas = r.distribuicao[cfg.chave]
+  const recebidas = r.distribuicao[cfg.chave]
   const [verTodos, setVerTodos] = useState(false)
-  const corte = bloco === 'projeto' ? dezMaiores(todas) : undefined
+  // AP-PROJETO: a linha sem projeto sai das dez vagas e das contagens e fica fixa no fim (097, K-341, decisão 3a).
+  const { projetos, semProjeto } =
+    bloco === 'projeto'
+      ? separarSemProjeto(recebidas)
+      : { projetos: recebidas, semProjeto: undefined }
+  const corte = bloco === 'projeto' ? dezMaiores(projetos) : undefined
   const cortado = corte !== undefined && corte.demais.quantidade > 0
-  const linhas = corte && cortado && !verTodos ? corte.visiveis : todas
+  const projetosMostrados = corte && cortado && !verTodos ? corte.visiveis : projetos
+  // A tabela de dados leva a linha sem projeto por último; o gráfico só tem projetos.
+  const linhas = semProjeto ? [...projetosMostrados, semProjeto] : projetosMostrados
   const n = r.distribuicao.base.n
   const incompletos = new Set(
     bloco === 'projeto' && temIncompleto(r.registroIncompleto)
       ? r.registroIncompleto.projetoIds
       : [],
   )
-  const comSelo = todas.filter((l) => incompletos.has(l.id))
+  const comSelo = recebidas.filter((l) => incompletos.has(l.id))
   const demaisIncompleto =
-    corte !== undefined && todas.slice(corte.visiveis.length).some((l) => incompletos.has(l.id))
+    corte !== undefined && projetos.slice(corte.visiveis.length).some((l) => incompletos.has(l.id))
   const grafico = (
     <Barras
       orientacao="horizontal"
@@ -63,9 +70,9 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
       unidade="h"
       formatar={(v) => fmtNumero(v, 1)}
       larguraRotulos={200}
-      altura={alturaGrafico(linhas.length)}
+      altura={alturaGrafico(projetosMostrados.length)}
       semLegenda
-      categorias={linhas.map((l) => ({
+      categorias={projetosMostrados.map((l) => ({
         rotulo: rotuloLinha(l),
         valores: { h: l.segundos / 3600 },
       }))}
@@ -81,10 +88,10 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
       )}
       {cortado && (
         <p role="status" className="text-sm text-texto-2" data-testid="projetos-mostrando">
-          {verTodos ? MAIORES.mostrandoTodos(todas.length) : MAIORES.mostrando(todas.length)}
+          {verTodos ? MAIORES.mostrandoTodos(projetos.length) : MAIORES.mostrando(projetos.length)}
         </p>
       )}
-      {cortado && verTodos ? (
+      {projetosMostrados.length === 0 ? null : cortado && verTodos ? (
         <div
           role="region"
           tabIndex={0}
@@ -106,9 +113,14 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
       {cortado && (
         <div>
           <Botao className="text-xs" onClick={() => setVerTodos((v) => !v)}>
-            {verTodos ? MAIORES.verMaiores : MAIORES.verTodos(todas.length)}
+            {verTodos ? MAIORES.verMaiores : MAIORES.verTodos(projetos.length)}
           </Botao>
         </div>
+      )}
+      {semProjeto && (
+        <p className="text-sm text-texto-2" data-testid="linha-sem-projeto">
+          {MAIORES.semProjeto(rotuloLinha(semProjeto), fmtHoras(semProjeto.segundos))}
+        </p>
       )}
       {comSelo.length > 0 && (
         <ul
@@ -157,10 +169,13 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
   const r = d.resposta
   const cfg = CFG[bloco]
   const linhas = r?.distribuicao[cfg.chave] ?? []
-  const topo = linhas.reduce<LinhaDistribuicao | undefined>(
-    (m, l) => (m === undefined || l.segundos > m.segundos ? l : m),
-    undefined,
-  )
+  // A frase de leitura nunca escolhe a linha sem projeto (097, decisão 1a, A1 do review da E4.72).
+  const topo = linhas
+    .filter((l) => l.id !== ID_SEM_PROJETO)
+    .reduce<LinhaDistribuicao | undefined>(
+      (m, l) => (m === undefined || l.segundos > m.segundos ? l : m),
+      undefined,
+    )
   const leitura = topo
     ? `${rotuloLinha(topo)} reúne a maior parte das horas apontadas: ${fmtHoras(topo.segundos)}${
         topo.participacao.status === 'ok'
