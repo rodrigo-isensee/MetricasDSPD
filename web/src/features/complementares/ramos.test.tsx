@@ -358,8 +358,8 @@ describe('ramos dos componentes complementares', () => {
     expect(nota).toHaveTextContent(
       /^Sem divisão por tamanho: .+\. Nenhum card concluído desse tipo, no período, tem tamanho declarado no quadro\. A mediana e o P85 dele estão na tabela acima\.$/,
     )
-    expect(nota.textContent!.replace('P85', '')).not.toMatch(/\d|%|zero/i)
-    const tipo = nota.textContent!.match(/tamanho: (.+?)\./)![1]
+    expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+    const tipo = nota.textContent.match(/tamanho: (.+?)\./)![1]
     expect(el.querySelector('table')?.textContent).toContain(tipo)
     expect(el.querySelector('svg')?.textContent ?? '').not.toContain(tipo)
   })
@@ -370,7 +370,7 @@ describe('ramos dos componentes complementares', () => {
     expect(nota.textContent).toMatch(
       /^Sem divisão por tamanho: [^,]+, [^,]+?\. Nenhum card concluído desses tipos/,
     )
-    expect(nota.textContent!.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+    expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
   })
 
   it('O8 com todos os tipos com tamanho não mostra a nota (CA-6)', async () => {
