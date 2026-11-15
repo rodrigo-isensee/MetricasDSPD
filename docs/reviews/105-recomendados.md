@@ -3,14 +3,14 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/099-recomendados-o8-o16-o21
-commit: e7bd8dfa34d20440c6f63764d7df1d4fea590046
+commit: 91043934dd4767310ae3bf81146bb8e5e7e6dec9
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-15
 ---
 # Review: recomendados do O21, O16 e O8 (E1.2; K-348, K-352, K-353)
 
-resultado: aprovado sobre e7bd8dfa, com dois recomendados e uma nota de integração.
+resultado: aprovado sobre 91043934; A1 e A2 resolvidos (revalidação ao fim). Aprovação anterior sobre e7bd8dfa.
 
 ## Achados
 - A1 (recomendado) server/tests/painel-real-f6.pg.test.ts:134 · o (d2) usa a regra antiga (tamanho na base inteira); com o K-359 (por tipo, entregues da janela) o `else` fica vermelho com cálculo certo. Passa hoje só porque o seed dá tamanho a toda story. Ver "O que foi lido".
@@ -37,3 +37,11 @@ Diff `204924b2...e7bd8dfa` (base `Base-sha` do brief): 10 arquivos.
 
 ## Parecer
 Aprovado sobre e7bd8dfa. O contrato aceita os dois estados que o K-359 produz e recusa o estado incoerente. Os três mutantes do superRefine morrem. A1 e A2 são recomendados (teste frágil e comentário), sem defeito provado no CI.
+
+## Revalidação (91043934)
+Delta lido (`forge-check parecer delta`, e7bd8dfa..91043934, sem o que veio da develop): `server/tests/painel-real-f6.pg.test.ts` (d2), `docs/api/metricas.md`, `CHANGELOG.md`, `o8.ts` (comentário e `tipoComTamanho`, vindos do K-359 na base).
+- A1: o (d2) deixou de contar `tamanho_declarado` na base inteira; afirma por tipo `porTamanho === null || length > 0` e `motivoPorTamanho` com o motivo exato só se nenhum tipo publica, nulo se algum publica. Segue a regra por tipo do K-359.
+- A2: o comentário agora diz que o seed dá tamanho e que o ramo sem tamanho é do (d3).
+- Merge com a develop: conflito do o8.ts e do CHANGELOG resolvido com as duas linhas, sem mudar o patch. `o8.test.ts` verde (3/3). CI do 91043934 verde (informado no brief). Não rodei o `.pg` (sem banco aqui).
+
+Aprovado sobre 91043934.
