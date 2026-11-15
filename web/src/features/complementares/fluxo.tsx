@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TIPOS_CARD, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras, marcaDoTipo } from '@/components/charts'
-import { AmostraInsuficiente, SeletorLocal, TabelaDados } from '@/components/ui'
+import { AmostraInsuficiente, EstadoSemDadoReal, SeletorLocal, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro, fmtMes, fmtNumero, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
@@ -180,14 +180,22 @@ export function CartaoO8({ filtros }: P) {
           {ok.length > 0 && (
             <ListaInsuficientes itens={faltam.map((t) => ({ rotulo: t.tipo, n: t.n }))} />
           )}
-          {ok.length > 0 && (
+          {d?.motivoPorTamanho != null && (
+            <>
+              <h4 className="text-sm font-semibold text-texto">Por tamanho declarado</h4>
+              <EstadoSemDadoReal codigo="O8-por-tamanho" motivo={d.motivoPorTamanho} />
+            </>
+          )}
+          {ok.length > 0 && d?.motivoPorTamanho == null && (
             <Barras
               descricao="Mediana do tempo em execução por tipo e tamanho declarado"
               unidade="dias úteis"
               formatar={(v) => fmtNumero(v, 1)}
               categorias={ok.map((t) => ({
                 rotulo: t.tipo,
-                valores: Object.fromEntries(t.porTamanho.map((p) => [p.tamanho, p.mediana])),
+                valores: Object.fromEntries(
+                  (t.porTamanho ?? []).map((p) => [p.tamanho, p.mediana]),
+                ),
               }))}
               series={['P', 'M', 'G', 'Sem tamanho'].map((t, i) => ({
                 chave: t,

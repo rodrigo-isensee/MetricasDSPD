@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { TEXTO_NOTA_S1 } from '@metricas-dspd/contratos'
 import { describe, expect, it } from 'vitest'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 import { fmtPrazo, fmtHU } from './formatar'
@@ -84,6 +85,32 @@ describe('S3 e S2 sem zero falso (pedido 069, L9-a)', () => {
       expect(within(s2).getByTestId('notas-cartao-S2')).toHaveTextContent(
         'Exceção de SLA por registro posterior sem fonte',
       ),
+    )
+  })
+})
+
+describe('S1 com a nota da Q-099-5b (pedido 099)', () => {
+  it('mostra no cartão o texto da nota que o resultado indica', async () => {
+    const fonte = Object.create(fonteDeTeste, {
+      obter: {
+        value: async (id: string, ...resto: unknown[]) => {
+          const r = await (
+            fonteDeTeste.obter as (...a: unknown[]) => Promise<Record<string, unknown>>
+          )(id, ...resto)
+          const c = structuredClone(r)
+          if (id === 'S1') c.notas = ['primeiro-atendimento-inclui-automatica']
+          return c
+        },
+      },
+    }) as typeof fonteDeTeste
+    renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    await waitFor(
+      () =>
+        expect(within(s1).getByTestId('notas-cartao-S1')).toHaveTextContent(
+          TEXTO_NOTA_S1['primeiro-atendimento-inclui-automatica'],
+        ),
+      { timeout: 8000 },
     )
   })
 })
