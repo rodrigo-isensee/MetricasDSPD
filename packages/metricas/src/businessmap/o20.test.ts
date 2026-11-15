@@ -127,6 +127,32 @@ describe('O20: fluxo cumulativo', () => {
     expect(r.destaque).toEqual({ faixa: 'Aguardando homologação', de: 0, para: 2 })
   })
 
+  it('base real: equipe com dois quadros soma a mesma coluna quadro a quadro e mantém a menor ordem', () => {
+    const semeada = naEquipe(umaBase([acumula('a1', '2026-09-29')]), 'equipe-a')
+    const noQuadro = (b: BaseBM, quadro: string, pref: string): BaseBM => ({
+      ...b,
+      colunas: b.colunas.map((c) => ({ ...c, quadro_id: quadro, equipe: 'Equipe A' })),
+      cards: b.cards.map((c) => ({ ...c, card_id: pref + c.card_id, quadro_id: quadro })),
+      transicoes: b.transicoes.map((t) => ({ ...t, card_id: pref + t.card_id })),
+    })
+    const um = noQuadro(semeada, '35', '')
+    const outro = noQuadro(semeada, '36', 'x-')
+    const dois: BaseBM = {
+      ...um,
+      colunas: [...um.colunas, ...outro.colunas],
+      cards: [...um.cards, ...outro.cards],
+      transicoes: [...um.transicoes, ...outro.transicoes],
+    }
+    const filtro = { ...F, equipe: ['equipe-a'] }
+    const r1 = calcularO20(ctxDe(um), filtro)
+    const r2 = calcularO20(ctxDe(dois), filtro)
+    expect(r2.faixas.map((x) => x.chave)).toEqual(r1.faixas.map((x) => x.chave))
+    expect(r2.faixas.map((x) => x.ordem)).toEqual(r1.faixas.map((x) => x.ordem))
+    expect(r2.dias.map((d) => d.contagens)).toEqual(
+      r1.dias.map((d) => d.contagens.map((v) => v * 2)),
+    )
+  })
+
   it('período custom de um só dia não útil (domingo): estado vazio, sem erro', () => {
     const base = umaBase([constante('k1'), entraNoPeriodo('k2')])
     const r = calcularO20(ctxDe(base), {
