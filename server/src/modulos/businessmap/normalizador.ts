@@ -2,7 +2,7 @@ import {
   CALENDARIO_PADRAO, dataIso, instanteDeIso, ordenarNeutro,
 } from '@metricas-dspd/metricas/core';
 import { derivarMarcos, direcaoDaTransicao, type ColunaDoPasso, type Passo } from '@metricas-dspd/metricas/businessmap';
-import { TIPO_DA_CATEGORIA, type CategoriaTipoCard } from '@metricas-dspd/contratos';
+import { CLASSES_SERVICO, TIPO_DA_CATEGORIA, type CategoriaTipoCard, type FaseDeteccao } from '@metricas-dspd/contratos';
 import { COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
 import { vigenteEm } from './referencia.js';
 
@@ -57,6 +57,8 @@ export interface Referencia {
   camposLista: ReadonlyMap<string, string>;
   /** `priority` do card -> severidade (C8a, `ref_dominio campo = 'prioridade_severidade'`); ausente ou vazio = nenhuma severidade é projetada. */
   prioridades?: ReadonlyMap<string, string>;
+  /** `coluna_id` -> fase de detecção do bug (105, `ref_dominio campo = 'fase_deteccao_coluna'`); vazio ou ausente = nenhum bug tem fase. Usado pela projeção da fase, depois dos cards. */
+  fasesDeteccao?: ReadonlyMap<string, FaseDeteccao>;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -110,6 +112,20 @@ export interface LinhaDimCard {
   data_acordada: string | null;
   /** Entrega a que o bug pertence pelo vínculo do BusinessMap (pai e filho ou relacionado); nulo fora de bug ou sem vínculo com entrega (pedido 105, O18). */
   origem_bug: string | null;
+}
+
+/**
+ * Pedido 105 (E7.3, ADR 0020 4i): classe de serviço pela chave `classes_tag` do staging (classes das etiquetas do card, já reduzidas na fronteira).
+ * Sem a chave: nula (`classe_nao_lida`); lista vazia: nula (`classe_sem_tag`, nunca Padrão por omissão, Q-099-9); uma classe: ela; duas ou mais
+ * classes diferentes: nula (`classe_tag_empate`), o sistema não escolhe. Nota = contagem, nunca o valor.
+ */
+export function classeDeServicoDasTags(card: Record<string, unknown>, notas: string[]): string | null {
+  const v = card.classes_tag;
+  if (!Array.isArray(v)) { notas.push('classe_nao_lida'); return null; }
+  const classes = [...new Set(v.filter((c): c is string => typeof c === 'string' && (CLASSES_SERVICO as readonly string[]).includes(c)))];
+  if (classes.length === 0) { notas.push('classe_sem_tag'); return null; }
+  if (classes.length > 1) { notas.push('classe_tag_empate'); return null; }
+  return classes[0]!;
 }
 
 const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null])) as Record<(typeof COLUNAS_LISTA)[number], null>;
@@ -312,7 +328,9 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
-      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), origem_bug: origemBug, ...colunasDeLista(e.card, ref.camposLista, notas),
+      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), origem_bug: origemBug, ...colunasDeLista(e.card, ref.camposLista, notas), classe_servico: classeDeServicoDasTags(e.card, notas),
+      // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
+      fase_deteccao: null,
       ...(severidade === undefined ? {} : { severidade }),
     },
     transicoes, eventos, notas,

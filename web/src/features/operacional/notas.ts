@@ -95,7 +95,7 @@ export const NOTAS_OPERACIONAL: Record<
   O15: {
     oQueE: 'Distribuição dos bugs pela fase em que foram detectados.',
     comoSeCalcula:
-      'Contenção = bugs detectados antes da homologação sobre o total; escape = bugs em produção sobre o total.',
+      'Contenção = bugs detectados antes da homologação sobre o total; escape = bugs em produção sobre o total. A fase é a coluna do card da demanda quando o bug foi aberto. Fase com menos de 20 bugs não mostra contagem.',
     comoLer: 'Onde aparecem diz mais que quantos são.',
     meta: 'Elevar a contenção e reduzir o escape; não há meta sobre o volume de bugs internos.',
     cuidados:

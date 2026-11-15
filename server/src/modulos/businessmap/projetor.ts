@@ -8,7 +8,10 @@ import { lerCalendarioVigente } from '../referencia/index.js';
 import { COLUNAS_LISTA } from './allow-list.js';
 import { derivarBloqueios, type VersaoBloqueio } from './bloqueios.js';
 import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
-import { CAMPO_CUSTOMIZADO, CAMPO_MOTIVO_BLOQUEIO, CAMPO_PRIORIDADE_SEVERIDADE, colunasDosCampos, motivosDeLinhas, prioridadesDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
+import {
+  CAMPO_CUSTOMIZADO, CAMPO_FASE_DETECCAO_COLUNA, CAMPO_MOTIVO_BLOQUEIO, CAMPO_PRIORIDADE_SEVERIDADE, colunasDosCampos, fasesDeLinhas, motivosDeLinhas, prioridadesDeLinhas, type LinhaRefDominio,
+} from './dominio-businessmap.js';
+import { faseDeDeteccao, TIPOS_DE_BUG, type TransicaoDoPai } from './fase-deteccao.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
 import {
   agrupar, diaDe, instanteDoBm, noDia, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
@@ -53,6 +56,8 @@ export interface ResultadoProjecao {
   /** Por motivo, a quantidade de cards (nunca id de card nem valor). */
   notas: Record<string, number>;
   responsaveisGravados: number;
+  /** 105: bugs cuja fase de detecção mudou (primeira carga ou troca de linha da tabela) e foi gravada. */
+  fasesDeteccaoGravadas: number;
 }
 
 type Valor = string | number | boolean | Date | readonly string[] | null;
@@ -71,6 +76,8 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
   const campos = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_CUSTOMIZADO]);
   // C8a: mapa `priority` -> severidade, vigente, validado de novo; sem linhas, nenhuma severidade é projetada
   const prioridades = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_PRIORIDADE_SEVERIDADE]);
+  // 105 (E7.5): tabela coluna -> fase de detecção do bug, vigente, validada de novo; sem linhas, nenhum bug tem fase
+  const fases = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_FASE_DETECCAO_COLUNA]);
   return {
     colunas: agrupar(colunas, (c) => `${c.quadro_id}|${c.coluna_id}`),
     workflows: agrupar(workflows, (w) => `${w.quadro_id}|${w.workflow_id}`),
@@ -79,6 +86,7 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
     tipos: agrupar(tipos, (t) => t.tipo_id),
     camposLista: colunasDosCampos(campos),
     prioridades: prioridadesDeLinhas(prioridades),
+    fasesDeteccao: fasesDeLinhas(fases),
   };
 }
 
@@ -247,6 +255,8 @@ async function projetarLote(
   for (const { stg: l, p } of projetados) {
     const atual = atuais.get(l.id_origem);
     const dim = p.dim as unknown as Record<string, unknown>;
+    // 105: a fase de detecção é projetada depois (`projetarFasesDeteccao`); aqui o valor já gravado na versão vigente passa adiante, sem sobrescrever a história
+    p.dim.fase_deteccao = typeof atual?.fase_deteccao === 'string' ? atual.fase_deteccao : null;
     if (atual !== undefined && COLUNAS_VERSAO.every((c) => IGUAIS(atual[c], dim[c]))) continue;
     // vigente_de é o instante da coleta que viu a versão; nunca anterior nem igual à versão que ela substitui (a chave é card e vigente_de)
     const minimo = atual === undefined ? 0 : new Date(atual.vigente_de).getTime() + 1;
@@ -259,7 +269,7 @@ async function projetarLote(
   // dim_card: projeção, refeita por card (a história fica no staging e em dim_card_versao); `responsaveis` nunca vem do staging
   await db.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [ok]);
   const COLUNAS_DIM = ['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em', 'motivo_descarte', 'titulo',
-    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'origem_bug', ...COLUNAS_LISTA] as const;
+    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico', 'fase_deteccao', 'origem_bug', ...COLUNAS_LISTA] as const;
   await inserir(db, `${S.bm}.dim_card`, [...COLUNAS_DIM, 'responsaveis', 'coletado_em', 'atualizado_por_coleta_id'],
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
 
@@ -269,6 +279,58 @@ async function projetarLote(
     if (r === undefined || r === null) continue;
     const g = await gravarResponsaveis(db, { cardId: l.id_origem, responsaveis: [...r], stgCardSk: l.stg_sk, vigenteDe: inicio, coletaId, agora: inicio }, S);
     if (g.versao || g.dimCard) acc.responsaveisGravados += 1;
+  }
+}
+
+type LinhaBug = { card_id: string; tipo: string | null; card_pai: string | null; criado_em: Date; fase_deteccao: string | null };
+
+/**
+ * 105 (E7.5): fase de detecção dos bugs, DEPOIS de todos os lotes (o pai pode estar em outro lote). Para cada bug (e cada card que já tem fase), a coluna do pai na criação do
+ * bug pela tabela `fase_deteccao_coluna` (regra em `faseDeDeteccao`). Só escreve o que mudou: `dim_card.fase_deteccao` por UPDATE e uma versão nova em `dim_card_versao`
+ * (cópia da vigente com a fase nova); nunca apaga nem altera versão existente, então o histórico fica. Sem tabela carregada nada é escrito. Notas só com contagem.
+ */
+export async function projetarFasesDeteccao(db: Consultavel, S: Esquemas, ref: Referencia, coletaId: number, inicio: Date, acc: ResultadoProjecao): Promise<void> {
+  const mapa = ref.fasesDeteccao ?? new Map();
+  if (mapa.size === 0) return;
+  const bugs = await linhas<LinhaBug>(db,
+    `SELECT card_id, tipo, card_pai, criado_em, fase_deteccao FROM ${S.bm}.dim_card WHERE tipo = ANY($1::text[]) OR fase_deteccao IS NOT NULL`, [[...TIPOS_DE_BUG]]);
+  const paisIds = [...new Set(bugs.flatMap((b) => (b.card_pai === null ? [] : [b.card_pai])))];
+  const pais = new Map<string, { concluidoEm: Date | null; colunaAtualId: string | null; transicoes: TransicaoDoPai[] }>();
+  for (let i = 0; i < paisIds.length; i += TAMANHO_LOTE) {
+    const lote = paisIds.slice(i, i + TAMANHO_LOTE);
+    for (const p of await linhas<{ card_id: string; concluido_em: Date | null; coluna_atual_id: string | null }>(db,
+      `SELECT card_id, concluido_em, coluna_atual_id FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [lote])) {
+      pais.set(p.card_id, { concluidoEm: p.concluido_em === null ? null : new Date(p.concluido_em), colunaAtualId: p.coluna_atual_id, transicoes: [] });
+    }
+    for (const t of await linhas<{ card_id: string; coluna_origem_id: string | null; coluna_destino_id: string; ocorrido_em: Date }>(db,
+      `SELECT card_id, coluna_origem_id, coluna_destino_id, ocorrido_em FROM ${S.bm}.fato_transicao WHERE fonte = 'revision' AND card_id = ANY($1::text[])`, [lote])) {
+      pais.get(t.card_id)?.transicoes.push({ origem: t.coluna_origem_id, destino: t.coluna_destino_id, em: new Date(t.ocorrido_em) });
+    }
+  }
+  const porColuna = agrupar([...ref.colunas.values()].flat(), (c) => c.coluna_id);
+  const mudancas: { card_id: string; fase: string | null }[] = [];
+  for (const b of bugs) {
+    const criadoEm = new Date(b.criado_em);
+    const papelDe = (coluna: string): string | null => noDia(porColuna.get(coluna), diaDe(criadoEm.getTime()), [])?.papel ?? null;
+    // quem não é bug (ficou com fase de uma regra anterior) volta a não ter fase, sem nota
+    const ehBug = b.tipo !== null && (TIPOS_DE_BUG as readonly string[]).includes(b.tipo);
+    const r = ehBug ? faseDeDeteccao({ criadoEm, cardPai: b.card_pai }, b.card_pai === null ? undefined : pais.get(b.card_pai), mapa, papelDe) : { fase: null, nota: null };
+    if (r.nota !== null) acc.notas[r.nota] = (acc.notas[r.nota] ?? 0) + 1;
+    if (r.fase !== b.fase_deteccao) mudancas.push({ card_id: b.card_id, fase: r.fase });
+  }
+  for (const m of mudancas) {
+    await db.query(`UPDATE ${S.bm}.dim_card SET fase_deteccao = $2, atualizado_por_coleta_id = $3 WHERE card_id = $1 AND fase_deteccao IS DISTINCT FROM $2`, [m.card_id, m.fase, coletaId]);
+    const colunas = COLUNAS_VERSAO.join(', ');
+    const copia = COLUNAS_VERSAO.map((c) => (c === 'fase_deteccao' ? '$3::text' : `v.${c}`)).join(', ');
+    await db.query(
+      `INSERT INTO ${S.bm}.dim_card_versao (card_id, vigente_de, stg_card_sk, ${colunas}, responsaveis, coletado_em, coleta_id)
+       SELECT v.card_id, greatest($2::timestamptz, v.vigente_de + interval '1 millisecond'), v.stg_card_sk, ${copia}, v.responsaveis, $2::timestamptz, $4
+       FROM ${S.bm}.dim_card_versao v
+       WHERE v.card_id = $1 AND v.fase_deteccao IS DISTINCT FROM $3::text
+         AND v.vigente_de = (SELECT max(vigente_de) FROM ${S.bm}.dim_card_versao WHERE card_id = $1)
+       ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING`,
+      [m.card_id, inicio, m.fase, coletaId]);
+    acc.fasesDeteccaoGravadas += 1;
   }
 }
 
@@ -286,7 +348,7 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
     const coletaId = Number(ctl.rows[0]!.coleta_id);
     const acc: ResultadoProjecao = {
       coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, bloqueios: { lidos: 0, inseridos: 0 }, fatosBloqueio: { lidos: 0, inseridos: 0 }, notas: {},
-      responsaveisGravados: 0,
+      responsaveisGravados: 0, fasesDeteccaoGravadas: 0,
     };
     if (d.reconstruir === true) for (const t of TABELAS_LIMPAS_NA_RECONSTRUCAO) await db.query(`DELETE FROM ${S.bm}.${t}`);
     const ref = await carregarReferencia(db, S);
@@ -299,6 +361,7 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
       await projetarLote(db, S, ids, ref, d, coletaId, inicio, acc, ctx);
       depois = ids[ids.length - 1]!;
     }
+    await projetarFasesDeteccao(db, S, ref, coletaId, inicio, acc);
     const contagem = async (entidade: string, lidos: number, inseridos: number, falhas: number): Promise<void> => {
       await db.query(
         `INSERT INTO ${S.bm}.ctl_coleta_contagem (coleta_id, entidade, lidos, inseridos, ja_existentes, falhas) VALUES ($1, $2, $3, $4, $5, $6)`,

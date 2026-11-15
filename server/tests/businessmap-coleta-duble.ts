@@ -13,7 +13,7 @@ export interface Cenario {
   porPagina: number;
   /** `user_id` -> objeto completo que a API devolve (com e-mail, `attributes` etc.). */
   users: Record<string, Record<string, unknown>>;
-  /** `quadro|estado` ou `users` -> status HTTP forçado. */
+  /** `quadro|estado`, `users` ou `tags` -> status HTTP forçado. */
   status: Record<string, number>;
   /** Corpos por caminho (referência: estrutura, workflows, tipos). */
   corpos: Record<string, unknown>;
@@ -101,7 +101,9 @@ export async function subirServidorBm(cenario: Cenario = cenarioVazio()): Promis
       // a API devolve o objeto inteiro (com `attributes`), mesmo com `fields`
       return enviar(200, { data: ids.flatMap((i) => (cenario.users[i] === undefined ? [] : [cenario.users[i]])) });
     }
-    const corpo = cenario.corpos[u.pathname];
+    // pedido 105 (E7.3): o catálogo de etiquetas é lido antes dos cards; sem corpo no cenário, a conta não tem etiqueta
+    if (u.pathname === '/tags' && cenario.status.tags !== undefined) return enviar(cenario.status.tags, {});
+    const corpo = cenario.corpos[u.pathname] ?? (u.pathname === '/tags' ? { data: [] } : undefined);
     return enviar(corpo === undefined ? 404 : 200, corpo ?? {});
   });
   await new Promise<void>((ok) => server.listen(0, '127.0.0.1', ok));

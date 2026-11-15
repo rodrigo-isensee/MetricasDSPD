@@ -8353,7 +8353,16 @@
                                 ]
                               },
                               "contagem": {
-                                "type": "number"
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               }
                             },
                             "required": [
@@ -8363,6 +8372,11 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "bugsSemFase": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         },
                         "contencao": {
                           "oneOf": [
@@ -8654,6 +8668,7 @@
                         "base",
                         "criterios",
                         "fases",
+                        "bugsSemFase",
                         "contencao",
                         "escape",
                         "serieMensal"
@@ -10733,9 +10748,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -19315,9 +19330,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -19937,9 +19952,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "sle": {
@@ -21015,9 +21030,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -23837,9 +23852,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {

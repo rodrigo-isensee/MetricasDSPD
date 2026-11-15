@@ -19,7 +19,7 @@ export const NOTAS_TATICO = {
       'Um prazo por classe, não um prazo único; o mapa indica em que etapa o tempo se perdeu.',
     meta: '85% por classe.',
     cuidados:
-      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe.',
+      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe. A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a classe passou a vir da etiqueta do cartão.',
   },
   T3: {
     oQueE: 'Distribuição das entregas por natureza do trabalho contra o acordo.',

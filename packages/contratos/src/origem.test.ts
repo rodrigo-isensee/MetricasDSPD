@@ -49,6 +49,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['O20'], // pedido 099 (lote A2)
         ...['O25'], // pedido 099 (lote A3)
+        ...['O24'], // pedido 105 (E7.3): classe de serviço pelas etiquetas
         ...['O21'], // pedido 099 (lote A1)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
@@ -60,6 +61,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O16'], // pedido 099 (lote C8)
         ...['S5', 'S6', 'S7'], // pedido 105 (D2): só os cinco fluxos do PROC
         ...['O12'], // pedido 099 (E3.223)
+        ...['O15'], // pedido 105 (E7.5)
         ...['O18'], // pedido 105 (E7.4)
       ].sort(),
     )
@@ -93,8 +95,14 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O14 e O15', () => {
-    for (const id of ['O14', 'O15'] as const) {
+  it('O15 é real pela fase de detecção (pedido 105, E7.5), sem motivo de mock', () => {
+    expect(METRICAS_ORIGEM_REAL.has('O15')).toBe(true)
+    expect(origemDaMetrica('O15')).toBe('real')
+    expect(motivoDaOrigemSemDado('O15')).toBeNull()
+  })
+
+  it('é sem dado, com o motivo, para O14', () => {
+    for (const id of ['O14'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
@@ -138,7 +146,7 @@ describe('notas de cartão', () => {
   it('O6 e o SLE (T2) levam a nota de classe; todo id de nota tem texto', () => {
     expect(NOTAS_FIXAS_DO_CARTAO.O6).toEqual(['sem-classe'])
     expect(NOTAS_FIXAS_DO_CARTAO.T2).toEqual(['sem-classe'])
-    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain('Sem separação por classe')
+    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain('sem etiqueta de classe de serviço')
     expect(TEXTO_NOTA_CARTAO['sle-nao-definido']).toBe('SLE não definido.')
     expect(notaCartaoIdSchema.safeParse('outra').success).toBe(false)
   })

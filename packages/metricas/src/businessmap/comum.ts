@@ -101,7 +101,12 @@ export const baseAmostral = (
 export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ctx: ContextoBM) =>
   criteriosDe(id, serie, janela, ctx.criterios)
 
-export const CLASSES_T: readonly ClasseServico[] = ['Urgente', 'Prazo fixo', 'Padrão', 'Intangível']
+export const CLASSES_T: readonly ClasseServico[] = [
+  'Urgente',
+  'Prioritário',
+  'Prazo fixo',
+  'Padrão',
+]
 export const r2 = (v: number): number => Math.round(v * 100) / 100
 
 /**

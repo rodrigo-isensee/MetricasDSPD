@@ -218,6 +218,19 @@ export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
 }
 
 /**
+ * Pedido 105 (E7.5, decisão do dono de 2026-11-15): o O15 passou de "Sem dado real" para dado real. A fase de detecção do bug é a coluna em que
+ * estava o card da demanda (o pai do bug, vínculo parent e child) quando o bug foi criado, pela tabela coluna para fase aprovada (`fase_deteccao_coluna`);
+ * só entram os bugs com pai na base. Data do PR (a do merge corrige se escorregar): o dono confirma a da primeira projeção com a tabela.
+ */
+export const VERSAO_CRITERIO_O15_FASE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-o15-fase-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O15 passou a ser calculado com a fase em que o bug foi encontrado: a coluna do card da demanda (pai do bug) na abertura do bug, pela tabela coluna para fase aprovada; só entram os bugs com pai na base, com a nota de quantos ficaram fora; cada fase só publica a contagem com 20 bugs ou mais',
+  afeta: ['O15'],
+}
+
+/**
  * Pedido 105 (D2): o campo "Prioridade ajustada manualmente?" passa a alimentar o S3 (`ajustesManuais`) e o S7; só "Sim" conta, e a coleta não
  * separa "Não" de campo vazio. Antes o S3 publicava `ajustesManuais: null` e o S7 não tinha dado real.
  */
@@ -273,6 +286,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
   VERSAO_CRITERIO_S1_DADO_REAL,
+  VERSAO_CRITERIO_O15_FASE_DADO_REAL,
   VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
   VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
   VERSAO_CRITERIO_O18_VINCULOS,

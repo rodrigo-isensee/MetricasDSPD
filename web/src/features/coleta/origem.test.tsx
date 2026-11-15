@@ -78,10 +78,16 @@ function ocultarTudo(painel: 'operacional') {
 
 describe('origem do cartão (pedido 060)', () => {
   it('com a API real, cartão cuja métrica é mock no contrato está sem dado real, com o motivo, e nunca é fictício', () => {
-    expect(origemDoCartao('O15', 'api')).toEqual({
+    expect(origemDoCartao('O14', 'api')).toEqual({
       ficticio: false,
       semDadoReal: true,
       motivo: 'aguardando campo no quadro',
+    })
+    // Pedido 105 (E7.5): o O15 é real pela fase de detecção.
+    expect(origemDoCartao('O15', 'api')).toEqual({
+      ficticio: false,
+      semDadoReal: false,
+      motivo: null,
     })
     // Pedido 099 (E3.223): o O12 é real pelo prazo do card; a parte de responsabilidade é dita dentro do cartão.
     expect(origemDoCartao('O12', 'api')).toEqual({
@@ -162,21 +168,21 @@ describe('origem do cartão (pedido 060)', () => {
 })
 
 describe('painel com API real: estado "Sem dado real" por cartão e nota do cabeçalho', () => {
-  it('O15 mostra Sem dado real e o motivo, sem número nem selo fictício; O2 segue com dado; o cabeçalho conta', async () => {
-    renderizarApp('/operacional?cadencia=semanal', fonteApi())
+  it('O14 mostra Sem dado real e o motivo, sem número nem selo fictício; O2 segue com dado; o cabeçalho conta', async () => {
+    renderizarApp('/operacional?cadencia=semanal#o14', fonteApi())
     const nota = await screen.findByTestId('nota-sem-dado-real-operacional')
     const n = contarSemDadoReal('operacional', 'api')
     expect(nota).toHaveTextContent(`${n} cartões sem dado real`)
-    const o12 = await screen.findByTestId('metrica-O15')
-    const estado = await within(o12).findByTestId('estado-sem-dado-real-O15')
+    const o12 = await screen.findByTestId('metrica-O14')
+    const estado = await within(o12).findByTestId('estado-sem-dado-real-O14')
     expect(estado).toHaveTextContent('Sem dado real')
-    expect(within(o12).getByTestId('motivo-sem-dado-real-O15')).toHaveTextContent(
+    expect(within(o12).getByTestId('motivo-sem-dado-real-O14')).toHaveTextContent(
       'Motivo: aguardando campo no quadro',
     )
     expect(o12).toHaveAttribute('data-estado', 'sem-dado-real')
     expect(within(o12).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
-    expect(within(o12).queryByTestId('leitura-O15')).not.toBeInTheDocument()
-    expect(within(o12).queryByTestId('base-O15')).not.toBeInTheDocument()
+    expect(within(o12).queryByTestId('leitura-O14')).not.toBeInTheDocument()
+    expect(within(o12).queryByTestId('base-O14')).not.toBeInTheDocument()
     const o3 = await screen.findByTestId('metrica-O3')
     expect(within(o3).queryByTestId('estado-sem-dado-real-O3')).not.toBeInTheDocument()
   })
@@ -202,12 +208,12 @@ describe('painel com API real: estado "Sem dado real" por cartão e nota do cabe
   })
 
   it('acessibilidade: o estado e a nota dizem em texto, com ícone decorativo (nunca só cor)', async () => {
-    renderizarApp('/operacional?cadencia=semanal', fonteApi())
+    renderizarApp('/operacional?cadencia=semanal#o14', fonteApi())
     const nota = await screen.findByTestId('nota-sem-dado-real-operacional')
     expect(nota.textContent.trim()).toMatch(/cartões sem dado real$/)
     expect(nota.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
-    const o15 = await screen.findByTestId('metrica-O15')
-    const estado = await within(o15).findByTestId('estado-sem-dado-real-O15')
+    const o15 = await screen.findByTestId('metrica-O14')
+    const estado = await within(o15).findByTestId('estado-sem-dado-real-O14')
     expect(estado.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
     expect(estado).toHaveTextContent('Sem dado real')
     expect(estado).toHaveTextContent('aguardando campo no quadro')
@@ -278,7 +284,7 @@ describe('notas no cartão (H-15 e H-24)', () => {
   it('O6 mostra "sem separação por classe" pelo texto do contrato', () => {
     cartao('O6')
     expect(screen.getByTestId('notas-cartao-O6')).toHaveTextContent(
-      'Sem separação por classe até o quadro ter o campo.',
+      'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
     )
   })
 
