@@ -25,6 +25,7 @@
     "bm:spike": "tsx src/entradas/spike-businessmap.ts",
     "bm:coleta": "tsx src/entradas/coleta-businessmap.ts",
     "bm:projetar": "tsx src/entradas/projetor-businessmap.ts",
+    "bm:d1-comment": "tsx src/entradas/d1-comentario-businessmap.ts",
     "bm:apontamento": "tsx src/entradas/apontamento-businessmap.ts",
     "bm:eliminar-pessoa": "tsx src/entradas/eliminar-pessoa-apontamento.ts",
     "bm:ref-sync": "tsx src/entradas/ref-sync-businessmap.ts",

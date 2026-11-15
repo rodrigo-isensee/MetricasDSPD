@@ -275,6 +275,19 @@ describe('achados: `valores` é união discriminada por `codigo` (chaves do docu
       ).toBe(true)
   })
 
+  it('concentracao-em-projeto: `horasSemProjeto` é opcional, em horas, nunca negativa (097, K-324)', () => {
+    const t = (valores: Record<string, unknown>) =>
+      achadoApontamentoSchema.safeParse({
+        codigo: 'concentracao-em-projeto',
+        valores,
+        rotuloRef: 'Projeto A',
+      }).success
+    expect(t({ pct: 77, horasSemProjeto: 12.5 })).toBe(true)
+    expect(t({ pct: 77, horasSemProjeto: 0 })).toBe(true)
+    expect(t({ pct: 77, horasSemProjeto: -1 })).toBe(false)
+    expect(t({ horasSemProjeto: 3 })).toBe(false)
+  })
+
   it('chave faltando, sobrando ou de outro código é recusada', () => {
     for (const codigo of CODIGOS_ACHADO) {
       const bom = casos[codigo]
