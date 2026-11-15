@@ -204,6 +204,30 @@ export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
   afeta: ['S1'],
 }
 
+/**
+ * Pedido 105 (D2): o campo "Prioridade ajustada manualmente?" passa a alimentar o S3 (`ajustesManuais`) e o S7; só "Sim" conta, e a coleta não
+ * separa "Não" de campo vazio. Antes o S3 publicava `ajustesManuais: null` e o S7 não tinha dado real.
+ */
+export const VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-ajuste-prioridade-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O ajuste manual de prioridade passou a vir do campo "Prioridade ajustada manualmente?" do Acelerato (só "Sim" conta; "Não" e campo vazio não se separam), no S3 e no S7',
+  afeta: ['S3', 'S7'],
+}
+
+/**
+ * Pedido 105 (D2, P1 a P3 do dono): S5, S6 e S7 passam a ter dado real, só dos cinco fluxos do PROC; os motivos gravados entram por de-para só
+ * dos pares óbvios (caixa e vírgula) e o preenchido sem par vira a faixa "Outro", separada de "Não informado".
+ */
+export const VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-motivos-proc-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'S5, S6 e S7 passaram a ser calculados com o dado real do Acelerato, só dos cinco fluxos do PROC; motivo sem par no domínio vira "Outro", separado de "Não informado"',
+  afeta: ['S5', 'S6', 'S7'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -222,6 +246,8 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_S12_VOLUME_REAL,
   VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
   VERSAO_CRITERIO_S1_DADO_REAL,
+  VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
 ]
 
 /**

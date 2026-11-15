@@ -4,7 +4,7 @@
  * Não calcula nada: não soma, não refaz percentil, não muda `n`. É publicação, como a H-24.
  */
 import { DATA_BLOQUEIO_COM_DADO_REAL } from '@metricas-dspd/metricas';
-import type { MetricaId, NotaS12Id, NotaS1Id, NotaSustentacaoId } from '@metricas-dspd/contratos';
+import type { MetricaId, NotaMotivosId, NotaS12Id, NotaS1Id, NotaSustentacaoId } from '@metricas-dspd/contratos';
 
 const NOTA_S12: NotaS12Id = 'excecao-sla-s12-sem-fonte';
 const NOTA_S1: NotaS1Id = 'primeiro-atendimento-inclui-automatica';
@@ -40,8 +40,34 @@ export function semParteDeAjusteDePrioridade(id: MetricaId, resultado: unknown):
     return comNotaSust({ ...r, meses }, 'ajuste-prioridade-sem-dado-real');
   }
   // Pedido 077, L6a: a tendência de SLA herda a ressalva do S2, nas mesmas condições.
-  if (id === 'S2' || id === 'TENDENCIA_SUST') return comNotaSust(r, 'excecao-sla-sem-fonte');
+  return comNotaExcecaoSlaSemFonte(id, resultado);
+}
+
+/**
+ * Nota do S2 e da tendência da sustentação: a exceção de SLA por registro posterior não tem fonte, então todo chamado fechado conta como apurável.
+ * Independe do ajuste de prioridade (pedido 105, D2: o interruptor do ajuste ligou e esta ressalva continua). Só publicação.
+ */
+export function comNotaExcecaoSlaSemFonte(id: MetricaId, resultado: unknown): unknown {
+  if (id === 'S2' || id === 'TENDENCIA_SUST') return comNotaSust(resultado as Linha, 'excecao-sla-sem-fonte');
   return resultado;
+}
+
+const comNotaMotivos = (r: Linha, nota: NotaMotivosId): Linha => {
+  const atuais = (r.notas as NotaMotivosId[] | undefined) ?? [];
+  return { ...r, notas: atuais.includes(nota) ? atuais : [...atuais, nota] };
+};
+
+/**
+ * Pedido 105 (D2): o S5 real não tem fonte para "Risco de estouro de SLA" (o campo do Acelerato não traz o valor): a faixa sai com n = 0 e a nota
+ * diz por quê. Em todo S5 real, com ou sem amostra. Só publicação: nada é recalculado.
+ */
+export function comNotaS5SemRisco(id: MetricaId, resultado: unknown): unknown {
+  return id === 'S5' ? comNotaMotivos(resultado as Linha, 's5-risco-sla-sem-fonte') : resultado;
+}
+
+/** Pedido 105 (D2): o S7 real não separa "Não" de campo vazio no ajuste de prioridade; a nota vai em todo S7 real. Só publicação. */
+export function comNotaS7NaoIgualVazio(id: MetricaId, resultado: unknown): unknown {
+  return id === 'S7' ? comNotaMotivos(resultado as Linha, 's7-nao-igual-vazio') : resultado;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -54,7 +54,7 @@ const ALVOS = [
   ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
 ].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean };
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -63,6 +63,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
     const x = c.texto;
     if (!x.includes('r_dspd')) return doSeed(c);
     if (x.includes('FROM r_dspd_ac.dim_chamado')) return o.chamados ?? [];
+    if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
     if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
     if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z')]);
@@ -178,7 +179,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(d.chamadas).toHaveLength(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; S5, S6, S7, S11 e EI_SUST respondem sem dado real; nunca o seed', async () => {
+  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; S11 e EI_SUST respondem sem dado real; S5, S6 e S7 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
     for (const id of ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
@@ -190,7 +191,13 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
-    for (const id of ['S5', 'S6', 'S7', 'S11', 'EI_SUST'] as MetricaId[]) {
+    for (const id of ['S5', 'S6', 'S7'] as MetricaId[]) {
+      expect(origemDaMetrica(id), id).toBe('real');
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.json(), id).toEqual({ estado: 'sem-dado-real', metrica: id, motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS });
+    }
+    for (const id of ['S11', 'EI_SUST'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -518,14 +525,45 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
   const NOTA_S2 = 'excecao-sla-sem-fonte';
   const mock = async () => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(seed)).pool, agora: () => AGORA, nivelLog: 'silent' });
 
-  it('L1: S3 real sai com ajustesManuais null em todo mês, com a nota, e valida no contrato', async () => {
-    const { app } = await montar({ chamados: [chamado('1'), chamado('2')] });
-    const r = (await app.inject('/api/v1/metricas/S3')).json() as { notas: string[]; meses: { ajustesManuais: unknown; total: number }[] };
-    expect(r.notas).toEqual([NOTA_S3]);
+  it('L1 (pedido 105, D2): com o campo na fonte, o S3 real publica o número de ajustes manuais, sem a nota de sem dado real, e valida no contrato', async () => {
+    const { app } = await montar({ chamados: [chamado('1', { prioridade_ajustada_manualmente: true }), chamado('2')] });
+    const r = (await app.inject('/api/v1/metricas/S3')).json() as { notas?: string[]; meses: { ajustesManuais: number | null; total: number }[] };
+    expect(r.notas ?? []).not.toContain(NOTA_S3);
     expect(r.meses.length).toBeGreaterThan(0);
-    for (const m of r.meses) expect(m.ajustesManuais).toBeNull();
+    for (const m of r.meses) expect(typeof m.ajustesManuais).toBe('number');
+    expect(r.meses.reduce((a, m) => a + (m.ajustesManuais ?? 0), 0)).toBe(1);
     expect(r.meses.some((m) => m.total > 0)).toBe(true);
     expect(SCHEMAS_RESULTADO.S3.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('D2 (pedido 105): S5, S6 e S7 reais com os fluxos do PROC carregados: fora do fluxo contado, Outro separado de Não informado, notas e contrato', async () => {
+    const PROC = ['SSVO - INCIDENTE'];
+    const fechados = Array.from({ length: 24 }, (_, i) => chamado(`F${i}`, {
+      fluxo: i < 21 ? 'SSVO - INCIDENTE' : 'SSSC - INCIDENTE', status: 'Concluído', data_finalizado: new Date('2026-09-25T12:00:00Z'), nivel_resolucao: 'N2',
+      motivo_escalacao: i % 3 === 0 ? 'Múltiplos sistemas ou dependências' : i % 3 === 1 ? 'valor novo' : null,
+      motivo_encerramento: i % 3 === 0 ? 'Contorno Aplicado' : i % 3 === 1 ? 'Não é Problema' : null,
+      prioridade_ajustada_manualmente: i % 4 === 0,
+    }));
+    const { app } = await montar({ chamados: fechados, fluxosProc: PROC });
+    const get = async (id: string) => (await app.inject(`/api/v1/metricas/${id}`)).json() as Record<string, unknown> & { motivos: { motivo: string; n: number }[] };
+    const s5 = await get('S5');
+    expect(SCHEMAS_RESULTADO.S5.safeParse(s5).success).toBe(true);
+    expect(s5.foraDoFluxo).toBe(3);
+    expect(s5.notas).toEqual(['s5-risco-sla-sem-fonte']);
+    expect(s5.motivos.find((m) => m.motivo === 'Outro')?.n).toBe(7);
+    expect(s5.motivos.find((m) => m.motivo === 'Risco de estouro de SLA')?.n).toBe(0);
+    expect(s5.naoInformado).toBe(7);
+    const s6 = await get('S6');
+    expect(SCHEMAS_RESULTADO.S6.safeParse(s6).success).toBe(true);
+    expect(s6.foraDoFluxo).toBe(3);
+    expect(s6.motivos.find((m) => m.motivo === 'Contorno aplicado')?.n).toBe(7);
+    expect(s6.motivos.find((m) => m.motivo === 'Outro')?.n).toBe(7);
+    expect(s6.naoInformado).toBe(7);
+    const s7 = await get('S7');
+    expect(SCHEMAS_RESULTADO.S7.safeParse(s7).success).toBe(true);
+    expect(s7.foraDoFluxo).toBe(3);
+    expect(s7.notas).toEqual(['s7-nao-igual-vazio']);
+    expect((s7.ajusteDePrioridade as { totais: { total: number; ocorrencias: number } }).totais).toEqual({ total: 21, ocorrencias: 6 });
   }, 60_000);
 
   it('L2: S2 real traz a nota e o resto do resultado fica igual', async () => {

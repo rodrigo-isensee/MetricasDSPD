@@ -1,9 +1,10 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TEXTO_NOTA_S1 } from '@metricas-dspd/contratos'
 import { describe, expect, it } from 'vitest'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 import { fmtPrazo, fmtHU } from './formatar'
+import { NotaForaDoFluxo } from './components/comuns'
 
 /** A Sustentação está em calibração no cenário padrão (sem Dentro/Fora); estes casos exigem as metas avaliadas. */
 const SEM_CALIBRACAO = '/sustentacao?mock=sem-calibracao'
@@ -231,10 +232,10 @@ describe('painel Sustentação', () => {
     expect(within(el).queryByText(/ranking/i)).toBeNull()
   })
 
-  it('S5: cinco motivos do domínio fechado e alternador de evolução', async () => {
+  it('S5: cinco motivos do domínio fechado, a faixa Outro e alternador de evolução', async () => {
     const { el, roteador } = await cartao('S5')
     const t = within(el).getByTestId('tabela-S5-detalhe')
-    expect(within(t).getAllByRole('row')).toHaveLength(7) // cabeçalho + 5 motivos + "Não informado"
+    expect(within(t).getAllByRole('row')).toHaveLength(8) // cabeçalho + 5 motivos + "Outro" + "Não informado"
     expect(
       within(t).getByText(/Sem conhecimento técnico no N1 \(Foco da meta\)/),
     ).toBeInTheDocument()
@@ -242,15 +243,16 @@ describe('painel Sustentação', () => {
     expect(roteador.state.location.search).toContain('s5=evolucao')
   })
 
-  it('S6: exatamente cinco motivos (a vírgula faz parte do rótulo), "Não informado" à parte e taxa de contorno', async () => {
+  it('S6: cinco motivos (a vírgula faz parte do rótulo), "Outro" e "Não informado" à parte e taxa de contorno', async () => {
     const { el } = await cartao('S6')
     const t = within(el).getByTestId('tabela-S6-detalhe')
     const linhas = within(t).getAllByRole('row').slice(1)
-    expect(linhas).toHaveLength(6)
+    expect(linhas).toHaveLength(7) // 5 motivos + "Outro" + "Não informado"
     expect(
       within(t).getByRole('row', { name: /Reclassificado, não é incidente/ }),
     ).toBeInTheDocument()
     expect(within(t).getByRole('row', { name: /Não informado/ })).toBeInTheDocument()
+    expect(within(t).getByRole('row', { name: /^Outro/ })).toBeInTheDocument()
     expect(within(el).getByTestId('s6-taxa-contorno')).toHaveTextContent('Taxa de contorno')
   })
 
@@ -306,5 +308,19 @@ describe('faixa "Pede atenção" nos três estados (K-047)', () => {
     })
     expect(screen.queryByTestId('faixa-atencao-carregando')).not.toBeInTheDocument()
     expect(screen.queryByTestId('faixa-atencao-erro')).not.toBeInTheDocument()
+  })
+})
+
+describe('nota de fora do fluxo (pedido 105, D2)', () => {
+  it('mostra quantos chamados de outros fluxos ficaram fora, no singular e no plural, e some com zero', () => {
+    const { rerender } = render(<NotaForaDoFluxo n={1} testid="nota" />)
+    expect(screen.getByTestId('nota')).toHaveTextContent('1 chamado de outro fluxo ficou fora')
+    rerender(<NotaForaDoFluxo n={1234} testid="nota" />)
+    expect(screen.getByTestId('nota')).toHaveTextContent(
+      /1\.234 chamados de outros fluxos ficaram fora/,
+    )
+    expect(screen.getByTestId('nota')).toHaveTextContent('cinco fluxos do PROC')
+    rerender(<NotaForaDoFluxo n={0} testid="nota" />)
+    expect(screen.queryByTestId('nota')).toBeNull()
   })
 })

@@ -1,3 +1,5 @@
+import { MOTIVO_FLUXOS_PROC_NAO_CARREGADOS } from '@metricas-dspd/contratos';
+import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -12,7 +14,9 @@ import { poolDe, url } from './pg/ctx.js';
 const d = describe.skipIf(!url);
 const AGORA = new Date('2026-10-10T15:00:00Z');
 const REAIS = ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as const;
-const MOCK = ['S5', 'S6', 'S7', 'S11', 'EI_SUST'] as const;
+const MOCK = ['S11', 'EI_SUST'] as const;
+/** Pedido 105 (D2): reais só dos cinco fluxos do PROC; sem a lista em `ref_dominio` (campo `fluxo_proc`) respondem sem dado real com o motivo. */
+const PROC = ['S5', 'S6', 'S7'] as const;
 
 d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
   const base = gerarBaseMock({ escala: 0.15 });
@@ -51,6 +55,11 @@ d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
       expect(dep.statusCode, id).toBe(200);
       expect(dep.body, `${id} deveria ter mudado ao esvaziar a base real`).not.toBe(corpoAntes[id]);
     }
+    for (const id of PROC) {
+      const b = await duas.inject(`/api/v1/metricas/${id}`);
+      expect(b.statusCode, id).toBe(200);
+      expect(b.json(), id).toEqual({ estado: 'sem-dado-real', metrica: id, motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS });
+    }
     for (const id of MOCK) {
       const a = await unica.inject(`/api/v1/metricas/${id}`);
       const b = await duas.inject(`/api/v1/metricas/${id}`);
@@ -58,5 +67,20 @@ d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
       expect(b.json(), `${id} deveria responder sem dado real`).toMatchObject({ estado: 'sem-dado-real', metrica: id });
       expect(b.body, `${id} nunca traz o número da base do seed`).not.toBe(a.body);
     }
+  }, 90_000);
+
+  it('D2 (pedido 105): com os fluxos do PROC em ref_dominio e o fluxo no chamado, S5, S6 e S7 leem a base real, só dos fluxos do PROC, e validam no contrato', async () => {
+    await mig.query(`DELETE FROM ${R.ac}.ref_dominio WHERE campo = 'fluxo_proc'`);
+    await mig.query(`INSERT INTO ${R.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('fluxo_proc', 'SSVO - INCIDENTE', '2026-01-01', 'SSVO - INCIDENTE', 0)`);
+    await mig.query(`UPDATE ${R.ac}.dim_chamado SET fluxo = CASE WHEN chamado_id::text > '5' THEN 'SSVO - INCIDENTE' ELSE 'OUTRO FLUXO' END`);
+    const real = await buildApp({ db: api, S: R, agora: () => AGORA, nivelLog: 'silent' });
+    for (const id of PROC) {
+      const r = await real.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.json(), id).not.toHaveProperty('estado');
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
+    }
+    const s5 = (await real.inject('/api/v1/metricas/S5')).json() as { foraDoFluxo: number };
+    expect(typeof s5.foraDoFluxo).toBe('number');
   }, 90_000);
 });

@@ -13,8 +13,8 @@ import {
   METRICA_IDS,
   FASES_DETECCAO,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
-  MOTIVOS_ENCERRAMENTO,
-  MOTIVOS_ESCALACAO,
+  MOTIVOS_ENCERRAMENTO_PUBLICADOS,
+  MOTIVOS_ESCALACAO_PUBLICADOS,
   NATUREZAS_ENTREGA,
   NIVEIS_RESOLUCAO,
   ORIGENS_DEMANDA,
@@ -35,6 +35,7 @@ import {
 } from './comum'
 import {
   notaCartaoIdSchema,
+  notaMotivosIdSchema,
   notaS12IdSchema,
   notaS1IdSchema,
   notaSustentacaoIdSchema,
@@ -720,14 +721,22 @@ const distMotivo = <T extends readonly [string, ...string[]]>(valores: T) =>
       }),
     ),
   })
-export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO).extend({
+/**
+ * Pedido 105 (D2, P1 e P3 do dono): a faixa `Outro` (motivo preenchido sem par no domínio) entra em `motivos`, separada de `naoInformado` (campo
+ * vazio). `foraDoFluxo` = chamados do período e dos filtros fora dos cinco fluxos do PROC, que não entram na métrica (0 quando a base não separa fluxo).
+ */
+const foraDoFluxo = z.number()
+export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO_PUBLICADOS).extend({
   /** Escalados (N2, N3 ou fornecedor) sem motivo de escalação: "Não informado", nunca inferido. */
   naoInformado: z.number(),
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
 })
-export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({
+export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO_PUBLICADOS).extend({
   /** Chamados fechados sem motivo de encerramento ("Não informado"). */
   naoInformado: z.number(),
   taxaContorno: taxaSchema,
+  foraDoFluxo,
 })
 
 const blocoS7 = z.object({
@@ -744,6 +753,8 @@ const blocoS7 = z.object({
 })
 export const resultadoS7 = z.object({
   ...comum,
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
   ajusteDePrioridade: blocoS7.extend({ justificados: z.object({ k: z.number(), n: z.number() }) }),
   reclassificacaoDeTipo: blocoS7,
 })

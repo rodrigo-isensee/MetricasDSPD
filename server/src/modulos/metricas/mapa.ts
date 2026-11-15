@@ -167,6 +167,7 @@ export function chamadoDe(l: LinhaChamado): Chamado {
     motivo_encerramento: campo(l.motivo_encerramento), avaliacao_problema: campo(l.avaliacao_problema),
     excecao_sla_registro_posterior: l.excecao_sla_registro_posterior,
     incidente_critico_coordenado: l.incidente_critico_coordenado, nivel_resolucao: campo(l.nivel_resolucao),
+    ...(l.fluxo === undefined ? {} : { fluxo: l.fluxo }),
   };
 }
 
@@ -187,11 +188,13 @@ const exibirDe = (u: string | null): UnidadeExibicao | null => {
   throw new Error('unidade de exibição desconhecida em ref_alvo_prioridade');
 };
 
-export type LinhasAC = { chamados: LinhaChamado[]; etapas: LinhaEtapa[]; alvos: LinhaAlvo[]; criterios: VersaoCriterio[] };
+export type LinhasAC = { chamados: LinhaChamado[]; etapas: LinhaEtapa[]; alvos: LinhaAlvo[]; criterios: VersaoCriterio[]; fluxosProc?: string[] };
 
 export const montarBaseAC = (l: LinhasAC): BaseAC => ({
   chamados: l.chamados.map(chamadoDe), etapas: l.etapas.map(etapaDe),
   config: {
+    // Sem a lista (base semeada ou ainda não carregada) a base não separa fluxo; o serviço decide se isso vale (real: sem dado real).
+    ...(l.fluxosProc === undefined || l.fluxosProc.length === 0 ? {} : { fluxos_proc: l.fluxosProc }),
     alvos: l.alvos.map((a) => ({
       prioridade: campo(a.prioridade), primeiro_atendimento_horas: Number(a.prazo_pa_horas), unidade_primeiro_atendimento: unidadeDe(a.unidade_pa),
       restauracao_horas: Number(a.prazo_r_horas), unidade_restauracao: unidadeDe(a.unidade_r),
