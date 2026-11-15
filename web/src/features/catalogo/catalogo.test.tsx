@@ -6,6 +6,13 @@ import { CATALOGO } from '@/content/catalogo-metricas'
 import { renderizarApp } from '@/test/helpers'
 import { linhasDoCatalogo } from './linhas'
 
+const LINHAS = linhasDoCatalogo()
+const total = LINHAS.length
+const complementares = LINHAS.filter((x) => x.grupo === 'Complementar').length
+const sustentacao = LINHAS.filter(
+  (x) => x.painel === 'sustentacao' && x.grupo === 'Complementar',
+).length
+
 describe('Catálogo de métricas (/metricas)', () => {
   it('lista 65 linhas (45 do briefing + a PV1 + 3 níveis extras de espera invisível; 33 complementares), espera invisível uma por nível', () => {
     const l = linhasDoCatalogo()
@@ -70,13 +77,17 @@ describe('Catálogo de métricas (/metricas)', () => {
   })
 
   it('o parágrafo de abertura e a legenda falam de dado real, sem dado fictício', async () => {
+    const total = new Set(linhasDoCatalogo().map((x) => x.codigo)).size
     renderizarApp('/metricas')
     await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
     expect(
       screen.getByText(
-        /Tudo o que existe no DSPD: as métricas do briefing, as complementares acrescentadas depois dele e a de percepção \(a pesquisa de valor do serviço\); a espera invisível aparece em uma linha por nível\./,
+        new RegExp(
+          `Tudo o que existe no DSPD: ${total} métricas \\(as do briefing, as complementares acrescentadas depois dele e a de percepção, a pesquisa de valor do serviço\\); a espera invisível aparece em uma linha por nível\\.`,
+        ),
       ),
     ).toBeInTheDocument()
+    expect(total).toBe(62)
     expect(screen.queryByText(/45 métricas/)).not.toBeInTheDocument()
     expect(
       screen.getByText(
@@ -92,7 +103,7 @@ describe('Catálogo de métricas (/metricas)', () => {
     const u = userEvent.setup()
     renderizarApp('/metricas')
     await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('65 de 65 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent(`${total} de ${total} linhas`)
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
@@ -105,13 +116,13 @@ describe('Catálogo de métricas (/metricas)', () => {
     expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent('Real')
     expect(within(tabela).queryByText('Da coleta')).not.toBeInTheDocument()
     const linhas = within(tabela).getAllByRole('row').slice(1)
-    expect(linhas).toHaveLength(65)
+    expect(linhas).toHaveLength(total)
     const reais = CATALOGO.filter(
       (m) => m.id !== 'BLOQUEADOS' && origemDaMetrica(m.id) === 'real',
     ).length
     expect(within(tabela).getAllByRole('cell', { name: /^Real$/ })).toHaveLength(reais)
     expect(within(tabela).getAllByRole('cell', { name: /^Sem dado real$/ })).toHaveLength(
-      65 - reais,
+      total - reais,
     )
     expect(within(tabela).getByRole('row', { name: /^S12 / })).toHaveTextContent(
       'Parcial: volume por sistema; reincidência sem fonte',
@@ -122,14 +133,18 @@ describe('Catálogo de métricas (/metricas)', () => {
       'Pesquisa de percepção',
     )
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('33 de 65 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent(
+      `${complementares} de ${total} linhas`,
+    )
     const opcoes = within(screen.getByLabelText('Painel'))
       .getAllByRole('option')
       .map((o) => o.textContent)
     expect(opcoes).toContain('Operacional · Sustentação')
     expect(opcoes).not.toContain('Sustentação')
     await u.selectOptions(screen.getByLabelText('Painel'), 'sustentacao')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 65 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent(
+      `${sustentacao} de ${total} linhas`,
+    )
   })
 
   it('o link do catálogo leva ao painel com a seção aberta no cartão', async () => {

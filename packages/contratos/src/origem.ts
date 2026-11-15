@@ -105,7 +105,7 @@ export const BLOQUEIOS_COM_DADO_REAL = true
 export const AJUSTE_PRIORIDADE_COM_FONTE = false
 
 /**
- * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
+ * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 e O26 seguem mock até a F6b, sem motivo próprio.
  * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); a EI_SUST não consta do plano
  * 056, então não se calcula por inferência.
  */
@@ -120,7 +120,7 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
-/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O19 a O26, FL2, FL3, Visão geral e a tendência da sustentação). */
+/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, O26, FL2, FL3, Visão geral e a tendência da sustentação). */
 export const MOTIVO_FONTE_REAL_NAO_DEFINIDA = 'fonte real ainda não definida'
 
 /**

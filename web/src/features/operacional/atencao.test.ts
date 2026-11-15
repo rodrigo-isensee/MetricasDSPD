@@ -90,6 +90,13 @@ describe('atencao.ts: Semanal', () => {
       ).map((i) => i.texto),
     ).toEqual(['5 itens do backlog com mais de 180 dias', '1 vencido por causa interna'])
   })
+
+  it('o item dos vencidos por causa interna é do O12 e leva a #o12', () => {
+    const itens = itensSemanal(undefined, undefined, { vencidosCausaInterna: 2 } as never)
+    expect(itens).toHaveLength(1)
+    expect(itens[0]).toMatchObject({ id: 'o12', codigo: 'O12', para: '#o12' })
+    expect(itensSemanal(undefined, undefined, { vencidosCausaInterna: 0 } as never)).toEqual([])
+  })
 })
 
 describe('atencao.ts: Sustentação e contagens', () => {
