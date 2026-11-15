@@ -69,6 +69,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
 - Testes: o P5 da propriedade de ordem (`regras.property.test.ts`) embaralha e reindexa só a fonte que a métrica lê, em vez de reconstruir os três contextos a cada rodada; mesma propriedade e fronteiras, sem subir o `testTimeout` (pedido 099, K-356, E3.293).
 - Testes da aba Apontamento (web): os auxiliares `pronto`/`esperar` passam a esperar todos os cartões saírem do esqueleto, não só o KPI, e o teste que lia o mapa diário logo depois do KPI deixa de falhar sob carga; sem mudança de código de produção (pedido 037, K-355).
 - Painéis: Worker do mock rejeita o pedido quando o `postMessage` lança e recusa com erro claro o pedido feito antes do `iniciar`, sem travar a tela (pedido 037, K-126, A1 e A2).
