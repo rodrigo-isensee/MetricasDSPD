@@ -233,6 +233,28 @@ describe('O12 acordos e vencidos (D1 a D4)', () => {
     vencidosCausaInterna: interno,
     statusMeta: interno === 0 ? 'dentro' : 'fora',
   })
+  it('099 (CA-O12-1, CA-O12-2, CA-O12-6): sem o campo de responsabilidade, "Sem dado real" no lugar do número, uma série só de vencidos e acordos e vencidos com dado', async () => {
+    const base = dto(0, 12)
+    const semParte = {
+      ...base,
+      meses: [{ ...base.meses[0], porResponsabilidade: null }],
+      totais: { ...base.totais, porResponsabilidade: null },
+      vencidosCausaInterna: null,
+      motivoResponsabilidade:
+        'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (...)',
+      statusMeta: 'sem-referencia',
+    }
+    renderizarApp(URL, new FonteFixa({ O12: semParte }))
+    const el = await cartao('O12')
+    expect(within(el).queryByTestId('o12-causa-interna')).toBeNull()
+    expect(within(el).getByTestId('estado-sem-dado-real-O12-causa-interna')).toBeInTheDocument()
+    expect(within(el).getByTestId('o12-faixa-sem-responsabilidade')).toBeInTheDocument()
+    expect(within(el).queryByText('Dentro da meta')).toBeNull()
+    expect(within(el).queryByText('Fora da meta')).toBeNull()
+    expect(el).not.toHaveTextContent('Vencido: Interno')
+    expect(el).toHaveTextContent('Vencidos por causa interna: sem dado real')
+    expect(el).toHaveTextContent('4 de 12 acordos venceram')
+  })
   it('D2/D3: zero internos = Dentro da meta; k de n quando o mês tem menos de 20 acordos', async () => {
     renderizarApp(URL, new FonteFixa({ O12: dto(0, 12) }))
     const el = await cartao('O12')

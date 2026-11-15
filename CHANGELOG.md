@@ -4,8 +4,15 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ## [Não publicado]
 
+### Corrigido
+- Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
+
 ### Adicionado
 - O8: o tipo sem tamanho declarado sai do gráfico por tamanho e entra numa nota de texto abaixo dele ("Sem divisão por tamanho: ..."), sem número novo; a tabela, o cálculo e o contrato não mudam (pedido 105, K-361, E3.9).
+- Acelerato: domínios `cpe_*` (valores literais da B6-d em UTF-8, cada grafia como entrada, sem de-para nem vigência; `cpe_tipo_prioridade` sem valores) e `etapa_fluxo` (114 chaves da B5-a na ordem aprovada, AP-099-1) em `acelerato-dominio.json`, com nova versão de critério; o dono roda `ac:ref-sync` e `--reconhecer-mudanca` depois do merge (pedido 099, D1 1b e 1c).
+- Teste do destino do item O12 da faixa de atenção: código `O12` e `#o12` quando há vencidos por causa interna (pedido 105, K-362, E3.1).
+- Teste e2e B3-002 (O12): com o O12 sem dado real a faixa "Pede atenção" mostra a lacuna e não o link "Ver O12"; o teste deixa de supor o mock antigo e segue provando que `#o12` abre a Semanal com o O12 (pedido 105, E5.1).
+- O12 (Acordos e vencidos) pelo prazo nativo do card: o prazo com data e hora vira o dia civil de Brasília, exceto meia-noite UTC em ponto, que fica no dia gravado (decisão do dono de 2026-11-15, L13 opção c), só conta o card que passou pelo compromisso, descartado antes do prazo sai da conta e depois conta como vencido; a divisão por responsabilidade do atraso e "vencidos por causa interna" saem sem dado real com o motivo (nunca 0, meta não avaliada), com os textos do UX no cartão, no Resumo, no "Pede atenção" e na exportação; versão de critério `criterio-2026-11-14-o12-prazo-do-card`; O12 no mapa de origem real (pedido 099, C2b e C3).
 - O8: a divisão por tamanho de cada tipo olha só os entregues da janela medida, e não todos os cards da base; tipo com tamanho só fora da janela fica nulo, sem pôr tudo em "Sem tamanho" (pedido 099, K-359, A2, E3.319).
 - O8: a divisão por tamanho é decidida por tipo de demanda; o tipo sem tamanho declarado fica com `porTamanho` nulo, nunca inteiro em "Sem tamanho" (pedido 099, L24 a, K-359).
 - Testes do O20: três mutantes vivos mortos (menor ordem da faixa entre quadros, soma das transições do período e papel de entrega por quadro), predicado único `colunaDaEquipe` para as colunas da equipe e a herança de papel e tipo do primeiro quadro documentada em `docs/api/metricas.md`; o cálculo não muda (pedido 099, K-349, E3.306).

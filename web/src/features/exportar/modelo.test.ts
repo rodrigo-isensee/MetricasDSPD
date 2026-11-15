@@ -53,6 +53,35 @@ const bloco = async (id: MetricaId, filtros: FiltrosFluxo | FiltrosSustentacao =
   })
 }
 
+describe('O12 com a responsabilidade do atraso sem dado real (099, CA-O12-8)', () => {
+  const dtoO12 = (motivoResponsabilidade: string | null) => ({
+    base: { n: 12, unidade: 'acordos', janela: null },
+    criterios: { serie: [], janela: [] },
+    meses: [{ mes: '2026-09', acordos: 12, vencidos: 4, porResponsabilidade: null }],
+    vencidosCausaInterna: null,
+    motivoResponsabilidade,
+  })
+  const bl = (m: string | null) =>
+    construirBloco({
+      id: 'O12',
+      dto: dtoO12(m),
+      filtros: FLUXO,
+      opcoes: undefined,
+      nota: notaDaMetrica('O12'),
+      contexto: CONTEXTO,
+    })
+  it('a nota do arquivo diz a lacuna e a célula nula não vira 0', () => {
+    const b = bl('aguardando o campo')
+    expect(b.nota).toContain(
+      'Responsabilidade do atraso: sem dado real (aguardando o campo no quadro do BusinessMap).',
+    )
+    expect(JSON.stringify(b.tabela)).not.toContain('"0"')
+  })
+  it('sem a parte nula não há a frase', () => {
+    expect(bl(null).nota).not.toContain('sem dado real')
+  })
+})
+
 describe('nome do arquivo e limite', () => {
   const agora = new Date('2026-10-10T15:30:00Z')
   it('segue metricas-dspd_<escopo>_<AAAA-MM-DD>[_ficticio].pdf, em minúsculas e sem acento', () => {
