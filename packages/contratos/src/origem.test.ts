@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { METRICA_IDS } from './comum'
 import {
   AJUSTE_PRIORIDADE_COM_FONTE,
+  MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
+  RESPONSABILIDADE_ATRASO_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
   NOTA_S12_IDS,
   NOTA_SUSTENTACAO_IDS,
@@ -196,5 +198,12 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
     for (const id of NOTA_S12_IDS) expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
     expect(resultadoS12.shape.notas.safeParse(['excecao-sla-s12-sem-fonte']).success).toBe(true)
     expect(resultadoS12.shape.excecaoSla.safeParse(null).success).toBe(true)
+  })
+})
+
+describe('pedido 099 (O12): responsabilidade do atraso sem fonte', () => {
+  it('o interruptor nasce desligado e o motivo diz que o prazo não diz de quem foi o atraso', () => {
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
+    expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).toContain('não de quem foi o atraso')
   })
 })

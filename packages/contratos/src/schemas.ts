@@ -284,17 +284,20 @@ export const resultadoO12 = z.object({
       emAndamento: z.boolean(),
       acordos: z.number(),
       vencidos: z.number(),
-      porResponsabilidade: responsabilidadeOuNao,
+      /** Nulo sem o campo de responsabilidade no quadro (099, Q-099-4 = A): nunca 0. */
+      porResponsabilidade: responsabilidadeOuNao.nullable(),
       pctVencidos: taxaSchema,
     }),
   ),
   totais: z.object({
     acordos: z.number(),
     vencidos: z.number(),
-    porResponsabilidade: responsabilidadeOuNao,
+    porResponsabilidade: responsabilidadeOuNao.nullable(),
     pctVencidos: taxaSchema,
   }),
-  vencidosCausaInterna: z.number(),
+  /** Nulo sem o campo de responsabilidade no quadro; `motivoResponsabilidade` diz por quê. */
+  vencidosCausaInterna: z.number().nullable(),
+  motivoResponsabilidade: z.string().nullable(),
   statusMeta: statusMetaSchema,
 })
 

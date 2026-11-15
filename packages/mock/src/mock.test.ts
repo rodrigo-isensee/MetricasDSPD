@@ -182,8 +182,8 @@ describe('requisitos de UX da seção 9.2', () => {
     expect(businessmap.calcularO2(c, f).acimaP95).toBeGreaterThan(0)
     expect(businessmap.calcularO10(c, f).acimaDe180.time).toBeGreaterThan(0)
     expect(businessmap.calcularBloqueados(c, f).itens.length).toBeGreaterThan(0)
-    const resp = businessmap.calcularO12(c, { ...f, periodo: { tipo: '12m' } }).totais
-      .porResponsabilidade
+    const resp = businessmap.calcularO12(c, { ...f, periodo: { tipo: '12m' } }, true).totais
+      .porResponsabilidade as NonNullable<ReturnType<typeof businessmap.calcularO12>['totais']['porResponsabilidade']>
     expect(Object.values(resp).every((n) => n > 0)).toBe(true)
     expect(businessmap.calcularT9(c, f).projetosComEscopoCrescido).toBeGreaterThan(0)
     expect(businessmap.calcularE3(c, f).semFicha).toBeGreaterThanOrEqual(2)

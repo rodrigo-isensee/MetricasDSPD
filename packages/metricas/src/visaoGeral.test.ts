@@ -91,6 +91,10 @@ describe('visão geral: alertas dos dois domínios, em blocos separados', () => 
     expect(a?.valor).toBeLessThan(a?.de as number)
   })
 
+  it('099: sem o campo de responsabilidade do atraso o alerta de vencidos internos não é gerado (nulo, nunca 0)', () => {
+    expect(r.alertas.find((x) => x.codigo === 'O12_VENCIDOS_INTERNOS')).toBeUndefined()
+  })
+
   it('mediana de restauração acima do alvo gera o alerta do S1', () => {
     const a = r.alertas.find((x) => x.codigo === 'S1_MEDIANA_ACIMA_ALVO')
     expect(a).toMatchObject({ nivel: 'sustentacao', valor: 1, de: 1 })

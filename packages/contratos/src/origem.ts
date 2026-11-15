@@ -54,6 +54,19 @@ export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
   'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
 
+/**
+ * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
+ * Frase em minúsculas sem ponto final, completada pelo componente.
+ */
+export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
+  'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (o prazo do card diz quando venceu, não de quem foi o atraso)'
+/**
+ * Pedido 099 (O12): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['O12', 'VISAO_GERAL']`, quando o campo de
+ * responsabilidade do atraso existir no quadro e vier preenchido da fonte. Falso: o O12 publica `porResponsabilidade` e `vencidosCausaInterna`
+ * `null` com o motivo, e `statusMeta = 'sem-referencia'`; nunca 0.
+ */
+export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
+
 export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
 export const MOTIVO_S9_MOTIVO_PENDENCIA =

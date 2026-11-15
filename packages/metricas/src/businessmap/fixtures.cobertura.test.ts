@@ -20,6 +20,7 @@ import {
   type FatoBloqueio,
   type FatoTransicao,
 } from './index'
+import { MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL, RESPONSABILIDADE_ATRASO_COM_FONTE } from '@metricas-dspd/contratos'
 import { blocosDe } from './blocos'
 import { idadeHUEm } from './estado'
 import { criarContextoBM } from './indice'
@@ -140,15 +141,62 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.itens).toEqual([])
   })
 
-  it('O12: acordo vencido sem classificação do atraso conta como "não classificado"', () => {
+  it('O12 (interruptor ligado, futuro): acordo vencido sem classificação do atraso conta como "não classificado"', () => {
+    const base = umaBase([
+      entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
+      entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
+    ])
+    const r = calcularO12(ctxDe(base), F, true)
+    expect(r.totais.acordos).toBe(2)
+    expect(r.totais.vencidos).toBe(1)
+    expect(r.totais.porResponsabilidade?.naoClassificado).toBe(1)
+    expect(r.vencidosCausaInterna).toBe(0)
+    expect(r.motivoResponsabilidade).toBeNull()
+    expect(r.statusMeta).toBe('dentro')
+  })
+
+  it('O12 (C5-o12-zero-falso): sem o campo no quadro a responsabilidade sai nula com o motivo, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
     const base = umaBase([
       entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
       entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
     ])
     const r = calcularO12(ctxDe(base), F)
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
     expect(r.totais.acordos).toBe(2)
     expect(r.totais.vencidos).toBe(1)
-    expect(r.totais.porResponsabilidade.naoClassificado).toBe(1)
+    expect(r.totais.porResponsabilidade).toBeNull()
+    expect(r.meses.every((m) => m.porResponsabilidade === null)).toBe(true)
+    expect(r.vencidosCausaInterna).toBeNull()
+    expect(r.motivoResponsabilidade).toBe(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL)
+    expect(r.statusMeta).toBe('sem-referencia')
+    expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
+  })
+
+  it('O12 (Q-099-23 b = A): card com prazo que nunca passou pelo compromisso não conta como acordo', () => {
+    const semCompromisso: EspecCard = {
+      id: 'B1',
+      criado: em(0, '08:00'),
+      trilha: [['Aguardando priorização', em(0, '08:00')]],
+      dataAcordada: em(1, '12:00'),
+    }
+    const base = umaBase([semCompromisso, entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') })])
+    const r = calcularO12(ctxDe(base), F)
+    expect(r.totais.acordos).toBe(1)
+    expect(r.totais.vencidos).toBe(1)
+  })
+
+  const comprometido: [string, string][] = [
+    ['Aguardando priorização', em(0, '08:00')],
+    ['Pronto para desenvolver', em(0, '09:00')],
+  ]
+  it('O12 (Q-099-23 c = A): descartado antes do prazo sai da conta; descartado depois do prazo conta como vencido', () => {
+    const base = umaBase([
+      entregue('D1', 0, 1, { dataAcordada: em(6, '12:00'), descarte: em(3, '12:00'), trilha: comprometido }),
+      entregue('D2', 0, 1, { dataAcordada: em(2, '12:00'), descarte: em(4, '12:00'), trilha: comprometido }),
+    ])
+    const r = calcularO12(ctxDe(base), F)
+    expect(r.totais.acordos).toBe(1)
+    expect(r.totais.vencidos).toBe(1)
   })
 
   it('O18: bug sem origem informada não é atribuído a nenhuma story', () => {
