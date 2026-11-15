@@ -114,6 +114,19 @@ describe('projetarBusinessMap (F4)', () => {
     expect(com(d, 'SELECT DISTINCT id_origem')[1]!.valores).toEqual([ids[TAMANHO_LOTE - 1]]);
   });
 
+  it('105: a fase de detecção já gravada na versão vigente passa adiante: não conta como mudança e vai na versão nova, sem sobrescrever', async () => {
+    const atual = (id: string, titulo: string) => ({
+      card_id: id, vigente_de: new Date('2026-10-01T00:00:00Z'), responsaveis: ['7'], titulo, tipo: 'Bug interno', granularidade: 'story', equipe: 'Time A', quadro_id: 'Q', coluna_atual_id: '3', card_pai: null,
+      motivo_descarte: null, fase_deteccao: 'Produção',
+    });
+    const d = montar({ stg: [stg('1'), stg('2')], versoes: [atual('1', 'T'), atual('2', 'Outro título')], dimCard: [{ card_id: '1', responsaveis: ['7'] }, { card_id: '2', responsaveis: ['7'] }] });
+    const r = await proj(d);
+    expect(r.versoes).toBe(1);
+    const v = com(d, 'INSERT INTO dspd_bm.dim_card_versao')[0]!;
+    expect(v.valores[0]).toBe('2');
+    expect(v.valores).toContain('Produção');
+  });
+
   it('SCD2: versão igual não gera versão; atributo mudado gera uma, com vigente_de depois da anterior; o conjunto de responsáveis é copiado', async () => {
     const atual = (id: string, titulo: string, vigente: string) => ({
       card_id: id, vigente_de: new Date(vigente), responsaveis: ['7'], titulo, tipo: 'Bug interno', granularidade: 'story', equipe: 'Time A', quadro_id: 'Q', coluna_atual_id: '3', card_pai: null,
@@ -328,6 +341,21 @@ describe('projetarFasesDeteccao (105, E7.5)', () => {
     return { rows: [], rowCount: 1 };
   });
   const BUG = (id: string, pai: string | null, criado: string, fase: string | null = null) => ({ card_id: id, tipo: 'Bug interno', card_pai: pai, criado_em: new Date(criado), fase_deteccao: fase });
+
+  it('referência sem a tabela (campo ausente) também não lê nem escreve nada', async () => {
+    const d = montarFase([BUG('1', '9', '2026-10-10T12:00:00Z')], [], []);
+    const semCampo: Referencia = { ...ref([]), fasesDeteccao: undefined };
+    await projetarFasesDeteccao(d.pool, S, semCampo, 88, AGORA, acc());
+    expect(d.chamadas).toEqual([]);
+  });
+
+  it('coluna do pai sem linha na referência e fora do mapa: sem fase, nota fase_sem_mapa (papel desconhecido não é "antes do desenvolvimento")', async () => {
+    const d = montarFase([BUG('1', '9', '2026-10-10T12:00:00Z')], [{ card_id: '9', concluido_em: null, coluna_atual_id: '77' }], []);
+    const a = acc();
+    await projetarFasesDeteccao(d.pool, S, ref([['3', 'Desenvolvimento']]), 88, AGORA, a);
+    expect(a.notas).toEqual({ fase_sem_mapa: 1 });
+    expect(a.fasesDeteccaoGravadas).toBe(0);
+  });
 
   it('sem tabela carregada não lê nem escreve nada', async () => {
     const d = montarFase([], [], []);

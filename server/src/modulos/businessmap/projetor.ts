@@ -321,12 +321,12 @@ export async function projetarFasesDeteccao(db: Consultavel, S: Esquemas, ref: R
   for (const m of mudancas) {
     await db.query(`UPDATE ${S.bm}.dim_card SET fase_deteccao = $2, atualizado_por_coleta_id = $3 WHERE card_id = $1 AND fase_deteccao IS DISTINCT FROM $2`, [m.card_id, m.fase, coletaId]);
     const colunas = COLUNAS_VERSAO.join(', ');
-    const copia = COLUNAS_VERSAO.map((c) => (c === 'fase_deteccao' ? '$3' : `v.${c}`)).join(', ');
+    const copia = COLUNAS_VERSAO.map((c) => (c === 'fase_deteccao' ? '$3::text' : `v.${c}`)).join(', ');
     await db.query(
       `INSERT INTO ${S.bm}.dim_card_versao (card_id, vigente_de, stg_card_sk, ${colunas}, responsaveis, coletado_em, coleta_id)
-       SELECT v.card_id, greatest($2::timestamptz, v.vigente_de + interval '1 millisecond'), v.stg_card_sk, ${copia}, v.responsaveis, $2, $4
+       SELECT v.card_id, greatest($2::timestamptz, v.vigente_de + interval '1 millisecond'), v.stg_card_sk, ${copia}, v.responsaveis, $2::timestamptz, $4
        FROM ${S.bm}.dim_card_versao v
-       WHERE v.card_id = $1 AND v.fase_deteccao IS DISTINCT FROM $3
+       WHERE v.card_id = $1 AND v.fase_deteccao IS DISTINCT FROM $3::text
          AND v.vigente_de = (SELECT max(vigente_de) FROM ${S.bm}.dim_card_versao WHERE card_id = $1)
        ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING`,
       [m.card_id, inicio, m.fase, coletaId]);
