@@ -297,7 +297,7 @@ export const resultadoO12 = z.object({
   }),
   /** Nulo sem o campo de responsabilidade no quadro; `motivoResponsabilidade` diz por quê. */
   vencidosCausaInterna: z.number().nullable(),
-  motivoResponsabilidade: z.string().nullable(),
+  motivoResponsabilidade: z.string().min(1).nullable(),
   statusMeta: statusMetaSchema,
 })
 

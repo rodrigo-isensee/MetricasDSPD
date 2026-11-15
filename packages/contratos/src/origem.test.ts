@@ -24,7 +24,14 @@ import {
   origemDaMetrica,
   TEXTO_NOTA_CARTAO,
 } from './origem'
-import { resultadoO1, resultadoO2, resultadoO3, resultadoO5, resultadoS12 } from './schemas'
+import {
+  resultadoO1,
+  resultadoO2,
+  resultadoO3,
+  resultadoO12,
+  resultadoO5,
+  resultadoS12,
+} from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
   it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, BLOQUEADOS, O5 e O19 (pedido 075, 6b), a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
@@ -211,5 +218,12 @@ describe('pedido 099 (O12): responsabilidade do atraso sem fonte', () => {
   it('o interruptor nasce desligado e o motivo diz que o prazo não diz de quem foi o atraso', () => {
     expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
     expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).toContain('não de quem foi o atraso')
+  })
+
+  it('motivoResponsabilidade recusa texto vazio e aceita texto ou nulo', () => {
+    const shape = resultadoO12.shape.motivoResponsabilidade
+    expect(shape.safeParse('').success).toBe(false)
+    expect(shape.safeParse(null).success).toBe(true)
+    expect(shape.safeParse(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).success).toBe(true)
   })
 })
