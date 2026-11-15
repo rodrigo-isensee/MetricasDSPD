@@ -3,7 +3,14 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, diasUteisNoIntervalo, fimDoExpediente, isoDeDia } from '../core/calendario'
 import { taxa } from '../core/estatistica'
 import { slug } from '../slug'
-import { baseAmostral, colunasDaEquipe, criterios, periodoDe, selecionar } from './comum'
+import {
+  baseAmostral,
+  colunasDaEquipe,
+  criterios,
+  equipesDoRecorte,
+  periodoDe,
+  selecionar,
+} from './comum'
 import { estadoEm } from './estado'
 import { varreduraPorColuna } from './varredura'
 import type { ContextoBM } from './indice'
@@ -16,8 +23,8 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   )
   const equipesSel =
     f.equipe.length === 0
-      ? ctx.idx.base.config.equipes
-      : ctx.idx.base.config.equipes.filter((e) => f.equipe.includes(slug(e.nome)))
+      ? equipesDoRecorte(ctx, f)
+      : equipesDoRecorte(ctx, f).filter((e) => f.equipe.includes(slug(e.nome)))
   const limite = equipesSel.reduce(
     (s, e) => s + (ctx.idx.base.config.limite_wip_fluxo[e.nome] ?? 0),
     0,

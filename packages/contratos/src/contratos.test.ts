@@ -94,6 +94,17 @@ describe('período e filtros', () => {
     expect(tipoFiltroSchema.safeParse('Iniciativa').success).toBe(false)
   })
 
+  it('filtros do fluxo: setor (097, L10b) é opcional, lista de textos; ausente ou vazio vale "Todos"', () => {
+    const ok = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
+    expect(filtrosFluxoSchema.safeParse({ ...ok, setor: [] }).success).toBe(true)
+    expect(filtrosFluxoSchema.safeParse({ ...ok, setor: ['plataformas'] })).toMatchObject({
+      success: true,
+      data: { setor: ['plataformas'] },
+    })
+    expect(filtrosFluxoSchema.safeParse(ok)).toMatchObject({ success: true })
+    expect(filtrosFluxoSchema.safeParse({ ...ok, setor: 'plataformas' }).success).toBe(false)
+  })
+
   it('filtros da sustentação aceitam equipes e prioridades válidas e não têm filtro por agente', () => {
     const ok = { equipe: ['sssc-totvs'], prioridade: ['P1', 'P3'], periodo: { tipo: '6m' } }
     expect(filtrosSustentacaoSchema.safeParse(ok).success).toBe(true)
