@@ -209,6 +209,18 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 6. Com a coleta parada, `pnpm --filter @metricas-dspd/server run ac:reprojetar-etapas`: refaz os intervalos por etapa com o dia de 8 h 48 e grava a versão `099:D-7-528` com a data do dia (K-308). Imprime só contagens; repetir é seguro.
 7. Coleta do BusinessMap e do Acelerato como de costume.
 
+### Ações do dono na base real depois da release 105
+
+**Siga o roteiro `docs/devops/105-roteiro-dono.md`**: cada comando vem com o `.env` carregado, o que conferir e o que fazer se der erro. Abaixo vai só o resumo da ordem, depois do merge na `main` (as ações das releases 103 e 104 que ainda não rodaram estão em `docs/devops/104-roteiro-dono.md`):
+
+1. `pnpm run db:migrate`: aplica a migração 0038 (`dim_chamado.fluxo`) e reaplica os GRANTs.
+2. Com a coleta parada, `pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo`, uma vez (#469, linha prevista: o PR ainda não entrou na `develop` quando este texto foi escrito): preenche `dim_chamado.fluxo` dos chamados já na base, só onde é nulo, sem chamar o Acelerato; imprime só contagens.
+3. `pnpm --filter @metricas-dspd/server run ac:ref-sync`, num dia diferente do último: listas do PROC (`fluxo_proc`, `cpe_*`, `etapa_fluxo`) e alvos, para S5, S6 e S7.
+4. `pnpm --filter @metricas-dspd/server run bm:ref-sync`: dicionário do BusinessMap com a tabela coluna para fase do O15 (347 colunas).
+5. `pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial --projetar`: releitura completa com projeção (etiquetas do O24, vínculos do O18, fase do O15). Anote a data em que terminar com sucesso.
+6. `pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico <data do passo 5>`: registra a versão `105:classe-por-etiqueta` (grava uma vez só).
+7. `pnpm run coleta ac`, como de costume, e depois a coleta incremental do BusinessMap.
+
 ### Alterado
 - Classes de serviço: só Urgente, Prioritário, Prazo fixo e Padrão; Intangível deixa de ser classe (decisão do dono de 2026-11-15). O enum de T1, T2, T4, T6 e O6 troca `Intangível` por `Prioritário` sem convivência; o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
