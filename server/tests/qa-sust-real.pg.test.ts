@@ -14,9 +14,9 @@ import { poolDe, url } from './pg/ctx.js';
 const d = describe.skipIf(!url);
 const AGORA = new Date('2026-10-10T15:00:00Z');
 const REAIS = ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as const;
-const MOCK = ['S11', 'EI_SUST'] as const;
-/** Pedido 105 (D2): reais só dos cinco fluxos do PROC; sem a lista em `ref_dominio` (campo `fluxo_proc`) respondem sem dado real com o motivo. */
-const PROC = ['S5', 'S6', 'S7'] as const;
+const MOCK = ['EI_SUST'] as const;
+/** Pedido 105 (D2 e D6a): leem a lista dos cinco fluxos do PROC; sem ela em `ref_dominio` (campo `fluxo_proc`) respondem sem dado real com o motivo. */
+const PROC = ['S5', 'S6', 'S7', 'S11'] as const;
 
 d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
   const base = gerarBaseMock({ escala: 0.15 });

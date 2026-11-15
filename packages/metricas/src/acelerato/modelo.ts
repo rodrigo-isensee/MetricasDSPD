@@ -57,7 +57,8 @@ export interface Chamado {
   motivo_encerramento: string | null
   /** Workflow único do chamado (D1, 1a); nulo = sem fluxo ou mais de um. Ausente na base semeada. */
   fluxo?: string | null
-  avaliacao_problema: 'Aberto' | 'Não aplicável' | null
+  /** Domínio real do campo "Avaliação de Problema" (D1, `cpe_avaliacao_problema`); preenchido = avaliado no fluxo do PROC (S11, Decisão 18b). */
+  avaliacao_problema: 'Não aplicável e com justificativa' | 'Aberto' | null
   excecao_sla_registro_posterior: boolean
   incidente_critico_coordenado: boolean
   nivel_resolucao: NivelResolucao | null
