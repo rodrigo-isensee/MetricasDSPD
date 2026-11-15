@@ -127,7 +127,7 @@ describe('notas de cartão', () => {
   it('O6 e o SLE (T2) levam a nota de classe; todo id de nota tem texto', () => {
     expect(NOTAS_FIXAS_DO_CARTAO.O6).toEqual(['sem-classe'])
     expect(NOTAS_FIXAS_DO_CARTAO.T2).toEqual(['sem-classe'])
-    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain('Sem separação por classe')
+    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain('sem etiqueta de classe de serviço')
     expect(TEXTO_NOTA_CARTAO['sle-nao-definido']).toBe('SLE não definido.')
     expect(notaCartaoIdSchema.safeParse('outra').success).toBe(false)
   })

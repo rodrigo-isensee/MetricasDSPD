@@ -280,7 +280,7 @@ describe('notas no cartão (H-15 e H-24)', () => {
   it('O6 mostra "sem separação por classe" pelo texto do contrato', () => {
     cartao('O6')
     expect(screen.getByTestId('notas-cartao-O6')).toHaveTextContent(
-      'Sem separação por classe até o quadro ter o campo.',
+      'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
     )
   })
 

@@ -163,7 +163,7 @@ export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
 
 /** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */
 export const TEXTO_NOTA_CARTAO = {
-  'sem-classe': 'Sem separação por classe até o quadro ter o campo.',
+  'sem-classe': 'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
   'sle-nao-definido': 'SLE não definido.',
 } as const
 export type NotaCartaoId = keyof typeof TEXTO_NOTA_CARTAO

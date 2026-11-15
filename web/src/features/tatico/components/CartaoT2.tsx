@@ -69,8 +69,14 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
                   </>
                 ) : (
                   <span>
-                    Amostra insuficiente ({fmtInteiro(c.n)} de 20 itens mínimos). SLE: não
-                    publicado.
+                    {c.n >= 20 ? (
+                      'SLE ainda não publicado para esta classe.'
+                    ) : (
+                      <>
+                        Amostra insuficiente ({fmtInteiro(c.n)} de 20 itens mínimos). SLE: não
+                        publicado.
+                      </>
+                    )}
                   </span>
                 )}
               </li>

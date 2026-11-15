@@ -96,8 +96,12 @@ describe('T2 aderência ao SLE', () => {
     expect(padrao).toHaveTextContent('84,4%')
     expect(padrao).toHaveTextContent('Fora da meta')
     expect(within(el).getByTestId('t2-Prazo fixo')).toHaveTextContent('Dentro da meta')
-    expect(within(el).getByTestId('t2-Prioritário')).toHaveTextContent('SLE: não publicado')
-    expect(within(el).getByTestId('t2-Urgente')).toHaveTextContent('SLE: não publicado')
+    expect(within(el).getByTestId('t2-Prioritário')).toHaveTextContent(
+      'SLE ainda não publicado para esta classe.',
+    )
+    expect(within(el).getByTestId('t2-Urgente')).toHaveTextContent(
+      'Amostra insuficiente (10 de 20 itens mínimos). SLE: não publicado.',
+    )
     expect(padrao).toHaveTextContent('publicado em 02/03/2026')
     const mapa = within(el).getByRole('region', { name: /Estouros do SLE/ })
     expect(within(mapa).getByRole('row', { name: /Padrão/ })).toHaveTextContent('10')
