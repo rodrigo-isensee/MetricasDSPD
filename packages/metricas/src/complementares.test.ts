@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   fonteDaMetrica,
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
+  MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   type FiltrosFluxo,
   type FiltrosSustentacao,
 } from '@metricas-dspd/contratos'
@@ -9,7 +10,11 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock'
 import { acelerato, businessmap, calcularMetrica, type ContextosMetricas } from '.'
 import { CALENDARIO_PADRAO } from './core/calendario'
-import { marcacoesNoPeriodo, VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL } from './core/criterios'
+import {
+  marcacoesNoPeriodo,
+  VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
+  VERSAO_CRITERIO_O8_TEMPO_REAL,
+} from './core/criterios'
 import type { FatoBloqueio } from './businessmap/modelo'
 import { HOJE_TESTE, umaBase, type EspecCard } from './businessmap/testing'
 import { EXTENSAO_AC_VAZIA } from './acelerato/extensao'
@@ -197,14 +202,48 @@ describe('O6 previsibilidade e O8 tamanho', () => {
     expect(pouca.classes[0]?.statusMeta).toBe('sem-referencia')
   })
 
-  it('O8: sem tamanho declarado cai em "Sem tamanho"; nunca média isolada', () => {
+  it('O8: sem nenhum tamanho declarado, o tempo é real e a divisão por tamanho sai nula com o motivo; nunca média isolada', () => {
     const r = calcularMetrica('O8', F, { bm: bmDe(cards(25, 0)), ac: ctxMock.ac })
     const t = r.tipos[0]
-    expect(t?.porTamanho.map((x) => x.tamanho)).toEqual(['Sem tamanho'])
-    expect(t?.porTamanho[0]?.mediana).not.toBeNull()
     expect(t?.estatistica.status).toBe('ok')
+    expect(t?.porTamanho).toBeNull()
+    expect(r.motivoPorTamanho).toBe(MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL)
     const peq = calcularMetrica('O8', F, { bm: bmDe(cards(5, 0)), ac: ctxMock.ac })
-    expect(peq.tipos[0]?.porTamanho[0]?.mediana).toBeNull()
+    expect(peq.tipos[0]?.estatistica.status).toBe('insuficiente')
+    expect(peq.tipos[0]?.porTamanho).toBeNull()
+  })
+
+  it('O8: com tamanho declarado em algum card, a divisão publica e o motivo é nulo; cai em "Sem tamanho" quem não declarou', () => {
+    const base = umaBase(cards(25, 0), [])
+    const com = businessmap.criarContextoBM(
+      {
+        ...base,
+        cards: base.cards.map((c, i) => (i < 20 ? { ...c, tamanho_declarado: 'M' as const } : c)),
+      },
+      HOJE_TESTE,
+      CALENDARIO_PADRAO,
+    )
+    const r = calcularMetrica('O8', F, { bm: com, ac: ctxMock.ac })
+    expect(r.motivoPorTamanho).toBeNull()
+    const t = r.tipos[0]
+    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual(['M', 'Sem tamanho'])
+    expect(t?.porTamanho?.find((x) => x.tamanho === 'M')?.mediana).not.toBeNull()
+    expect(t?.porTamanho?.find((x) => x.tamanho === 'Sem tamanho')?.mediana).toBeNull()
+  })
+
+  it('O8: a versão de critério do tempo real marca só o O8 em períodos que cruzam 2026-11-14', () => {
+    const periodo = { inicio: '2026-11-01', fim: '2026-11-30' }
+    expect(marcacoesNoPeriodo('O8', periodo, []).map((m) => m.id)).toContain(
+      VERSAO_CRITERIO_O8_TEMPO_REAL.id,
+    )
+    expect(
+      marcacoesNoPeriodo('O8', { inicio: '2026-09-01', fim: '2026-10-31' }, []).some(
+        (m) => m.id === VERSAO_CRITERIO_O8_TEMPO_REAL.id,
+      ),
+    ).toBe(false)
+    expect(
+      marcacoesNoPeriodo('O3', periodo, []).some((m) => m.id === VERSAO_CRITERIO_O8_TEMPO_REAL.id),
+    ).toBe(false)
   })
 })
 
@@ -314,7 +353,7 @@ describe('Sustentação: S8 e S9', () => {
     expect(r.meses.some((m) => m.informados < m.encerrados)).toBe(true)
   })
 
-  it('S9: pendência sem motivo informado vira "Não informado"', () => {
+  it('S9: pendência sem motivo informado vira "Não classificado"', () => {
     const ac = {
       ...base.ac,
       etapas: base.ac.etapas.map((e) =>
@@ -323,7 +362,7 @@ describe('Sustentação: S8 e S9', () => {
     }
     const ctx = acelerato.criarContextoAC(ac, base.config.hoje, CALENDARIO_PADRAO)
     const r = acelerato.calcularS9(ctx, FS)
-    expect(r.porMotivo.map((m) => m.motivo)).toEqual(['Não informado'])
+    expect(r.porMotivo.map((m) => m.motivo)).toEqual(['Não classificado'])
   })
 
   it('S9: cumprimento da previsão conta retornos até a data prevista', () => {

@@ -24,8 +24,10 @@ export interface LinhaBruta {
   typeId: string | null;
   /** `dim_card.equipe` do card (ou do pai): nome do time; `null` sem time (frente, projeto, fora do escopo, ainda não projetado). */
   equipe: string | null;
+  /** `dim_card.quadro_id` do card (ou do pai): id do quadro (dígitos); `null` fora dos quadros coletados. Só serve para achar o setor. */
+  quadroId: string | null;
 }
-type Row = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null; equipe: string | null };
+type Row = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null; equipe: string | null; quadro_id: string | null };
 
 /** Apontamentos ativos (`excluido_em` nulo) com data em `[de, ate]`, com as dimensões resolvidas. Ordem estável (a ordem final é da biblioteca). */
 export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: string): Promise<LinhaBruta[]> {
@@ -33,7 +35,7 @@ export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: s
     `SELECT f.data_apontamento AS data, f.segundos, f.subgrupo_codigo AS subgrupo, f.flags_qualidade AS flags, f.subtask_id IS NOT NULL AS em_subtarefa,
             f.pessoa_ref, f.iniciativa_card_id AS projeto_id, pr.titulo AS projeto_titulo,
             COALESCE(rc.raiz_fora_do_escopo, rp.raiz_fora_do_escopo, true) AS fora, COALESCE(c.tipo, p.tipo) AS tipo, f.type_id,
-            COALESCE(c.equipe, p.equipe) AS equipe
+            COALESCE(c.equipe, p.equipe) AS equipe, COALESCE(c.quadro_id, p.quadro_id) AS quadro_id
      FROM ${S.bm}.fato_apontamento f
      LEFT JOIN ${S.bm}.dim_card_raiz rc ON rc.card_id = f.card_id
      LEFT JOIN ${S.bm}.dim_card_raiz rp ON rp.card_id = f.parent_card_id
@@ -45,7 +47,7 @@ export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: s
     [de, ate]);
   return r.rows.map((l) => ({
     data: l.data, segundos: l.segundos, subgrupo: l.subgrupo, flags: l.flags, emSubtarefa: l.em_subtarefa, pessoaRef: l.pessoa_ref,
-    projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora, tipo: l.tipo, typeId: l.type_id, equipe: l.equipe,
+    projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora, tipo: l.tipo, typeId: l.type_id, equipe: l.equipe, quadroId: l.quadro_id,
   }));
 }
 
@@ -158,6 +160,9 @@ export async function lerNomesDeEquipe(db: Consultavel, S: Esquemas): Promise<st
   return r.rows.map((l) => l.equipe);
 }
 
+/** Filtro de setor já resolvido para os quadros do dicionário (`quadros`), o card sem setor (`semSetor`) e todos os quadros mapeados (`mapeados`, para achar quem está fora). */
+export interface FiltroSetor { quadros: readonly string[]; semSetor: boolean; mapeados: readonly string[] }
+
 export interface CardIncompleto {
   cardId: string;
   titulo: string | null;
@@ -174,7 +179,7 @@ type RowIncompleto = { card_id: string; titulo: string | null; projeto_id: strin
  * Os filtros chegam por parâmetro (`null` = sem filtro); nunca se monta SQL com valor da requisição.
  */
 export async function lerCardsIncompletos(
-  db: Consultavel, S: Esquemas, de: string, ate: string, projetos: readonly string[] | undefined, tipos: readonly string[] | undefined, equipes?: FiltroEquipe,
+  db: Consultavel, S: Esquemas, de: string, ate: string, projetos: readonly string[] | undefined, tipos: readonly string[] | undefined, equipes?: FiltroEquipe, setores?: FiltroSetor,
 ): Promise<CardIncompleto[]> {
   const r = await db.query<RowIncompleto>(
     `SELECT cb.card_id, k.titulo, x.projeto_id, pr.titulo AS projeto_titulo, x.fora
@@ -192,12 +197,15 @@ export async function lerCardsIncompletos(
          AND ($3::text[] IS NULL OR f.iniciativa_card_id = ANY($3::text[]))
          AND ($4::text[] IS NULL OR f.type_id = ANY($4::text[]))
          AND ($5::text[] IS NULL OR COALESCE(ec.equipe, ep.equipe) = ANY($5::text[]) OR ($6::boolean AND COALESCE(ec.equipe, ep.equipe) IS NULL))
+         AND ($7::text[] IS NULL OR COALESCE(ec.quadro_id, ep.quadro_id) = ANY($7::text[])
+              OR ($8::boolean AND COALESCE(COALESCE(ec.quadro_id, ep.quadro_id), '') <> ALL($9::text[])))
        ORDER BY f.data_apontamento, f.card_id
        LIMIT 1) x ON true
      LEFT JOIN ${S.bm}.dim_card k ON k.card_id = cb.card_id
      LEFT JOIN ${S.bm}.dim_card pr ON pr.card_id = x.projeto_id
      ORDER BY length(cb.card_id), cb.card_id`,
     [de, ate, projetos === undefined || projetos.length === 0 ? null : projetos, tipos === undefined || tipos.length === 0 ? null : tipos,
-     equipes === undefined ? null : [...equipes.nomes], equipes?.semTime ?? false]);
+     equipes === undefined ? null : [...equipes.nomes], equipes?.semTime ?? false,
+     setores === undefined ? null : [...setores.quadros], setores?.semSetor ?? false, setores === undefined ? [] : [...setores.mapeados]]);
   return r.rows.map((l) => ({ cardId: l.card_id, titulo: l.titulo, projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora }));
 }

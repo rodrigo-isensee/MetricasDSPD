@@ -1,6 +1,6 @@
 import type { TextoNota } from '@/components/ui'
 import { LIMITE_MAIORES } from './dezMaiores'
-import { fmtMes, fmtNumero } from '@/lib/formatar'
+import { fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
 import type { FaixaDiario, FiltroQualidade, FlagQualidade, NivelMatriz } from './types'
 
 /**
@@ -51,6 +51,7 @@ export const SELO_LEITURA_RELATIVA = 'Comparação relativa; não é jornada tot
 export const DICA_LEITURA_RELATIVA =
   'O apontamento cobre só parte da jornada. Por isso a utilização serve para comparar períodos, não para medir quanto alguém trabalhou. Pode passar de 100%.'
 
+export const ROTULO_FILTRO_SETOR = 'Setor'
 export const ROTULO_FILTRO_EQUIPE = 'Equipe'
 
 /** O servidor chama a opção sem equipe de "Sem time"; na tela o rótulo é "Equipe" (097, UX), então a opção se chama assim. */
@@ -78,9 +79,9 @@ export const ANOMALIA = {
   filtro: 'Ocultar possíveis erros',
   dica: (limiteHoras: number) =>
     `Mais de ${fmtNumero(limiteHoras, 0)} h apontadas por uma pessoa em um dia. O valor foi mantido na soma e marcado para conferência.`,
-  /** Só no mapa com a Equipe ativa: as horas da célula são as da equipe, o atípico olha o dia todo. */
-  dicaRecorteEquipe:
-    'O dia é avaliado com todas as horas da pessoa, não só as da equipe escolhida.',
+  /** Só no mapa com Setor ou Equipe ativo: as horas da célula são as do recorte, o atípico olha o dia todo. */
+  dicaRecorte:
+    'O dia é avaliado com todas as horas da pessoa, não só as do setor ou da equipe escolhidos.',
 } as const
 
 export const ROTULO_CHIP_ORDEM = { rotulo: 'Ordem', valor: 'total de horas' } as const
@@ -112,7 +113,11 @@ export const VAZIO = {
 
 /** Vazio do próprio mapa diário (K-286): a janela dele é a escolhida no cartão, não o período dos filtros. */
 export const DIARIO_VAZIO = {
-  semEquipe: 'Nenhum apontamento nesta janela. Troque as datas do mapa.',
+  semRecorte: 'Nenhum apontamento nesta janela. Troque as datas do mapa.',
+  comSetor:
+    'Nenhum apontamento do setor escolhido nesta janela. Troque as datas do mapa ou remova o filtro Setor.',
+  comSetorEEquipe:
+    'Nenhum apontamento do setor e da equipe escolhidos nesta janela. Troque as datas do mapa ou remova os filtros Setor e Equipe.',
   comEquipe:
     'Nenhum apontamento da equipe escolhida nesta janela. Troque as datas do mapa ou remova o filtro Equipe.',
 } as const
@@ -206,7 +211,7 @@ export const CARTOES = {
   diario: {
     pergunta: 'Como as horas se distribuem pelos dias, por pessoa?',
     comoLer:
-      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. A Equipe escolhida na barra recorta este mapa; os demais filtros e o período da barra não o afetam, e a janela dele é a escolhida aqui. O dia atípico é decidido sobre o dia inteiro da pessoa, em qualquer equipe.",
+      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. O Setor e a Equipe escolhidos na barra recortam este mapa; os demais filtros e o período da barra não o afetam, e a janela dele é a escolhida aqui. O dia atípico é decidido sobre o dia inteiro da pessoa, em qualquer setor ou equipe.",
     criterio: 'Faixas fixas; limite de possível erro configurável no servidor.',
   },
 } satisfies Record<string, TextosCartao>
@@ -351,6 +356,13 @@ export const MAIORES = {
   verMaiores: `Ver só os ${LIMITE_MAIORES} maiores`,
   regiao: 'Todos os projetos, com rolagem',
 } as const
+
+/**
+ * AP-PROJETO recolhido (097, K-324): `n` conta só projetos de verdade; a linha sem projeto fica fora da contagem e
+ * dentro das horas. Sempre que a linha existe, o texto diz "e horas sem projeto" (desenho, parte B; UX, L8b).
+ */
+export const RESUMO_PROJETO = (n: number, horas: string, temSemProjeto: boolean) =>
+  `Recolhido. ${fmtInteiro(n)} ${n === 1 ? 'projeto' : 'projetos'}${temSemProjeto ? ' e horas sem projeto' : ''}, ${horas} no total.`
 
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 

@@ -23,7 +23,7 @@ export const TIPOS_PROJETO = ['Iniciativa', 'Melhoria'] as const
 
 /** Projeto concluído com os tempos em dias úteis (criação → início = "antes do início"). Fonte única do E1 e da referência do E9. */
 export function concluidosDeProjeto(ctx: ContextoBM, f: FiltrosFluxo) {
-  return selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true })
+  return selecionar(ctx, f, 'projeto', { semEquipe: true, semSetor: true, semTipo: true })
     .filter((m) => m.entrega !== null && m.inicio !== null)
     .map((m) => {
       const entrega = m.entrega as number

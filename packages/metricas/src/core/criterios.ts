@@ -161,6 +161,15 @@ export const VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL: VersaoCriterio = {
   afeta: ['O17'],
 }
 
+/** Pedido 099 (A4, Q-099-4): o O8 passou de "Sem dado real" inteiro para o tempo em execução real; a divisão por tamanho segue sem dado real até o campo do WS1. */
+export const VERSAO_CRITERIO_O8_TEMPO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-14-o8-tempo-real',
+  data: '2026-11-14',
+  descricao:
+    'O tempo em execução das demandas passou a ser calculado com o dado real do BusinessMap (antes o cartão saía inteiro como "Sem dado real"); a divisão por tamanho segue "sem dado real" até o campo de tamanho no quadro (WS1)',
+  afeta: ['O8'],
+}
+
 /** Pedido 099 (D9): o S12 entrou no mapa real só com o volume; a exceção de SLA por registro posterior sai nula (sem fonte), antes ficava no mock. */
 export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-12-s12-volume-real',
@@ -168,6 +177,31 @@ export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   descricao:
     'O volume por sistema passou a ser calculado com o dado real do Acelerato; a exceção de SLA por registro posterior e a reincidência saem sem fonte (nulas, nunca 0%) até a coleta trazer os campos',
   afeta: ['S12'],
+}
+
+/**
+ * Pedido 099 (D5a): a S9 passa a ler as esperas reais do Acelerato como pendência e a S1 as desconta do relógio. Decisão do dono (Q-099-8
+ * revista e Q-099-21): Aguardando Solicitante, Suporte Terceiros, Fornecedor e Janela de Mudança contam; `Pendente` sem motivo é
+ * "Não classificado". Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até o dono decidir.
+ */
+export const VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA: VersaoCriterio = {
+  id: 'criterio-2026-11-14-s1-s9-esperas-pendencia',
+  data: '2026-11-14',
+  descricao:
+    'As esperas Aguardando Solicitante, Suporte Terceiros, Fornecedor e Janela de Mudança contam como pendência no tempo em pendência (S9) e saem do relógio de resolução da S1; Pendente sem motivo é "Não classificado"; Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono',
+  afeta: ['S1', 'S9'],
+}
+
+/**
+ * Pedido 099 (D4, Q-099-5b = A): o S1 entrou no mapa real. O primeiro atendimento passa a ser o primeiro comentário da tabela do Acelerato
+ * (inclui resposta automática) e a restauração segue `data_pronto`; antes o S1 não tinha dado real publicado.
+ */
+export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-s1-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O S1 passou a ser calculado com o dado real do Acelerato: o primeiro atendimento é o primeiro comentário do chamado (inclui resposta automática) e a restauração vai até a data de pronto',
+  afeta: ['S1'],
 }
 
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
@@ -184,7 +218,10 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
+  VERSAO_CRITERIO_O8_TEMPO_REAL,
   VERSAO_CRITERIO_S12_VOLUME_REAL,
+  VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
+  VERSAO_CRITERIO_S1_DADO_REAL,
 ]
 
 /**

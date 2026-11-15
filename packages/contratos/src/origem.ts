@@ -17,19 +17,27 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O5',
   'O6',
   'O7',
+  // Pedido 099 (A4, Q-099-4): o O8 publica o tempo em execução real (o mesmo do O3); a divisão por tamanho segue sem dado real até o campo do WS1.
+  'O8',
   'O9',
   'O10',
   'O11',
   'O13',
   'O19',
+  // Pedido 099 (lote A2, E3.222): o O20 Fluxo cumulativo lê a varredura da vida dos cards da base real (Q-RO-1: avanço 24289, retorno 602); a frio custa ~110 a 140 ms em processo na escala 3 do mock (A1 do ADR 0003).
+  'O20',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
+  // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
+  'O16',
+  // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
+  'O21',
   'EI_FL1',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
   'BLOQUEADOS',
   'PV1',
-  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 voltou a mock: depende de campo que a base real não tem. S12 entrou no pedido 099 (D9) só com o volume.
+  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S12 entrou no pedido 099 (D9) só com o volume.
   'S2',
   'S3',
   'S4',
@@ -37,8 +45,13 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S10',
   // Pedido 099 (E3.20, B' da Q-099-7): o O17 publica por sistema (categoria_sistema) com dado real; a causa raiz segue sem dado real.
   'O17',
+  // Pedido 099 (D4, Q-099-5b = A): S1 real com o primeiro atendimento = primeiro comentário (com a nota de resposta automática) e a restauração por `data_pronto`.
+  // Portão (ADR 0026 P3, ADR 0030 D4): o merge espera as consultas Q-RO-11 e Q-RO-12 e o `ac:ref-sync` dos alvos (sem `ref_alvo_prioridade` a API responde 503).
+  'S1',
   // Pedido 099 (D9): S12 real só com o volume por sistema; reincidência e exceção de SLA por registro posterior saem sem fonte (nulas, com nota).
   'S12',
+  // Pedido 099 (D5a): S9 real pelas esperas decididas (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; Pendente como não classificado); a previsão de retorno segue sem data na base (n = 0, insuficiente).
+  'S9',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -54,11 +67,18 @@ export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
   'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
 
+/**
+ * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
+ * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ */
+export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
+  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
+
 export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
-export const MOTIVO_S9_MOTIVO_PENDENCIA =
-  'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'
-export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por prioridade'
+/** Pedido 099 (L18, E3.298): motivo do S1 sem `ref_alvo_prioridade` carregada; nenhum prazo é presumido. */
+export const MOTIVO_ALVOS_NAO_CARREGADOS =
+  'alvos de prazo por prioridade não carregados (ref_alvo_prioridade); o dono roda o ac:ref-sync'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
 export const BLOQUEIOS_COM_DADO_REAL = true
@@ -70,22 +90,17 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
 
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
- * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); S9 espera o motivo de
- * pendência (P-DS-19); S1 espera os prazos de SLA por
- * prioridade (`ref_alvo_prioridade`, sem fonte na base real); a EI_SUST não consta do plano 056, então não se calcula por inferência.
+ * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); a EI_SUST não consta do plano
+ * 056, então não se calcula por inferência.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
-  O8: MOTIVO_AGUARDANDO_CAMPO,
   O12: MOTIVO_AGUARDANDO_CAMPO,
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
-  O16: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
-  S1: MOTIVO_AGUARDANDO_PRAZOS_SLA,
   S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S6: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S7: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
-  S9: MOTIVO_S9_MOTIVO_PENDENCIA,
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
@@ -169,13 +184,27 @@ export const TEXTO_NOTA_S12 = {
 export type NotaS12Id = keyof typeof TEXTO_NOTA_S12
 export const NOTA_S12_IDS = ['excecao-sla-s12-sem-fonte'] as const satisfies readonly NotaS12Id[]
 export const notaS12IdSchema = z.enum(NOTA_S12_IDS)
-/** Texto de qualquer nota que o cartão mostra (os dos três enums). */
+/**
+ * Pedido 099 (D4, Q-099-5b = A): nota só do S1, em enum à parte (o enum da sustentação não cresce). O primeiro atendimento é o
+ * primeiro comentário da tabela do Acelerato, que não separa o atendente da resposta automática. O texto vive só aqui.
+ */
+export const TEXTO_NOTA_S1 = {
+  'primeiro-atendimento-inclui-automatica':
+    'Primeiro atendimento: inclui respostas automáticas; o processo pede o primeiro atendimento significativo do atendente.',
+} as const
+export type NotaS1Id = keyof typeof TEXTO_NOTA_S1
+export const NOTA_S1_IDS = [
+  'primeiro-atendimento-inclui-automatica',
+] as const satisfies readonly NotaS1Id[]
+export const notaS1IdSchema = z.enum(NOTA_S1_IDS)
+/** Texto de qualquer nota que o cartão mostra (os dos quatro enums). */
 export const TEXTO_NOTA_QUALQUER: Readonly<
-  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id, string>
+  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id | NotaS1Id, string>
 > = {
   ...TEXTO_NOTA_CARTAO,
   ...TEXTO_NOTA_SUSTENTACAO,
   ...TEXTO_NOTA_S12,
+  ...TEXTO_NOTA_S1,
 }
 
 /** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */

@@ -28,6 +28,9 @@ const corpo = (code: string, message: string, details?: unknown[]): CorpoErro =>
 const detalhes = (issues: readonly { path: PropertyKey[]; message: string }[]): unknown[] =>
   issues.map((i) => ({ caminho: i.path.map(String).join('.'), mensagem: i.message }));
 
+/** ADR 0020 item 6 (K-347): a mensagem do Postgres pode trazer valor de linha; em qualquer 5xx o log leva só tipo e código, em todas as rotas. */
+const tipoECodigo = (erro: { name: string; code?: string }): { tipo: string; codigo: string | undefined } => ({ tipo: erro.name, codigo: erro.code });
+
 export function tratarErro(erro: FastifyError, req: FastifyRequest, resposta: FastifyReply): FastifyReply {
   if (hasZodFastifySchemaValidationErrors(erro)) {
     return resposta.status(400).send(corpo('VALIDATION_ERROR', 'Parâmetros inválidos.', detalhes(erro.validation.map((v) => ({
@@ -38,14 +41,14 @@ export function tratarErro(erro: FastifyError, req: FastifyRequest, resposta: Fa
     return resposta.status(erro.status).send(corpo(erro.code, erro.message, erro.details.length > 0 ? erro.details : undefined));
   }
   if (isResponseSerializationError(erro)) {
-    req.log.error({ err: erro }, 'resposta fora do schema');
+    req.log.error({ erro: tipoECodigo(erro) }, 'resposta fora do schema');
     return resposta.status(500).send(corpo('INTERNAL_ERROR', 'Erro interno.'));
   }
   const status = erro.statusCode ?? 500;
   if (status >= 400 && status < 500) {
     return resposta.status(status).send(corpo(status === 400 ? 'VALIDATION_ERROR' : status === 413 ? 'PAYLOAD_GRANDE' : 'REQUISICAO_INVALIDA', 'Requisição inválida.'));
   }
-  req.log.error({ err: erro }, 'erro inesperado');
+  req.log.error({ erro: tipoECodigo(erro) }, 'erro inesperado');
   return resposta.status(500).send(corpo('INTERNAL_ERROR', 'Erro interno.'));
 }
 

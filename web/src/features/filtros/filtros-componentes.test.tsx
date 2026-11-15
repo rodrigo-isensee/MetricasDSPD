@@ -879,6 +879,82 @@ describe('Tipo, Sistema e Prioridade sem opções (097 K-295, A1 da UX do L6)', 
     expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeInTheDocument()
   })
 
+  describe('foco ao fim da nova tentativa na folha (K-338)', () => {
+    function duas(tentando: boolean, comBotao = true, comOpcoes = false) {
+      const props = {
+        opcoes: comOpcoes ? [{ id: 'a', nome: 'Alfa' }] : [],
+        selecionados: [],
+        onChange: vi.fn(),
+        variante: 'lista' as const,
+        vazio: 'x',
+        aoTentar: comBotao ? vi.fn() : undefined,
+        tentando,
+      }
+      return (
+        <>
+          <button type="button">fora</button>
+          <FiltroMulti id="tipo" rotulo="Tipo" {...props} />
+          <FiltroMulti id="sistema" rotulo="Sistema" {...props} />
+        </>
+      )
+    }
+
+    it('só a lista que tinha o foco o recupera; as outras não o puxam (D1)', () => {
+      const { rerender } = render(duas(false))
+      screen.getByTestId('tipo-tentar').focus()
+      rerender(duas(true))
+      rerender(duas(false))
+      expect(screen.getByTestId('tipo-tentar')).toHaveFocus()
+      expect(screen.getByTestId('sistema-tentar')).not.toHaveFocus()
+    })
+
+    it('foco que saiu da lista durante a tentativa não volta (D1)', async () => {
+      const { rerender } = render(duas(false))
+      screen.getByTestId('tipo-tentar').focus()
+      rerender(duas(true))
+      await userEvent.click(screen.getByRole('button', { name: 'fora' }))
+      rerender(duas(false))
+      expect(screen.getByRole('button', { name: 'fora' })).toHaveFocus()
+    })
+
+    it('foco que foi ao vazio (sem destino) segue contado na lista (D1)', () => {
+      const { rerender } = render(duas(false))
+      screen.getByTestId('tipo-tentar').focus()
+      rerender(duas(true))
+      screen.getByTestId('tipo-tentar').blur()
+      rerender(duas(false))
+      expect(screen.getByTestId('tipo-tentar')).toHaveFocus()
+    })
+
+    it('Tentando de novo é anunciado na região viva (D2)', () => {
+      const { rerender } = render(duas(false))
+      expect(screen.getByTestId('tipo-tentando')).toBeEmptyDOMElement()
+      expect(screen.getByTestId('tipo-tentando')).toHaveAttribute('role', 'status')
+      rerender(duas(true))
+      expect(screen.getByTestId('tipo-tentando')).toHaveTextContent('Tentando de novo...')
+    })
+
+    it('lista vazia sem botão depois da tentativa deixa o foco na região de vazio (D3, A7)', () => {
+      const { rerender } = render(duas(false))
+      screen.getByTestId('tipo-tentar').focus()
+      rerender(duas(true))
+      rerender(duas(true, false))
+      rerender(duas(false, false))
+      const regiao = screen.getByTestId('tipo-vazio')
+      expect(regiao).toHaveAttribute('tabindex', '-1')
+      expect(regiao).toHaveFocus()
+    })
+
+    it('com opções depois da tentativa, o foco vai ao campo de busca (A5)', () => {
+      const { rerender } = render(duas(false))
+      screen.getByTestId('tipo-tentar').focus()
+      rerender(duas(true))
+      rerender(duas(true, false, true))
+      rerender(duas(false, false, true))
+      expect(screen.getByTestId('tipo-busca')).toHaveFocus()
+    })
+  })
+
   it('Equipe usa o mesmo texto de vazio dos outros filtros: carregando e sem equipes (M2)', async () => {
     const { unmount } = renderizarBarra('/operacional', new FonteOpcoes('carregando'))
     await userEvent.click(await screen.findByTestId('filtro-equipe'))

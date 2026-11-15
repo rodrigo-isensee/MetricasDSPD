@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import {
-  type FiltroFluxoChave,
   type BaseAmostral,
   type CriteriosResultado,
   type MetricaId,
@@ -8,6 +7,7 @@ import {
   type Periodo,
 } from '@metricas-dspd/contratos'
 import { CartaoMetrica } from '@/components/ui'
+import type { FiltroCartaoChave } from '@/components/ui/CartaoMetrica'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import type { MetricaQuery } from '@/data'
 import { aplicaveisDe } from '@/features/painel/propsCartao'
@@ -35,7 +35,7 @@ interface Props<D extends Dto> {
   /** Não mostra a base ("n itens"): o n revelaria um total que o cartão precisa ocultar (T14, T14-M1 = B). */
   semBase?: boolean
   /** Filtros que atuam, quando diferem da aplicabilidade do contrato (E9 e E8 ignoram o período). */
-  aplicaveis?: readonly FiltroFluxoChave[]
+  aplicaveis?: readonly FiltroCartaoChave[]
   className?: string
   children: (d: D) => ReactNode
 }

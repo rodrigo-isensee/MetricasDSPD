@@ -166,7 +166,7 @@ export function CartaoT11({ filtros }: P) {
       q={q}
       semTabela
       baseVariante="censo"
-      aplicaveis={['equipe', 'tipo', 'sistema']}
+      aplicaveis={['setor', 'equipe', 'tipo', 'sistema']}
       className="lg:col-span-12"
       leitura={
         d && d.mediaMensal !== null
