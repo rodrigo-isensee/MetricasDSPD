@@ -211,7 +211,7 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 
 ### Ações do dono na base real depois da release 105
 
-1. `pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo`, uma vez e com a coleta parada: preenche o fluxo (D2) dos chamados já projetados com fluxo nulo, para S5, S6 e S7 terem dado real também neles (E6.16). Imprime só contagens; repetir não muda nada.
+1. `pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo`, uma vez e com a coleta parada: preenche o fluxo (D2) dos chamados já projetados com fluxo nulo, para S5, S6 e S7 terem dado real também neles (E6.16). Imprime só contagens; repetir não muda nada. Atenção: o "última carga" da tela fica com a hora da reprojeção até a próxima coleta.
 
 ### Alterado
 - Classes de serviço: só Urgente, Prioritário, Prazo fixo e Padrão; Intangível deixa de ser classe (decisão do dono de 2026-11-15). O enum de T1, T2, T4, T6 e O6 troca `Intangível` por `Prioritário` sem convivência; o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
