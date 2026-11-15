@@ -57,21 +57,31 @@ d('O20 Fluxo cumulativo com dado real (099, lote A2): PostgreSQL, papel dspd_api
   }, 60_000);
 
   it('(b) com uma equipe a faixa é a coluna do quadro e o schema vale', async () => {
-    const r = await o20('periodo=12m&equipe=fluig');
+    // Na base alimentada pela coleta as equipes vêm de `ref_time` (carga inicial da migração 0019: "Arquitetura" é time próprio); o seed mínimo
+    // não liga nenhum workflow a esse time, então a faixa por coluna sai vazia aqui. O agrupamento e o schema valem; o conteúdo por coluna
+    // da base real é do teste unitário (o20.test.ts, "base real").
+    const r = await o20('periodo=12m&equipe=arquitetura');
     expect(r.status).toBe(200);
     expect(r.corpo.agrupamento).toBe('coluna');
     expect(SCHEMAS_RESULTADO.O20.safeParse(r.corpo).success).toBe(true);
   }, 60_000);
 
-  it('(c) período sem transição devolve estado vazio (sem faixas nem dias), sem erro', async () => {
-    const r = await o20('periodo=custom&de=2001-01-01&ate=2001-01-02');
+  it('(c) período dentro do histórico sem transição devolve estado vazio (sem faixas nem dias), sem erro', async () => {
+    // O seed (mock determinístico) tem transição em todos os dias úteis até 2026-10-09; 2026-10-04 é domingo e está dentro do histórico.
+    const r = await o20('periodo=custom&de=2026-10-04&ate=2026-10-04');
     expect(r.status).toBe(200);
     expect(r.corpo.faixas).toEqual([]);
     expect(r.corpo.dias).toEqual([]);
   }, 60_000);
 
+  it('(c2) período antes do início do histórico é recusado (422, PERIODO_FORA_DO_HISTORICO), não vira estado vazio', async () => {
+    const r = await o20('periodo=custom&de=2001-01-01&ate=2001-01-02');
+    expect(r.status).toBe(422);
+    expect(r.texto).toContain('PERIODO_FORA_DO_HISTORICO');
+  }, 60_000);
+
   it('(d) nenhum campo de pessoa nem de equipe na resposta', async () => {
-    for (const q of ['periodo=12m', 'periodo=12m&equipe=fluig']) {
+    for (const q of ['periodo=12m', 'periodo=12m&equipe=arquitetura']) {
       const r = await o20(q);
       expect(r.status, q).toBe(200);
       expect(r.texto, q).not.toMatch(/responsave|usuario|assignee|email|realname|"equipe"/i);

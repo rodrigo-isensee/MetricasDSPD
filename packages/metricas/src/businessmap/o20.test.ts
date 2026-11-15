@@ -107,6 +107,37 @@ describe('O20: fluxo cumulativo', () => {
     expect(SCHEMAS_RESULTADO.O20.safeParse(r).success).toBe(true)
   })
 
+  it('base real: o quadro da equipe é o do workflow dela (id do quadro não é `quadro-<slug>`), e a faixa é a coluna', () => {
+    const semeada = naEquipe(
+      umaBase([constante('k1'), acumula('a1', '2026-09-29'), acumula('a2', '2026-09-30')]),
+      'equipe-a',
+    )
+    const real: BaseBM = {
+      ...semeada,
+      colunas: semeada.colunas.map((c) => ({ ...c, quadro_id: '35', equipe: 'Equipe A' })),
+      cards: semeada.cards.map((c) => ({ ...c, quadro_id: '35' })),
+      transicoes: semeada.transicoes,
+    }
+    const esperado = calcularO20(ctxDe(semeada), { ...F, equipe: ['equipe-a'] })
+    const r = calcularO20(ctxDe(real), { ...F, equipe: ['equipe-a'] })
+    expect(r.agrupamento).toBe('coluna')
+    expect(r.faixas.length).toBeGreaterThan(0)
+    expect(r.faixas).toEqual(esperado.faixas)
+    expect(r.dias).toEqual(esperado.dias)
+    expect(r.destaque).toEqual({ faixa: 'Aguardando homologação', de: 0, para: 2 })
+  })
+
+  it('período custom de um só dia não útil (domingo): estado vazio, sem erro', () => {
+    const base = umaBase([constante('k1'), entraNoPeriodo('k2')])
+    const r = calcularO20(ctxDe(base), {
+      ...F,
+      periodo: { tipo: 'custom', de: '2026-10-04', ate: '2026-10-04' },
+    })
+    expect(r.faixas).toEqual([])
+    expect(r.dias).toEqual([])
+    expect(SCHEMAS_RESULTADO.O20.safeParse(r).success).toBe(true)
+  })
+
   it('"Nenhuma etapa acumulou": sem fila que cresça, o destaque é nulo e as faixas continuam', () => {
     const base = naEquipe(umaBase([constante('k1'), entraNoPeriodo('k2')]), 'equipe-a')
     const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
