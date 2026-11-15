@@ -1,7 +1,7 @@
 ---
 tipo: review
 contrato: 1
-pedido: 105-registro-posterior
+pedido: 105-melhorias-15-11
 branch: fix/105-s1-registro-posterior
 commit: 085b5f0b
 parecer: aprovado
