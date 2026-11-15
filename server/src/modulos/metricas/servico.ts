@@ -11,7 +11,7 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
-import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
+import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSetoresBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
 import { comCorteDaSerieO1, comNotaS12SemFonte, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
@@ -75,7 +75,7 @@ const dominioDe = fonteDaMetrica;
 export function normalizar(f: FiltrosMetrica): string {
   const o = f as Partial<FiltrosFluxo & FiltrosSustentacao>;
   const lista = (l: readonly string[] | undefined): string => [...new Set(l ?? [])].sort().join(',');
-  return JSON.stringify([lista(o.equipe), lista(o.tipo), lista(o.sistema), lista(o.prioridade), o.periodo ?? null]);
+  return JSON.stringify([lista(o.equipe), lista(o.tipo), lista(o.sistema), lista(o.prioridade), o.periodo ?? null, lista(o.setor)]);
 }
 
 /** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
@@ -156,6 +156,8 @@ export class ServicoMetricas {
       limiteFrentes: await lerLimiteFrentes(db, S), sle: await lerSle(db, S), alocacao: await lerAlocacao(db, S),
       objetivos: await lerDominio(db, 'objetivo_estrategico', S), areasInternas: await lerDominio(db, 'area_interna', S),
       fichas: await lerFichas(db, S), criterios: await lerVersoes(db, 'businessmap', S),
+      // L10b do 097: setor de cada quadro (dicionário versionado, sem sobrenome); nunca o nome do quadro no BusinessMap.
+      setores: await lerSetoresBM(db, S),
     };
     const base = montarBaseBM({ cards, transicoes, bloqueios, colunas, ref, real }, {
       aoDescartarTipo: (quantos) => this.deps.log?.({ cardsForaDoContrato: quantos }, 'cards com tipo fora de TIPOS_CARD ficaram fora do contexto'),

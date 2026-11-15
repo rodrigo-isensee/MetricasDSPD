@@ -45,6 +45,8 @@ export interface EntradaSazonal {
   /** Nome da equipe e do sistema, como no `DimCard` (o filtro compara pelo slug). */
   equipe: string
   sistema: string
+  /** Quadro do card (097, L10b): dele vem o setor. Ausente = sem setor. */
+  quadro_id?: string
 }
 
 /** Vínculo `predecessor` de um card (D-14' = A). `outro_quadro` nulo = quadro do relacionado desconhecido (sem permissão). */
