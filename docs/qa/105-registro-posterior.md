@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-s1-registro-posterior
-commit: f78a493bd068412dbf2bc1476363121b887b16b1
+commit: 085b5f0b75b98bfe248c6422ead173d27b38d6d5
 parecer: aprovado
 resultado: aprovado
 escopo: completo
@@ -34,3 +34,10 @@ Só texto, sem cálculo, sem UX nova. Obrigações nomeadas (decisões do dono, 
 - Observação (não bloqueia): packages/metricas/src/core/criterios.ts:178 é texto de registro de mudança de critério (histórico datado) e mantém "exceção de SLA por registro posterior"; reescrever o histórico seria alterar registro, então fica.
 - CI do head de código: run 43755872923, success, sha f78a493b (o 67638c15 só acrescenta o parecer de review). Suíte não rerrodada local.
 - Vermelho antes do verde e mutação: não se aplicam (texto, sem regra nova; os testes ajustados falham contra o texto antigo por afirmarem o novo).
+
+## Revalidação (085b5f0b, E3.55)
+- Delta f78a493b..085b5f0b: só texto (frase única no S1, S2, S12 e visão; "apuração" virou "cálculo"; "sem dado (hoje essa marca não vem do Acelerato)"; REALIZADO_NO_PRAZO virou "chamados fechados dentro do prazo ÷ chamados fechados"). Nenhuma linha de cálculo.
+- Testes ajustados cobrem as frases novas: sustentacao/ramos.test.tsx (/^1 chamado aberto depois do atendimento/), sustentacao.test.tsx (nota e plural), complementares/leitura-s12.test.ts e complementares/ramos.test.tsx ("sem dado (hoje essa marca não vem do Acelerato)"), e2e/tests-api/sem-zero-ajuste-069-l9a.spec.ts (NOTA_S2 igual a origem.ts), e2e/tests/complementares.spec.ts.
+- Grep em e2e, web/src e packages/contratos/src por "registrados depois", "registro posterior" e "campo sem fonte" do S12: nenhum teste ou e2e com o texto antigo. Sobra "Campo sem fonte" como estado da reincidência (comuns.tsx, estados.test.tsx), fora desta mudança.
+- CI: run 43758213004, success, sha 4e263044 (só pareceres de review e UX sobre 085b5f0b; diff confere: 2 arquivos em docs). Jobs testes, build, openapi, banco, seguranca success; o run do próprio 085b5f0b foi cancelado por push seguinte. Suíte não rerrodada local.
+- Vermelho antes do verde e mutação: não se aplicam (texto, sem regra nova). Sem bug novo; parecer mantido: aprovado.
