@@ -213,6 +213,8 @@ describe('K-303: o vazio da aba vale só para os cartões do período', () => {
     renderizar(`${URL_ABA}?equipe=portal`, vazioComMapa)
     const vazio = await screen.findByTestId('estado-vazio-AP')
     expect(vazio).not.toHaveTextContent(/Portal|Integrações|ranking|maior|menor|total/i)
+    // o cartão do mapa pode sair do esqueleto depois do vazio (sob carga): espera o mapa antes das linhas
+    await screen.findByTestId('mapa-diario')
     expect(screen.getByTestId('metrica-AP-DIARIO')).not.toHaveTextContent(/ranking/i)
     for (const r of screen.getAllByRole('rowheader'))
       expect(r).toHaveTextContent(/^Pessoa( \d+| não identificada)/)

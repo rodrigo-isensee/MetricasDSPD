@@ -312,7 +312,11 @@ export async function tratarPedido(estado: EstadoWorker, pedido: Pedido): Promis
       estado.nucleo = new NucleoMock(pedido.args[0])
       valor = await estado.nucleo.iniciar()
     } else {
-      const n = estado.nucleo as NucleoMock
+      const n = estado.nucleo
+      if (!n)
+        throw new Error(
+          `Núcleo do mock não iniciado: o pedido '${pedido.metodo}' veio antes de 'iniciar'`,
+        )
       switch (pedido.metodo) {
         case 'obter':
           valor = await n.obter(pedido.args[0], pedido.args[1] as never)

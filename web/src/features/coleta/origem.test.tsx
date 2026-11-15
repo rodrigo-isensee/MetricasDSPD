@@ -88,9 +88,10 @@ describe('origem do cartão (pedido 060)', () => {
       semDadoReal: false,
       motivo: null,
     })
+    // pedido 099 (lote A2): o O20 Fluxo cumulativo tem dado real
     expect(origemDoCartao('O20', 'api')).toEqual({
       ficticio: false,
-      semDadoReal: true,
+      semDadoReal: false,
       motivo: null,
     })
     // pedido 075 (lote 6b): BLOQUEADOS, O5 e O19 voltaram ao mapa real
@@ -114,19 +115,15 @@ describe('origem do cartão (pedido 060)', () => {
     expect(origemDoCartao('XX9', 'mock').semDadoReal).toBe(false)
   })
 
-  it('Sustentação: S2, S3, S4, S8, S10 e S12 têm dado real; S1, S5, S6, S7, S9, S11 e a EI_SUST estão sem dado real com o motivo do Acelerato', () => {
-    for (const c of ['S2', 'S3', 'S4', 'S8', 'S10', 'S12']) {
+  it('Sustentação: S1, S2, S3, S4, S8, S9, S10 e S12 têm dado real; S5, S6, S7, S11 e a EI_SUST estão sem dado real com o motivo do Acelerato', () => {
+    for (const c of ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12']) {
       expect(origemDoCartao(c, 'api').semDadoReal, c).toBe(false)
     }
-    expect(origemDoCartao('S1', 'api').motivo).toBe('aguardando prazos de SLA por prioridade')
     for (const c of ['S5', 'S6', 'S7', 'S11']) {
       expect(origemDoCartao(c, 'api').motivo, c).toBe(
         'aguardando tipo e domínio do campo do chamado (P-DS-19)',
       )
     }
-    expect(origemDoCartao('S9', 'api').motivo).toBe(
-      'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
-    )
     expect(origemDoCartao('EI-SUST', 'api').semDadoReal).toBe(true)
     expect(origemDoCartao('S2', 'mock').semDadoReal).toBe(false)
   })
@@ -137,7 +134,7 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(contarSemDadoReal('sustentacao', 'api')).toBe(n)
     expect(n).toBeLessThan(cartoesDoPainel('sustentacao').length)
-    expect(n).toBeGreaterThanOrEqual(6)
+    expect(n).toBeGreaterThanOrEqual(5)
   })
 
   it('com a fonte mock vale só o catálogo: o aviso global do app já diz que tudo é fictício', () => {

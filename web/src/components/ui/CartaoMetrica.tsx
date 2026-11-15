@@ -9,11 +9,15 @@ import {
   type CriteriosResultado,
   type MetricaId,
   type NotaCartaoId,
+  type NotaS1Id,
   type NotaSustentacaoId,
   type Periodo,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
+
+/** Filtros que podem atuar num cartão do fluxo: os do contrato e o Setor (097 L11; entra no contrato com o L10b). */
+export type FiltroCartaoChave = FiltroFluxoChave | 'setor'
 import { SemDadoRealErro } from '@/data/http/SemDadoRealErro'
 import { fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
@@ -77,7 +81,7 @@ export interface CartaoMetricaProps {
   fonte: FonteDoCartao
   granularidade: GranularidadeDoCartao
   /** Filtros que atuam no cartão (tabela 2.2). Omitido = todos os ativos atuam (sustentação). */
-  aplicaveis?: readonly FiltroFluxoChave[]
+  aplicaveis?: readonly FiltroCartaoChave[]
   criterios?: CriteriosResultado
   /**
    * Janela de percentis do resultado (`janelaPercentis` do DTO) e período escolhido: com os dois, o
@@ -88,7 +92,7 @@ export interface CartaoMetricaProps {
   /** Selos extras. */
   selos?: ReactNode
   /** Notas que o resultado indica para o cartão (ex.: O3 com "SLE não definido", H-24); os textos vêm do contrato. */
-  notasDoCartao?: readonly (NotaCartaoId | NotaSustentacaoId)[] | undefined
+  notasDoCartao?: readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id)[] | undefined
   /** Controles do cabeçalho do cartão além de "Como ler" e "Ver como tabela". */
   acoes?: ReactNode
   /** Sem alternativa em tabela (listas que já são tabelas). */
@@ -120,8 +124,8 @@ const SEMANAS_DO_PERIODO: Partial<Record<Periodo['tipo'], number>> = { '4s': 4, 
  */
 function notasDoCartaoVisiveis(
   codigo: string,
-  doResultado: readonly (NotaCartaoId | NotaSustentacaoId)[] | undefined,
-): readonly (NotaCartaoId | NotaSustentacaoId)[] {
+  doResultado: readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id)[] | undefined,
+): readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id)[] {
   const id = idDeMetrica(codigo) as MetricaId
   const fixas = origemDaMetrica(id) === 'real' ? (NOTAS_FIXAS_DO_CARTAO[id] ?? []) : []
   return [...new Set([...fixas, ...(doResultado ?? [])])]
@@ -181,7 +185,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
     return () => reportarAtualizando(id, false)
   }, [id, atualizando, reportarAtualizando])
 
-  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroFluxoChave)
+  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroCartaoChave)
   const aplicados = filtrosAtivos.filter((f) => atua(f.chave))
   const naoAfetam = [...new Set(filtrosAtivos.filter((f) => !atua(f.chave)).map((f) => f.rotulo))]
   const textoAplicados = aplicados.map((f) => `${f.rotulo} ${f.valor}`)

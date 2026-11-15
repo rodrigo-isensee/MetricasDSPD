@@ -6,11 +6,11 @@ import {
   TabelaDados,
   useModoTabela,
 } from '@/components/ui'
-import type { FiltrosSustentacao, Prioridade, ResultadoS1 } from '@metricas-dspd/contratos'
+import type { FiltrosSustentacao, ResultadoS1 } from '@metricas-dspd/contratos'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
-import { fmtTempoPrioridade } from '../formatar'
+import { fmtPrazo } from '../formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { TextoInsuficiente } from './comuns'
 import { LeiaJunto } from '@/features/complementares/LeiaJunto'
@@ -24,8 +24,11 @@ const MEDIDAS: { chave: Medida; titulo: string; sigla: string }[] = [
   { chave: 'restauracao', titulo: 'Restauração', sigla: 'MTTR' },
 ]
 
-const celula = (c: Classe, p: Prioridade, campo: 'p50' | 'p85' | 'p95' | 'media', hd: number) =>
-  c.estatistica.status === 'ok' ? fmtTempoPrioridade(c.estatistica.valor[campo], p, hd) : '—'
+/** Todo número da célula (alvo e estatísticas) sai na unidade e no relógio do alvo da própria célula (K-314). */
+const prazo = (c: Classe, h: number, hd: number) => fmtPrazo(h, c.exibirEm, c.unidade, hd)
+
+const celula = (c: Classe, campo: 'p50' | 'p85' | 'p95' | 'media', hd: number) =>
+  c.estatistica.status === 'ok' ? prazo(c, c.estatistica.valor[campo], hd) : '—'
 
 function Bloco({
   medida,
@@ -55,7 +58,7 @@ function Bloco({
           categorias={linhas.map((l) => {
             const c = l[medida.chave]
             return {
-              rotulo: `${l.prioridade} · alvo ${fmtTempoPrioridade(c.alvoHoras, l.prioridade, horasPorDiaUtil)}`,
+              rotulo: `${l.prioridade} · alvo ${prazo(c, c.alvoHoras, horasPorDiaUtil)}`,
               valores: {
                 p50: c.razaoMediana === null ? null : c.razaoMediana * 100,
                 p85: c.razaoP85 === null ? null : c.razaoP85 * 100,
@@ -102,11 +105,11 @@ function Bloco({
               const c = l[medida.chave]
               return {
                 p: l.prioridade,
-                alvo: fmtTempoPrioridade(c.alvoHoras, l.prioridade, horasPorDiaUtil),
-                p50: celula(c, l.prioridade, 'p50', horasPorDiaUtil),
-                p85: celula(c, l.prioridade, 'p85', horasPorDiaUtil),
-                p95: celula(c, l.prioridade, 'p95', horasPorDiaUtil),
-                media: celula(c, l.prioridade, 'media', horasPorDiaUtil),
+                alvo: prazo(c, c.alvoHoras, horasPorDiaUtil),
+                p50: celula(c, 'p50', horasPorDiaUtil),
+                p85: celula(c, 'p85', horasPorDiaUtil),
+                p95: celula(c, 'p95', horasPorDiaUtil),
+                media: celula(c, 'media', horasPorDiaUtil),
                 base: `${fmtInteiro(c.n)} chamados`,
                 status:
                   c.statusMeta === 'sem-referencia' ? (
@@ -139,7 +142,7 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
   const leitura =
     d &&
     (primeira && e?.status === 'ok'
-      ? `${primeira.prioridade}: metade dos chamados restaura em até ${fmtTempoPrioridade(e.valor.p50, primeira.prioridade, d.horasPorDiaUtil)} (alvo: ${fmtTempoPrioridade(primeira.restauracao.alvoHoras, primeira.prioridade, d.horasPorDiaUtil)}); 85% em até ${fmtTempoPrioridade(e.valor.p85, primeira.prioridade, d.horasPorDiaUtil)}.`
+      ? `${primeira.prioridade}: metade dos chamados restaura em até ${prazo(primeira.restauracao, e.valor.p50, d.horasPorDiaUtil)} (alvo: ${prazo(primeira.restauracao, primeira.restauracao.alvoHoras, d.horasPorDiaUtil)}); 85% em até ${prazo(primeira.restauracao, e.valor.p85, d.horasPorDiaUtil)}.`
       : 'Nenhuma prioridade tem 20 chamados para publicar mediana e P85.')
   const todasInsuf = d?.prioridades.every(
     (l) => l.restauracao.estatistica.status === 'insuficiente',
@@ -164,6 +167,7 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
           }
         : {})}
       {...(leitura ? { leitura } : {})}
+      notasDoCartao={d?.notas}
       nota={NOTAS_SUSTENTACAO.S1 as NonNullable<(typeof NOTAS_SUSTENTACAO)[string]>}
       meta={m.meta}
       fonte={m.fonte}

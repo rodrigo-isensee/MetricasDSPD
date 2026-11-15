@@ -78,8 +78,11 @@ interface Par<F, R> {
   filtros: F
   resultado: R
 }
-/** Filtros das tendências: a data de referência e a `equipe` (ids/slugs da fonte da métrica), ambas opcionais (ADR 0019, pedido 097). Sem `equipe` = todas. */
-export type FiltrosTendencia = { dataReferencia?: string; equipe?: string[] }
+/**
+ * Filtros das tendências: a data de referência e a `equipe` (ids/slugs da fonte da métrica), ambas opcionais (ADR 0019, pedido 097). Sem `equipe` = todas.
+ * `setor` (slugs, L10b) só vale na TENDENCIA_FLUXO; a TENDENCIA_SUST (Acelerato) o ignora e a rota a recusa.
+ */
+export type FiltrosTendencia = { dataReferencia?: string; equipe?: string[]; setor?: string[] }
 type Fluxo<R> = Par<FiltrosFluxo, R>
 type Sust<R> = Par<FiltrosSustentacao, R>
 
