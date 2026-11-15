@@ -17,7 +17,7 @@ BASE="$DIR/metricas-$CARIMBO"
 trap 'rm -f "$BASE.dump.tmp" "$BASE.inventario.txt.tmp" "$DIR/roles-$CARIMBO.sql.tmp"' EXIT
 INICIO=$SECONDS
 
-echo "[backup] $PGDATABASE@$PGHOST:$PGPORT como $PGUSER -> $DIR"
+echo "[backup] usando host $PGHOST porta $PGPORT: $PGDATABASE como $PGUSER -> $DIR"
 pg pg_dump -Fc --no-password -d "$PGDATABASE" > "$BASE.dump.tmp"
 pg pg_dumpall --roles-only --no-role-passwords --no-password > "$DIR/roles-$CARIMBO.sql.tmp"
 pg psql -X -At -v ON_ERROR_STOP=1 --no-password -d "$PGDATABASE" < "$(dirname "$0")/sql/inventario.sql" > "$BASE.inventario.txt.tmp"
