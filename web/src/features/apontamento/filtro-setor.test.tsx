@@ -27,8 +27,15 @@ function renderizar(url: string = URL_ABA, fonte: FonteApontamento = fonteFictic
 
 async function pronto(url?: string, fonte?: FonteApontamento) {
   const roteador = renderizar(url, fonte)
-  const el = await screen.findByTestId('metrica-AP-KPIS')
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await screen.findByTestId('metrica-AP-KPIS')
+  // todos os cartões saem do esqueleto cada um no seu tempo (K-355): ler outro cartão logo após o KPI é corrida
+  await waitFor(
+    () => {
+      for (const c of screen.getAllByTestId(/^metrica-/))
+        expect(c).toHaveAttribute('data-estado', 'ok')
+    },
+    { timeout: 8000 },
+  )
   return roteador
 }
 
