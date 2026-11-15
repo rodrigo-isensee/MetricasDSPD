@@ -373,7 +373,7 @@ describe('ramos dos componentes complementares', () => {
       /^Sem divisão por tamanho: .+\. Nenhum card concluído desse tipo, no período, tem tamanho declarado no quadro\. A mediana e o P85 dele estão na tabela acima\.$/,
     )
     expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
-    const tipo = nota.textContent.match(/tamanho: (.+?)\./)![1]
+    const tipo = nota.textContent.match(/tamanho: (.+?)\./)![1]!
     const tabela = el.querySelector('table')!
     const linha = within(tabela).getByText(tipo).closest('tr')!
     expect(linha).toHaveTextContent(`${fmtDiasUteis(4)}${fmtDiasUteis(9)}`)
