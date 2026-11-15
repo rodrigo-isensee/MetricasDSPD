@@ -33,6 +33,9 @@ describe('rótulo da etiqueta -> classe (decisão do dono de 2026-11-15)', () =>
   it('Intangível não é classe; texto fora da lista, não texto e rótulo enorme ficam sem classe', () => {
     for (const r of ['Intangível', 'Intangivel', 'Expedite', 'Standard', 'Urgentes', '', null, 7, undefined, 'a'.repeat(500)]) expect(classeDoRotuloDeTag(r), String(r)).toBeUndefined();
   });
+  it('item do catálogo que não é objeto é ignorado', () => {
+    expect([...mapaDeTagsDeClasse([null, 7, 'Urgente', { tag_id: 1, label: 'Urgente' }]).entries()]).toEqual([['1', 'Urgente']]);
+  });
   it('o mapa guarda só id e classe das etiquetas de classe; as outras somem', () => {
     expect([...MAPA.entries()]).toEqual([['1', 'Urgente'], ['2', 'Prioritário'], ['3', 'Prazo fixo'], ['4', 'Padrão'], ['6', 'Padrão']]);
   });
@@ -154,6 +157,12 @@ describe('coleta: catálogo de etiquetas antes dos cards (4i)', () => {
     expect(m.banco.estado.stg).toEqual([]);
     expect(m.banco.estado.falhas).toEqual([{ entidade: 'tags', idOrigem: null, erro: 'autenticacao' }]);
     expect(m.banco.estado.marca).toBeUndefined();
+  });
+
+  it('erro que não é do BusinessMap, na leitura do catálogo, sobe sem ser engolido', async () => {
+    const m = await montar([card(1)], {});
+    const deps = { ...m.deps, cliente: { get: () => Promise.reject(new TypeError('falha-interna')) } as never };
+    await expect(coletarCards(deps, carga)).rejects.toThrow('falha-interna');
   });
 
   it('catálogo paginado: lê as páginas seguintes (page, só GET)', async () => {

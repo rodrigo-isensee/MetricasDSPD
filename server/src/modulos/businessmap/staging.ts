@@ -11,7 +11,7 @@ export type ResultadoStaging = 'inserido' | 'ja_existente';
  * Responsáveis NÃO passam por aqui (4b): ver `responsaveis.ts`.
  */
 export type EntradaStgCard = {
-  idOrigem: string; card: unknown; dominios?: DominiosCamposCustomizados; /** 4i: catálogo etiqueta -> classe; ausente = não lido */ mapaTags?: MapaTagsDeClasse; coletaId: number; agora: Date;
+  idOrigem: string; card: unknown; dominios?: DominiosCamposCustomizados; /** 4i: catálogo etiqueta -> classe; ausente = não lido */ mapaTags?: MapaTagsDeClasse | undefined; coletaId: number; agora: Date;
   quadroId: string; arquivado: boolean; excluidoDetectado: boolean;
 };
 

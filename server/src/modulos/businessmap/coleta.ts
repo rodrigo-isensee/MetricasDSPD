@@ -226,7 +226,7 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
         for (const r of responsaveis ?? []) x.vistos.add(r);
         if (responsaveis !== null) x.d.responsaveis?.set(id, responsaveis);
         const r = await gravarStgCard(db, {
-          idOrigem: id, card, dominios: x.dominios, ...(x.mapaTags === undefined ? {} : { mapaTags: x.mapaTags }), coletaId: x.coletaId, agora, quadroId: String(quadro),
+          idOrigem: id, card, dominios: x.dominios, mapaTags: x.mapaTags, coletaId: x.coletaId, agora, quadroId: String(quadro),
           arquivado: estado === 'archived', excluidoDetectado: false,
         }, x.S);
         if (r === 'inserido') c.inseridos += 1;
