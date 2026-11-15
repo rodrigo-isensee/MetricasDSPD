@@ -257,7 +257,7 @@ describe('arquivo versionado: domínios cpe_* e etapa_fluxo (pedido 099, D1 1b e
     }
     for (const c of CAMPOS_DOMINIO.filter((x) => x.startsWith('cpe_'))) for (const i of lista(c)) expect(i.rotulo).toBe(i.codigo);
   });
-  it('cpe_tipo_prioridade não tem valores (decisão do dono) e a lista vazia não é aceita; nenhum valor é e-mail', () => {
+  it('cpe_tipo_prioridade não tem valores (até decisão do dono) e a lista vazia não é aceita; nenhum valor é e-mail', () => {
     expect(lido.dominios).not.toHaveProperty('cpe_tipo_prioridade');
     expect(lido.dominios).not.toHaveProperty('cpe_suporte_acionado');
     expect(() => arquivo({ cpe_tipo_prioridade: [] })).toThrow(ErroDominio);
@@ -272,6 +272,15 @@ describe('arquivo versionado: domínios cpe_* e etapa_fluxo (pedido 099, D1 1b e
     const cadeia = ['1841', '3308', '3309', '3310', '1843', '3315', '1847', '3240'];
     expect(cadeia.map(posicao)).toEqual([...cadeia.map(posicao)].sort((a, b) => a - b));
     expect(cadeia.map(posicao).every((p) => p >= 0)).toBe(true);
+  });
+  it('etapa_fluxo: o rótulo de cada chave amostrada é o nome literal da B5-a (uma por fase e as de mesmo nome em workflows distintos)', () => {
+    const esperado: Record<string, string> = {
+      '1841': 'Novo Atendimento', '3308': 'Em triagem', '3320': 'Em Classificação', '3321': 'Aguardando Validação de Prioridade',
+      '3309': 'Em Diagnóstico', '3310': 'Em Atendimento N1', '3313': 'Em Atendimento N3', '1843': 'Aguardando Solicitante',
+      '3237': 'Aguardando Suporte Terceiros', '3314': 'Pendente', '3315': 'Aguardando Validação', '1847': 'Encerramento',
+      '1848': 'Concluído', '3316': 'Encerrado', '3328': 'Encerrado', '3240': 'Causa Raiz',
+    };
+    for (const [chave, rotulo] of Object.entries(esperado)) expect(lista('etapa_fluxo')[posicao(chave)]?.rotulo, chave).toBe(rotulo);
   });
   it('etapa_fluxo: o encerramento vale depois de Em triagem (Motivo de Encerramento) e Concluído vem depois do Encerramento', () => {
     expect(posicao('3316')).toBeGreaterThan(posicao('3308'));
