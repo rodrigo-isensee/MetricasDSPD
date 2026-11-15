@@ -79,9 +79,9 @@ export const ANOMALIA = {
   filtro: 'Ocultar possíveis erros',
   dica: (limiteHoras: number) =>
     `Mais de ${fmtNumero(limiteHoras, 0)} h apontadas por uma pessoa em um dia. O valor foi mantido na soma e marcado para conferência.`,
-  /** Só no mapa com a Equipe ativa: as horas da célula são as da equipe, o atípico olha o dia todo. */
-  dicaRecorteEquipe:
-    'O dia é avaliado com todas as horas da pessoa, não só as da equipe escolhida.',
+  /** Só no mapa com Setor ou Equipe ativo: as horas da célula são as do recorte, o atípico olha o dia todo. */
+  dicaRecorte:
+    'O dia é avaliado com todas as horas da pessoa, não só as do setor ou da equipe escolhidos.',
 } as const
 
 export const ROTULO_CHIP_ORDEM = { rotulo: 'Ordem', valor: 'total de horas' } as const
@@ -113,7 +113,11 @@ export const VAZIO = {
 
 /** Vazio do próprio mapa diário (K-286): a janela dele é a escolhida no cartão, não o período dos filtros. */
 export const DIARIO_VAZIO = {
-  semEquipe: 'Nenhum apontamento nesta janela. Troque as datas do mapa.',
+  semRecorte: 'Nenhum apontamento nesta janela. Troque as datas do mapa.',
+  comSetor:
+    'Nenhum apontamento do setor escolhido nesta janela. Troque as datas do mapa ou remova o filtro Setor.',
+  comSetorEEquipe:
+    'Nenhum apontamento do setor e da equipe escolhidos nesta janela. Troque as datas do mapa ou remova os filtros Setor e Equipe.',
   comEquipe:
     'Nenhum apontamento da equipe escolhida nesta janela. Troque as datas do mapa ou remova o filtro Equipe.',
 } as const
@@ -207,7 +211,7 @@ export const CARTOES = {
   diario: {
     pergunta: 'Como as horas se distribuem pelos dias, por pessoa?',
     comoLer:
-      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. A Equipe escolhida na barra recorta este mapa; os demais filtros e o período da barra não o afetam, e a janela dele é a escolhida aqui. O dia atípico é decidido sobre o dia inteiro da pessoa, em qualquer equipe.",
+      "Cada célula é o total apontado por uma pessoa em um dia, em faixas fixas: 0 h, até 4 h, de 4 a 8 h e mais de 8 h. As faixas não mudam com a carga, então a mesma cor sempre significa a mesma faixa. Cinza neutro é fim de semana ou feriado; célula vazia com borda é dia útil sem apontamento. 'Possível erro de apontamento' marca dias acima do limite. O Setor e a Equipe escolhidos na barra recortam este mapa; os demais filtros e o período da barra não o afetam, e a janela dele é a escolhida aqui. O dia atípico é decidido sobre o dia inteiro da pessoa, em qualquer setor ou equipe.",
     criterio: 'Faixas fixas; limite de possível erro configurável no servidor.',
   },
 } satisfies Record<string, TextosCartao>
