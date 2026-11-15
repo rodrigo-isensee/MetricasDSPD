@@ -12,6 +12,7 @@ const GRUPOS = ['Todos', 'Núcleo', 'Complementar'] as const
  */
 export default function CatalogoPage() {
   const todas = useMemo(() => linhasDoCatalogo(), [])
+  const totalMetricas = new Set(todas.map((l) => l.codigo)).size
   const [grupo, setGrupo] = useState<(typeof GRUPOS)[number]>('Todos')
   const [painel, setPainel] = useState('todos')
   const paineis = [...new Map(todas.map((l) => [l.painel, l.painelRotulo]))]
@@ -24,11 +25,11 @@ export default function CatalogoPage() {
         Catálogo de métricas
       </h1>
       <p className="text-sm text-texto-2">
-        Tudo o que existe no DSPD: as métricas do briefing, as complementares acrescentadas depois
-        dele e a de percepção (a pesquisa de valor do serviço); a espera invisível aparece em uma
-        linha por nível. As complementares ficam na seção "Mais métricas" da visão. A coluna "Dados"
-        diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de
-        exemplo.
+        Tudo o que existe no DSPD: {fmtInteiro(totalMetricas)} métricas (as do briefing, as
+        complementares acrescentadas depois dele e a de percepção, a pesquisa de valor do serviço);
+        a espera invisível aparece em uma linha por nível. As complementares ficam na seção "Mais
+        métricas" da visão. A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem
+        dado real; nenhuma mostra número de exemplo.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -61,7 +62,7 @@ export default function CatalogoPage() {
           </select>
         </label>
         <p className="text-sm text-texto-2" role="status" data-testid="contagem-catalogo">
-          {fmtInteiro(linhas.length)} de {fmtInteiro(todas.length)} métricas
+          {fmtInteiro(linhas.length)} de {fmtInteiro(todas.length)} linhas
         </p>
       </div>
       <TabelaDados
