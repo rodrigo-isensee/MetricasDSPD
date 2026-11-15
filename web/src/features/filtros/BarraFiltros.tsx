@@ -8,7 +8,7 @@ import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
 import { FiltroMulti, escLimpaBuscaFocada } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
-import { rotuloDoFiltro } from './paineis'
+import { ROTULO_FILTRO, rotuloDoFiltro } from './paineis'
 import type { UseFiltros } from './useFiltros'
 
 type Uso = UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
@@ -22,14 +22,27 @@ const TEXTO_TIPO =
 const tiposDe = (ids: readonly string[]): FiltrosFluxo['tipo'] =>
   ids.map((id) => TIPO_POR_ID.get(id) as FiltrosFluxo['tipo'][number])
 
-/** Texto da lista sem opções: ainda carregando, ou nada no recorte (ou erro; a lista não distingue). */
-const semOpcoes = (carregando: boolean, plural: string, genero: 'm' | 'f' = 'm'): string =>
-  carregando
+/** Texto da lista sem opções: erro da consulta, ainda carregando, ou nada no recorte. */
+const semOpcoes = (
+  carregando: boolean,
+  erro: boolean,
+  plural: string,
+  genero: 'm' | 'f' = 'm',
+  repetiu = false,
+): string => {
+  if (erro && repetiu)
+    return `Ainda não foi possível carregar ${plural}. Tente de novo em instantes.`
+  if (erro) return `Não foi possível carregar ${plural}.`
+  return carregando
     ? `Carregando ${plural}...`
-    : `${genero === 'm' ? 'Nenhum' : 'Nenhuma'} ${plural.replace(/s$/, '')} disponível neste recorte.`
+    : `${genero === 'm' ? 'Nenhum' : 'Nenhuma'} ${plural.replace(/(?<=r)es$|s$/, '')} disponível neste recorte.`
+}
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
-  const { config, opcoes } = uso
+  const { config, opcoes, opcoesErro, opcoesTentando: tentando, opcoesRepetiu: repetiu } = uso
+  const aoTentar = opcoesErro ? uso.recarregarOpcoes : undefined
+  const sem = (plural: string, genero: 'm' | 'f' = 'm') =>
+    semOpcoes(!opcoes, opcoesErro, plural, genero, repetiu)
   const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
@@ -39,11 +52,30 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
   const tiposOpc: OpcaoFiltro[] = (bm?.tipos ?? []).filter((t) => TIPO_POR_ID.has(t.id))
   return (
     <>
+      {config.filtros.includes('setor') && (
+        <FiltroMulti
+          id="setor"
+          rotulo={ROTULO_FILTRO.setor}
+          genero="m"
+          opcoes={bm?.setores ?? []}
+          vazio={sem('setores')}
+          aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="setores"
+          selecionados={f.setor ?? []}
+          variante={variante}
+          onChange={(ids, replace) => definir({ setor: ids }, { replace })}
+        />
+      )}
       {config.filtros.includes('equipe') && (
         <FiltroMulti
           id="equipe"
           rotulo={rotuloEquipe}
           opcoes={opcoes?.equipes ?? []}
+          vazio={sem('equipes', 'f')}
+          aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="equipes"
           selecionados={f.equipe}
           variante={variante}
           onChange={(ids, replace) => definir({ equipe: ids }, { replace })}
@@ -55,7 +87,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Tipo de demanda"
           genero="m"
           opcoes={tiposOpc}
-          vazio={semOpcoes(!opcoes, 'tipos')}
+          vazio={sem('tipos')}
+          aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="tipos"
           selecionados={f.tipo.map((t) => TIPO_ID[t])}
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
@@ -68,7 +103,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           rotulo="Sistema"
           genero="m"
           opcoes={bm?.sistemas ?? []}
-          vazio={semOpcoes(!opcoes, 'sistemas')}
+          vazio={sem('sistemas')}
+          aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="sistemas"
           selecionados={f.sistema}
           variante={variante}
           onChange={(ids, replace) => definir({ sistema: ids }, { replace })}
@@ -79,7 +117,10 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           id="prioridade"
           rotulo="Prioridade"
           opcoes={ac?.prioridades ?? []}
-          vazio={semOpcoes(!opcoes, 'prioridades', 'f')}
+          vazio={sem('prioridades', 'f')}
+          aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="prioridades"
           selecionados={f.prioridade.map((p) => p.toLowerCase())}
           variante={variante}
           onChange={(ids, replace) =>
@@ -137,6 +178,8 @@ export function BarraFiltros({
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
+  // Setores somados: só a seleção (sem seleção é "Todos", sem aviso); nunca números por setor (CA-45, CA-46).
+  const setores = uso.config.filtros.includes('setor') ? (f.setor ?? []).length : 0
   // Equipes somadas no resultado: seleção, ou todas (padrão) quando o painel tem filtro de equipe.
   const reservaAviso = uso.config.filtros.includes('equipe') && f.equipe.length === 0 && !uso.opcoes
   const equipes = uso.config.filtros.includes('equipe')
@@ -259,6 +302,11 @@ export function BarraFiltros({
         // Reserva a altura do aviso enquanto as opções não chegam: evita salto de layout (ADR 0003 F2).
         <p aria-hidden="true" className="invisible text-sm">
           &nbsp;
+        </p>
+      )}
+      {setores >= 2 && (
+        <p className="text-sm text-texto-2" data-testid="aviso-consolidado-setor">
+          Resultado consolidado de {setores} setores. O sistema não compara setores.
         </p>
       )}
       {equipes >= 2 && (

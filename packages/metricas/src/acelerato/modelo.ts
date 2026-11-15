@@ -2,13 +2,7 @@
  * Modelo do Acelerato (briefing 3.2 e 3.4). Nenhum tipo é compartilhado com o BusinessMap
  * além de primitivos e dos domínios fechados de `contracts/comum`.
  */
-import type {
-  MotivoEncerramento,
-  MotivoEscalacao,
-  NivelResolucao,
-  Prioridade,
-  VersaoCriterio,
-} from '@metricas-dspd/contratos'
+import type { NivelResolucao, Prioridade, VersaoCriterio } from '@metricas-dspd/contratos'
 import { criarCalendario, type Turno } from '../core/calendario'
 
 export type EtapaAcelerato =
@@ -55,10 +49,14 @@ export interface Chamado {
   status_sla_r: 'REALIZADO_NO_PRAZO' | 'REALIZADO_APOS_VENCIMENTO' | null
   /** Nome hipotético (P5): SLA do primeiro atendimento. */
   status_sla_pa: 'NO_PRAZO' | 'APOS_VENCIMENTO' | null
-  motivo_escalacao: MotivoEscalacao | null
+  /** Valor como a coleta o gravou (domínio do campo do Acelerato); o de-para para os motivos publicados é `motivos.ts` (D2, P2). */
+  motivo_escalacao: string | null
   motivo_pendencia_atual: MotivoPendencia | null
   previsao_retorno: number | null
-  motivo_encerramento: MotivoEncerramento | null
+  /** Valor como a coleta o gravou; o de-para para os motivos publicados é `motivos.ts` (D2, P2). */
+  motivo_encerramento: string | null
+  /** Workflow único do chamado (D1, 1a); nulo = sem fluxo ou mais de um. Ausente na base semeada. */
+  fluxo?: string | null
   avaliacao_problema: 'Aberto' | 'Não aplicável' | null
   excecao_sla_registro_posterior: boolean
   incidente_critico_coordenado: boolean
@@ -94,6 +92,11 @@ export interface AlvoPrioridade {
 }
 
 export interface ConfigAC {
+  /**
+   * Os cinco fluxos do PROC (D2, P1 = B do dono): S5, S6 e S7 só contam chamados deles. Ausente = a base não separa fluxo (mock e testes):
+   * nenhum chamado fica de fora. Presente, chamado de outro fluxo, sem fluxo ou com fluxo múltiplo fica fora e vai para `foraDoFluxo`.
+   */
+  fluxos_proc?: readonly string[]
   alvos: AlvoPrioridade[]
   criterios: VersaoCriterio[]
 }

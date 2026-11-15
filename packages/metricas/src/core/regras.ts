@@ -456,6 +456,7 @@ export const REGRAS_METRICA = {
     status: 'ok',
   },
   O8: {
+    // Tempo em execução real (o mesmo do O3). Divisão por tamanho: sem dado real até o campo `tamanho_declarado` (pedido 099, A4, Q-099-4).
     dominio: 'businessmap',
     segmentacao: ['tipo'],
     ordem: 'temporal',
@@ -601,7 +602,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa', 'percentis'],
     granularidade: 'story',
     refBriefing:
-      "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prazo fixo e Intangível fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
+      "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prioritário e Prazo fixo fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
     status: 'ok',
   },
   O22: {

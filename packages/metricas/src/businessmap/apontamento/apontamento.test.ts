@@ -50,6 +50,9 @@ const BUG = { id: '8', rotulo: 'Correção' }
 const TIME_A = { id: 'time-a', rotulo: 'Time A' }
 const TIME_B = { id: 'time-b', rotulo: 'Time B' }
 const SEM_TIME = { id: 'sem-time', rotulo: 'Sem time' }
+const SETOR_A = { id: 'setor-a', rotulo: 'Setor A' }
+const SETOR_B = { id: 'setor-b', rotulo: 'Setor B' }
+const SEM_SETOR = { id: 'sem-setor', rotulo: 'Sem setor' }
 const PROJ_A = { id: '100', rotulo: 'Projeto A', foraDoEscopo: false }
 const PROJ_B = { id: '200', rotulo: 'Projeto B', foraDoEscopo: true }
 const TESTES = { id: 'testes', rotulo: 'Testes' }
@@ -64,6 +67,7 @@ function linha(o: Partial<LinhaApontamento> = {}): LinhaApontamento {
     segundos: H,
     tipo: TAREFA,
     equipe: TIME_A,
+    setor: SETOR_A,
     projeto: PROJ_A,
     subgrupo: TESTES,
     subtarefa: DIRETO,
@@ -276,6 +280,43 @@ describe('valor atípico e filtros', () => {
     expect(f(['time-a', 'sem-time'])).toHaveLength(2)
     expect(f(['inexistente'])).toHaveLength(0)
     expect(f([])).toHaveLength(3)
+  })
+
+  it('097 K-337: o filtro setor restringe pelo setor do quadro do card (e "sem-setor"); lista vazia = sem filtro; combina com a equipe; a soma do recorte bate', () => {
+    const ls = [
+      linha({ setor: SETOR_A }),
+      linha({ setor: SETOR_B, segundos: 2 * H, equipe: TIME_B }),
+      linha({ setor: SEM_SETOR, segundos: 3 * H }),
+    ]
+    const f = (setor: string[], equipe?: string[]) =>
+      filtrar(
+        ls,
+        { anomalos: 'incluir', setor, ...(equipe === undefined ? {} : { equipe }) },
+        new Set(),
+      )
+    expect(f(['setor-b']).map((l) => l.segundos)).toEqual([2 * H])
+    expect(f(['setor-a', 'sem-setor'])).toHaveLength(2)
+    expect(f(['inexistente'])).toHaveLength(0)
+    expect(f([])).toHaveLength(3)
+    expect(f(['setor-b'], ['time-a'])).toHaveLength(0)
+    expect(f(['setor-a', 'setor-b'], ['time-b']).map((l) => l.segundos)).toEqual([2 * H])
+    expect(f(['setor-a', 'setor-b', 'sem-setor']).reduce((t, l) => t + l.segundos, 0)).toBe(6 * H)
+  })
+
+  it("097 K-337: modo 'diario' recorta pelo setor, junto com a pessoa, sem olhar projeto, tipo nem anômalos", () => {
+    const ls = [
+      linha({ pessoaRef: 'p1', setor: SETOR_A }),
+      linha({ pessoaRef: 'p1', setor: SETOR_B, segundos: 2 * H }),
+      linha({ pessoaRef: 'p2', setor: SETOR_B, segundos: 3 * H }),
+      linha({ pessoaRef: 'p2', setor: SEM_SETOR, segundos: 4 * H }),
+    ]
+    const d = (f: Partial<FiltrosApontamento>) =>
+      filtrar(ls, { anomalos: 'ocultar', ...f }, new Set(), 'diario').map((l) => l.segundos)
+    expect(d({ setor: ['setor-b'] })).toEqual([2 * H, 3 * H])
+    expect(d({ setor: ['setor-a', 'sem-setor'] })).toHaveLength(2)
+    expect(d({ setor: ['setor-b'], pessoa: ['p1'] })).toEqual([2 * H])
+    expect(d({ setor: ['setor-b'], tipo: ['999'], projeto: ['999'] })).toHaveLength(2)
+    expect(d({ setor: [] })).toHaveLength(4)
   })
 
   it('sem filtro, lista vazia ou chave ausente: tudo passa (inclusive linha sem pessoa)', () => {
@@ -806,6 +847,67 @@ describe('achados gerados por regra (limiares provisórios)', () => {
     for (const x of a) expect(achadoApontamentoSchema.safeParse(x).success).toBe(true)
   })
 
+  describe('concentração e a linha sem projeto (decisão 1a do dono, K-324)', () => {
+    const comLinhas = (linhas: ReturnType<typeof linhaDist>[]) =>
+      base({
+        distribuicao: {
+          base: { n: 40, unidade: 'apontamentos' },
+          porProjeto: linhas,
+          porTipo: [],
+          porSubgrupo: [],
+        },
+      })
+    const conc = (b: ReturnType<typeof base>) =>
+      gerarAchados(b).find((a) => a.codigo === 'concentracao-em-projeto')
+
+    it('a linha sem projeto, maior que todas, nunca vira o topo; as horas dela saem à parte', () => {
+      const a = conc(
+        comLinhas([
+          linhaDist('sem-projeto', 'Sem iniciativa', 300, ok(40, 70)),
+          linhaDist('1', 'Projeto X', 100, ok(40, 55)),
+          linhaDist('2', 'Projeto menor', 10, ok(40, 5)),
+        ]),
+      )
+      expect(a).toEqual({
+        codigo: 'concentracao-em-projeto',
+        valores: { pct: 55, horasSemProjeto: 300 / 3600 },
+        rotuloRef: 'Projeto X',
+      })
+      expect(achadoApontamentoSchema.safeParse(a).success).toBe(true)
+    })
+
+    it('só a linha sem projeto: nenhum achado de concentração', () => {
+      expect(
+        conc(comLinhas([linhaDist('sem-projeto', 'Sem iniciativa', 300, ok(40, 100))])),
+      ).toBeUndefined()
+    })
+
+    it('com projetos e sem a linha sem projeto: achado igual ao de hoje, sem `horasSemProjeto`', () => {
+      const a = conc(
+        comLinhas([
+          linhaDist('2', 'Projeto menor', 10, ok(40, 25)),
+          linhaDist('1', 'Projeto X', 100, ok(40, 50)),
+        ]),
+      )
+      expect(a).toEqual({
+        codigo: 'concentracao-em-projeto',
+        valores: { pct: 50 },
+        rotuloRef: 'Projeto X',
+      })
+      expect(a && 'horasSemProjeto' in a.valores).toBe(false)
+    })
+
+    it('a linha sem projeto pequena também leva as horas à parte, e o topo segue o maior projeto', () => {
+      const a = conc(
+        comLinhas([
+          linhaDist('sem-projeto', 'Sem iniciativa', 7200, ok(40, 5)),
+          linhaDist('1', 'Projeto X', 100, ok(40, 60)),
+        ]),
+      )
+      expect(a?.valores).toEqual({ pct: 60, horasSemProjeto: 2 })
+    })
+  })
+
   it('achado com percentual não sai sem a base de 20 (piso)', () => {
     const b = base({
       distribuicao: {
@@ -1082,6 +1184,7 @@ const linhaArb: fc.Arbitrary<LinhaApontamento> = fc.record({
   segundos: fc.integer({ min: 1, max: 12 * H }),
   tipo: fc.constantFrom(TAREFA, BUG),
   equipe: fc.constantFrom(TIME_A, TIME_B, SEM_TIME),
+  setor: fc.constantFrom(SETOR_A, SETOR_B, SEM_SETOR),
   projeto: fc.constantFrom(PROJ_A, PROJ_B),
   subgrupo: fc.constantFrom(TESTES, NAO_CLASS),
   subtarefa: fc.constantFrom(DIRETO, EM_SUB),

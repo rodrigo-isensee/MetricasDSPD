@@ -58,9 +58,7 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
                 data-testid={`t2-${c.classe}`}
               >
                 <strong>{c.classe}:</strong>
-                {c.classe === 'Intangível' ? (
-                  <span>Sem SLE (cota fixa de capacidade), fora do cálculo.</span>
-                ) : c.dentroDoSle?.status === 'ok' && c.sle ? (
+                {c.dentroDoSle?.status === 'ok' && c.sle ? (
                   <>
                     <span>
                       {fmtInteiro(c.dentroDoSle.k)} de {fmtInteiro(c.dentroDoSle.n)} entregues
@@ -71,8 +69,14 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
                   </>
                 ) : (
                   <span>
-                    Amostra insuficiente ({fmtInteiro(c.n)} de 20 itens mínimos). SLE: não
-                    publicado.
+                    {c.n >= 20 ? (
+                      'SLE ainda não publicado para esta classe.'
+                    ) : (
+                      <>
+                        Amostra insuficiente ({fmtInteiro(c.n)} de 20 itens mínimos). SLE: não
+                        publicado.
+                      </>
+                    )}
                   </span>
                 )}
               </li>

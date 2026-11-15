@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { carregarConfigRef } from '../src/plataforma/config.js';
+import { CAMPOS_ETAPA_F3, campoDominioEtapa } from '../src/modulos/acelerato/listas-fechadas.js';
 import {
   ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, dataCivilValida, lerDominio, planejarDominio, referenciaDaVersao, sincronizarDominio,
   type ArquivoDominio, type LinhaVigente,
@@ -228,5 +229,70 @@ describe('configuração do papel de referência', () => {
     expect(carregarConfigRef({ PG_REF_URL: 'postgres://dspd_ref:x@h:5432/b' }).PG_REF_URL).toContain('dspd_ref');
     expect(() => carregarConfigRef({})).toThrow(/PG_REF_URL/);
     expect(() => carregarConfigRef({ PG_REF_URL: 'mysql://u:SEGREDO@h/b' })).toThrow('Configuração inválida (variáveis: PG_REF_URL)');
+  });
+});
+
+describe('arquivo versionado: domínios cpe_* e etapa_fluxo (pedido 099, D1 1b e 1c)', () => {
+  const { arquivo: lido } = lerDominio();
+  const lista = (campo: string): { codigo: string; rotulo: string }[] => (lido.dominios as Record<string, { codigo: string; rotulo: string }[] | undefined>)[campo] ?? [];
+  const posicao = (chave: string): number => lista('etapa_fluxo').findIndex((i) => i.codigo === chave);
+
+  it('o esquema aceita um domínio cpe_* por campo de etapa de tratamento lista, e só eles', () => {
+    const doCodigo = CAMPOS_ETAPA_F3.filter((c) => c.tratamento === 'lista').map((c) => campoDominioEtapa(c.chave)).sort();
+    expect(CAMPOS_DOMINIO.filter((c) => c.startsWith('cpe_')).sort()).toEqual(doCodigo);
+  });
+  it('cpe_*: os valores literais da B6-d, cada grafia como entrada própria, codigo igual ao rotulo, sem de-para', () => {
+    expect(lista('cpe_motivo_escalacao').map((i) => i.codigo)).toEqual([
+      'Necessidade de atuação especializada', 'Sem solução ou contorno conhecido', 'Múltiplos sistemas ou dependências', 'Sem conhecimento técnico no N1',
+    ]);
+    expect(lista('cpe_avaliacao_problema').map((i) => i.codigo)).toEqual(['Não aplicável e com justificativa', 'Aberto']);
+    expect(lista('cpe_prioridade_ajustada').map((i) => i.codigo)).toEqual(['Sim', 'Não']);
+    expect(lista('cpe_motivo_pendencia').map((i) => i.codigo)).toEqual([
+      'Aguardando solicitante', 'Aguardando fornecedor', 'Aguardando área vinculada', 'Aguardando janela de mudança',
+    ]);
+    const enc = lista('cpe_motivo_encerramento').map((i) => i.codigo);
+    expect(enc).toHaveLength(10);
+    for (const par of [['Solução Definitiva Validada', 'Solução definitiva validada'], ['Não é Problema', 'Não é problema']]) {
+      for (const grafia of par) expect(enc).toContain(grafia);
+    }
+    for (const c of CAMPOS_DOMINIO.filter((x) => x.startsWith('cpe_'))) for (const i of lista(c)) expect(i.rotulo).toBe(i.codigo);
+  });
+  it('cpe_tipo_prioridade não tem valores (até decisão do dono) e a lista vazia não é aceita; nenhum valor é e-mail', () => {
+    expect(lido.dominios).not.toHaveProperty('cpe_tipo_prioridade');
+    expect(lido.dominios).not.toHaveProperty('cpe_suporte_acionado');
+    expect(() => arquivo({ cpe_tipo_prioridade: [] })).toThrow(ErroDominio);
+    for (const c of CAMPOS_DOMINIO.filter((x) => x.startsWith('cpe_'))) for (const i of lista(c)) expect(i.codigo).not.toContain('@');
+  });
+  it('etapa_fluxo: 114 chaves numéricas distintas da B5-a, na ordem das fases aprovadas (AP-099-1)', () => {
+    const itens = lista('etapa_fluxo');
+    expect(itens).toHaveLength(114);
+    expect(new Set(itens.map((i) => i.codigo)).size).toBe(114);
+    for (const i of itens) expect(i.codigo).toMatch(/^\d{1,15}$/);
+    // registro < triagem < diagnóstico < atendimento < esperas < validação < encerramento < causa raiz
+    const cadeia = ['1841', '3308', '3309', '3310', '1843', '3315', '1847', '3240'];
+    expect(cadeia.map(posicao)).toEqual([...cadeia.map(posicao)].sort((a, b) => a - b));
+    expect(cadeia.map(posicao).every((p) => p >= 0)).toBe(true);
+  });
+  it('etapa_fluxo: o rótulo de cada chave amostrada é o nome literal da B5-a (uma por fase e as de mesmo nome em workflows distintos)', () => {
+    const esperado: Record<string, string> = {
+      '1841': 'Novo Atendimento', '3308': 'Em triagem', '3320': 'Em Classificação', '3321': 'Aguardando Validação de Prioridade',
+      '3309': 'Em Diagnóstico', '3310': 'Em Atendimento N1', '3313': 'Em Atendimento N3', '1843': 'Aguardando Solicitante',
+      '3237': 'Aguardando Suporte Terceiros', '3314': 'Pendente', '3315': 'Aguardando Validação', '1847': 'Encerramento',
+      '1848': 'Concluído', '3316': 'Encerrado', '3328': 'Encerrado', '3240': 'Causa Raiz',
+    };
+    for (const [chave, rotulo] of Object.entries(esperado)) expect(lista('etapa_fluxo')[posicao(chave)]?.rotulo, chave).toBe(rotulo);
+  });
+  it('etapa_fluxo: o encerramento vale depois de Em triagem (Motivo de Encerramento) e Concluído vem depois do Encerramento', () => {
+    expect(posicao('3316')).toBeGreaterThan(posicao('3308'));
+    expect(posicao('3328')).toBeGreaterThan(posicao('3320'));
+    expect(posicao('1848')).toBeGreaterThan(posicao('1847'));
+  });
+  it('etapa_fluxo: etapa de mesmo nome em workflows diferentes fica junta (mesma fase, sem etapa de outra fase no meio)', () => {
+    const itens = lista('etapa_fluxo');
+    const nomes = itens.map((i) => i.rotulo.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase());
+    for (const nome of new Set(nomes)) {
+      const idx = nomes.flatMap((n, k) => (n === nome ? [k] : []));
+      expect(idx[idx.length - 1]! - idx[0]!).toBe(idx.length - 1);
+    }
   });
 });

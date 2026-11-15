@@ -87,7 +87,7 @@ function varrerFilas(ctx: ContextoBM): Map<string, Passagem> {
 
 /**
  * O24: ordem de chegada. Dos inícios do período (só classe Padrão), quantos passaram na frente de um pedido mais antigo
- * do mesmo tipo, na fila da mesma equipe (D-6' = A; Urgente, Prazo fixo e Intangível ficam fora). A fila de cada
+ * do mesmo tipo, na fila da mesma equipe (D-6' = A; Urgente, Prioritário e Prazo fixo ficam fora). A fila de cada
  * equipe nunca é comparada com a de outra e a saída não traz equipe (R5). Custo da ultrapassagem (R-1 = A): dias úteis
  * entre o início do primeiro item que passou na frente e o início do ultrapassado; ultrapassado que ainda não iniciou
  * fica fora da estatística até iniciar. P50/P85/P95 pela biblioteca, só com n >= 20 na janela de 12 semanas, por tipo

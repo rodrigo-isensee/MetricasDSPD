@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FORA_DE_TODO_CALCULO, TIMES_PROPRIOS } from '../migrations/0019_bm_carga_inicial_times.js';
 import {
-  agrupar, diaDe, instanteDoBm, projetarCard, FUSO_PADRAO_BM, type EntradaCard, type LinhaColuna, type Referencia, type TransicaoStg,
+  agrupar, dataAcordada, diaDe, FUSO_DO_PRAZO, instanteDoBm, projetarCard, FUSO_PADRAO_BM, type EntradaCard, type LinhaColuna, type Referencia, type TransicaoStg,
 } from '../src/modulos/businessmap/normalizador.js';
 
 // Nomes de time e workflow fora vêm das constantes da migração 0019 (não de times inventados).
@@ -45,7 +45,7 @@ const REF: Referencia = {
   ], (t) => String(t.time_id)),
   tipos: agrupar([
     { ...V, tipo_id: '10', eh_item: true, categoria: 'bug_interno' }, { ...V, tipo_id: '11', eh_item: true, categoria: 'produto' },
-    { ...V, tipo_id: '12', eh_item: false, categoria: null },
+    { ...V, tipo_id: '12', eh_item: false, categoria: null }, { ...V, tipo_id: '13', eh_item: true, categoria: null },
   ], (t) => t.tipo_id),
   camposLista: new Map(),
 };
@@ -215,6 +215,36 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
     expect(proj(card({ workflow_id: undefined }), []).dim).toMatchObject({ granularidade: null, equipe: null });
   });
 
+  it('O18 (pedido 105): bug pertence à entrega ligada por parent ou relative; bug com bug, child, não item e fora do staging não valem; várias: a de menor id', () => {
+    const tipos: Record<string, string> = { '20': '11', '21': '11', '22': '10', '23': '12' };
+    const porTipo = { tipoDoPai: (id: string) => tipos[id] };
+    const origem = (vinculos: unknown, extra: Partial<EntradaCard> = porTipo, c: Record<string, unknown> = {}) => proj(card({ linked_cards: vinculos, ...c }), [], extra);
+    expect(origem([{ card_id: 20, link_type: 'parent' }]).dim.origem_bug).toBe('20');
+    expect(origem([{ card_id: 20, link_type: 'relative' }]).dim.origem_bug).toBe('20');
+    const varias = origem([{ card_id: 21, link_type: 'relative' }, { card_id: 20, link_type: 'parent' }, { card_id: 20, link_type: 'relative' }]);
+    expect(varias.dim.origem_bug).toBe('20');
+    expect(varias.notas).toContain('varias_entregas_bug');
+    const comBug = origem([{ card_id: 22, link_type: 'parent' }, { card_id: 23, link_type: 'relative' }]);
+    expect(comBug.dim.origem_bug).toBeNull();
+    expect(comBug.notas).toContain('bug_sem_entrega');
+    expect(origem([{ card_id: 20, link_type: 'child' }]).dim.origem_bug).toBeNull();
+    expect(origem([{ card_id: 20, link_type: 'parent' }], { tipoDoPai: () => undefined }).dim.origem_bug).toBeNull();
+    expect(origem([{ card_id: 7, link_type: 'parent' }], { tipoDoPai: () => '11' }).dim.origem_bug).toBeNull();
+    expect(origem([null, { card_id: [1], link_type: 'parent' }, { card_id: 20 }]).dim.origem_bug).toBeNull();
+    expect(origem('x').dim.origem_bug).toBeNull();
+    // só bug tem entrega de origem: o card de produto ligado a outro não grava nada, nem nota
+    const produto = origem([{ card_id: 20, link_type: 'parent' }], porTipo, { type_id: 11 });
+    expect(produto.dim.origem_bug).toBeNull();
+    expect(produto.notas).not.toContain('bug_sem_entrega');
+    // item sem categoria: como origem vale como entrega (não é bug); como card ligado não é bug, então não tem origem
+    expect(origem([{ card_id: 24, link_type: 'parent' }], { tipoDoPai: () => '13' }).dim.origem_bug).toBe('24');
+    const semCategoria = origem([{ card_id: 20, link_type: 'parent' }], porTipo, { type_id: 13 });
+    expect(semCategoria.dim.origem_bug).toBeNull();
+    expect(semCategoria.notas).not.toContain('bug_sem_entrega');
+    // o vínculo parent segue valendo para o card_pai do bug
+    expect(origem([{ card_id: 20, link_type: 'parent' }]).dim.card_pai).toBe('20');
+  });
+
   it('pai pelo vínculo nativo parent; vários pais: o de menor id; pai Sprint não vale (H-2); pai fora do staging vale como está', () => {
     const vinculos = [{ card_id: 30, link_type: 'parent' }, { card_id: 9, link_type: 'parent' }, { card_id: 50, link_type: 'child' }, { card_id: 9, link_type: 'parent' }, null, { card_id: 8, link_type: 'relative' }];
     const doProduto = proj(card({ linked_cards: vinculos }), [], { tipoDoPai: (id) => (id === '9' ? '11' : undefined) });
@@ -249,8 +279,8 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
     }
   });
 
-  it('data e hora, texto, número e data impossível viram nulo com a nota, sem converter e sem o valor', () => {
-    const ruins = ['2026-10-30T00:00:00Z', '2026-10-30 10:00:00', 'amanhã', '30/10/2026', '2026-02-30', '2026-13-01', '0000-01-01', '0000-12-31', 20261030, true, ''];
+  it('texto, número, data impossível e data e hora sem deslocamento viram nulo com a nota, sem converter e sem o valor', () => {
+    const ruins = ['2026-10-30 10:00:00', '2026-10-30T10:00:00', '2026-10-30T25:00:00Z', 'amanhã', '30/10/2026', '2026-02-30', '2026-13-01', '2026-02-30T10:00:00Z', '0000-01-01', '0000-12-31', '0000-06-01T12:00:00Z', 20261030, true, ''];
     for (const deadline of ruins) {
       const p = proj(card({ deadline }));
       expect(p.dim.data_acordada).toBeNull();
@@ -258,27 +288,72 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
       expect(JSON.stringify(p.notas)).not.toContain('2026-10-30');
     }
   });
+
+  it('Q-RO-6c: data e hora com deslocamento vira o dia civil de Brasília (FUSO_DO_PRAZO, L13 c do dono), exceto meia-noite UTC em ponto', () => {
+    expect(FUSO_DO_PRAZO).toBe('America/Sao_Paulo');
+    const casos: [string, string][] = [
+      ['2026-10-30T02:59:59Z', '2026-10-29'],
+      ['2026-10-30T03:00:00Z', '2026-10-30'],
+      ['2026-10-30T12:00:00.000Z', '2026-10-30'],
+      ['2026-10-30T23:59:59Z', '2026-10-30'],
+      ['2026-10-30T00:00:00-03:00', '2026-10-30'],
+      ['2026-10-30T22:30:00-03:00', '2026-10-30'],
+      ['2026-10-30T23:00:00-04:00', '2026-10-31'], // 03:00Z de 31, 00:00 em Brasília
+      ['2026-10-30T01:00:00+02:00', '2026-10-29'],
+    ];
+    for (const [entrada, dia] of casos) {
+      const notas: string[] = [];
+      expect(dataAcordada(entrada, notas)).toBe(dia);
+      expect(notas).toEqual([]);
+    }
+  });
+
+  it('L13 c: meia-noite UTC em ponto fica no dia gravado; um instante depois já vira o dia de Brasília', () => {
+    for (const entrada of ['2026-10-30T00:00:00Z', '2026-10-30T00:00Z', '2026-10-30T00:00:00.000Z', '2026-10-30T00:00:00.000000000Z']) {
+      const notas: string[] = [];
+      expect(dataAcordada(entrada, notas)).toBe('2026-10-30');
+      expect(notas).toEqual([]);
+    }
+    expect(dataAcordada('2026-10-30T00:00:00.001Z', [])).toBe('2026-10-29');
+    expect(dataAcordada('2026-10-30T00:00:01Z', [])).toBe('2026-10-29');
+    expect(dataAcordada('2026-10-30T00:01:00Z', [])).toBe('2026-10-29');
+    // com deslocamento a regra é a do dia de Brasília, mesmo que o instante em UTC fosse meia-noite
+    expect(dataAcordada('2026-10-29T21:00:00-03:00', [])).toBe('2026-10-29');
+  });
+
+  it('data e hora no projetor: o prazo meia-noite UTC fica no dia gravado, outro horário vira o dia de Brasília, e nenhuma forma de hora vaza para a tabela', () => {
+    expect(proj(card({ deadline: '2026-10-30T01:00:00Z' })).dim.data_acordada).toBe('2026-10-29');
+    const p = proj(card({ deadline: '2026-10-30T00:00:00Z' }));
+    expect(p.dim.data_acordada).toBe('2026-10-30');
+    expect(p.notas).not.toContain('deadline_fora_da_forma');
+  });
 });
 
 describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id -> coluna', () => {
-  const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'classe_servico'], ['502', 'sistema'], ['503', 'severidade']]) };
-  const LISTA = ['classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
+  const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'origem_demanda'], ['502', 'sistema'], ['503', 'severidade']]) };
+  const LISTA = ['sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
     'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade'] as const;
   const cf = (...c: { field_id: unknown; valor: unknown }[]) => card({ custom_fields: c });
 
   it('campo mapeado preenche a coluna; o que não está no mapa fica nulo e não gera nota', () => {
     const p = proj(cf({ field_id: '501', valor: 'expedita' }, { field_id: 502, valor: 'sis-a' }, { field_id: '999', valor: 'x' }), [], {}, COM_MAPA);
-    expect(p.dim).toMatchObject({ classe_servico: 'expedita', sistema: 'sis-a', severidade: null, area_solicitante: null });
+    expect(p.dim).toMatchObject({ origem_demanda: 'expedita', sistema: 'sis-a', severidade: null, area_solicitante: null });
     expect(p.notas).not.toContain('campo_fora_do_dominio');
   });
 
   it('desconhecido (e valor que não é texto) vira nulo com a nota, sem o valor', () => {
     const p = proj(cf({ field_id: '501', valor: 'desconhecido' }, { field_id: '502', valor: 7 }, { field_id: '503', valor: '' }), [], {}, COM_MAPA);
-    expect(p.dim.classe_servico).toBeNull();
+    expect(p.dim.origem_demanda).toBeNull();
     expect(p.dim.sistema).toBeNull();
     expect(p.dim.severidade).toBeNull();
     expect(p.notas.filter((n) => n === 'campo_fora_do_dominio')).toHaveLength(3);
     expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
+  });
+
+  it('105: fase_deteccao deixou de ser coluna de lista; campo mapeado a ela é ignorado e o dim traz nulo (a fase vem da projeção pela coluna do pai)', () => {
+    const p = proj(cf({ field_id: '501', valor: 'Produção' }), [], {}, { ...REF, camposLista: new Map([['501', 'fase_deteccao']]) });
+    expect(p.dim.fase_deteccao).toBeNull();
+    expect(p.notas).not.toContain('campo_fora_do_dominio');
   });
 
   it('coluna fora do enum no mapa é recusada (nada é gravado nem entra no dim)', () => {
@@ -305,7 +380,8 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     for (const c of LISTA) expect(sem.dim[c]).toBeNull();
     const antes = Object.fromEntries(Object.entries(sem.dim).filter(([k]) => !(LISTA as readonly string[]).includes(k)));
     expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
-      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada']);
+      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'origem_bug', 'classe_servico']);
+    expect(sem.dim.classe_servico).toBeNull();
   });
 });
 
@@ -368,5 +444,14 @@ describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de s
   });
   it('ano 0001 é aceito', () => {
     expect(proj(card({ deadline: '0001-01-01' })).dim.data_acordada).toBe('0001-01-01');
+  });
+  it('data e hora cujo dia civil sai do intervalo do date (ano 0 ou 10000 no fuso do prazo) vira null com a nota', () => {
+    for (const deadline of ['0001-01-01T00:00:01Z', '9999-12-31T23:59:59-23:59']) {
+      const p = proj(card({ deadline }));
+      expect(p.dim.data_acordada).toBeNull();
+      expect(p.notas.filter((n) => n === 'deadline_fora_da_forma')).toHaveLength(1);
+    }
+    // meia-noite UTC em ponto fica no dia gravado (L13 c), então não cai no ano 0
+    expect(proj(card({ deadline: '0001-01-01T00:00:00Z' })).dim.data_acordada).toBe('0001-01-01');
   });
 });

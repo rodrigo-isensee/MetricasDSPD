@@ -769,7 +769,7 @@ export function gerarBaseBusinessMap(
         { classe: 'Urgente', dias_uteis: 4, publicado_em: '2026-06-15' },
         { classe: 'Prazo fixo', dias_uteis: 8, publicado_em: '2026-06-15' },
         { classe: 'Padrão', dias_uteis: 5, publicado_em: '2026-06-15' },
-        { classe: 'Intangível', dias_uteis: null, publicado_em: '2026-06-15' },
+        { classe: 'Prioritário', dias_uteis: 6, publicado_em: '2026-06-15' },
       ],
       alocacao: aloc.map((a) => ({ ...a })),
       objetivos: [...OBJETIVOS_ESTRATEGICOS],

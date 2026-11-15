@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useEffect, useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import {
   JANELA_PERCENTIS_PADRAO,
   NOTAS_FIXAS_DO_CARTAO,
@@ -9,16 +9,22 @@ import {
   type CriteriosResultado,
   type MetricaId,
   type NotaCartaoId,
+  type NotaMotivosId,
+  type NotaS1Id,
   type NotaSustentacaoId,
   type Periodo,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
+
+/** Filtros que podem atuar num cartão do fluxo: os do contrato e o Setor (097 L11; entra no contrato com o L10b). */
+export type FiltroCartaoChave = FiltroFluxoChave | 'setor'
 import { SemDadoRealErro } from '@/data/http/SemDadoRealErro'
 import { fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
+import { Botao } from './Botao'
 import {
   ProvedorCartaoCalibracao,
   SeloCalibracao,
@@ -76,7 +82,7 @@ export interface CartaoMetricaProps {
   fonte: FonteDoCartao
   granularidade: GranularidadeDoCartao
   /** Filtros que atuam no cartão (tabela 2.2). Omitido = todos os ativos atuam (sustentação). */
-  aplicaveis?: readonly FiltroFluxoChave[]
+  aplicaveis?: readonly FiltroCartaoChave[]
   criterios?: CriteriosResultado
   /**
    * Janela de percentis do resultado (`janelaPercentis` do DTO) e período escolhido: com os dois, o
@@ -87,7 +93,8 @@ export interface CartaoMetricaProps {
   /** Selos extras. */
   selos?: ReactNode
   /** Notas que o resultado indica para o cartão (ex.: O3 com "SLE não definido", H-24); os textos vêm do contrato. */
-  notasDoCartao?: readonly (NotaCartaoId | NotaSustentacaoId)[] | undefined
+  notasDoCartao?:
+    readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id | NotaMotivosId)[] | undefined
   /** Controles do cabeçalho do cartão além de "Como ler" e "Ver como tabela". */
   acoes?: ReactNode
   /** Sem alternativa em tabela (listas que já são tabelas). */
@@ -119,8 +126,8 @@ const SEMANAS_DO_PERIODO: Partial<Record<Periodo['tipo'], number>> = { '4s': 4, 
  */
 function notasDoCartaoVisiveis(
   codigo: string,
-  doResultado: readonly (NotaCartaoId | NotaSustentacaoId)[] | undefined,
-): readonly (NotaCartaoId | NotaSustentacaoId)[] {
+  doResultado: readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id | NotaMotivosId)[] | undefined,
+): readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id | NotaMotivosId)[] {
   const id = idDeMetrica(codigo) as MetricaId
   const fixas = origemDaMetrica(id) === 'real' ? (NOTAS_FIXAS_DO_CARTAO[id] ?? []) : []
   return [...new Set([...fixas, ...(doResultado ?? [])])]
@@ -149,7 +156,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const idLeitura = useId()
   const idNota = useId()
   const idCorpo = useId()
-  const recolher = useRecolhido(p.codigo)
+  const recolher = useRecolhido(p.codigo, p.recolhivel !== false)
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
   const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
@@ -173,6 +180,8 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const atualizando = ok && !!p.atualizando
   const recolhivel = recolher !== null && p.recolhivel !== false
   const recolhido = recolhivel && recolher.recolhido
+  // B-2: o Tentar de novo some ao recarregar; o foco vai antes ao Recolher/Expandir do mesmo cartão.
+  const botaoRecolher = useRef<HTMLButtonElement>(null)
   const resumo = resumoDoRecolhido(estado, atualizando, p.resumoRecolhido, p.base)
 
   useEffect(() => {
@@ -180,7 +189,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
     return () => reportarAtualizando(id, false)
   }, [id, atualizando, reportarAtualizando])
 
-  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroFluxoChave)
+  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroCartaoChave)
   const aplicados = filtrosAtivos.filter((f) => atua(f.chave))
   const naoAfetam = [...new Set(filtrosAtivos.filter((f) => !atua(f.chave)).map((f) => f.rotulo))]
   const textoAplicados = aplicados.map((f) => `${f.rotulo} ${f.valor}`)
@@ -263,6 +272,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             )}
             {recolhivel && (
               <button
+                ref={botaoRecolher}
                 type="button"
                 onClick={recolher.alternar}
                 aria-expanded={!recolhido}
@@ -313,9 +323,28 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
 
       <div id={idCorpo}>
         {recolhido ? (
-          <p className="mt-2 text-sm text-texto-2" data-testid={`resumo-recolhido-${p.codigo}`}>
-            {resumo}
-          </p>
+          <>
+            <p
+              role={estado === 'erro' ? 'status' : undefined}
+              className="mt-2 text-sm text-texto-2"
+              data-testid={`resumo-recolhido-${p.codigo}`}
+            >
+              {resumo}
+            </p>
+            {estado === 'erro' && p.onTentarDeNovo && (
+              <div className="mt-2">
+                <Botao
+                  aria-label={`Tentar de novo: ${p.titulo}`}
+                  onClick={() => {
+                    botaoRecolher.current?.focus()
+                    p.onTentarDeNovo?.()
+                  }}
+                >
+                  Tentar de novo
+                </Botao>
+              </div>
+            )}
+          </>
         ) : (
           <>
             <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>

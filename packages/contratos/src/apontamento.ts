@@ -52,6 +52,12 @@ export const pessoaRefSchema = z.union([
 ])
 export type PessoaRef = z.infer<typeof pessoaRefSchema>
 
+/**
+ * Identificador único da linha sem projeto (card sem iniciativa na referência) em `opcoes.projetos`, em `distribuicao.porProjeto` e em
+ * `registroIncompleto` (`projeto.id` e `projetoIds`). Não é um projeto: o front não a conta como projeto (K-324). Valor fixo, parte do contrato.
+ */
+export const ID_SEM_PROJETO = 'sem-projeto'
+
 /** Flags de qualidade (§3.4; não excludentes, M-11 do UX). "completo" = nenhuma flag. */
 export const FLAGS_QUALIDADE = [
   'sem-comentario',
@@ -141,6 +147,7 @@ export const consultaApontamentoSchema = z
     projeto: lista(idNumerico, 200).optional(), // card_id da raiz (dim_card_raiz)
     tipo: lista(idNumerico, 50).optional(), // type_id
     equipe: lista(idEquipe, 50).optional(), // slug do time do card (097 L2); só recorte, nunca agrupamento
+    setor: lista(idEquipe, 50).optional(), // slug do setor do quadro do card (097 K-337); só recorte, nunca agrupamento
     subtarefa: lista(codigo, 50).optional(),
     subgrupo: lista(codigo, 50).optional(),
     qualidade: lista(filtroQualidadeSchema, 6).optional(),
@@ -349,7 +356,11 @@ const achado = <C extends CodigoAchado, V extends z.ZodRawShape>(cod: C, valores
 export const achadoApontamentoSchema = z.discriminatedUnion('codigo', [
   achado('nao-classificado-alto', { pct: z.number().nonnegative(), n: contagem }),
   achado('sem-comentario-alto', { pct: z.number().nonnegative(), n: contagem }),
-  achado('concentracao-em-projeto', { pct: z.number().nonnegative() }), // rótulo do projeto em `rotuloRef`
+  // rótulo do projeto em `rotuloRef`; nunca a linha sem projeto (097, K-324). `horasSemProjeto` (horas) só vem quando há horas sem projeto.
+  achado('concentracao-em-projeto', {
+    pct: z.number().nonnegative(),
+    horasSemProjeto: z.number().nonnegative().optional(),
+  }),
   achado('dias-atipicos', { n: contagem, limite: z.number().positive() }),
   achado('utilizacao-mensal-variou', {
     pctAnterior: z.number().nonnegative(),
@@ -366,6 +377,7 @@ export const opcoesApontamentoSchema = z
     projetos: z.array(opcaoSchema.extend({ foraDoEscopo: z.boolean() }).strict()),
     tipos: z.array(opcaoSchema),
     equipes: z.array(opcaoSchema).optional(), // times do recorte (097 L2); filtro, nunca comparação
+    setores: z.array(opcaoSchema).optional(), // setores do recorte (097 K-337); filtro, nunca comparação
     subtarefas: z.array(opcaoSchema),
     subgrupos: z.array(opcaoSchema),
     historico: z.object({ inicio: dataCivil, fim: dataCivil }).strict(), // limites do período personalizado

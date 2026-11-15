@@ -7,6 +7,7 @@ import {
   CHAVE_RECOLHIDOS,
   CODIGO_CARTAO,
   CartaoMetrica,
+  ProvedorCalibracao,
   ProvedorOrigemCartoes,
   ProvedorRecolhidos,
   RestaurarRecolhidos,
@@ -211,6 +212,17 @@ describe('recolher cartão (097 E5, CA-25 a CA-32)', () => {
     )
   })
 
+  it('M-1: só o resumo em erro é anunciado (status); os demais resumos ficam sem papel', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3', 'O5'] } })
+    render(
+      <Painel
+        cartoes={[<Cartao key="a" estado="erro" />, <Cartao key="b" codigo="O5" estado="ok" />]}
+      />,
+    )
+    expect(screen.getByTestId('resumo-recolhido-O3')).toHaveAttribute('role', 'status')
+    expect(screen.getByTestId('resumo-recolhido-O5')).not.toHaveAttribute('role')
+  })
+
   it('CA-32: o resumo é neutro (sem base, só "Recolhido."), nunca a frase de leitura; aceita resumo próprio', () => {
     guardar({ versao: 1, paineis: { operacional: ['O3', 'O5'] } })
     render(
@@ -277,6 +289,114 @@ describe('recolher cartão (097 E5, CA-25 a CA-32)', () => {
     render(<Painel cartoes={[<Cartao key="a" recolhivel={false} />]} />)
     expect(screen.queryByTestId('recolher-O3')).toBeNull()
     expect(screen.getByText('corpo do gráfico')).toBeInTheDocument()
+  })
+})
+
+describe('recolher cartão: K-324 parte C', () => {
+  it('C1: cartão que não recolhe, mesmo com a memória do AP-KPIS, não faz o "Restaurar" aparecer', () => {
+    guardar({ versao: 1, paineis: { operacional: ['AP-KPIS'] } })
+    render(<Painel cartoes={[<Cartao key="a" codigo="AP-KPIS" recolhivel={false} />]} />)
+    expect(screen.queryByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeNull()
+  })
+
+  it('C1: cartão recolhível montado e recolhido faz o "Restaurar" aparecer', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel />)
+    expect(screen.getByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeInTheDocument()
+  })
+
+  it('C2: recolhido em erro com callback mostra "Tentar de novo", que chama o callback e não expande', async () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    const onTentarDeNovo = vi.fn()
+    render(<Painel cartoes={[<Cartao key="a" estado="erro" onTentarDeNovo={onTentarDeNovo} />]} />)
+    expect(screen.getByTestId('resumo-recolhido-O3')).toHaveTextContent(
+      'Não foi possível carregar este cartão.',
+    )
+    await userEvent.click(screen.getByRole('button', { name: /^Tentar de novo/ }))
+    expect(onTentarDeNovo).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('recolher-O3')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('B-2: depois do Tentar de novo o foco está no Expandir do mesmo cartão', async () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="erro" onTentarDeNovo={vi.fn()} />]} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Tentar de novo/ }))
+    expect(screen.getByTestId('recolher-O3')).toHaveFocus()
+  })
+
+  it('B-3: o Tentar de novo do recolhido leva o título do cartão no nome acessível', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="erro" onTentarDeNovo={vi.fn()} />]} />)
+    const btn = screen.getByRole('button', { name: /^Tentar de novo: / })
+    const titulo = screen
+      .getByTestId('recolher-O3')
+      .getAttribute('aria-label')!
+      .replace('Expandir cartão: ', '')
+    expect(btn).toHaveAccessibleName(`Tentar de novo: ${titulo}`)
+  })
+
+  it('C2: recolhido em erro sem callback não mostra "Tentar de novo"', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="erro" />]} />)
+    expect(screen.getByTestId('resumo-recolhido-O3')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Tentar de novo/ })).toBeNull()
+  })
+
+  it('C2: recolhido em estado ok, mesmo com callback, não mostra "Tentar de novo"', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="ok" onTentarDeNovo={vi.fn()} />]} />)
+    expect(screen.getByTestId('resumo-recolhido-O3')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Tentar de novo/ })).toBeNull()
+  })
+
+  it('C3: a linha de selos só reserva altura (min-h-6) expandida e com base', async () => {
+    render(<Painel />)
+    expect(screen.getByTestId('selos-O3')).toHaveClass('min-h-6')
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(screen.getByTestId('selos-O3')).not.toHaveClass('min-h-6')
+  })
+
+  it('C3: recolhido somem base, janela fixa, selos extras, Como ler e as notas; expandido, voltam', async () => {
+    render(
+      <Painel
+        cartoes={[
+          <Cartao
+            key="a"
+            selos={<span>selo extra</span>}
+            janelaPercentis={{ unidade: 'meses', quantidade: 6 }}
+            periodo={{ tipo: '12s' }}
+            notasDoCartao={['sem-classe']}
+          />,
+        ]}
+      />,
+    )
+    const visiveis = () => [
+      screen.queryByTestId('base-O3'),
+      screen.queryByText(/Janela fixa/),
+      screen.queryByText('selo extra'),
+      screen.queryByRole('button', { name: /Como ler/ }),
+      screen.queryByTestId('nota-O3'),
+      screen.queryByTestId('notas-cartao-O3'),
+    ]
+    expect(visiveis().every((e) => e !== null)).toBe(true)
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(visiveis().every((e) => e === null)).toBe(true)
+    await userEvent.click(screen.getByTestId('recolher-O3'))
+    expect(visiveis().every((e) => e !== null)).toBe(true)
+  })
+
+  it('C3: em calibração, o selo segue visível recolhido; em sem-dado-real, some', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    const emCalibracao = (estado: 'ok' | 'sem-dado-real') => (
+      <ProvedorCalibracao metricas={new Set(['O3'])} pronta>
+        <Painel cartoes={[<Cartao key="a" estado={estado} />]} />
+      </ProvedorCalibracao>
+    )
+    const { unmount } = render(emCalibracao('ok'))
+    expect(screen.getByTestId('selo-calibracao')).toBeInTheDocument()
+    unmount()
+    render(emCalibracao('sem-dado-real'))
+    expect(screen.queryByTestId('selo-calibracao')).toBeNull()
   })
 })
 

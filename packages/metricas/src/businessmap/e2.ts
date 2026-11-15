@@ -28,7 +28,7 @@ function categoria(ctx: ContextoBM, m: MarcosCard): { nome: string; tipo: Tipo }
 /** E2: capacidade entregue por objetivo estratégico, por trimestre. */
 export function calcularE2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE2 {
   const periodo = periodoDe(ctx, f)
-  const itens = selecionar(ctx, f, 'story', { semEquipe: true, semTipo: true })
+  const itens = selecionar(ctx, f, 'story', { semEquipe: true, semSetor: true, semTipo: true })
     .filter(ehDemanda)
     .filter((m) => m.entrega !== null)
     .map((m) => ({ m, dia: diaLocal(m.entrega as number, ctx.cal), cat: categoria(ctx, m) }))

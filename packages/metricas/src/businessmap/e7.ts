@@ -21,7 +21,7 @@ import { naturezaDe } from './t3'
  */
 export function calcularE7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE7 {
   const periodo = periodoDe(ctx, f)
-  const entregues = selecionar(ctx, f, 'story', { semEquipe: true, semTipo: true })
+  const entregues = selecionar(ctx, f, 'story', { semEquipe: true, semSetor: true, semTipo: true })
     .filter(ehDemanda)
     .filter((m) => dentro(ctx, m.entrega, periodo))
   const total = entregues.length

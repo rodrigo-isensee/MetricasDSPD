@@ -102,7 +102,7 @@ export interface AlocacaoAcordada {
 
 export interface SlePublicado {
   classe: ClasseServico
-  dias_uteis: number | null // null = sem SLE (Intangível)
+  dias_uteis: number | null // null = sem SLE publicado para a classe
   publicado_em: string
 }
 
@@ -128,6 +128,11 @@ export interface BaseBM {
   colunas: DimColuna[]
   fichas: FichaResultado[]
   config: ConfigBM
+  /**
+   * Setor de cada quadro (097, L10b): `nome` é o do dicionário versionado, já sem sobrenome. Ausente ou vazio = nenhum quadro tem
+   * setor. O setor do card é o do quadro atual dele (C5: nenhum card mudou de quadro).
+   */
+  setores?: { quadro_id: string; nome: string }[]
 }
 
 /** Colunas padrão dos quadros. Fila começa com "Aguardando" ou "Pronto para" (4.2). */

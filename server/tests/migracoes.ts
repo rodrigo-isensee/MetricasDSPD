@@ -36,6 +36,7 @@ import * as m0034 from '../migrations/0034_bm_ctl_apontamento_cobertura.js';
 import * as m0035 from '../migrations/0035_ac_previsao_retorno_booleano.js';
 import * as m0036 from '../migrations/0036_ac_alvo_prioridade_unidade.js';
 import * as m0037 from '../migrations/0037_ac_alvo_prioridade_exibicao.js';
+import * as m0038 from '../migrations/0038_ac_dim_chamado_fluxo.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -57,6 +58,7 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0034_bm_ctl_apontamento_cobertura': m0034, '0035_ac_previsao_retorno_booleano': m0035,
   '0036_ac_alvo_prioridade_unidade': m0036,
   '0037_ac_alvo_prioridade_exibicao': m0037,
+  '0038_ac_dim_chamado_fluxo': m0038,
 };
 
 export const arquivosDeMigracao = (): string[] =>

@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -47,7 +47,14 @@ const chamado = (id: string, extra: Partial<LinhaChamado> = {}): LinhaChamado =>
   com_agente: true, reincidente_90d: 'nao', ...extra,
 });
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string };
+
+/** Alvos de prioridade do PROC (`ref_alvo_prioridade`, D3): P1 e o primeiro atendimento do P2 em tempo corrido, o resto em tempo útil. */
+const ALVOS = [
+  ['P1', '0.25', 'corrido', '4', 'corrido', 'min', 'h'], ['P2', '0.5', 'corrido', '8', 'util', 'min', 'h'], ['P3', '2', 'util', '17.6', 'util', 'h', 'dia'],
+  ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
+].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
+
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -56,6 +63,8 @@ function banco(o: OpcoesReal = {}): Respondedor {
     const x = c.texto;
     if (!x.includes('r_dspd')) return doSeed(c);
     if (x.includes('FROM r_dspd_ac.dim_chamado')) return o.chamados ?? [];
+    if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
+    if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
     if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z')]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
@@ -94,16 +103,16 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(real.d.chamadas, NO_SEED)).toBe(0);
 
     const fora = await montar();
-    const m = await fora.app.inject('/api/v1/metricas/O8');
+    const m = await fora.app.inject('/api/v1/metricas/O14');
     expect(m.statusCode).toBe(200);
     expect(m.headers['x-estado-dado']).toBe('sem-dado-real');
-    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O8', motivo: 'aguardando campo no quadro' });
+    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O14', motivo: 'aguardando campo no quadro' });
     expect(fora.d.chamadas).toHaveLength(0);
   });
 
   it('as origens do mapa decidem: as reais calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'O19', 'O25', 'BLOQUEADOS', 'EI_FL1'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O8', 'O9', 'O10', 'O11', 'O13', 'O19', 'O21', 'O25', 'BLOQUEADOS', 'EI_FL1', 'S1'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.headers['x-estado-dado'], id).toBeUndefined();
@@ -111,7 +120,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['T10', 'T12', 'O8', 'O12', 'O14', 'O26', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['T10', 'T12', 'O14', 'O26', 'T1', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -170,9 +179,9 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(d.chamadas).toHaveLength(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S2, S3, S4, S8, S10 e S12 leem só a base real do Acelerato; S1, S5, S6, S7, S9, S11 e EI_SUST respondem sem dado real; nunca o seed', async () => {
+  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; S11 e EI_SUST respondem sem dado real; S5, S6 e S7 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
-    for (const id of ['S2', 'S3', 'S4', 'S8', 'S10', 'S12'] as MetricaId[]) {
+    for (const id of ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -182,7 +191,13 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
-    for (const id of ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'EI_SUST'] as MetricaId[]) {
+    for (const id of ['S5', 'S6', 'S7'] as MetricaId[]) {
+      expect(origemDaMetrica(id), id).toBe('real');
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.json(), id).toEqual({ estado: 'sem-dado-real', metrica: id, motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS });
+    }
+    for (const id of ['S11', 'EI_SUST'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -222,7 +237,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const r = await app.inject('/api/v1/metricas/O1');
     expect(r.statusCode).toBe(200);
     expect(r.headers['x-dados-ficticios']).toBe('1');
-    const fora = await app.inject('/api/v1/metricas/O8');
+    const fora = await app.inject('/api/v1/metricas/O14');
     expect(fora.statusCode).toBe(200);
     expect(fora.json()).not.toHaveProperty('estado');
     expect(d.chamadas.some((c) => c.texto.includes('ref_time'))).toBe(false);
@@ -509,15 +524,76 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
   const NOTA_S3 = 'ajuste-prioridade-sem-dado-real';
   const NOTA_S2 = 'excecao-sla-sem-fonte';
   const mock = async () => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(seed)).pool, agora: () => AGORA, nivelLog: 'silent' });
+  afterEach(() => { vi.doUnmock('@metricas-dspd/contratos'); vi.resetModules(); });
 
-  it('L1: S3 real sai com ajustesManuais null em todo mês, com a nota, e valida no contrato', async () => {
-    const { app } = await montar({ chamados: [chamado('1'), chamado('2')] });
-    const r = (await app.inject('/api/v1/metricas/S3')).json() as { notas: string[]; meses: { ajustesManuais: unknown; total: number }[] };
-    expect(r.notas).toEqual([NOTA_S3]);
+  it('L1b (reversão do interruptor, pedido 105): com AJUSTE_PRIORIDADE_COM_FONTE falso o S3 real volta a publicar ajustesManuais nulo com a nota; S3 em outra métrica não muda', async () => {
+    vi.resetModules();
+    vi.doMock('@metricas-dspd/contratos', async (orig) => ({ ...(await orig<Record<string, unknown>>()), AJUSTE_PRIORIDADE_COM_FONTE: false }));
+    const { buildApp: buildDesligado } = await import('../src/app.js');
+    const app = await buildDesligado({ db: criarDublePg(banco({ chamados: [chamado('1', { prioridade_ajustada_manualmente: true })] })).pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
+    const s3 = (await app.inject('/api/v1/metricas/S3')).json() as { notas?: string[]; meses: { ajustesManuais: number | null }[] };
+    expect(s3.notas).toContain(NOTA_S3);
+    expect(s3.meses.every((m) => m.ajustesManuais === null)).toBe(true);
+    const s4 = (await app.inject('/api/v1/metricas/S4')).json() as { notas?: string[] };
+    expect(s4.notas ?? []).not.toContain(NOTA_S3);
+  }, 60_000);
+
+  it('D2: as notas de S5 e S7 não se repetem quando o resultado já as traz', async () => {
+    const { comNotaS5SemRisco, comNotaAjusteNaoIgualVazio } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const uma = comNotaS5SemRisco('S5', { motivos: [] }) as { notas: string[] };
+    expect(uma.notas).toEqual(['s5-risco-sla-sem-fonte']);
+    expect((comNotaS5SemRisco('S5', uma) as { notas: string[] }).notas).toEqual(['s5-risco-sla-sem-fonte']);
+    const sete = comNotaAjusteNaoIgualVazio('S7', uma) as { notas: string[] };
+    expect(sete.notas).toEqual(['s5-risco-sla-sem-fonte', 's7-nao-igual-vazio']);
+    expect((comNotaAjusteNaoIgualVazio('S7', sete) as { notas: string[] }).notas).toEqual(sete.notas);
+    const outro = { motivos: [] };
+    expect(comNotaS5SemRisco('S6', outro)).toBe(outro);
+    expect(comNotaAjusteNaoIgualVazio('S6', outro)).toBe(outro);
+    expect((comNotaAjusteNaoIgualVazio('S3', { meses: [] }) as { notas: string[] }).notas).toEqual(['s7-nao-igual-vazio']);
+    const semDado = { notas: ['ajuste-prioridade-sem-dado-real'] };
+    expect(comNotaAjusteNaoIgualVazio('S3', semDado)).toBe(semDado);
+  });
+
+  it('L1 (pedido 105, D2): com o campo na fonte, o S3 real publica o número de ajustes manuais, sem a nota de sem dado real, e valida no contrato', async () => {
+    const { app } = await montar({ chamados: [chamado('1', { prioridade_ajustada_manualmente: true }), chamado('2')] });
+    const r = (await app.inject('/api/v1/metricas/S3')).json() as { notas?: string[]; meses: { ajustesManuais: number | null; total: number }[] };
+    expect(r.notas ?? []).not.toContain(NOTA_S3);
+    expect(r.notas).toEqual(['s7-nao-igual-vazio']);
     expect(r.meses.length).toBeGreaterThan(0);
-    for (const m of r.meses) expect(m.ajustesManuais).toBeNull();
+    for (const m of r.meses) expect(typeof m.ajustesManuais).toBe('number');
+    expect(r.meses.reduce((a, m) => a + (m.ajustesManuais ?? 0), 0)).toBe(1);
     expect(r.meses.some((m) => m.total > 0)).toBe(true);
     expect(SCHEMAS_RESULTADO.S3.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('D2 (pedido 105): S5, S6 e S7 reais com os fluxos do PROC carregados: fora do fluxo contado, Outro separado de Não informado, notas e contrato', async () => {
+    const PROC = ['SSVO - INCIDENTE'];
+    const fechados = Array.from({ length: 24 }, (_, i) => chamado(`F${i}`, {
+      fluxo: i < 21 ? 'SSVO - INCIDENTE' : 'SSSC - INCIDENTE', status: 'Concluído', data_finalizado: new Date('2026-09-25T12:00:00Z'), nivel_resolucao: 'N2',
+      motivo_escalacao: i % 3 === 0 ? 'Múltiplos sistemas ou dependências' : i % 3 === 1 ? 'valor novo' : null,
+      motivo_encerramento: i % 3 === 0 ? 'Contorno Aplicado' : i % 3 === 1 ? 'Não é Problema' : null,
+      prioridade_ajustada_manualmente: i % 4 === 0,
+    }));
+    const { app } = await montar({ chamados: fechados, fluxosProc: PROC });
+    const get = async (id: string) => (await app.inject(`/api/v1/metricas/${id}`)).json() as Record<string, unknown> & { motivos: { motivo: string; n: number }[] };
+    const s5 = await get('S5');
+    expect(SCHEMAS_RESULTADO.S5.safeParse(s5).success).toBe(true);
+    expect(s5.foraDoFluxo).toBe(3);
+    expect(s5.notas).toEqual(['s5-risco-sla-sem-fonte']);
+    expect(s5.motivos.find((m) => m.motivo === 'Outro')?.n).toBe(7);
+    expect(s5.motivos.find((m) => m.motivo === 'Risco de estouro de SLA')?.n).toBe(0);
+    expect(s5.naoInformado).toBe(7);
+    const s6 = await get('S6');
+    expect(SCHEMAS_RESULTADO.S6.safeParse(s6).success).toBe(true);
+    expect(s6.foraDoFluxo).toBe(3);
+    expect(s6.motivos.find((m) => m.motivo === 'Contorno aplicado')?.n).toBe(7);
+    expect(s6.motivos.find((m) => m.motivo === 'Outro')?.n).toBe(7);
+    expect(s6.naoInformado).toBe(7);
+    const s7 = await get('S7');
+    expect(SCHEMAS_RESULTADO.S7.safeParse(s7).success).toBe(true);
+    expect(s7.foraDoFluxo).toBe(3);
+    expect(s7.notas).toEqual(['s7-nao-igual-vazio']);
+    expect((s7.ajusteDePrioridade as { totais: { total: number; ocorrencias: number } }).totais).toEqual({ total: 21, ocorrencias: 6 });
   }, 60_000);
 
   it('L2: S2 real traz a nota e o resto do resultado fica igual', async () => {
@@ -526,6 +602,32 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(r.notas).toEqual([NOTA_S2]);
     expect(r.prioridades.length).toBeGreaterThan(0);
     expect(SCHEMAS_RESULTADO.S2.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('D4 (Q-099-5b = A): S1 real traz a nota do primeiro atendimento, usa o primeiro comentário e valida no contrato', async () => {
+    const aberto = new Date('2026-09-20T12:00:00Z');
+    const { app } = await montar({ chamados: [chamado('1', { primeiro_atendimento_em: new Date('2026-09-20T12:30:00Z'), restaurado_em: new Date('2026-09-21T12:00:00Z'), data_finalizado: new Date('2026-09-21T12:00:00Z'), status: 'Concluído', aberto_em: aberto }), chamado('2')] });
+    const r = await app.inject('/api/v1/metricas/S1');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    const corpo = r.json() as { notas: string[]; prioridades: { prioridade: string; primeiroAtendimento: { n: number }; restauracao: { n: number } }[] };
+    expect(corpo.notas).toEqual(['primeiro-atendimento-inclui-automatica']);
+    expect(corpo).not.toHaveProperty('estado');
+    // Um chamado fechado de P3 com primeiro comentário entra no n do primeiro atendimento; o aberto (sem comentário) não.
+    const p3 = corpo.prioridades.find((x) => x.prioridade === 'P3')!;
+    expect(p3.primeiroAtendimento.n).toBe(1);
+    expect(p3.restauracao.n).toBe(1);
+    expect(SCHEMAS_RESULTADO.S1.safeParse(r.json()).success).toBe(true);
+  }, 60_000);
+
+  it('L18 (E3.298): S1 real sem os alvos carregados responde 200 "sem dado real" com o motivo (nenhum prazo é presumido); o modo mock não traz nota', async () => {
+    const { app } = await montar({ chamados: [chamado('1')], semAlvos: true });
+    const r = await app.inject('/api/v1/metricas/S1');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'S1', motivo: MOTIVO_ALVOS_NAO_CARREGADOS });
+    const m = (await (await mock()).inject('/api/v1/metricas/S1')).json() as { notas?: string[] };
+    expect(m.notas).toBeUndefined();
   }, 60_000);
 
   it('D9: S12 real traz o volume, exceção de SLA null (nunca 0%) com a nota própria, e valida no contrato', async () => {
@@ -561,18 +663,18 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
   }, 60_000);
 
   it('L4: a função pura só troca ajustesManuais e anexa a nota, sem repetir nem apagar outra', async () => {
-    const { semParteDeAjusteDePrioridade } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const { semParteDeAjusteDePrioridade, comNotaExcecaoSlaSemFonte } = await import('../src/modulos/metricas/parte-sem-dado.js');
     const a = semParteDeAjusteDePrioridade('S3', { meses: [{ mes: '2026-09', total: 7, ajustesManuais: 0 }], janela: { total: 7 } }) as { meses: Record<string, unknown>[]; janela: unknown; notas: string[] };
     expect(a.meses).toEqual([{ mes: '2026-09', total: 7, ajustesManuais: null }]);
     expect(a.janela).toEqual({ total: 7 });
     expect(a.notas).toEqual([NOTA_S3]);
     expect((semParteDeAjusteDePrioridade('S3', a) as { notas: string[] }).notas).toEqual([NOTA_S3]);
-    expect((semParteDeAjusteDePrioridade('S2', { prioridades: [] }) as { notas: string[] }).notas).toEqual([NOTA_S2]);
+    expect((comNotaExcecaoSlaSemFonte('S2', { prioridades: [] }) as { notas: string[] }).notas).toEqual([NOTA_S2]);
     // Pedido 077, L6a: a tendência de SLA traz a mesma nota e o resto do resultado fica igual; sem repetir.
-    const t = semParteDeAjusteDePrioridade('TENDENCIA_SUST', { meses: [{ mes: '2026-09', volume: 3 }] }) as { meses: unknown[]; notas: string[] };
+    const t = comNotaExcecaoSlaSemFonte('TENDENCIA_SUST', { meses: [{ mes: '2026-09', volume: 3 }] }) as { meses: unknown[]; notas: string[] };
     expect(t.notas).toEqual([NOTA_S2]);
     expect(t.meses).toEqual([{ mes: '2026-09', volume: 3 }]);
-    expect((semParteDeAjusteDePrioridade('TENDENCIA_SUST', t) as { notas: string[] }).notas).toEqual([NOTA_S2]);
+    expect((comNotaExcecaoSlaSemFonte('TENDENCIA_SUST', t) as { notas: string[] }).notas).toEqual([NOTA_S2]);
     const fora = { a: 1 };
     expect(semParteDeAjusteDePrioridade('S4', fora)).toBe(fora);
     expect(semParteDeAjusteDePrioridade('TENDENCIA_FLUXO', fora)).toBe(fora);

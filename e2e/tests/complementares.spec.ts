@@ -74,15 +74,23 @@ for (const tela of TELAS) {
       await expect(page.getByTestId('metrica-E4')).toHaveCount(0)
     })
 
-    test('COMP-03 catálogo: 65 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático + 7 do 011 operacional), grupo Complementar tem 33, axe AA', async ({ page }) => {
+    test('COMP-03 catálogo: contador em linhas bate com a tabela, grupos Complementar e Núcleo somam o total, axe AA', async ({ page }) => {
       await page.goto('/metricas')
       await expect(page.getByRole('heading', { level: 1, name: 'Catálogo de métricas' })).toBeVisible()
       const contagem = page.getByTestId('contagem-catalogo')
-      await expect(contagem).toHaveText('65 de 65 métricas')
+      const linhasDaTabela = page.getByRole('table').getByRole('row')
+      await expect(contagem).toHaveText(/^\d+ de \d+ linhas$/)
+      // total derivado da tabela renderizada (cabeçalho fora), sem número fixo
+      const total = (await linhasDaTabela.count()) - 1
+      expect(total).toBeGreaterThan(0)
+      await expect(contagem).toHaveText(`${total} de ${total} linhas`)
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
-      await expect(contagem).toHaveText('33 de 65 métricas')
+      await expect(contagem).not.toHaveText(`${total} de ${total} linhas`)
+      const complementares = (await linhasDaTabela.count()) - 1
+      await expect(contagem).toHaveText(`${complementares} de ${total} linhas`)
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Núcleo')
-      await expect(contagem).toHaveText('32 de 65 métricas')
+      await expect(contagem).toHaveText(`${total - complementares} de ${total} linhas`)
+      expect((await linhasDaTabela.count()) - 1).toBe(total - complementares)
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
@@ -213,7 +221,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     const s12 = page.getByTestId('metrica-S12')
     await expect(s12.getByRole('columnheader', { name: 'Com campo informado' })).toBeVisible()
     // Mock: a taxa de exceção segue (campo preenchido em todos os chamados, cobertura 100%): nenhum aviso de cobertura.
-    // Na API real o S12 traz a exceção de SLA nula, e o cartão mostra "campo sem fonte" (D9; provado nos testes de componente e do servidor).
+    // Na API real o S12 traz a exceção de SLA nula, e o cartão mostra "sem dado" (D9; provado nos testes de componente e do servidor).
     // O ramo parcial ("n de N" com n < N) é provado nos testes de componente, que ajustam a resposta.
     await expect(s8.getByTestId('cobertura-S8')).toHaveCount(0)
     await expect(s12.getByTestId('cobertura-S12')).toHaveCount(0)

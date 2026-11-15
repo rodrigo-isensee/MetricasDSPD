@@ -60,9 +60,9 @@ describe('determinismo', () => {
     expect(ms).toBeLessThan(1500 * fator)
   })
 
-  it('hash da base padrão e da escala 0,2: regravado no B11a, no ajuste do O23 (originais: 924448d4 e b2bfd4c0), no D3 do 099 (unidade dos prazos em config.alvos; escala 0,2 era 824092e4) e no D3b do 099 (dia útil da Sustentação de 528 min no calendário e nos alvos do mock; escala 0,2 era 345c5682) e no K-314 do 099 (exibir_primeiro_atendimento e exibir_restauracao em config.alvos; base era dd6787b1 e escala 0,2 era 5f03955c)', () => {
-    expect(hashJson(base)).toBe('52378641')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('bf154cb8')
+  it('hash da base padrão e da escala 0,2: regravado no B11a, no ajuste do O23 (originais: 924448d4 e b2bfd4c0), no D3 do 099 (unidade dos prazos em config.alvos; escala 0,2 era 824092e4) e no D3b do 099 (dia útil da Sustentação de 528 min no calendário e nos alvos do mock; escala 0,2 era 345c5682) e no K-314 do 099 (exibir_primeiro_atendimento e exibir_restauracao em config.alvos; base era dd6787b1 e escala 0,2 era 5f03955c) e no pedido 105 (Intangível deixou de ser classe: Dívida técnica passa a Prioritário e o SLE ganha a linha; base era 52378641 e escala 0,2 era bf154cb8)', () => {
+    expect(hashJson(base)).toBe('61ce1180')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('f7437c34')
   })
 
   it('as duas bases usam o mesmo "hoje" (padrão e personalizado), e o contexto também', () => {
@@ -182,8 +182,10 @@ describe('requisitos de UX da seção 9.2', () => {
     expect(businessmap.calcularO2(c, f).acimaP95).toBeGreaterThan(0)
     expect(businessmap.calcularO10(c, f).acimaDe180.time).toBeGreaterThan(0)
     expect(businessmap.calcularBloqueados(c, f).itens.length).toBeGreaterThan(0)
-    const resp = businessmap.calcularO12(c, { ...f, periodo: { tipo: '12m' } }).totais
-      .porResponsabilidade
+    const resp = businessmap.calcularO12(c, { ...f, periodo: { tipo: '12m' } }, true).totais
+      .porResponsabilidade as NonNullable<
+      ReturnType<typeof businessmap.calcularO12>['totais']['porResponsabilidade']
+    >
     expect(Object.values(resp).every((n) => n > 0)).toBe(true)
     expect(businessmap.calcularT9(c, f).projetosComEscopoCrescido).toBeGreaterThan(0)
     expect(businessmap.calcularE3(c, f).semFicha).toBeGreaterThanOrEqual(2)

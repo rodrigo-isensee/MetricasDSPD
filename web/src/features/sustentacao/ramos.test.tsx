@@ -32,27 +32,35 @@ describe('S1: tempo por prioridade', () => {
       }),
     })
     const el = await pronto('S1')
-    expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(/^1 chamado com exceção/)
+    expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(
+      /^1 chamado aberto depois do atendimento/,
+    )
     expect(within(el).getAllByText('Mediana acima do alvo').length).toBeGreaterThan(0)
   })
 })
 
 describe('S1: dia útil da Sustentação (D3b)', () => {
-  it('mostra o dia útil do resultado e o alvo de P4 e P5 em dias úteis com 2 casas', async () => {
+  it('mostra o dia útil do resultado e o alvo em dias úteis com 2 casas quando a célula pede dia', async () => {
     renderizarCartao(<CartaoS1 filtros={FILTROS_SUSTENTACAO} />, {
       fonte: new FonteAjustada({
         S1: (r: {
           horasPorDiaUtil: number
           prioridades: {
             prioridade: string
-            primeiroAtendimento: { alvoHoras: number }
-            restauracao: { alvoHoras: number }
+            primeiroAtendimento: { alvoHoras: number; exibirEm: string | null }
+            restauracao: { alvoHoras: number; exibirEm: string | null }
           }[]
         }) => {
           r.horasPorDiaUtil = 8.8
           for (const p of r.prioridades) {
-            if (p.prioridade === 'P4') p.primeiroAtendimento.alvoHoras = 4
-            if (p.prioridade === 'P5') p.restauracao.alvoHoras = 88
+            if (p.prioridade === 'P4') {
+              p.primeiroAtendimento.alvoHoras = 4
+              p.primeiroAtendimento.exibirEm = 'dia'
+            }
+            if (p.prioridade === 'P5') {
+              p.restauracao.alvoHoras = 88
+              p.restauracao.exibirEm = 'dia'
+            }
           }
         },
       }),
@@ -63,6 +71,46 @@ describe('S1: dia útil da Sustentação (D3b)', () => {
     )
     expect(el.textContent).toContain('0,45 dia útil')
     expect(el.textContent).toContain('10 dias úteis')
+  })
+})
+
+describe('S1: unidade de cada prazo (K-314)', () => {
+  it('mostra o alvo de cada célula na unidade e no relógio do PROC, na tabela e no rótulo', async () => {
+    renderizarCartao(<CartaoS1 filtros={FILTROS_SUSTENTACAO} />)
+    const el = await pronto('S1')
+    const mtta = within(el).getByTestId('tabela-S1-MTTA-detalhe')
+    const mttr = within(el).getByTestId('tabela-S1-MTTR-detalhe')
+    expect(within(mtta).getByRole('row', { name: /^P1/ })).toHaveTextContent('15 min corridos')
+    expect(within(mtta).getByRole('row', { name: /^P2/ })).toHaveTextContent('30 min corridos')
+    expect(within(mttr).getByRole('row', { name: /^P1/ })).toHaveTextContent('4 h corridas')
+    expect(within(mttr).getByRole('row', { name: /^P3/ })).toHaveTextContent('2 dias úteis')
+    expect(within(mttr).getByRole('row', { name: /^P3/ })).not.toHaveTextContent('17,6 h')
+    expect(within(mtta).getByRole('row', { name: /^P4/ })).toHaveTextContent('4 h úteis')
+    expect(within(mtta).getByRole('row', { name: /^P5/ })).toHaveTextContent('1 dia útil')
+  })
+
+  it('exibirEm nulo: horas com o rótulo do relógio, sem deduzir a unidade pelo valor', async () => {
+    renderizarCartao(<CartaoS1 filtros={FILTROS_SUSTENTACAO} />, {
+      fonte: new FonteAjustada({
+        S1: (r: {
+          prioridades: {
+            primeiroAtendimento: { exibirEm: string | null }
+            restauracao: { exibirEm: string | null }
+          }[]
+        }) => {
+          for (const p of r.prioridades) {
+            p.primeiroAtendimento.exibirEm = null
+            p.restauracao.exibirEm = null
+          }
+        },
+      }),
+    })
+    const el = await pronto('S1')
+    const mttr = within(el).getByTestId('tabela-S1-MTTR-detalhe')
+    expect(within(mttr).getByRole('row', { name: /^P3/ })).toHaveTextContent('17,6 h úteis')
+    expect(within(mttr).getByRole('row', { name: /^P1/ })).toHaveTextContent('4 h corridas')
+    expect(el.textContent).not.toMatch(/\bmin corridos/)
+    expect(el.textContent).not.toMatch(/dias? úteis/)
   })
 })
 

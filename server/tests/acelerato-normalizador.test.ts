@@ -96,7 +96,7 @@ describe('etapas: nome da biblioteca e nível de resolução', () => {
 });
 
 describe('normalizarChamado', () => {
-  it('chamado aberto: sem fechamento, sem veredito de resolução, MTTA não projetado, prioridade da escala P', () => {
+  it('chamado aberto: sem fechamento, sem veredito de resolução, primeiro atendimento = primeiro comentário, prioridade da escala P', () => {
     const c = new Contadores();
     const l = normalizarChamado('7', base({ data_primeiro_comentario: '2026-09-01 09:05:00' }), marcas, [], NATUREZA, c);
     expect(l).toMatchObject({
@@ -105,8 +105,15 @@ describe('normalizarChamado', () => {
       status_sla_r: null, status_sla_pa: 'NO_PRAZO', nivel_resolucao: null, arquivado: false, com_agente: true, reincidente_90d: 'nao', fora_do_recorte: false,
     });
     expect(l.aberto_em?.toISOString()).toBe('2026-09-01T12:00:00.000Z');
-    expect(l).not.toHaveProperty('primeiro_atendimento_em');
+    // Q-099-5b = A: o instante de `data_primeiro_comentario` (-03:00), nada além dele.
+    expect(l.primeiro_atendimento_em?.toISOString()).toBe('2026-09-01T12:05:00.000Z');
     expect(c.entradas()).toEqual([]);
+  });
+
+  it('Q-099-5b: sem comentário (nulo ou ausente), primeiro_atendimento_em fica nulo, nunca inferido', () => {
+    const c = new Contadores();
+    expect(normalizarChamado('7', base({ data_primeiro_comentario: null }), marcas, [], NATUREZA, c).primeiro_atendimento_em).toBeNull();
+    expect(normalizarChamado('7', base(), marcas, [], NATUREZA, c).primeiro_atendimento_em).toBeNull();
   });
 
   it('CT-44: fechado é só data_pronto preenchida; encerrado nunca define', () => {
@@ -140,7 +147,7 @@ describe('normalizarChamado', () => {
     const c = new Contadores();
     const l = normalizarChamado('2', { ticket_key: 2 }, marcas, [], new Map(), c);
     expect(l).toMatchObject({
-      natureza: null, prioridade: null, equipe: null, organizacao: null, tipo: null, categoria_sistema: null, categoria_key: null, aberto_em: null, etapa: null,
+      natureza: null, prioridade: null, equipe: null, organizacao: null, tipo: null, categoria_sistema: null, categoria_key: null, aberto_em: null, primeiro_atendimento_em: null, etapa: null,
       com_agente: true, reincidente_90d: null, excluido: false, arquivado: false, status_sla_pa: null,
     });
     expect(Object.fromEntries(c.entradas())).toMatchObject({ natureza_sem_prefixo: 1, prioridade_fora_da_escala_p: 1, sla_pa_sem_veredito: 1, sla_r_sem_veredito: 1 });

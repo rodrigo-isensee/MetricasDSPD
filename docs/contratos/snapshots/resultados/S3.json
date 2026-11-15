@@ -200,7 +200,8 @@
         "type": "string",
         "enum": [
           "ajuste-prioridade-sem-dado-real",
-          "excecao-sla-sem-fonte"
+          "excecao-sla-sem-fonte",
+          "s7-nao-igual-vazio"
         ]
       }
     },

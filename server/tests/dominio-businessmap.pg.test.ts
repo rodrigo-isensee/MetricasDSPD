@@ -48,17 +48,25 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   const versoes = async (c: pg.PoolClient, sha: string): Promise<number> =>
     Number((await c.query(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [referenciaDaVersaoBm(sha)])).rows[0].n);
 
-  it('o arquivo real (sem campos, com o mapa priority -> severidade) grava as 4 linhas, registra a versão com a métrica O16 e repetir não grava mais nada', async () => {
+  it('o arquivo real (sem campos, com o mapa priority -> severidade) grava as linhas do arquivo (6 setores, 4 de prioridade, as colunas da fase de detecção e o motivo de bloqueio), registra a versão de critério que afeta só a O15 (a mudança deste arquivo é a fase de detecção; o mapa de severidade do O16 não mudou) e repetir não grava mais nada', async () => {
     await comoRef(async (pool, c) => {
       const real = lerDominioBm();
-      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 0, inseridas: 4, fechadas: 0, versaoRegistrada: true });
+      const a = real.arquivo;
+      expect(a.setores).toHaveLength(6);
+      expect(a.prioridade_severidade).toHaveLength(4);
+      expect(a.fase_deteccao_coluna.length).toBeGreaterThan(0);
+      const esperadas = a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length;
+      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 0, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
+      expect((await linhas(c, 'fase_deteccao_coluna')).length).toBe(a.fase_deteccao_coluna.length);
       expect((await linhas(c, 'prioridade_severidade')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([
         ['1', 'Crítica', null], ['2', 'Alta', null], ['3', 'Média', null], ['4', 'Baixa', null]]);
+      expect((await linhas(c, 'setor_quadro')).map((l) => [l.codigo, l.rotulo])).toEqual([
+        ['23', 'Sistemas Corporativos'], ['24', 'Escritório de Processos e Projetos'], ['25', 'Sistemas de Vendas e Operações'], ['27', 'Plataformas'], ['31', 'Ciência de Dados'], ['79', 'Marketing e Vendas']]);
       expect(await versoes(c, real.sha256)).toBe(1);
       const metricas = (await c.query(
         `SELECT m.metrica_id FROM ${S.core}.ref_versao_criterio v JOIN ${S.core}.ref_versao_criterio_metrica m USING (versao_id) WHERE v.referencia = $1`,
         [referenciaDaVersaoBm(real.sha256)])).rows.map((r) => r.metrica_id);
-      expect(metricas).toEqual(['O16']);
+      expect(metricas).toEqual(['O15']);
       expect(await sincronizarDominioBm(pool, S, real, D2, AGORA)).toMatchObject({ inseridas: 0, fechadas: 0, versaoRegistrada: false });
       expect(await versoes(c, real.sha256)).toBe(1);
     });

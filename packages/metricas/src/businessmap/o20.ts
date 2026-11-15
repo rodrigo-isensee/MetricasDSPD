@@ -8,7 +8,7 @@ import {
 } from '../core/calendario'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
-import { baseAmostral, criterios, periodoDe } from './comum'
+import { baseAmostral, colunaDaEquipe, criterios, equipesDoRecorte, periodoDe } from './comum'
 import type { ContextoBM } from './indice'
 import type { PapelColuna } from './modelo'
 import { varreduraPorColuna, varreduraVida } from './varredura'
@@ -32,6 +32,12 @@ interface Faixa {
   serie: readonly number[]
 }
 
+/** Quadros da equipe: pela coluna, quando a base diz a equipe do workflow (real); senão `quadro-<slug>` (semeada). */
+const quadrosDaEquipe = (ctx: ContextoBM, nome: string): string[] => {
+  const ids = ctx.idx.base.colunas.filter((c) => colunaDaEquipe(c, nome)).map((c) => c.quadro_id)
+  return ordenarNeutro(Array.from(new Set(ids)), (q) => [q])
+}
+
 const somar = (a: readonly number[] | undefined, b: readonly number[]): number[] =>
   b.map((v, i) => v + (a?.[i] ?? 0))
 
@@ -53,7 +59,7 @@ export function calcularO20(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO20 {
   const instantes = dias.map((d) => Math.min(ctx.hoje, fimDoExpediente(d, ctx.cal)))
   const equipe =
     f.equipe.length === 1
-      ? ctx.idx.base.config.equipes.find((e) => slug(e.nome) === f.equipe[0])
+      ? equipesDoRecorte(ctx, f).find((e) => slug(e.nome) === f.equipe[0])
       : undefined
   const agrupamento = equipe ? ('coluna' as const) : ('papel' as const)
 
@@ -61,23 +67,27 @@ export function calcularO20(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO20 {
   let transicoes = 0
   let todas: Faixa[]
   if (equipe) {
-    const quadro = `quadro-${slug(equipe.nome)}`
-    const vida = varreduraVida(ctx, f, quadro, instantes, desde)
-    transicoes = vida.transicoesNoPeriodo
-    todas = ordenarNeutro(
-      Array.from(vida.porColuna, ([coluna, serie]) => {
+    // Base real: o quadro da equipe é o do workflow dela (a coluna diz a equipe); base semeada (sem `equipe`): `quadro-<slug>`.
+    // Uma equipe pode ter mais de um quadro: a faixa é a coluna (pelo nome), somada quadro a quadro.
+    const porChave = new Map<string, Faixa>()
+    for (const quadro of quadrosDaEquipe(ctx, equipe.nome)) {
+      const vida = varreduraVida(ctx, f, quadro, instantes, desde)
+      transicoes += vida.transicoesNoPeriodo
+      for (const [coluna, serie] of vida.porColuna) {
         const def = ctx.idx.papelDe(quadro, coluna)
-        return {
+        const ordem = def?.ordem ?? Number.MAX_SAFE_INTEGER
+        const antes = porChave.get(coluna)
+        porChave.set(coluna, {
           chave: coluna,
           rotulo: coluna,
-          ordem: def?.ordem ?? Number.MAX_SAFE_INTEGER,
-          papel: def?.papel ?? ('sem-papel' as const),
-          tipoColuna: def?.tipo_coluna ?? ('execucao' as const),
-          serie,
-        }
-      }),
-      (x) => [x.ordem, x.chave],
-    )
+          ordem: antes ? Math.min(antes.ordem, ordem) : ordem,
+          papel: antes?.papel ?? def?.papel ?? ('sem-papel' as const),
+          tipoColuna: antes?.tipoColuna ?? def?.tipo_coluna ?? ('execucao' as const),
+          serie: somar(antes?.serie, serie),
+        })
+      }
+    }
+    todas = ordenarNeutro(Array.from(porChave.values()), (x) => [x.ordem, x.chave])
   } else {
     const soma = new Map<string, number[]>()
     const tipos = new Map<string, Set<'fila' | 'execucao'>>()
@@ -117,12 +127,9 @@ export function calcularO20(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO20 {
 
   // Sem transição no período é estado vazio (a especificação); faixa sem nenhum item não desenha área.
   const faixas = transicoes === 0 ? [] : todas.filter((x) => x.serie.some((v) => v > 0))
-  // WIP do O1 (a mesma varredura, memoizada): de todos os quadros, ou só do da equipe filtrada.
+  // WIP do O1 (a mesma varredura, memoizada, com os mesmos filtros: a equipe filtra os cards).
   const emProgresso =
-    faixas.length === 0
-      ? []
-      : varreduraPorColuna(ctx, f, equipe ? `quadro-${slug(equipe.nome)}` : null, instantes).total
-          .wip
+    faixas.length === 0 ? [] : varreduraPorColuna(ctx, f, null, instantes).total.wip
   // Toda faixa que sobrou tem alguma contagem > 0, logo a série não é vazia.
   const primeiro = (x: Faixa) => x.serie[0] as number
   const ultimo = (x: Faixa) => x.serie[x.serie.length - 1] as number

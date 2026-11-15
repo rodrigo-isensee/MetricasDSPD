@@ -83,19 +83,19 @@ export const NOTAS_OPERACIONAL: Record<
   },
   O12: {
     oQueE:
-      'Compromissos com data acordada, quantos venceram sem entrega e por responsabilidade de quem.',
+      'Compromissos com prazo acordado, quantos venceram sem entrega e, quando o campo existir no quadro, de que tipo foi a responsabilidade do atraso.',
     comoSeCalcula:
-      'Data acordada no mês contra a entrega; responsabilidade registrada no vencimento.',
+      'O prazo é o prazo do card no BusinessMap, lido como está hoje: se o prazo for mudado depois do compromisso, vale o novo (o histórico fica guardado). Conta o card que passou pelo ponto de compromisso; card ainda no backlog, mesmo com prazo, não conta. Um card descartado antes do prazo sai da conta; descartado depois do prazo conta como vencido. Vence quando o prazo é anterior à entrega (ou a hoje, se ainda não foi entregue).',
     comoLer:
-      'A linha decrescente é o que se apresenta às áreas; a decomposição é a conversa interna.',
-    meta: 'Zero vencidos por causa interna.',
+      'A linha decrescente é o que se apresenta às áreas. Enquanto o campo de responsabilidade não existir no quadro, as barras mostram acordos sem vencer e vencidos, sem a divisão por tipo de responsabilidade.',
+    meta: 'Zero vencidos por causa interna. Não avaliada enquanto a responsabilidade do atraso estiver sem dado real.',
     cuidados:
-      'A responsabilidade precisa ser preenchida no vencimento, nunca depois; "Não classificado" mostra o que ficou sem preencher.',
+      'O prazo pode ser mudado depois do compromisso, e o cartão usa o prazo atual: um prazo empurrado reduz os vencidos sem que a entrega tenha melhorado. O BusinessMap não diz quando o prazo foi acordado; a base só sabe desde quando a coleta o viu. Quando o campo de responsabilidade existir, ele precisa ser preenchido no vencimento, nunca depois; "Não classificado" mostra o que ficou sem preencher. Não compara times nem avalia pessoas.',
   },
   O15: {
     oQueE: 'Distribuição dos bugs pela fase em que foram detectados.',
     comoSeCalcula:
-      'Contenção = bugs detectados antes da homologação sobre o total; escape = bugs em produção sobre o total.',
+      'Contenção = bugs detectados antes da homologação sobre o total; escape = bugs em produção sobre o total. A fase é a coluna do card da demanda quando o bug foi aberto. Fase com menos de 20 bugs não mostra contagem.',
     comoLer: 'Onde aparecem diz mais que quantos são.',
     meta: 'Elevar a contenção e reduzir o escape; não há meta sobre o volume de bugs internos.',
     cuidados:

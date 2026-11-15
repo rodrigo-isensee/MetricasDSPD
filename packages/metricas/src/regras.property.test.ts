@@ -566,28 +566,48 @@ describe(`P5: ${P.p5.nome}`, () => {
     const ref = plano(calc(id, CTX))
     fc.assert(
       fc.property(fc.integer({ min: 1, max: 1_000_000 }), (seed) => {
-        const bm: BaseBM = {
-          ...base.bm,
-          cards: embaralhar(base.bm.cards, seed),
-          transicoes: embaralhar(base.bm.transicoes, seed + 1),
-          bloqueios: embaralhar(base.bm.bloqueios, seed + 2),
-          fichas: embaralhar(base.bm.fichas, seed + 3),
+        // Só a fonte da métrica é embaralhada e reindexada (BusinessMap e Acelerato nunca se misturam); as
+        // demais ficam como em CTX. A VISAO_GERAL lê todas, então embaralha todas. Mesma propriedade,
+        // sem reconstruir os índices que a métrica não lê (custo que estourava o testTimeout sob cobertura).
+        const todas = id === 'VISAO_GERAL'
+        const fonte = fonteDaMetrica(id)
+        const bm: BaseBM =
+          !todas && (ehAC(id) || fonte === 'pesquisa')
+            ? base.bm
+            : {
+                ...base.bm,
+                cards: embaralhar(base.bm.cards, seed),
+                transicoes: embaralhar(base.bm.transicoes, seed + 1),
+                bloqueios: embaralhar(base.bm.bloqueios, seed + 2),
+                fichas: embaralhar(base.bm.fichas, seed + 3),
+              }
+        const ac: BaseAC =
+          !todas && !ehAC(id)
+            ? base.ac
+            : {
+                ...base.ac,
+                chamados: embaralhar(base.ac.chamados, seed + 4),
+                etapas: embaralhar(base.ac.etapas, seed + 5),
+              }
+        const pesq: BasePesquisa =
+          !todas && fonte !== 'pesquisa'
+            ? PESQ
+            : {
+                ...PESQ,
+                areas: embaralhar(PESQ.areas, seed + 6),
+                versoes: embaralhar(PESQ.versoes, seed + 7),
+                cargas: embaralhar(PESQ.cargas, seed + 8).map((c, i) => ({
+                  ...c,
+                  linhas: embaralhar(c.linhas, seed + 9 + i),
+                })),
+              }
+        const ctx: ContextosMetricas = {
+          ...CTX,
+          bm: bm === base.bm ? CTX.bm : businessmap.criarContextoBM(bm, HOJE, CALENDARIO_PADRAO),
+          ac: ac === base.ac ? CTX.ac : acelerato.criarContextoAC(ac, HOJE, CALENDARIO_PADRAO),
+          ...(pesq === PESQ ? {} : { pesq: ctxPesq(pesq) }),
         }
-        const ac: BaseAC = {
-          ...base.ac,
-          chamados: embaralhar(base.ac.chamados, seed + 4),
-          etapas: embaralhar(base.ac.etapas, seed + 5),
-        }
-        const pesq: BasePesquisa = {
-          ...PESQ,
-          areas: embaralhar(PESQ.areas, seed + 6),
-          versoes: embaralhar(PESQ.versoes, seed + 7),
-          cargas: embaralhar(PESQ.cargas, seed + 8).map((c, i) => ({
-            ...c,
-            linhas: embaralhar(c.linhas, seed + 9 + i),
-          })),
-        }
-        expect(plano(calc(id, ctxDe(bm, ac, pesq)))).toEqual(ref)
+        expect(plano(calc(id, ctx))).toEqual(ref)
       }),
       { numRuns: 2, seed: 20261009 },
     )

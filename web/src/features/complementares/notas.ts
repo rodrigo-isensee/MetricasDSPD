@@ -62,11 +62,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'O tamanho das demandas, medido pelo tempo em execução, e quantas passam do P85 anterior.',
     comoSeCalcula:
-      'Mediana, média e P85 do tempo em execução (dias úteis) por tipo, cruzados com o tamanho declarado (P, M, G). Só com 20 itens ou mais.',
+      'Mediana, média e P85 do tempo em execução (dias úteis) por tipo (dado real do BusinessMap, o mesmo do O3). A divisão por tamanho declarado (P, M, G) fica sem dado real até o campo de tamanho existir no quadro. Só com 20 itens ou mais.',
     comoLer: 'Olhe a mediana e o P85 juntos; a média aparece sempre ao lado deles, nunca sozinha.',
     meta: 'Sem meta; leia com O3 e O4.',
     cuidados:
-      'A média isolada esconde itens muito grandes. O tamanho declarado é do card, não da pessoa.',
+      'A média isolada esconde itens muito grandes. O tamanho declarado, quando existir, é do card, não da pessoa.',
   },
   O11: {
     oQueE: 'O backlog dividido em itens ainda em definição e itens prontos para começar.',
@@ -184,13 +184,13 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   },
   S12: {
     oQueE:
-      'Quais sistemas geram mais chamados, a reincidência por sistema e a exceção de SLA por registro posterior.',
+      'Quais sistemas geram mais chamados, a reincidência por sistema e quantos chamados foram abertos no sistema depois do atendimento.',
     comoSeCalcula:
-      'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % com exceção de SLA por registro posterior.',
+      'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % de chamados abertos no sistema depois do atendimento.',
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
     cuidados:
-      'Reincidência depende do preenchimento do campo. Hoje só o volume por sistema vem da base real. Reincidência e exceção de SLA por registro posterior ficam sem fonte até a coleta trazer os campos; sem fonte não é zero.',
+      'Reincidência depende do preenchimento do campo. Hoje só o volume por sistema vem da base real. Reincidência e chamados abertos no sistema depois do atendimento ficam sem dado (hoje essa marca não vem do Acelerato); sem dado não é zero.',
   },
   O19: {
     oQueE: 'Quantos dias úteis de bloqueio cada causa somou e quantas vezes ela travou o trabalho.',
@@ -234,9 +234,9 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'Quantos pedidos começaram antes de outros mais antigos e quanto esperaram os que foram ultrapassados.',
     comoSeCalcula:
-      'Só classe Padrão, mesmo tipo, na fila de cada equipe. Um início é "fora de ordem" se havia um pedido mais antigo ainda não iniciado. Espera: dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Percentual só com 20 inícios; P50 e P85 só com 20 ultrapassados no tipo.',
+      'Só classe Padrão, mesmo tipo, na fila de cada equipe. Um início é "fora de ordem" se havia um pedido mais antigo ainda não iniciado. Espera: dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Percentual só com 20 inícios; P50 e P85 só com 20 ultrapassados no tipo. A classe vem da etiqueta do cartão; cartão sem etiqueta, ou com duas classes, não entra no cálculo.',
     comoLer:
-      'A ordem de chegada é a política da classe Padrão. Urgente, Prazo fixo e Intangível têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
+      'A ordem de chegada é a política da classe Padrão. Urgente, Prioritário e Prazo fixo têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
     meta: 'Sem meta numérica.',
     cuidados: 'Não aponta quem escolheu o que começar.',
   },

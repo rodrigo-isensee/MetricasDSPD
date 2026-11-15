@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ErroColetaBm } from '../src/modulos/businessmap/coleta.js';
-import { instanteDoBm } from '../src/modulos/businessmap/normalizador.js';
+import { agrupar, instanteDoBm, type Referencia } from '../src/modulos/businessmap/normalizador.js';
 import {
-  analisarArgumentosProjetor, executarProjetor, projetarBusinessMap, TABELAS_LIMPAS_NA_RECONSTRUCAO, TAMANHO_LOTE,
+  analisarArgumentosProjetor, executarProjetor, projetarBusinessMap, projetarFasesDeteccao, TABELAS_LIMPAS_NA_RECONSTRUCAO, TAMANHO_LOTE,
 } from '../src/modulos/businessmap/projetor.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { criarDublePg, type Chamada, type Resposta } from './duble-pg.js';
@@ -112,6 +112,19 @@ describe('projetarBusinessMap (F4)', () => {
     expect(r.cards).toBe(0);
     expect(com(d, 'SELECT DISTINCT id_origem')).toHaveLength(3);
     expect(com(d, 'SELECT DISTINCT id_origem')[1]!.valores).toEqual([ids[TAMANHO_LOTE - 1]]);
+  });
+
+  it('105: a fase de detecção já gravada na versão vigente passa adiante: não conta como mudança e vai na versão nova, sem sobrescrever', async () => {
+    const atual = (id: string, titulo: string) => ({
+      card_id: id, vigente_de: new Date('2026-10-01T00:00:00Z'), responsaveis: ['7'], titulo, tipo: 'Bug interno', granularidade: 'story', equipe: 'Time A', quadro_id: 'Q', coluna_atual_id: '3', card_pai: null,
+      motivo_descarte: null, fase_deteccao: 'Produção',
+    });
+    const d = montar({ stg: [stg('1'), stg('2')], versoes: [atual('1', 'T'), atual('2', 'Outro título')], dimCard: [{ card_id: '1', responsaveis: ['7'] }, { card_id: '2', responsaveis: ['7'] }] });
+    const r = await proj(d);
+    expect(r.versoes).toBe(1);
+    const v = com(d, 'INSERT INTO dspd_bm.dim_card_versao')[0]!;
+    expect(v.valores[0]).toBe('2');
+    expect(v.valores).toContain('Produção');
   });
 
   it('SCD2: versão igual não gera versão; atributo mudado gera uma, com vigente_de depois da anterior; o conjunto de responsáveis é copiado', async () => {
@@ -311,6 +324,73 @@ describe('comando bm:projetar', () => {
     const ocupada = montar({ stg: [stg('1')], trava: false });
     await expect(executarProjetor({ pool: ocupada.pool, S, agora: () => AGORA })).rejects.toMatchObject({ codigo: 'trava' });
     expect(ocupada.chamadas.some((x) => x.texto.includes('INSERT INTO dspd_bm.ctl_coleta '))).toBe(false);
+  });
+});
+
+// Pedido 105 (E7.5): a passada da fase de detecção, depois dos lotes. O que muda no banco é conferido pelo SQL; o comportamento real fica no `.pg`.
+describe('projetarFasesDeteccao (105, E7.5)', () => {
+  const acc = () => ({ notas: {} as Record<string, number>, fasesDeteccaoGravadas: 0 }) as unknown as Parameters<typeof projetarFasesDeteccao>[5];
+  const ref = (fases: [string, 'Desenvolvimento' | 'Produção'][]): Referencia => ({
+    colunas: agrupar([{ ...V, quadro_id: 'Q', coluna_id: '2', workflow_id: 'W', section: 2, eh_descarte: false, papel: 'compromisso', tipo_coluna: 'fila' as const, ordem: 2 }], (c) => `${c.quadro_id}|${c.coluna_id}`),
+    workflows: new Map(), timesDoWorkflow: new Map(), times: new Map(), tipos: new Map(), camposLista: new Map(), fasesDeteccao: new Map(fases),
+  });
+  const montarFase = (bugs: Record<string, unknown>[], pais: Record<string, unknown>[], transicoes: Record<string, unknown>[]) => criarDublePg((q) => {
+    if (q.texto.includes('WHERE tipo = ANY')) return bugs;
+    if (q.texto.includes('SELECT card_id, concluido_em, coluna_atual_id')) return pais;
+    if (q.texto.includes('FROM dspd_bm.fato_transicao')) return transicoes;
+    return { rows: [], rowCount: 1 };
+  });
+  const BUG = (id: string, pai: string | null, criado: string, fase: string | null = null) => ({ card_id: id, tipo: 'Bug interno', card_pai: pai, criado_em: new Date(criado), fase_deteccao: fase });
+
+  it('referência sem a tabela (campo ausente) também não lê nem escreve nada', async () => {
+    const d = montarFase([BUG('1', '9', '2026-10-10T12:00:00Z')], [], []);
+    const semCampo: Referencia = { ...ref([]), fasesDeteccao: undefined };
+    await projetarFasesDeteccao(d.pool, S, semCampo, 88, AGORA, acc());
+    expect(d.chamadas).toEqual([]);
+  });
+
+  it('coluna do pai sem linha na referência e fora do mapa: sem fase, nota fase_sem_mapa (papel desconhecido não é "antes do desenvolvimento")', async () => {
+    const d = montarFase([BUG('1', '9', '2026-10-10T12:00:00Z')], [{ card_id: '9', concluido_em: null, coluna_atual_id: '77' }], []);
+    const a = acc();
+    await projetarFasesDeteccao(d.pool, S, ref([['3', 'Desenvolvimento']]), 88, AGORA, a);
+    expect(a.notas).toEqual({ fase_sem_mapa: 1 });
+    expect(a.fasesDeteccaoGravadas).toBe(0);
+  });
+
+  it('sem tabela carregada não lê nem escreve nada', async () => {
+    const d = montarFase([], [], []);
+    await projetarFasesDeteccao(d.pool, S, ref([]), 88, AGORA, acc());
+    expect(d.chamadas).toEqual([]);
+  });
+
+  it('grava a fase por UPDATE e uma versão nova (cópia da vigente), sem DELETE; conta as notas só com números; o que não mudou não é escrito', async () => {
+    const d = montarFase(
+      [BUG('1', '9', '2026-10-10T12:00:00Z'), BUG('2', null, '2026-10-10T12:00:00Z'), BUG('3', '8', '2026-10-10T12:00:00Z'), BUG('4', '9', '2026-10-10T12:00:00Z', 'Desenvolvimento'), BUG('5', '7', '2026-10-10T12:00:00Z')],
+      [{ card_id: '9', concluido_em: null, coluna_atual_id: '3' }, { card_id: '7', concluido_em: null, coluna_atual_id: '2' }],
+      [{ card_id: '9', coluna_origem_id: null, coluna_destino_id: '3', ocorrido_em: new Date('2026-10-01T00:00:00Z') }],
+    );
+    const a = acc();
+    await projetarFasesDeteccao(d.pool, S, ref([['3', 'Desenvolvimento']]), 88, AGORA, a);
+    expect(a.notas).toEqual({ bug_sem_card_pai: 1, bug_pai_fora_da_base: 1, fase_pai_antes_do_desenvolvimento: 1 });
+    expect(a.fasesDeteccaoGravadas).toBe(1);
+    const escritas = d.chamadas.filter((x) => /^(UPDATE|INSERT|DELETE)/.test(x.texto));
+    expect(escritas.map((x) => x.texto.split(' ').slice(0, 3).join(' '))).toEqual(['UPDATE dspd_bm.dim_card SET', 'INSERT INTO dspd_bm.dim_card_versao']);
+    expect(escritas[0]!.valores).toEqual(['1', 'Desenvolvimento', 88]);
+    expect(escritas[1]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING');
+    expect(escritas[1]!.valores).toEqual(['1', AGORA, 'Desenvolvimento', 88]);
+    expect(d.chamadas.some((x) => x.texto.includes('DELETE'))).toBe(false);
+    expect(Object.keys(a.notas).every((k) => /^[a-z_]+$/.test(k))).toBe(true);
+  });
+
+  it('quem já tem fase e não é bug volta a não ter, sem nota; pai já entregue é Produção', async () => {
+    const d = montarFase(
+      [{ ...BUG('1', null, '2026-10-10T12:00:00Z', 'Produção'), tipo: 'Trabalho de produto' }, BUG('2', '9', '2026-10-10T12:00:00Z')],
+      [{ card_id: '9', concluido_em: new Date('2026-10-09T00:00:00Z'), coluna_atual_id: '2' }], [],
+    );
+    const a = acc();
+    await projetarFasesDeteccao(d.pool, S, ref([['3', 'Desenvolvimento']]), 88, AGORA, a);
+    expect(a.notas).toEqual({});
+    expect(d.chamadas.filter((x) => x.texto.startsWith('UPDATE')).map((x) => x.valores)).toEqual([['1', null, 88], ['2', 'Produção', 88]]);
   });
 });
 

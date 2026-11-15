@@ -1,4 +1,4 @@
-import { MINIMO_AMOSTRA, type Taxa } from '@metricas-dspd/contratos'
+import { ID_SEM_PROJETO, MINIMO_AMOSTRA, type Taxa } from '@metricas-dspd/contratos'
 import { PESSOA_OUTRA_AREA } from './types'
 import type {
   CapacidadeApontamento,
@@ -293,6 +293,11 @@ export const RESPOSTA_FICTICIA: RespostaApontamento = {
   nomesReais: false,
   opcoes: {
     pessoas: pessoasOpcao,
+    setores: [
+      { id: 'plataformas', rotulo: 'Plataformas' },
+      { id: 'sistemas-corporativos', rotulo: 'Sistemas Corporativos' },
+      { id: 'sem-setor', rotulo: 'Sem setor' },
+    ],
     equipes: [
       { id: 'integracoes', rotulo: 'Integrações' },
       { id: 'portal', rotulo: 'Portal' },
@@ -546,6 +551,23 @@ export function respostaComOutraArea(
 }
 
 /**
+ * Resposta com a linha sem projeto (K-324) no AP-PROJETO. Com `soEla`, é a única linha. A resposta padrão não muda.
+ */
+export function respostaComLinhaSemProjeto(
+  soEla = false,
+  base: RespostaApontamento = RESPOSTA_FICTICIA,
+): RespostaApontamento {
+  const semProjeto = linha(ID_SEM_PROJETO, 'Sem iniciativa', 12, 7)
+  return {
+    ...base,
+    distribuicao: {
+      ...base.distribuicao,
+      porProjeto: soEla ? [semProjeto] : [...base.distribuicao.porProjeto, semProjeto],
+    },
+  }
+}
+
+/**
  * Fonte fictícia: confere que os valores filtrados existem nas opções e aplica a escolha do nível da
  * matriz. Filtro cujo valor não existe nas opções devolve o recorte vazio. A agregação de verdade é do servidor.
  */
@@ -557,6 +579,7 @@ export function respostaFicticia(
   const existe = (ids: string[] | undefined, lista: readonly { id: string }[]) =>
     !ids || ids.every((id) => lista.some((x) => x.id === id))
   const valido =
+    existe(consulta.setor, o.setores ?? []) &&
     existe(consulta.equipe, o.equipes ?? []) &&
     existe(consulta.projeto, o.projetos) &&
     existe(consulta.tipo, o.tipos) &&
