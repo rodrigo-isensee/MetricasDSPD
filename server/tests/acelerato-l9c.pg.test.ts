@@ -48,7 +48,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
   });
 
   it('migração: linhas nulas seguem nulas, só o tipo muda nas duas dimensões, as views seguem lidas pela API; com valor, falha sem mudar nada', async () => {
-    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) }); // desfaz a 0037, a 0036 e a 0035
+    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) }); // desfaz da última migração até a 0035 (inclui a 0038)
     expect(await tipoDe('dim_chamado')).toMatch(/timestamp\(3\) with time zone/);
     await insere('n1', 'NULL'); await insere('n2', 'NULL');
     const antes = await linhas();

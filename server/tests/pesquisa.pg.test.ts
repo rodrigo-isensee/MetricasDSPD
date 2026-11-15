@@ -4,9 +4,10 @@ import { calcularMetrica } from '@metricas-dspd/metricas';
 import { carregar, esquemaCoreDe } from '@metricas-dspd/pesquisa/carga';
 import { criarFontePesquisaReal } from '../src/modulos/metricas/index.js';
 import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
-import { migrar } from '../src/plataforma/db/migrar.js';
+import { DIR_MIGRACOES, migrar } from '../src/plataforma/db/migrar.js';
 import { criarPool, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { migracoesDesde, quantasDesde } from './pg/migracoes-por-numero.js';
+import { readFileSync } from 'node:fs';
 import { poolDe, url } from './pg/ctx.js';
 
 const d = describe.skipIf(!url);
@@ -142,7 +143,11 @@ d('pesquisa de percepção (PV1): tabelas, papéis e carga', () => {
       expect(await existe('pesq_carga')).toBe(true);
       await q(dono, `INSERT INTO ${e.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em) VALUES ('2026-01-01', 'pesquisa', 'v', 'm', 'r', now())`);
       const b = await migrar(url!, { prefixo: p, direcao: 'down', quantas: quantasDesde(13) }); // da 0013 (a da pesquisa) até a última
-      expect(b.migracoes).toEqual(migracoesDesde(13));
+      // fonte independente do diretório: o checksums.json versionado; migração faltando no diretório quebra aqui
+      const esperadas = Object.keys(JSON.parse(readFileSync(`${DIR_MIGRACOES}/checksums.json`, 'utf8')) as Record<string, string>)
+        .filter((n) => Number(n.slice(0, 4)) >= 13).sort().reverse();
+      expect(migracoesDesde(13)).toEqual(esperadas);
+      expect(b.migracoes).toEqual(esperadas);
       for (const t of ['pesq_carga', 'pesq_resultado', 'pesq_participacao', 'ref_pesq_area', 'ref_pesq_pergunta', 'vw_pesq_vigente']) expect(await existe(t), t).toBe(false);
       expect(await existe('ref_versao_criterio')).toBe(true);
       expect((await q(dono, `SELECT count(*) AS n FROM ${e.core}.ref_versao_criterio WHERE dominio = 'pesquisa'`)).rows[0]).toEqual({ n: '0' });
