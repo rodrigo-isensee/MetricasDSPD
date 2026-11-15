@@ -33,7 +33,7 @@ class FonteSetor extends MockFonteMetricas {
     // O servidor ainda não conhece `setor` (L10b): a fonte de teste o ignora, como o contrato prevê para o intervalo.
     const resto = { ...filtros } as { setor?: string[] }
     delete resto.setor
-    return super.obter(id, resto as FiltrosDe<K>)
+    return super.obter(id, resto)
   }
   override async opcoesFiltro<D extends Dominio>(
     dominio: D,
