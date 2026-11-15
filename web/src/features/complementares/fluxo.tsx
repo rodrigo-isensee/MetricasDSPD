@@ -130,8 +130,9 @@ export function CartaoO8({ filtros }: P) {
   )
   const faltam = (d?.tipos ?? []).filter((t) => t.estatistica.status === 'insuficiente')
   const primeiro = ok[0]
-  const comTamanho = ok.filter((t) => t.porTamanho != null)
-  const semTamanho = ok.filter((t) => t.porTamanho == null)
+  const divide = d?.motivoPorTamanho == null
+  const comTamanho = divide ? ok.filter((t) => t.porTamanho != null) : []
+  const semTamanho = divide ? ok.filter((t) => t.porTamanho == null) : []
   return (
     <CartaoComplementar
       id="O8"
@@ -188,7 +189,10 @@ export function CartaoO8({ filtros }: P) {
               <EstadoSemDadoReal codigo="O8-por-tamanho" motivo={d.motivoPorTamanho} />
             </>
           )}
-          {ok.length > 0 && d?.motivoPorTamanho == null && (
+          {ok.length > 0 && divide && (
+            <h4 className="text-sm font-semibold text-texto">Por tamanho declarado</h4>
+          )}
+          {ok.length > 0 && divide && (
             <Barras
               descricao="Mediana do tempo em execução por tipo e tamanho declarado"
               unidade="dias úteis"
@@ -206,7 +210,7 @@ export function CartaoO8({ filtros }: P) {
               }))}
             />
           )}
-          {d?.motivoPorTamanho == null && comTamanho.length > 0 && semTamanho.length > 0 && (
+          {divide && comTamanho.length > 0 && semTamanho.length > 0 && (
             <p className="text-sm text-texto" data-testid="nota-O8-sem-tamanho">
               Sem divisão por tamanho: {semTamanho.map((t) => t.tipo).join(', ')}. Nenhum card
               concluído {semTamanho.length === 1 ? 'desse tipo' : 'desses tipos'}, no período, tem

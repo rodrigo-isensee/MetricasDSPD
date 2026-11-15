@@ -7,6 +7,7 @@ import {
   FILTROS_SUSTENTACAO,
   FonteAjustada,
 } from '@/features/painel/testes/fonteFixa'
+import { fmtDiasUteis } from '@/lib/formatar'
 import { fonteDeTeste, renderizarApp, renderizarCartao } from '@/test/helpers'
 import { MemoryRouter } from 'react-router'
 import { PREFERENCIAS_PADRAO } from '@metricas-dspd/contratos'
@@ -21,6 +22,18 @@ import { CartaoE4, CartaoE5, CartaoT6 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
 vi.setConfig({ testTimeout: 45000 })
+
+const categoriasDaBarras = vi.hoisted(() => ({ chamadas: [] as string[][] }))
+vi.mock('@/components/charts/Barras', async (original) => {
+  const m = await original<typeof import('@/components/charts/Barras')>()
+  return {
+    ...m,
+    Barras: (p: Parameters<typeof m.Barras>[0]) => {
+      categoriasDaBarras.chamadas.push(p.categorias.map((c) => c.rotulo))
+      return m.Barras(p)
+    },
+  }
+})
 
 type Qualquer = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -329,7 +342,7 @@ describe('ramos dos componentes complementares', () => {
     await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
     expect(el).toHaveTextContent('Mediana')
     expect(within(el).queryByTestId('estado-sem-dado-real-O8-por-tamanho')).not.toBeInTheDocument()
-    expect(el).not.toHaveTextContent('Por tamanho declarado')
+    expect(within(el).getByRole('heading', { name: 'Por tamanho declarado' })).toBeInTheDocument()
   })
 
   const NOTA_O8 = 'nota-O8-sem-tamanho'
@@ -350,6 +363,7 @@ describe('ramos dos componentes complementares', () => {
     })
 
   it('O8 com um tipo sem tamanho: ele sai do gráfico, fica na tabela e entra na nota em parágrafo (CA-1 a CA-4, CA-7)', async () => {
+    categoriasDaBarras.chamadas.length = 0
     renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([0]) })
     const el = await screen.findByTestId('metrica-O8')
     const nota = await within(el).findByTestId(NOTA_O8)
@@ -360,8 +374,12 @@ describe('ramos dos componentes complementares', () => {
     )
     expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
     const tipo = nota.textContent.match(/tamanho: (.+?)\./)![1]
-    expect(el.querySelector('table')?.textContent).toContain(tipo)
-    expect(el.querySelector('svg')?.textContent ?? '').not.toContain(tipo)
+    const tabela = el.querySelector('table')!
+    const linha = within(tabela).getByText(tipo).closest('tr')!
+    expect(linha).toHaveTextContent(`${fmtDiasUteis(4)}${fmtDiasUteis(9)}`)
+    const ultimas = categoriasDaBarras.chamadas.at(-1)!
+    expect(ultimas.length).toBeGreaterThan(0)
+    expect(ultimas).not.toContain(tipo)
   })
 
   it('O8 com dois tipos sem tamanho lista os nomes no plural, na ordem da tabela (CA-2)', async () => {

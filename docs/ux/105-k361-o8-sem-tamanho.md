@@ -32,7 +32,7 @@ Regras de texto:
 - CA-1 QUANDO pelo menos um tipo tem `porTamanho` e outro tem `porTamanho` nulo O SISTEMA DEVE desenhar o gráfico "por tipo e tamanho declarado" só com os tipos que têm `porTamanho`.
 - CA-2 QUANDO pelo menos um tipo tem `porTamanho` nulo e outro publica a divisão O SISTEMA DEVE exibir abaixo do gráfico a frase "Sem divisão por tamanho: <tipos>." seguida de "Nenhum card concluído desses tipos, no período, tem tamanho declarado no quadro." (singular com um tipo só: "desse tipo ... tem").
 - CA-3 O SISTEMA DEVE manter o tipo sem tamanho na tabela do O8 com a mediana, o P85 e a média que ele já tem, e a nota deve dizer onde estão ("A mediana e o P85 deles estão na tabela acima.").
-- CA-4 A nota do CA-2 NÃO DEVE conter número, porcentagem nem a palavra "zero".
+- CA-4 A nota do CA-2 NÃO DEVE conter número de dado, porcentagem nem a palavra "zero" (P85 é o nome do percentil, não um número de dado).
 - CA-5 QUANDO nenhum tipo tem `porTamanho` O SISTEMA DEVE manter o comportamento atual: sem gráfico e com o `motivoPorTamanho` (sem a nota do CA-2).
 - CA-6 QUANDO todos os tipos têm `porTamanho` O SISTEMA NÃO DEVE exibir a nota do CA-2.
 - CA-7 O SISTEMA DEVE exibir a nota do CA-2 como parágrafo de texto fora do gráfico, legível por leitor de tela (`lido`; o QA mede).
