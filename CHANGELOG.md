@@ -5,6 +5,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- Filtro Setor na barra do Fluxo (FL1, FL2 e FL3, antes de Equipe, com busca e estados) e no bloco Fluxo do Resumo, nunca na Sustentação: setor na URL, aviso "Resultado consolidado de N setores. O sistema não compara setores.", Setor por cartão em "Filtros aplicados" e "Não afetado por"; o efeito nos cálculos vem com o L10b (pedido 097, L11, K-336).
 - Acelerato: `dim_chamado.fluxo` guarda o workflow em que cada chamado correu (o único `descricao_workflow` das etapas; nulo sem etapa e nulo com a contagem `fluxo_multiplo` se houver mais de um, sem escolher), base para os motivos da Sustentação; migração 0038, sem reescrever histórico, preenchida só pela reprojeção do dono (pedido 099, D1 1a).
 - Aba Apontamento (web): filtro Setor na barra, antes da Equipe, com as opções de `opcoes.setores` (inclui "Sem setor"); some quando a resposta não traz o campo; vai na URL e na consulta como lista de slugs, só recorte, sem bloco nem comparação por setor (pedido 097, K-337).
 - Aba Apontamento: filtro Setor (parâmetro `setor` e `opcoes.setores`, pelo quadro do card e pelo dicionário de setores sem sobrenome; "Sem setor" para card fora dos quadros mapeados), só recorte, sem bloco por setor; o papel da aba ganha `SELECT` em `dim_card.quadro_id` e no mapa do `ref_dominio`, e o dono roda `db:migrate` para reaplicar os GRANTs (pedido 097, K-337, parte do servidor).
