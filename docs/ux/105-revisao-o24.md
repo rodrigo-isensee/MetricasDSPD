@@ -1,6 +1,6 @@
 ---
-parecer: aprovado com ressalva (nenhum achado crítico, alto ou médio aberto; 1 pendência do dono)
-commit: 3e39317b
+parecer: aprovado (nenhum achado aberto; o achado 4 foi fechado pela decisão do dono e pelo texto do T2)
+commit: 8ca3578d
 ---
 
 # Revisão de UX do O24 e do cartão T2 (pedido 105, E7.21)
@@ -33,6 +33,17 @@ Pergunta de regra de negócio, não decisão de UX: a janela de "60 dias de dado
 ## Acessibilidade (WCAG 2.2 AA), `lido`
 
 O delta só mexe em texto; a estrutura (lista com `aria-label`, tabelas e gráficos com `descricao`) não mudou. Contraste e leitor de tela sem medição: o QA mede.
+
+## Revalidação (E7.40, cabeça 8ca3578d)
+
+parecer: aprovado. Revisado só o delta desde 3e39317b: a nota de cuidados do T2 em `web/src/features/tatico/notas.ts:22`; o resto é merge do O15, D2 e O18, já revisados.
+
+- Achado 4: fechado. Texto novo (`lido`): "A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a classe passou a vir da etiqueta do cartão." Responde à pergunta da pendência (a janela recomeça) conforme a decisão do dono "A".
+- Texto: direto, voz ativa, português do Brasil, sem culpar ninguém; "etiqueta do cartão" é o termo do quadro e bate com o O24. Mantém "60 dias" e "20 itens por classe", sem conflito com a regra de abaixo de 20 itens não publicar.
+- Ressalva baixa, de leitura: a frase diz "desde a troca" sem a data. A data vem da marca no gráfico (T2.6); se a marca não aparecer no cartão, o texto remete a algo que a pessoa não vê. Verificar no QA que a marca de troca de critério está visível no T2. Não bloqueia.
+- Cobertura: `notas-sem-simulado.test.ts:19` fixa o texto (`lido`).
+- Acessibilidade: só texto mudou; sem ferramenta rodada, o QA mede (`@axe`).
+- Nenhum texto aponta pessoa nem compara times.
 
 ## Fora do escopo
 
