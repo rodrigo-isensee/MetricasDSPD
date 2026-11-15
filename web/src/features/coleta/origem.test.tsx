@@ -154,7 +154,12 @@ describe('origem do cartão (pedido 060)', () => {
       (c) => origemDoCartao(c.codigo, 'api').semDadoReal,
     ).length
     expect(contarSemDadoReal('operacional', 'api')).toBe(n)
-    expect(n).toBeGreaterThanOrEqual(7)
+    // O número vem da lista de origem real (contratos/origem.ts), não de uma constante (o cartão conta se alguma métrica dele está sem dado): cada métrica que ganha dado real tira um cartão daqui.
+    const esperado = cartoesDoPainel('operacional').filter((c) =>
+      c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
+    ).length
+    expect(n).toBe(esperado)
+    expect(n).toBeGreaterThan(0)
     expect(contarSemDadoReal('tatico', 'api')).toBe(cartoesDoPainel('tatico').length)
   })
 })
