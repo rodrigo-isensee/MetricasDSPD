@@ -3,9 +3,10 @@ import {
 } from '@metricas-dspd/contratos';
 import { calcularApontamento, LIMITE_ATIPICO_SEGUNDOS_PADRAO, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
 import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor, slug } from '@metricas-dspd/metricas/core';
+import { lerSetoresBM } from '../referencia/index.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerNomesDeEquipe, lerPessoasDoTime, lerRotulosSubgrupo, lerTiposDoHistorico, lerUltimasColetas, type ColetaLida, type FiltroEquipe, type LinhaBruta, type TipoDoHistorico } from './repositorio.js';
+import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerNomesDeEquipe, lerPessoasDoTime, lerRotulosSubgrupo, lerTiposDoHistorico, lerUltimasColetas, type ColetaLida, type FiltroEquipe, type FiltroSetor, type LinhaBruta, type TipoDoHistorico } from './repositorio.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Este serviço só LÊ e MONTA a moldura da resposta (período, opções, frescor, critérios); todo cálculo
 // (soma, capacidade, utilização, distribuição, qualidade, matriz, diário, achados, piso de 20) é de `calcularApontamento`, da biblioteca T2.5.
@@ -30,6 +31,27 @@ export function filtroDeEquipe(slugs: readonly string[] | undefined, nomes: read
   // mesma regra das linhas (`equipeDe`): nome cujo slug é vazio vale como "sem time"; com o filtro ativo e nada resolvido, o recorte é vazio (nunca "sem filtro")
   const semTime = slugs.includes(EQUIPE_SEM_ID);
   return { nomes: nomes.filter((n) => (slug(n) === '' ? semTime : slugs.includes(slug(n)))), semTime };
+}
+/** Card fora dos quadros com setor no dicionário (frente, projeto, quadro não mapeado, ainda não projetado): entra nas somas e é a opção "Sem setor". */
+const SETOR_SEM_ID = 'sem-setor';
+/** `quadro_id` -> setor (id `slug(nome)` e nome sem sobrenome, do dicionário `setor_quadro`); só os quadros mapeados. */
+export type SetoresPorQuadro = ReadonlyMap<string, { id: string; rotulo: string }>;
+const SEM_SETOR = { id: SETOR_SEM_ID, rotulo: 'Sem setor' } as const;
+export const setorDe = (quadroId: string | null, mapa: SetoresPorQuadro): { id: string; rotulo: string } => (quadroId === null ? undefined : mapa.get(quadroId)) ?? SEM_SETOR;
+
+/** Mapa do dicionário de setores (nome com slug vazio não vira setor: cai em "Sem setor"). Dois quadros com o mesmo nome dividem o mesmo id. */
+export function setoresPorQuadro(linhas: readonly { id: string; nome: string }[]): SetoresPorQuadro {
+  return new Map(linhas.filter((l) => slug(l.nome) !== '').map((l) => [l.id, { id: slug(l.nome), rotulo: l.nome }]));
+}
+
+/**
+ * Slugs do filtro `setor` levados aos quadros do dicionário (`quadros`) e à marca do card sem setor (`semSetor`, com a lista de todos os quadros
+ * mapeados para o banco achar quem está fora); sem filtro, `undefined`. Filtro ativo e nada resolvido: recorte vazio, nunca "sem filtro".
+ */
+export function filtroDeSetor(slugs: readonly string[] | undefined, mapa: SetoresPorQuadro): FiltroSetor | undefined {
+  if (slugs === undefined || slugs.length === 0) return undefined;
+  const quadros = [...mapa].filter(([, s]) => slugs.includes(s.id)).map(([q]) => q);
+  return { quadros, semSetor: slugs.includes(SETOR_SEM_ID), mapeados: [...mapa.keys()] };
 }
 /** Tipo sem categoria (sem `type_id` ainda ou card fora dos tipos de item): entra nas somas, mas não é opção de filtro. */
 const TIPO_SEM_ID = 'sem-tipo';
@@ -99,7 +121,7 @@ export const filtroPorCategoria = (tipos: readonly string[] | undefined, cat: Ca
 export const typeIdsDoFiltro = (tipos: readonly string[] | undefined, cat: CategoriasDeTipo): string[] | undefined =>
   filtroPorCategoria(tipos, cat)?.flatMap((id) => cat.typeIdsDaCategoria.get(id) ?? [id]);
 
-function linhaDaBiblioteca(l: LinhaBruta, rotulosSubgrupo: ReadonlyMap<string, string>, cat: CategoriasDeTipo): LinhaApontamento {
+function linhaDaBiblioteca(l: LinhaBruta, rotulosSubgrupo: ReadonlyMap<string, string>, cat: CategoriasDeTipo, setores: SetoresPorQuadro): LinhaApontamento {
   return {
     pessoaRef: l.pessoaRef === null ? null : refDe(l.pessoaRef),
     data: l.data,
@@ -107,6 +129,7 @@ function linhaDaBiblioteca(l: LinhaBruta, rotulosSubgrupo: ReadonlyMap<string, s
     // uma entrada por categoria do card (`dim_card.tipo`); `id` = menor `type_id` da categoria, em dígitos (valor aceito pelo filtro `tipo`)
     tipo: l.typeId === null || l.tipo === null ? { id: TIPO_SEM_ID, rotulo: 'Sem tipo' } : { id: cat.idDaCategoria.get(l.typeId) as string, rotulo: l.tipo },
     equipe: equipeDe(l.equipe),
+    setor: setorDe(l.quadroId, setores),
     projeto: { id: l.projetoId ?? ID_SEM_PROJETO, rotulo: l.projetoTitulo ?? (l.projetoId === null ? 'Sem iniciativa' : `Card ${l.projetoId}`), foraDoEscopo: l.foraDoEscopo },
     subgrupo: { id: l.subgrupo, rotulo: rotulosSubgrupo.get(l.subgrupo) ?? ROTULO_RESIDUAL[l.subgrupo] ?? l.subgrupo },
     subtarefa: l.emSubtarefa ? { id: 'em-subtarefa', rotulo: 'Em subtarefa' } : { id: 'direto-no-card', rotulo: 'Direto no card' },
@@ -146,7 +169,8 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
   const brutas = agruparOutraArea(await lerLinhas(db, S, menor(periodo.de, diario.de), maior(periodo.ate, diario.ate)), doTime);
   const rotulosSubgrupo = await lerRotulosSubgrupo(db, S);
   const categorias = categoriasDeTipo(await lerTiposDoHistorico(db, S));
-  const linhas = brutas.map((l) => linhaDaBiblioteca(l, rotulosSubgrupo, categorias));
+  const setores = setoresPorQuadro(await lerSetoresBM(db, S));
+  const linhas = brutas.map((l) => linhaDaBiblioteca(l, rotulosSubgrupo, categorias, setores));
   const todasRefs = [...new Set(brutas.flatMap((l) => (l.pessoaRef === null ? [] : [l.pessoaRef])))];
   const refs = todasRefs.filter((r) => r !== PESSOA_OUTRA_AREA);
   const haOutraArea = todasRefs.length > refs.length;
@@ -179,11 +203,11 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
   const calculo = calcularApontamento({
     linhas, periodo, diario, nivelMatriz: c.nivelMatriz, calendario, limiteAtipicoSegundos: LIMITE_ATIPICO_SEGUNDOS,
     ultimaColetaOk: fimOk === null ? null : dataIso(fimOk, calendario), pessoas, nomesReais: d.nomesReais,
-    filtros: { pessoa: c.pessoa, projeto: c.projeto, tipo: filtroPorCategoria(c.tipo, categorias), equipe: c.equipe, subtarefa: c.subtarefa, subgrupo: c.subgrupo, qualidade: c.qualidade, anomalos: c.anomalos },
+    filtros: { pessoa: c.pessoa, projeto: c.projeto, tipo: filtroPorCategoria(c.tipo, categorias), equipe: c.equipe, setor: c.setor, subtarefa: c.subtarefa, subgrupo: c.subgrupo, qualidade: c.qualidade, anomalos: c.anomalos },
   });
 
   const incompletos = await lerCardsIncompletos(db, S, periodo.de, periodo.ate, c.projeto, typeIdsDoFiltro(c.tipo, categorias),
-    filtroDeEquipe(c.equipe, c.equipe === undefined ? [] : await lerNomesDeEquipe(db, S)));
+    filtroDeEquipe(c.equipe, c.equipe === undefined ? [] : await lerNomesDeEquipe(db, S)), filtroDeSetor(c.setor, setores));
   const registroIncompleto = {
     total: incompletos.length,
     cards: incompletos.map((i) => ({
@@ -207,6 +231,7 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
       projetos: emOrdem(noRecorte.map((l) => ({ id: l.projeto.id, rotulo: l.projeto.rotulo, foraDoEscopo: l.projeto.foraDoEscopo }))),
       tipos: emOrdem(noRecorte.map((l) => l.tipo).filter((t) => t.id !== TIPO_SEM_ID)),
       equipes: emOrdem(noRecorte.map((l) => l.equipe)),
+      setores: emOrdem(noRecorte.map((l) => l.setor)),
       subtarefas: emOrdem(linhas.map((l) => l.subtarefa)),
       subgrupos: emOrdem(noRecorte.map((l) => l.subgrupo)),
       historico,

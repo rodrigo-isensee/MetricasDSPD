@@ -147,6 +147,7 @@ export const consultaApontamentoSchema = z
     projeto: lista(idNumerico, 200).optional(), // card_id da raiz (dim_card_raiz)
     tipo: lista(idNumerico, 50).optional(), // type_id
     equipe: lista(idEquipe, 50).optional(), // slug do time do card (097 L2); só recorte, nunca agrupamento
+    setor: lista(idEquipe, 50).optional(), // slug do setor do quadro do card (097 K-337); só recorte, nunca agrupamento
     subtarefa: lista(codigo, 50).optional(),
     subgrupo: lista(codigo, 50).optional(),
     qualidade: lista(filtroQualidadeSchema, 6).optional(),
@@ -376,6 +377,7 @@ export const opcoesApontamentoSchema = z
     projetos: z.array(opcaoSchema.extend({ foraDoEscopo: z.boolean() }).strict()),
     tipos: z.array(opcaoSchema),
     equipes: z.array(opcaoSchema).optional(), // times do recorte (097 L2); filtro, nunca comparação
+    setores: z.array(opcaoSchema).optional(), // setores do recorte (097 K-337); filtro, nunca comparação
     subtarefas: z.array(opcaoSchema),
     subgrupos: z.array(opcaoSchema),
     historico: z.object({ inicio: dataCivil, fim: dataCivil }).strict(), // limites do período personalizado
