@@ -27,6 +27,8 @@ export interface LinhaApontamento {
   tipo: DimApontamento
   /** Time do card (`dim_card.equipe`, ou do pai): id `slug(nome)` ou `sem-time`. Só recorte (097 L2). */
   equipe: DimApontamento
+  /** Setor do quadro do card (ou do pai): id `slug(nome do setor)` ou `sem-setor`. Só recorte (097 K-337). */
+  setor: DimApontamento
   /** Raiz da hierarquia (`dim_card_raiz`); o rótulo é o título da raiz. `foraDoEscopo`: raiz fora dos quadros (Q-A7). */
   projeto: DimApontamento & { foraDoEscopo: boolean }
   subgrupo: DimApontamento
@@ -40,7 +42,15 @@ export interface LinhaApontamento {
 
 export type FiltrosApontamento = Pick<
   ConsultaApontamento,
-  'pessoa' | 'projeto' | 'tipo' | 'equipe' | 'subtarefa' | 'subgrupo' | 'qualidade' | 'anomalos'
+  | 'pessoa'
+  | 'projeto'
+  | 'tipo'
+  | 'equipe'
+  | 'setor'
+  | 'subtarefa'
+  | 'subgrupo'
+  | 'qualidade'
+  | 'anomalos'
 >
 
 export interface EntradaApontamento {

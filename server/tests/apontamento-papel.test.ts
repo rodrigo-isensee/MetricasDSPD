@@ -58,7 +58,7 @@ describe('papel dspd_api_apontamento (R4-5)', () => {
     for (const g of selects) expect(g, g).toMatch(/^GRANT SELECT \([a-z_, ]+\) ON \w+\.\w+ TO dspd_api_apontamento$/);
     expect(selects.map((g) => /ON \w+\.(\w+) TO/.exec(g)![1]).sort()).toEqual([
       'apt_pessoa_time', 'ctl_apontamento_cobertura', 'ctl_coleta', 'dim_card', 'dim_card_raiz', 'dim_responsavel', 'fato_apontamento', 'ref_apontamento_regra_tipo', 'ref_apontamento_subgrupo',
-      'ref_apontamento_termo', 'ref_calendario', 'ref_calendario_aplicacao', 'ref_feriado', 'ref_versao_criterio',
+      'ref_apontamento_termo', 'ref_calendario', 'ref_calendario_aplicacao', 'ref_dominio', 'ref_feriado', 'ref_versao_criterio',
       'ref_versao_criterio_metrica',
     ]);
     expect(doPapel.join('\n')).not.toMatch(/INSERT|UPDATE|DELETE|TRUNCATE|stg_|evt_|cfg_|dspd_ac\./);
@@ -92,6 +92,13 @@ describe('papel dspd_api_apontamento (R4-5)', () => {
     const cat = catalogo();
     const g = gerarGrants(S_PADRAO, { ...cat, bm: { ...cat.bm, dim_card_raiz: ['coluna_nova'] } });
     expect(g.filter((x) => x.endsWith('dspd_api_apontamento') && x.includes('dim_card_raiz'))).toEqual([]);
+  });
+  it('097 K-337: de dim_card o papel lê o quadro (nunca coluna de pessoa) e de ref_dominio só as 5 colunas do mapa de setor; nada de payload, responsável nem nome de quadro', () => {
+    expect(doPapel).toContain(`GRANT SELECT (card_id, titulo, tipo, equipe, quadro_id) ON ${S_PADRAO.bm}.dim_card TO dspd_api_apontamento`);
+    expect(doPapel).toContain(`GRANT SELECT (campo, codigo, rotulo, ordem, vigente_ate) ON ${S_PADRAO.bm}.ref_dominio TO dspd_api_apontamento`);
+    const dimCard = doPapel.find((g) => g.includes('.dim_card TO'))!;
+    for (const proibida of ['responsaveis', 'responsavel_id', 'payload', 'quadro_nome', 'nome_quadro']) expect(dimCard, proibida).not.toContain(proibida);
+    expect(COLUNAS_PESSOA.some((id) => id.endsWith('.dim_card.quadro_id') || id.includes('ref_dominio'))).toBe(false);
   });
   it('o dspd_api continua sem nenhuma tabela da aba nem coluna de pessoa (K-085 inalterado)', () => {
     const api = grants.filter((g) => g.endsWith(' TO dspd_api'));

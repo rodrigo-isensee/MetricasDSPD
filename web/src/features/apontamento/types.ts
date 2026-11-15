@@ -29,6 +29,7 @@ export type FiltroQualidade = FlagQualidade | 'completo'
 export interface ConsultaApontamento {
   de?: DataCivil
   ate?: DataCivil
+  setor?: string[] // slug do setor do quadro do card (097 K-337); só recorte, nunca agrupamento
   equipe?: string[] // slug do time (097); `pessoa` saiu da tela, o servidor ainda o aceita mas a web não o envia
   projeto?: string[]
   tipo?: string[]

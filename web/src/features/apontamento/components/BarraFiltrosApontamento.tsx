@@ -7,6 +7,7 @@ import { filtrosUnicos } from '@/components/ui'
 import {
   CHAVE_PESSOA_RETIRADA,
   opcoesDeEquipe,
+  opcoesDeSetor,
   type AtivoApontamento,
   type UsoFiltrosApontamento,
 } from '../filtros'
@@ -16,6 +17,7 @@ import {
   QUALIDADE_FILTRO_OPCOES,
   ROTULO_CHIP_ORDEM,
   ROTULO_FILTRO_EQUIPE,
+  ROTULO_FILTRO_SETOR,
 } from '../textos'
 import type { OpcoesApontamento } from '../types'
 
@@ -23,7 +25,7 @@ const nomes = (ls: readonly { id: string; rotulo: string }[]) =>
   ls.map((o) => ({ id: o.id, nome: o.rotulo }))
 
 /**
- * Barra de filtros da aba: estado na URL, chips, "Limpar filtros". Ordem dos filtros: período, equipe, projeto,
+ * Barra de filtros da aba: estado na URL, chips, "Limpar filtros". Ordem dos filtros: período, setor (só com `opcoes.setores`), equipe, projeto,
  * tipo, subgrupo, subtarefa, qualidade. No mobile recolhe num botão "Filtros (n)". A ordem das listas por pessoa
  * é escolha de quem lê (o1) e fica em controle próprio, fora dos filtros.
  */
@@ -41,6 +43,7 @@ export function BarraFiltrosApontamento({
   const idDe = useId()
   const idAte = useId()
   const c = uso.consulta
+  const setores = opcoesDeSetor(opcoes)
   const pessoaRetirada = uso.invalidos.includes(CHAVE_PESSOA_RETIRADA)
   const outrosInvalidos = [...new Set(uso.invalidos.filter((i) => i !== CHAVE_PESSOA_RETIRADA))]
   const de = c.de ?? ''
@@ -101,6 +104,16 @@ export function BarraFiltrosApontamento({
             />
           </label>
         </fieldset>
+        {setores && (
+          <FiltroMulti
+            id="setor"
+            rotulo={ROTULO_FILTRO_SETOR}
+            opcoes={nomes(setores)}
+            selecionados={c.setor ?? []}
+            onChange={(ids, replace) => uso.definirLista('setor', ids, replace)}
+            genero="m"
+          />
+        )}
         <FiltroMulti
           id="equipe"
           rotulo={ROTULO_FILTRO_EQUIPE}
