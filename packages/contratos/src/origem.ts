@@ -189,7 +189,7 @@ export const TEXTO_NOTA_SUSTENTACAO = {
   'ajuste-prioridade-sem-dado-real':
     'Ajustes manuais de prioridade: sem dado real (a coleta ainda não traz o campo "Prioridade ajustada manualmente?").',
   'excecao-sla-sem-fonte':
-    'Chamados registrados depois do atendimento (fora da apuração pela regra): hoje o Acelerato não traz essa marca, então todo chamado fechado conta como apurável.',
+    'Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
 } as const
 export type NotaSustentacaoId = keyof typeof TEXTO_NOTA_SUSTENTACAO
 export const NOTA_SUSTENTACAO_IDS = [
@@ -202,7 +202,7 @@ export const notaSustentacaoIdSchema = z.enum(NOTA_SUSTENTACAO_IDS)
  */
 export const TEXTO_NOTA_S12 = {
   'excecao-sla-s12-sem-fonte':
-    'Chamados registrados depois do atendimento: campo sem fonte (hoje o Acelerato não traz essa marca).',
+    'Chamados abertos no sistema depois do atendimento: sem dado (hoje essa marca não vem do Acelerato).',
 } as const
 export type NotaS12Id = keyof typeof TEXTO_NOTA_S12
 export const NOTA_S12_IDS = ['excecao-sla-s12-sem-fonte'] as const satisfies readonly NotaS12Id[]

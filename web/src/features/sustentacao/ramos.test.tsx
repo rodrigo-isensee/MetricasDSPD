@@ -33,7 +33,7 @@ describe('S1: tempo por prioridade', () => {
     })
     const el = await pronto('S1')
     expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(
-      /^1 chamado registrado depois do atendimento/,
+      /^1 chamado aberto depois do atendimento/,
     )
     expect(within(el).getAllByText('Mediana acima do alvo').length).toBeGreaterThan(0)
   })

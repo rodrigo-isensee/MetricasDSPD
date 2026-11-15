@@ -84,7 +84,7 @@ describe('S3 e S2 sem zero falso (pedido 069, L9-a)', () => {
     const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 })
     await waitFor(() =>
       expect(within(s2).getByTestId('notas-cartao-S2')).toHaveTextContent(
-        'Chamados registrados depois do atendimento (fora da apuração pela regra)',
+        'Chamados abertos no sistema depois do atendimento ficam de fora do cálculo.',
       ),
     )
   })
@@ -156,7 +156,7 @@ describe('painel Sustentação', () => {
       'Amostra insuficiente (10 de 20 itens mínimos)',
     )
     expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(
-      /\d+ chamados registrados depois do atendimento \(fora desta apuração/,
+      /\d+ chamados abertos depois do atendimento \(de fora do cálculo\)/,
     )
     const tabela = within(mttr).getByTestId('tabela-S1-MTTR-detalhe')
     expect(within(tabela).getByRole('row', { name: /^P2/ })).toHaveTextContent(

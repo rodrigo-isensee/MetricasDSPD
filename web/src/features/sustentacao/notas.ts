@@ -6,7 +6,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
     oQueE:
       'Tempo até o primeiro atendimento (MTTA) e até a restauração validada (MTTR), em cada prioridade.',
     comoSeCalcula:
-      'P1 (primeiro atendimento e restauração) e o primeiro atendimento de P2 contam em horas corridas, 24 h por dia. Os demais prazos contam em horas úteis do expediente da Sustentação (1 dia útil = 8 h 48 min). Na restauração (MTTR), o tempo em que o chamado ficou pendente ou em validação não entra na conta. Pela regra, chamados registrados no sistema depois que o atendimento já aconteceu ficam de fora; hoje o Acelerato não traz essa marca, então nenhum chamado é excluído por esse motivo.',
+      'P1 (primeiro atendimento e restauração) e o primeiro atendimento de P2 contam em horas corridas, 24 h por dia. Os demais prazos contam em horas úteis do expediente da Sustentação (1 dia útil = 8 h 48 min). Na restauração (MTTR), o tempo em que o chamado ficou pendente ou em validação não entra na conta. Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
     comoLer: 'Cada barra é comparada ao alvo da sua prioridade (100% = alvo).',
     meta: 'Os prazos da matriz Impacto × Urgência.',
     cuidados:
@@ -15,7 +15,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
   S2: {
     oQueE: 'Percentual de chamados dentro do prazo, por prioridade e tipo de prazo.',
     comoSeCalcula:
-      'Chamados fechados com REALIZADO_NO_PRAZO ÷ fechados; primeiro atendimento e restauração separados; pela regra, chamados registrados no sistema depois que o atendimento já aconteceu ficam de fora; hoje o Acelerato não traz essa marca, então nenhum chamado é excluído por esse motivo.',
+      'Chamados fechados dentro do prazo ÷ chamados fechados; primeiro atendimento e restauração separados. Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
     comoLer:
       'Falhar no primeiro atendimento é problema de triagem e fila; falhar na restauração é diagnóstico, escalação ou dependência.',
     meta: 'Acima de 90%.',

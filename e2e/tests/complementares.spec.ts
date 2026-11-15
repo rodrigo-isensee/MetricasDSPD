@@ -221,7 +221,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     const s12 = page.getByTestId('metrica-S12')
     await expect(s12.getByRole('columnheader', { name: 'Com campo informado' })).toBeVisible()
     // Mock: a taxa de exceção segue (campo preenchido em todos os chamados, cobertura 100%): nenhum aviso de cobertura.
-    // Na API real o S12 traz a exceção de SLA nula, e o cartão mostra "campo sem fonte" (D9; provado nos testes de componente e do servidor).
+    // Na API real o S12 traz a exceção de SLA nula, e o cartão mostra "sem dado" (D9; provado nos testes de componente e do servidor).
     // O ramo parcial ("n de N" com n < N) é provado nos testes de componente, que ajustam a resposta.
     await expect(s8.getByTestId('cobertura-S8')).toHaveCount(0)
     await expect(s12.getByTestId('cobertura-S12')).toHaveCount(0)

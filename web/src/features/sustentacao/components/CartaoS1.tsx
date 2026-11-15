@@ -180,8 +180,9 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
         <div className="flex flex-col gap-6">
           <p className="text-sm text-texto-2" data-testid="s1-excecoes">
             {fmtInteiro(d.excecoesForaDaApuracao)}{' '}
-            {d.excecoesForaDaApuracao === 1 ? 'chamado registrado' : 'chamados registrados'} depois
-            do atendimento (fora desta apuração pela regra; hoje o Acelerato não traz essa marca).
+            {d.excecoesForaDaApuracao === 1 ? 'chamado aberto' : 'chamados abertos'} depois do
+            atendimento (de fora do cálculo). Hoje essa marca não vem do Acelerato, então nenhum
+            chamado sai do cálculo por esse motivo.
           </p>
           <p className="text-sm text-texto-2" data-testid="s1-dia-util">
             Dia útil da Sustentação: {fmtNumero(d.horasPorDiaUtil, 2)} h.
