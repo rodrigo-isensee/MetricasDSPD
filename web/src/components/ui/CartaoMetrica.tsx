@@ -322,7 +322,11 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
       <div id={idCorpo}>
         {recolhido ? (
           <>
-            <p className="mt-2 text-sm text-texto-2" data-testid={`resumo-recolhido-${p.codigo}`}>
+            <p
+              role={estado === 'erro' ? 'status' : undefined}
+              className="mt-2 text-sm text-texto-2"
+              data-testid={`resumo-recolhido-${p.codigo}`}
+            >
               {resumo}
             </p>
             {estado === 'erro' && p.onTentarDeNovo && (
