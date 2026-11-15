@@ -4,9 +4,10 @@
  * Não calcula nada: não soma, não refaz percentil, não muda `n`. É publicação, como a H-24.
  */
 import { DATA_BLOQUEIO_COM_DADO_REAL } from '@metricas-dspd/metricas';
-import type { MetricaId, NotaS12Id, NotaSustentacaoId } from '@metricas-dspd/contratos';
+import type { MetricaId, NotaS12Id, NotaS1Id, NotaSustentacaoId } from '@metricas-dspd/contratos';
 
 const NOTA_S12: NotaS12Id = 'excecao-sla-s12-sem-fonte';
+const NOTA_S1: NotaS1Id = 'primeiro-atendimento-inclui-automatica';
 
 type Linha = Record<string, unknown>;
 
@@ -61,4 +62,15 @@ export function comNotaS12SemFonte(id: MetricaId, resultado: unknown): unknown {
   if (r.excecaoSla !== null) return resultado;
   const atuais = (r.notas as NotaS12Id[] | undefined) ?? [];
   return { ...r, notas: atuais.includes(NOTA_S12) ? atuais : [...atuais, NOTA_S12] };
+}
+
+/**
+ * Pedido 099 (D4, Q-099-5b = A): o primeiro atendimento do S1 real é o primeiro comentário da tabela, que inclui resposta automática. A nota
+ * vai em todo S1 real, com ou sem amostra (a ressalva é da fonte, não do volume). Só publicação: nada é recalculado.
+ */
+export function comNotaS1PrimeiroAtendimento(id: MetricaId, resultado: unknown): unknown {
+  if (id !== 'S1') return resultado;
+  const r = resultado as Linha;
+  const atuais = (r.notas as NotaS1Id[] | undefined) ?? [];
+  return { ...r, notas: atuais.includes(NOTA_S1) ? atuais : [...atuais, NOTA_S1] };
 }

@@ -8,7 +8,7 @@ import {
 } from '../core/calendario'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
-import { baseAmostral, criterios, equipesDoRecorte, periodoDe } from './comum'
+import { baseAmostral, colunaDaEquipe, criterios, equipesDoRecorte, periodoDe } from './comum'
 import type { ContextoBM } from './indice'
 import type { PapelColuna } from './modelo'
 import { varreduraPorColuna, varreduraVida } from './varredura'
@@ -34,10 +34,7 @@ interface Faixa {
 
 /** Quadros da equipe: pela coluna, quando a base diz a equipe do workflow (real); senão `quadro-<slug>` (semeada). */
 const quadrosDaEquipe = (ctx: ContextoBM, nome: string): string[] => {
-  const semeado = `quadro-${slug(nome)}`
-  const ids = ctx.idx.base.colunas
-    .filter((c) => (c.equipe === undefined ? c.quadro_id === semeado : c.equipe === nome))
-    .map((c) => c.quadro_id)
+  const ids = ctx.idx.base.colunas.filter((c) => colunaDaEquipe(c, nome)).map((c) => c.quadro_id)
   return ordenarNeutro(Array.from(new Set(ids)), (q) => [q])
 }
 
