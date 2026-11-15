@@ -38,6 +38,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
         ...['O17'], // pedido 099 (E3.20)
+        ...['O12'], // pedido 099 (E3.223)
       ].sort(),
     )
   })
@@ -68,11 +69,16 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O8, O12, O14, O15, O16 e O18', () => {
-    for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O18'] as const) {
+  it('é sem dado, com o motivo, para O8, O14, O15, O16 e O18', () => {
+    for (const id of ['O8', 'O14', 'O15', 'O16', 'O18'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
+  })
+
+  it('O12 é real pelo prazo do card (pedido 099, E3.223); a parte de responsabilidade tem motivo próprio no DTO', () => {
+    expect(origemDaMetrica('O12')).toBe('real')
+    expect(motivoDaOrigemSemDado('O12')).toBeNull()
   })
 
   it('O17 é real por sistema (pedido 099, B da Q-099-7) e a causa raiz tem motivo próprio', () => {

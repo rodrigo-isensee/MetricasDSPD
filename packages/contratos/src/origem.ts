@@ -39,6 +39,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O17',
   // Pedido 099 (D9): S12 real só com o volume por sistema; reincidência e exceção de SLA por registro posterior saem sem fonte (nulas, com nota).
   'S12',
+  // Pedido 099 (O12, E3.223): acordos e vencidos pelo prazo nativo do card; a parte de responsabilidade do atraso sai nula com o motivo (`RESPONSABILIDADE_ATRASO_COM_FONTE`).
+  'O12',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -89,7 +91,6 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O8: MOTIVO_AGUARDANDO_CAMPO,
-  O12: MOTIVO_AGUARDANDO_CAMPO,
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
   O16: MOTIVO_AGUARDANDO_CAMPO,

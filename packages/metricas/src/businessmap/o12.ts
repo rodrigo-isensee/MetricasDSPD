@@ -83,13 +83,7 @@ export function calcularO12(
       pctVencidos: taxa(vencidos, acordos),
     },
     vencidosCausaInterna: comResponsabilidade ? tot.Interno : null,
-    motivoResponsabilidade: comResponsabilidade
-      ? null
-      : MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
-    statusMeta: !comResponsabilidade
-      ? 'sem-referencia'
-      : tot.Interno === 0
-        ? 'dentro'
-        : 'fora',
+    motivoResponsabilidade: comResponsabilidade ? null : MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
+    statusMeta: !comResponsabilidade ? 'sem-referencia' : tot.Interno === 0 ? 'dentro' : 'fora',
   }
 }

@@ -193,12 +193,13 @@ test.describe('K-023 Operacional semanal', () => {
     await expect(o10.raiz).toContainText(/cliente/i);
   });
 
-  test('OP-17 O12: vencidos por causa interna com meta zero; % só com >= 20 acordos', async ({ painel }) => {
+  test('OP-17 O12: vencidos por causa interna sem dado real (099), meta não avaliada; % só com >= 20 acordos', async ({ painel }) => {
     await painel.ir(SEM);
     const o12 = painel.cartao('O12');
     await o12.esperarPronto();
     await expect(o12.raiz).toContainText('Meta: Zero vencidos por causa interna');
-    await expect(o12.raiz).toContainText(/Vencidos por causa interna: \d+/);
+    await expect(o12.raiz).toContainText(/Vencidos por causa interna: sem dado real/);
+    await expect(o12.raiz).not.toContainText(/Vencidos por causa interna: \d+/);
     await expect(o12.raiz).toContainText(/Em andamento \(fora das estatísticas\)/);
   });
 
