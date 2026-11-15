@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d1b-dominios
-commit: 5ec7d8e8f3d5d473442e009596fc4836b82604ab
+commit: 04cc9c9b47ab12efe6f106922ab239ad57e91485
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
@@ -31,5 +31,10 @@ data: 2026-11-15
 - O merge do D1b espera a resposta do dono à L23 (fase das etapas dos fluxos pequenos), como registrado no pedido.
 - O recorte do arquiteto marca o D1 com gatilho de segurança (vocabulário de fonte externa, A1 e A2 do modelo do 069): o parecer do security-engineer sobre o D1b é dele, não deste review.
 
+## Delta lido (5ec7d8e8..04cc9c9b, `forge-check parecer delta`)
+- O intervalo é o merge da develop (204924b2). Conflito só no CHANGELOG, juntado sem perda das entradas do D1b. Do código que a base trouxe e cai no domínio: `primeiro_atendimento_em` em `normalizador.ts` (instante de `data_primeiro_comentario`, nunca autor nem texto), `projetor.ts` (coluna em `ATRIBUTOS`) e o teste novo em `acelerato-projetor.test.ts`; a coluna já existe em `ddl.ts`. Nenhum arquivo do D1b (`acelerato-dominio.json`, `dominio-acelerato.ts`, seu teste) mudou: o D1b é o mesmo.
+- Rodei `vitest run tests/acelerato-projetor.test.ts`: 13 passaram. Suíte: CI verde na ponta, citado do brief.
+- L23 (a) do dono vale: a fase das etapas dos fluxos pequenos que o D1b supôs fica confirmada, e a pendência do merge sobre a L23 está resolvida. Os achados A1 e A2 seguem recomendados, sem bloquear.
+
 ## Veredito
-Aprovado no head `5ec7d8e8`. Os valores e as chaves são cópias literais das consultas B6-d e B5-a, a ordem é a da AP-099-1, e a única suposição é a da L23, já com o dono.
+Aprovado no head `04cc9c9b` (delta só da base). Os valores e as chaves são cópias literais das consultas B6-d e B5-a, a ordem é a da AP-099-1, e a única suposição é a da L23, já com o dono.
