@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -552,11 +552,12 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(SCHEMAS_RESULTADO.S1.safeParse(r.json()).success).toBe(true);
   }, 60_000);
 
-  it('D4: S1 real sem os alvos carregados responde 503 REFERENCIA_AUSENTE (nenhum prazo é presumido) e o modo mock não traz nota', async () => {
+  it('L18 (E3.298): S1 real sem os alvos carregados responde 200 "sem dado real" com o motivo (nenhum prazo é presumido); o modo mock não traz nota', async () => {
     const { app } = await montar({ chamados: [chamado('1')], semAlvos: true });
     const r = await app.inject('/api/v1/metricas/S1');
-    expect(r.statusCode).toBe(503);
-    expect(r.json()).toMatchObject({ error: { code: 'REFERENCIA_AUSENTE' } });
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'S1', motivo: MOTIVO_ALVOS_NAO_CARREGADOS });
     const m = (await (await mock()).inject('/api/v1/metricas/S1')).json() as { notas?: string[] };
     expect(m.notas).toBeUndefined();
   }, 60_000);

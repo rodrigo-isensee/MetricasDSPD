@@ -1,5 +1,5 @@
 import {
-  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, MOTIVO_ALVOS_NAO_CARREGADOS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
@@ -281,6 +281,8 @@ export class ServicoMetricas {
     // Pedido 077 (L5, A14): a tendência do fluxo sem carga inicial com sucesso não tem início de histórico; sem ele não se publica a série.
     if (id === 'TENDENCIA_FLUXO' && this.deps.modoMock !== true && bm?.historicoDesde === undefined) return semDado();
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
+      // L18 (dono, 15/11, E3.298): na API padrão o S1 sem alvos responde "sem dado real" com o motivo; o 503 fica só no modo mock explícito.
+      if (this.deps.modoMock !== true) return { ...semDado(), resultado: { ...corpoSemDadoReal(id), motivo: MOTIVO_ALVOS_NAO_CARREGADOS }, chave: `${id}|sem-alvos` };
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
     }
     // Data de corte (S-a): a informada (fim do dia) ou a da última coleta bem-sucedida; sem coleta, agora. Os dois domínios da
