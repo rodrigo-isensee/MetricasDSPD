@@ -440,6 +440,8 @@ describe('Acelerato', () => {
     }
     expect(pausaOSla('Aguardando Suporte Terceiros')).toBe(true)
     expect(pausaOSla('Pendente')).toBe(true)
+    expect(pausaOSla('pendente')).toBe(true)
+    expect(pausaOSla(' Pendente ')).toBe(true)
     expect(pausaOSla('Aguardando validação')).toBe(true)
     expect(pausaOSla('Aguardando Equipe Interna')).toBe(false)
     expect(pausaOSla('Aguardando Aprovação')).toBe(false)
@@ -465,6 +467,7 @@ describe('Acelerato', () => {
     const forn = s9.porMotivo.find((m) => m.motivo === 'Aguardando fornecedor')
     expect(forn?.n).toBe(25)
     if (forn?.estatistica.status === 'ok') expect(forn.estatistica.valor.p50).toBeCloseTo(2, 6)
+    else throw new Error('S9 sem estatística')
     // 9 h do relógio menos as 2 h de espera
     const p3 = calcularS1(comEspera, F).prioridades.find((p) => p.prioridade === 'P3')
     if (p3?.restauracao.estatistica.status === 'ok')
