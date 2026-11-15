@@ -49,6 +49,8 @@ d('O21 Fluxo reverso com dado real (099, lote A1): PostgreSQL, papel dspd_api', 
     await mig.end()
   })
 
+  // Suposição do seed (escala 0.15 do mock): ao menos 20 entregas em 12 meses e pelo menos uma transição de retorno. A consulta abaixo
+  // torna a segunda explícita; se a semente mudar e a suposição cair, a falha aparece aqui, no CI, e não em produção.
   it('(a) com transições de retorno na base, o O21 responde 200 no schema com a taxa de entregas com retorno em número', async () => {
     const retornos = await mig.query<{ n: string }>(
       `SELECT COUNT(*) AS n FROM ${R.bm}.vw_transicao_canonica WHERE direcao = 'retorno'`,
