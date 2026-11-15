@@ -50,6 +50,12 @@ describe('seed (análise estática, sem banco)', () => {
     expect(mapearBM(base, 1, { ...S_PADRAO, bm: 'p_dspd_bm' })[0]!.tabela).toBe('p_dspd_bm.dim_card');
     expect(mapearBM(base, 1)[0]!.tabela).toMatch(/dspd_bm\.dim_card$/);
   });
+  it('SLE sem prazo (dias_uteis nulo) não gera linha em ref_sle; as outras classes seguem', () => {
+    const sle = base.bm.config.sle;
+    const comNulo = { ...base, bm: { ...base.bm, config: { ...base.bm.config, sle: [{ ...sle[0]!, dias_uteis: null }, ...sle.slice(1)] } } };
+    const linhas = (b: typeof base): number => mapearBM(b, 1, S_PADRAO).find((t) => t.tabela === `${S_PADRAO.bm}.ref_sle`)!.linhas.length;
+    expect(linhas(comNulo)).toBe(linhas(base) - 1);
+  });
   it('nenhuma coluna de pessoa é gravada (data-model §9)', () => {
     for (const { tabela, linhas } of todas())
       for (const c of Object.keys(linhas[0] ?? {})) expect(violaLgpd(tabela, c) || /responsaveis|usuario|justificativa(?!_informada$)/.test(c), `${tabela}.${c}`).toBe(false);

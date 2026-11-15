@@ -73,6 +73,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Sustentação (pedido 099, D3b): o dia útil da Sustentação passa a 8 h 48 (528 min, turnos 08:00-12:00 e 13:00-17:48 no calendário do Acelerato); alvos em dias do PROC viram dias x 8,8 h; o S9 sai em horas úteis e a tela do S1 explica o dia útil. O fluxo (BusinessMap) segue com 8 h (#371).
 - Fluxo (pedido 099, C8a): a severidade do card vem do campo de prioridade nativo do BusinessMap (1 Crítica, 2 Alta, 3 Média, 4 Baixa), por de-para versionado carregado pelo `bm:ref-sync`; card sem prioridade fica sem severidade e valor fora do mapa é recusado e contado, nunca vira Baixa (#369).
 - Fluxo (pedido 099, C2a): o prazo combinado do card (`data_acordada`) vem do deadline nativo do BusinessMap, com leitura estrita da data (#366).
+- O24 com dado real pelas etiquetas de classe de serviço: a coleta do BusinessMap lê o catálogo `GET /tags` e `expand=tag_ids` (só GET), reduz na fronteira para a classe (`classes_tag`; nome e id de etiqueta nunca chegam ao staging) e a projeção preenche `dim_card.classe_servico` (card sem etiqueta de classe fica sem classe, nunca Padrão; duas classes diferentes: sem classe, com a nota `classe_tag_empate`); o O24 entra no mapa real; versão de critério `105:classe-por-etiqueta` (`bm:criterios-classe-servico`, `afeta` O6, O24, T1, T2, T4 e T6); `classe_servico` deixa de aceitar campo customizado como fonte (pedido 105, E7.3).
 - Fluxo (pedido 099, lote C8, E3.237): O16 Estoque e idade de bugs com dado real do BusinessMap (bugs por tipo de card e transições); o bug sem severidade aparece como "Sem severidade" e nunca some do estoque. O número de severidade espera o `bm:ref-sync` com a reprojeção do C8a, que o dono roda.
 - Métricas com dado real (pedido 099): O25 Descarte (lote A3) (#367) e S12 só com o volume por sistema; a exceção de SLA por registro posterior e a reincidência aparecem sem fonte, com nota, nunca como 0% (D9) (#370).
 - Aba Apontamento (pedido 097, K-286): o mapa diário passa a ser recortado também pelo filtro Equipe (time do card), além de Pessoa; várias equipes valem como um só recorte, nunca comparação, e o dia atípico segue decidido sobre o dia inteiro da pessoa. Sem piso de pessoas por recorte, por decisão do dono (1c, confirmada na Decisão 28); a forma da resposta não muda (#377).
@@ -158,7 +159,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Migração 0037 (pedido 099, K-314 B1): `ref_alvo_prioridade` ganha `exibir_pa` e `exibir_r` (`min`, `h` ou `dia`), nulos nas linhas existentes ("vigência anterior ao K-314"), com CHECK de par preenchido e de "dia" só em tempo útil; `down` tira as restrições e as colunas. O contrato do S1 ganha `exibirEm` (aditivo, nulo na vigência anterior) (#408).
 
 ### Mudanças de critério de cálculo
-
+- Classe de serviço pelas etiquetas do card (`105:classe-por-etiqueta`, `afeta` O6, O24, T1, T2, T4 e T6): Intangível deixa de ser classe e a classe vem da etiqueta, sem etiqueta = sem classe. O dono registra a versão com `bm:criterios-classe-servico <data da primeira coleta com etiquetas>`; a carga das etiquetas nos cards já coletados exige uma releitura (`bm:coleta carga-inicial --projetar`), porque a coleta incremental não relê card parado (pedido 105, E7.3).
 - 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
 - 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
 - Pedido 065: versão de critério registrada em `core/criterios.ts` para BLOQUEADOS e O5 (#214).
@@ -206,6 +207,9 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 5. `pnpm run coleta ac --reconhecer-mudanca`, uma vez: nenhum PR da 104 muda os parâmetros comparados pela coleta; o passo vale para a mudança da 103 (D1a, K-305) ainda não reconhecida, e sem ele a coleta do Acelerato para com `parametros-mudaram`.
 6. Com a coleta parada, `pnpm --filter @metricas-dspd/server run ac:reprojetar-etapas`: refaz os intervalos por etapa com o dia de 8 h 48 e grava a versão `099:D-7-528` com a data do dia (K-308). Imprime só contagens; repetir é seguro.
 7. Coleta do BusinessMap e do Acelerato como de costume.
+
+### Alterado
+- Classes de serviço: só Urgente, Prioritário, Prazo fixo e Padrão; Intangível deixa de ser classe (decisão do dono de 2026-11-15). O enum de T1, T2, T4, T6 e O6 troca `Intangível` por `Prioritário` sem convivência; o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
 ## [0.2.0] - 2026-10-29
 

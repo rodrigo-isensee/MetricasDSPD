@@ -10748,9 +10748,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -19330,9 +19330,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -19952,9 +19952,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "sle": {
@@ -21030,9 +21030,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -23852,9 +23852,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {

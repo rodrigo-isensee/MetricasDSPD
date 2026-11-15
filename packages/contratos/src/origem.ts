@@ -28,6 +28,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O20',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
+  // Pedido 105 (E7.3, decisão do dono de 2026-11-15 12:33): o O24 lê a classe de serviço das etiquetas do card (Padrão = etiqueta Padrao); card sem etiqueta de classe fica fora da fila, nunca Padrão por omissão (Q-099-9).
+  'O24',
   // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
   'O16',
   // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
@@ -171,7 +173,7 @@ export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
 
 /** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */
 export const TEXTO_NOTA_CARTAO = {
-  'sem-classe': 'Sem separação por classe até o quadro ter o campo.',
+  'sem-classe': 'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
   'sle-nao-definido': 'SLE não definido.',
 } as const
 export type NotaCartaoId = keyof typeof TEXTO_NOTA_CARTAO
