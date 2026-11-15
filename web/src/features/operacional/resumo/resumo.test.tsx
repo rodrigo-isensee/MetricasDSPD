@@ -123,8 +123,11 @@ describe('Resumo: números-chave (CA-26)', () => {
       within(acima).getByRole('link', { name: 'Ver O2 na Diária' }).getAttribute('href'),
     ).toContain('cadencia=diaria')
     const venc = await numero('vencidos-internos')
-    expect(venc).toHaveTextContent('Meta: zero')
-    expect(venc.querySelector('[data-status]')).not.toBeNull()
+    // 099 (CA-O12-3): sem o campo de responsabilidade no quadro, sem número, sem selo e sem 0.
+    expect(venc).toHaveTextContent('Meta: zero. Não avaliada sem dado real.')
+    expect(venc).toHaveTextContent('Sem dado real')
+    expect(venc.querySelector('[data-status]')).toBeNull()
+    expect(within(venc).queryByTestId('numero-vencidos-internos-valor')).toBeNull()
     expect(within(venc).getByRole('link', { name: 'Ver O12 na Semanal' })).toBeInTheDocument()
 
     const s2 = await numero('s2')
