@@ -373,8 +373,8 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     expect(await prazo(id)).toBeNull();
     expect(await versoes(id)).toEqual(['2026-10-30', '2026-11-15', null]);
 
-    // Q-RO-6c: data e hora com deslocamento grava o dia civil de Brasília; sem deslocamento fica nulo com a nota.
-    const comHora = novo({ deadline: '2026-10-30T00:00:00Z' });
+    // Q-RO-6c e L13 (c): data e hora com deslocamento grava o dia civil de Brasília (meia-noite UTC em ponto fica no dia gravado); sem deslocamento fica nulo com a nota.
+    const comHora = novo({ deadline: '2026-10-30T01:00:00Z' });
     await staging(comHora);
     await projetar();
     expect(await prazo(String(comHora.card_id))).toBe('2026-10-29');

@@ -259,10 +259,9 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
     }
   });
 
-  it('Q-RO-6c: data e hora com deslocamento vira o dia civil de Brasília (parâmetro FUSO_DO_PRAZO, opção a pendente do dono)', () => {
+  it('Q-RO-6c: data e hora com deslocamento vira o dia civil de Brasília (FUSO_DO_PRAZO, L13 c do dono), exceto meia-noite UTC em ponto', () => {
     expect(FUSO_DO_PRAZO).toBe('America/Sao_Paulo');
     const casos: [string, string][] = [
-      ['2026-10-30T00:00:00Z', '2026-10-29'], // meia-noite UTC cai no dia anterior em Brasília
       ['2026-10-30T02:59:59Z', '2026-10-29'],
       ['2026-10-30T03:00:00Z', '2026-10-30'],
       ['2026-10-30T12:00:00.000Z', '2026-10-30'],
@@ -279,9 +278,23 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
     }
   });
 
-  it('data e hora no projetor: o prazo vira o dia de Brasília e nenhuma forma de hora vaza para a tabela', () => {
+  it('L13 c: meia-noite UTC em ponto fica no dia gravado; um instante depois já vira o dia de Brasília', () => {
+    for (const entrada of ['2026-10-30T00:00:00Z', '2026-10-30T00:00Z', '2026-10-30T00:00:00.000Z', '2026-10-30T00:00:00.000000000Z']) {
+      const notas: string[] = [];
+      expect(dataAcordada(entrada, notas)).toBe('2026-10-30');
+      expect(notas).toEqual([]);
+    }
+    expect(dataAcordada('2026-10-30T00:00:00.001Z', [])).toBe('2026-10-29');
+    expect(dataAcordada('2026-10-30T00:00:01Z', [])).toBe('2026-10-29');
+    expect(dataAcordada('2026-10-30T00:01:00Z', [])).toBe('2026-10-29');
+    // com deslocamento a regra é a do dia de Brasília, mesmo que o instante em UTC fosse meia-noite
+    expect(dataAcordada('2026-10-29T21:00:00-03:00', [])).toBe('2026-10-29');
+  });
+
+  it('data e hora no projetor: o prazo meia-noite UTC fica no dia gravado, outro horário vira o dia de Brasília, e nenhuma forma de hora vaza para a tabela', () => {
+    expect(proj(card({ deadline: '2026-10-30T01:00:00Z' })).dim.data_acordada).toBe('2026-10-29');
     const p = proj(card({ deadline: '2026-10-30T00:00:00Z' }));
-    expect(p.dim.data_acordada).toBe('2026-10-29');
+    expect(p.dim.data_acordada).toBe('2026-10-30');
     expect(p.notas).not.toContain('deadline_fora_da_forma');
   });
 });
@@ -396,10 +409,12 @@ describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de s
     expect(proj(card({ deadline: '0001-01-01' })).dim.data_acordada).toBe('0001-01-01');
   });
   it('data e hora cujo dia civil sai do intervalo do date (ano 0 ou 10000 no fuso do prazo) vira null com a nota', () => {
-    for (const deadline of ['0001-01-01T00:00:00Z', '9999-12-31T23:59:59-23:59']) {
+    for (const deadline of ['0001-01-01T00:00:01Z', '9999-12-31T23:59:59-23:59']) {
       const p = proj(card({ deadline }));
       expect(p.dim.data_acordada).toBeNull();
       expect(p.notas.filter((n) => n === 'deadline_fora_da_forma')).toHaveLength(1);
     }
+    // meia-noite UTC em ponto fica no dia gravado (L13 c), então não cai no ano 0
+    expect(proj(card({ deadline: '0001-01-01T00:00:00Z' })).dim.data_acordada).toBe('0001-01-01');
   });
 });
