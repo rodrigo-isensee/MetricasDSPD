@@ -12,9 +12,9 @@ const AGORA = new Date('2026-11-02T12:00:00Z');
 describe('E2.21: limiares provisórios dos achados da aba Apontamento em ref_versao_criterio (T2.6)', () => {
   it('uma versão de critério do domínio businessmap, com a data de vigência e a métrica dos achados', async () => {
     const d = criarDublePg((q) => (q.texto.startsWith('SELECT 1') ? [] : q.texto.includes('RETURNING versao_id') ? [{ versao_id: '7' }] : []));
-    expect(await registrarCriteriosApontamento(d.pool, S, '2026-11-02', AGORA)).toEqual(['059:limiares-achados', '067:limite-dia-atipico', '089:sem-vinculo-so-sem-comentario']);
+    expect(await registrarCriteriosApontamento(d.pool, S, '2026-11-02', AGORA)).toEqual(['059:limiares-achados', '067:limite-dia-atipico', '089:sem-vinculo-so-sem-comentario', '097:concentracao-sem-linha-sem-projeto']);
     const versoes = d.chamadas.filter((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio ('));
-    expect(versoes).toHaveLength(3);
+    expect(versoes).toHaveLength(4);
     expect(versoes[0]!.texto).toContain("'businessmap'");
     expect(versoes[0]!.valores[0]).toBe('2026-11-02');
     expect(versoes[0]!.valores[3]).toBe('059:limiares-achados');
@@ -22,8 +22,9 @@ describe('E2.21: limiares provisórios dos achados da aba Apontamento em ref_ver
     expect(versoes[1]!.valores[3]).toBe('067:limite-dia-atipico');
     expect(versoes[2]!.valores[0]).toBe('2026-11-02'); // a data é a informada (Q3: a da primeira varredura completa), nunca fixa no código
     expect(versoes[2]!.valores[3]).toBe('089:sem-vinculo-so-sem-comentario');
+    expect(versoes[3]!.valores[3]).toBe('097:concentracao-sem-linha-sem-projeto');
     expect(d.chamadas.filter((c) => c.texto.includes('ref_versao_criterio_metrica')).map((c) => c.valores)).toEqual([
-      ['7', METRICA_ACHADOS_APONTAMENTO], ['7', METRICA_ACHADOS_APONTAMENTO], ['7', METRICA_ACHADOS_APONTAMENTO], ['7', METRICA_DICIONARIO_APONTAMENTO],
+      ['7', METRICA_ACHADOS_APONTAMENTO], ['7', METRICA_ACHADOS_APONTAMENTO], ['7', METRICA_ACHADOS_APONTAMENTO], ['7', METRICA_DICIONARIO_APONTAMENTO], ['7', METRICA_ACHADOS_APONTAMENTO],
     ]);
   });
   it('pedido 089: o critério do sem-vinculo diz o que mudou, cabe nas colunas e nunca edita as linhas já registradas (só INSERT)', async () => {
