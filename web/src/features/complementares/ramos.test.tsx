@@ -16,7 +16,7 @@ import { ProvedorPreferencias } from '@/features/preferencias/ProvedorPreferenci
 import { LeiaJunto } from './LeiaJunto'
 import { MaisMetricas } from './MaisMetricas'
 import { ListaInsuficientes } from './comuns'
-import { CartaoO14, CartaoO5 } from './fluxo'
+import { CartaoO14, CartaoO5, CartaoO8 } from './fluxo'
 import { CartaoE4, CartaoE5, CartaoT6 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
@@ -289,6 +289,25 @@ describe('ramos dos componentes complementares', () => {
     })
     const el = await screen.findByTestId('metrica-S12')
     expect(within(el).queryByTestId('nota-S12-excecao-sla')).not.toBeInTheDocument()
+  })
+
+  it('O8 sem tamanho declarado mostra o tempo real e Sem dado real com o motivo só na divisão por tamanho', async () => {
+    const semTamanho = new FonteAjustada({
+      O8: (r: Qualquer) => {
+        for (const t of r.tipos) t.porTamanho = null
+        r.motivoPorTamanho = 'aguardando o campo de tamanho no quadro (WS1)'
+      },
+    })
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: semTamanho })
+    const el = await screen.findByTestId('metrica-O8')
+    const aviso = await within(el).findByTestId('estado-sem-dado-real-O8-por-tamanho')
+    expect(aviso).toHaveTextContent('Sem dado real')
+    expect(within(el).getByTestId('motivo-sem-dado-real-O8-por-tamanho')).toHaveTextContent(
+      'campo de tamanho',
+    )
+    expect(el).toHaveTextContent('Por tamanho declarado')
+    expect(el).toHaveTextContent('Mediana')
+    expect(el).toHaveTextContent('P85')
   })
 
   it('O17 não diz "mais frequente" quando todas as causas têm 0 incidentes', async () => {

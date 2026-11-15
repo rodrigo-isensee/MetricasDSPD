@@ -909,9 +909,14 @@ export const resultadoO8 = z.object({
           acimaP85AnteriorPct: z.number().nullable(),
         }),
       ),
-      porTamanho: z.array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() })),
+      /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+      porTamanho: z
+        .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
+        .nullable(),
     }),
   ),
+  /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
+  motivoPorTamanho: z.string().min(1).nullable(),
 })
 
 /** O11: composição do backlog (retrato no fim de cada mês). */

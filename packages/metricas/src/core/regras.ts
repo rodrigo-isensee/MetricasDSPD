@@ -456,6 +456,7 @@ export const REGRAS_METRICA = {
     status: 'ok',
   },
   O8: {
+    // Tempo em execução real (o mesmo do O3). Divisão por tamanho: sem dado real até o campo `tamanho_declarado` (pedido 099, A4, Q-099-4).
     dominio: 'businessmap',
     segmentacao: ['tipo'],
     ordem: 'temporal',
