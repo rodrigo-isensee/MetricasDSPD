@@ -23,7 +23,7 @@ describe('resultadoO8: motivoPorTamanho (superRefine)', () => {
     expect(r.success).toBe(false)
     if (!r.success) {
       expect(r.error.issues[0]?.path).toEqual(['motivoPorTamanho'])
-      expect(r.error.issues[0]?.message).toBe('porTamanho nulo exige motivoPorTamanho')
+      expect(r.error.issues[0]?.message).toBe('porTamanho nulo em todos os tipos exige motivoPorTamanho')
     }
   })
 
@@ -34,6 +34,24 @@ describe('resultadoO8: motivoPorTamanho (superRefine)', () => {
   it('aceita porTamanho publicado sem motivo (motivo nulo)', () => {
     const p = [{ tamanho: 'P', n: 3, mediana: null }]
     expect(resultadoO8.safeParse(corpo(null, p)).success).toBe(true)
+  })
+
+  it('aceita um tipo com porTamanho nulo e motivo nulo quando outro tipo publica (L24 (a))', () => {
+    const c = corpo(null, [{ tamanho: 'P', n: 3, mediana: null }])
+    c.tipos.push(tipoO8(null))
+    expect(resultadoO8.safeParse(c).success).toBe(true)
+  })
+
+  it('recusa motivo nulo quando todos os tipos têm porTamanho nulo (vários tipos)', () => {
+    const c = corpo(null, null)
+    c.tipos.push(tipoO8(null))
+    expect(resultadoO8.safeParse(c).success).toBe(false)
+  })
+
+  it('aceita lista de tipos vazia sem motivo', () => {
+    const c = corpo(null, null)
+    c.tipos = []
+    expect(resultadoO8.safeParse(c).success).toBe(true)
   })
 
   it('recusa motivo vazio', () => {

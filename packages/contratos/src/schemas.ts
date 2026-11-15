@@ -926,13 +926,13 @@ export const resultadoO8 = z
     /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
     motivoPorTamanho: z.string().min(1).nullable(),
   })
-  // Pedido 105 (K-353, A2 do review do O8): `porTamanho` nulo exige o motivo; a API só produz os estados coerentes.
+  // Pedido 105 (L24 (a) do K-359): o motivo é obrigatório só quando NENHUM tipo publica `porTamanho`; com algum tipo publicando, os demais podem ter `porTamanho` nulo e motivo nulo.
   .superRefine((r, ctx) => {
-    if (r.motivoPorTamanho === null && r.tipos.some((t) => t.porTamanho === null)) {
+    if (r.motivoPorTamanho === null && r.tipos.length > 0 && r.tipos.every((t) => t.porTamanho === null)) {
       ctx.addIssue({
         code: 'custom',
         path: ['motivoPorTamanho'],
-        message: 'porTamanho nulo exige motivoPorTamanho',
+        message: 'porTamanho nulo em todos os tipos exige motivoPorTamanho',
       })
     }
   })
