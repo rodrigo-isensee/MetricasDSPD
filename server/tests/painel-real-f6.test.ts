@@ -103,10 +103,10 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(real.d.chamadas, NO_SEED)).toBe(0);
 
     const fora = await montar();
-    const m = await fora.app.inject('/api/v1/metricas/O12');
+    const m = await fora.app.inject('/api/v1/metricas/O14');
     expect(m.statusCode).toBe(200);
     expect(m.headers['x-estado-dado']).toBe('sem-dado-real');
-    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O12', motivo: 'aguardando campo no quadro' });
+    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O14', motivo: 'aguardando campo no quadro' });
     expect(fora.d.chamadas).toHaveLength(0);
   });
 
@@ -120,7 +120,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['T10', 'T12', 'O12', 'O14', 'O26', 'T1', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['T10', 'T12', 'O14', 'O26', 'T1', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -237,7 +237,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const r = await app.inject('/api/v1/metricas/O1');
     expect(r.statusCode).toBe(200);
     expect(r.headers['x-dados-ficticios']).toBe('1');
-    const fora = await app.inject('/api/v1/metricas/O12');
+    const fora = await app.inject('/api/v1/metricas/O14');
     expect(fora.statusCode).toBe(200);
     expect(fora.json()).not.toHaveProperty('estado');
     expect(d.chamadas.some((c) => c.texto.includes('ref_time'))).toBe(false);

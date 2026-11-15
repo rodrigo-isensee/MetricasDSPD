@@ -107,7 +107,8 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     id: 'O12',
     codigo: 'O12',
     nome: 'Acordos e vencidos',
-    pergunta: 'Dos prazos que combinamos, quantos vencemos, e de quem foi o atraso?',
+    pergunta:
+      'Dos prazos que combinamos, quantos vencemos? E de quem foi o atraso, quando o campo existir no quadro?',
     painel: 'operacional',
     fonte: 'BusinessMap',
     granularidade: 'demanda',
