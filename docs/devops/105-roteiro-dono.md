@@ -4,11 +4,21 @@
 
 Para quem não é técnico. Nada deste documento foi executado pelo time: os comandos são seus, depois do merge da release 105 na `main`. Cada comando foi conferido no código da `develop` (ponta `0358e417`); o que o código não prova aparece como **a confirmar**. Nenhuma senha, chave ou nome de pessoa aparece aqui.
 
-Como usar: abra o terminal e vá para a pasta do projeto com a `main` já atualizada:
+Como usar: **não use a pasta `~/Metricas/MetricasDSPD`**. É a pasta onde o Jarvis grava o quadro o tempo todo, e um `git checkout main` ali é recusado quando há arquivo modificado. O roteiro roda numa pasta própria da `main`, `~/Metricas/MetricasDSPD-main`, sem mexer na do Jarvis.
+
+Primeira vez (cria a pasta, uma vez só):
 ```
-cd ~/Metricas/MetricasDSPD && git checkout main && git pull
+git -C ~/Metricas/MetricasDSPD worktree add ~/Metricas/MetricasDSPD-main main
 ```
-Rode **da raiz do projeto, no ramo `main`**, um comando por vez. Cada comando vem entre parênteses com `set -a; . ./.env; set +a`: isso carrega o `.env` só para aquele comando, sem mostrar o conteúdo. Depois de cada um, rode `echo "rc=$?"` (já vai junto abaixo): **rc=0 é sucesso**; qualquer outro número é erro.
+Se a pasta já existir, só atualize (depois do merge da release 105 na `main`):
+```
+git -C ~/Metricas/MetricasDSPD-main pull
+```
+Nos dois casos, instale as dependências e entre na pasta:
+```
+cd ~/Metricas/MetricasDSPD-main && pnpm install; echo "rc=$?"
+```
+Rode **dessa pasta, no ramo `main`**, um comando por vez (todos os `cd` do roteiro são para `~/Metricas/MetricasDSPD-main`). Cada comando vem entre parênteses com `set -a; . ~/Metricas/MetricasDSPD/.env; set +a`: isso carrega o `.env` da pasta original, pelo caminho, só para aquele comando, sem mostrar o conteúdo e **sem copiar a credencial**. Não crie `.env` na pasta nova. Basta carregar assim porque os programas do servidor (`bm:coleta`, `bm:projetar`, `bm:criterios-classe-servico` e outros) tentam ler o `.env` da raiz da pasta onde rodam, aceitam que ele não exista e não sobrescrevem variável já carregada; `db:migrate` e `coleta ac` (scripts `db.sh` e `coleta.sh`) fazem o mesmo. Depois de cada um, rode `echo "rc=$?"` (já vai junto abaixo): **rc=0 é sucesso**; qualquer outro número é erro.
 
 **Regra de ouro:** deu erro, PARE. Não tente o passo seguinte. Copie a mensagem de erro inteira (sem senhas) e mande ao Jarvis, junto com o número do passo e a duração. Nenhum passo apaga dado; todos podem ser repetidos. Não use `--force` nem apague tabelas. Os tempos não foram medidos: anote cada duração e devolva. Se um passo passar de 15 minutos sem imprimir nada (o passo 3 pode passar, ver lá), pare e avise.
 
@@ -41,9 +51,9 @@ docker ps --format '{{.Names}}' | grep -i coleta
 
 ### 0.2 Banco no ar e migração
 
-O banco do Compose precisa estar de pé: `pnpm run db:up; echo "rc=$?"` (rc=0). Depois:
+O banco do Compose precisa estar de pé: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run db:up); echo "rc=$?"` (rc=0; é o mesmo banco da pasta original, porque o Compose usa o mesmo nome de projeto). Depois:
 ```
-(set -a; . ./.env; set +a; pnpm run db:migrate); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run db:migrate); echo "rc=$?"
 ```
 - Tempo: segundos.
 - Deve mostrar: a migração `0038` (coluna `fluxo` em `dim_chamado` do Acelerato) aplicada, se ainda faltar, e rc=0. Rodar de novo diz que não há migração pendente.
@@ -54,7 +64,7 @@ O banco do Compose precisa estar de pé: `pnpm run db:up; echo "rc=$?"` (rc=0). 
 
 Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes das cargas do BusinessMap** (passos 1 a 4). Comando novo, da branch `feature/105-ac-reprojetar-fluxo` (aprovado em review e QA; precisa estar mesclado na `main` junto com a release):
 ```
-(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo); echo "rc=$?"
 ```
 - O que faz: a migração 0038 criou `dim_chamado.fluxo` vazia e a coleta de costume só projeta versões novas do staging; este comando reaplica a regra de fluxo que já existe às etapas guardadas no staging e preenche `fluxo` **só onde ele é nulo**. Nunca troca valor existente, não chama o Acelerato e não toca no staging. Roda em lotes, numa transação só (tudo ou nada), com a credencial do migrador.
 - Não recebe argumento. Imprime só contagens, em uma linha JSON: `coletaId`, `lidos`, `preenchidos`, `fluxoMultiplo`, `semFluxo`. Rc=0 é sucesso; rc=1 é erro (`ac:reprojetar-fluxo falhou: <categoria>`): pare e avise. Como é uma transação só, o erro não deixa nada pela metade.
@@ -67,7 +77,7 @@ Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes da
 
 ### Passo 1. Acelerato: listas do PROC e alvos (S5, S6, S7)
 ```
-(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run ac:ref-sync); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:ref-sync); echo "rc=$?"
 ```
 - Argumento opcional: data `AAAA-MM-DD` (vigência); sem data vale hoje (Brasília). Não informe.
 - O que faz: grava em `dspd_ac.ref_dominio` as listas de `docs/architecture/fontes/acelerato-dominio.json`, incluindo `fluxo_proc` (os cinco fluxos do PROC), e os alvos de prazo por prioridade. Não chama o Acelerato.
@@ -79,7 +89,7 @@ Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes da
 
 ### Passo 2. BusinessMap: dicionário, com a tabela coluna para fase do O15
 ```
-(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:ref-sync); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:ref-sync); echo "rc=$?"
 ```
 - Argumento opcional: data `AAAA-MM-DD`; sem data, hoje. Não informe.
 - O que faz: grava em `dspd_bm.ref_dominio` o dicionário de `docs/architecture/fontes/businessmap-dominio.json`, que agora inclui as 347 colunas para fase (`fase_deteccao_coluna`). Não chama o BusinessMap. Pode repetir.
@@ -90,7 +100,7 @@ Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes da
 
 ### Passo 3. BusinessMap: releitura completa com projeção (O24, O15, O18)
 ```
-(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial --projetar); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial --projetar); echo "rc=$?"
 ```
 - Por que `carga-inicial` e não `incremental`: o incremental só lê o que mudou desde a marca d'água, e as etiquetas (O24) dos cards parados só chegam relendo tudo. Pelo código, a carga inicial lê a janela dos últimos 12 meses (`MESES_CARGA`) para cards arquivados e excluídos, e os cards ativos inteiros. **A confirmar:** se com a base real de 18879 cards a releitura cobre todos os que hoje estão na base (o código não prova a cobertura; a conferência da seção 2 mostra o resultado).
 - `--projetar`: ao fim da coleta, roda a projeção que preenche `dim_card.classe_servico` (O24), `origem_bug` (O18) e `fase_deteccao` (O15). Só GET no BusinessMap; nada é escrito lá. Histórico não é sobrescrito: cards arquivados e excluídos permanecem.
@@ -108,7 +118,7 @@ Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes da
 ### Passo 4. Registrar a data do critério da classe por etiqueta (O24)
 Troque `AAAA-MM-DD` pela data anotada no passo 3 (a da primeira coleta com etiquetas):
 ```
-(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico AAAA-MM-DD); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico AAAA-MM-DD); echo "rc=$?"
 ```
 - O que faz: registra a versão de critério `105:classe-por-etiqueta` (marca nos gráficos de O6, O24, T1, T2, T4 e T6). Usa o papel do migrador.
 - **Só grava uma vez.** Se a versão já existir, o comando não muda nada (nem a data) e a saída traz `gravadas` vazio. Por isso, **só rode depois do passo 3 ter dado rc=0** e informe a data certa na primeira vez. O comando não confere se o passo 3 rodou. Como corrigir uma data errada: **a confirmar com o time** (não está documentado).
@@ -119,7 +129,7 @@ Troque `AAAA-MM-DD` pela data anotada no passo 3 (a da primeira coleta com etiqu
 
 ### Passo 5. Acelerato: coleta de costume
 ```
-(set -a; . ./.env; set +a; pnpm run coleta ac); echo "rc=$?"
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run coleta ac); echo "rc=$?"
 ```
 - O preenchimento do fluxo dos chamados já na base **não é deste passo**: é o `ac:reprojetar-fluxo` do passo 0.3, que já deve ter rodado. Esta coleta só traz chamados novos e mudanças, e a projeção deles já preenche o `fluxo`. Não use `--releitura` por conta própria.
 - Se a coleta recusar com `parametros-mudaram`, o reconhecimento da 103/104 não foi feito: pare e avise (o reconhecimento é `pnpm run coleta ac --reconhecer-mudanca`, uma vez, só com ordem do Jarvis).
@@ -181,7 +191,7 @@ Esperado: `chamados` = 5144 (ou mais, se a coleta já trouxe novos) e `com_fluxo
 ## 3. Voltar a coleta
 
 1. Se algo estiver estranho nas conferências, pare e avise o Jarvis; não religue a agenda.
-2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ./.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e `(set -a; . ./.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
+2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
 3. Só então religue o que parou no 0.1 (no Windows, "Habilitar" a tarefa; no cron, tire o `#`). Se não havia agenda de coleta aqui, nada a religar.
 
 ## O que fica fora deste roteiro
