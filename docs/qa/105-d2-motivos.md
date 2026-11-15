@@ -3,10 +3,10 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/099-d2-motivos-sust
-commit: 03ad3399be37e984bcd5f6abab0663485907f06a
+commit: 8c494dcb06261bfd3550c2f6f5f95b42af531a9a
 parecer: aprovado
-resultado: aprovado, com 2 recomendações (S3 sem a nota de Não igual a vazio; revisão de UX da linha foraDoFluxo)
-escopo: completo
+resultado: aprovado; A1 e A2 do parecer anterior resolvidos em 8c494dcb; sem achados abertos
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -17,7 +17,24 @@ data: 2026-11-15
 
 Testado até 03ad3399 (a ponta de CI verde: depois do aebccf9b entraram cobertura do server, paridade do acelerato-l9c pg e as páginas e fotografias dos contratos). Diff conferido contra `origin/feature/099-d1b-dominios` (40 arquivos). Decisões do dono: P1 = B (cinco fluxos do PROC), P2 = A (de-para só dos pares óbvios), P3 = A (faixa Outro separada de Não informado).
 
-## Achados
+## Delta 03ad3399 → 8c494dcb (revalidação)
+
+Lido só o diff entre os dois (16 arquivos). Sem achados novos.
+
+- A1 resolvido: o S3 real com o campo na fonte leva `s7-nao-igual-vazio` (`comNotaAjusteNaoIgualVazio`, S3 e S7); sem dado real (`ajuste-prioridade-sem-dado-real`) não leva. Teste: painel-real-f6 (L1 espera `['s7-nao-igual-vazio']`, D2 cobre S3 com e sem a nota de sem dado).
+- A2 resolvido: `NotaForaDoFluxo` revisada pelo UX (`docs/ux/105-revisao-d2.md`); U1, U2, U3 (só a 1ª frase), U5 e U6 aplicados e conferidos no diff.
+- U4 não aplicado, e o motivo procede: `s6.ts` calcula `taxaContorno = taxa(contorno, xs.length)`, e `xs` inclui Outro e Não informado; afirmar que ficam fora da taxa seria falso. Texto atual do S6 mantido.
+- Mudança incompatível do S3 (valor novo no enum de notas da resposta): ACEITO. A política (§2) a classifica incompatível; o único consumidor é o `web` do mesmo repositório, que lê as notas por id (`CartaoS3` passa `d?.notas` ao `CartaoMetrica`, sem `switch` exaustivo) e passou nos testes; openapi, `S3.md` e a fotografia do S3 foram atualizados juntos. Sem convivência `/api/v2`, como no D2 (decisão do dono do pedido).
+- Mutação no delta (à mão, árvore revertida a cada um, worktree limpa ao fim):
+  - M4 incluir o S6 na guarda de `comNotaAjusteNaoIgualVazio`: morreu (painel-real-f6, 1 falha).
+  - M5 remover a guarda de sem dado real: morreu (1 falha).
+  - M6 tirar o S3 da guarda: morreu (2 falhas).
+  - M7 inverter o singular da `NotaForaDoFluxo`: morreu (sustentacao.test.tsx, 1 falha).
+  - Sobreviventes: nenhum.
+- Local: server painel-real-f6 46 de 46; web sustentacao 34 de 34. CI do head 8c494dcb verde (informado no brief).
+- Acessibilidade: ícone e texto da nota seguem sem depender de cor; `text-sm` aplicado (U6). Contraste não medido (sem navegador nesta passada).
+
+## Achados (parecer anterior, ambos resolvidos)
 
 - A1 (recomendado) server/src/modulos/metricas/servico.ts:348 · O S3 passou a publicar `ajustesManuais` (só "Sim" conta) e não leva a nota de Não igual a vazio; o S7 leva. Mesma ambiguidade do mesmo campo: por consistência, o S3 deve ter a nota (publicação, sem recálculo).
 - A2 (recomendado) web/src/features/sustentacao/components/comuns.tsx:19 · A linha NotaForaDoFluxo é elemento novo na tela do S5, S6 e S7 (texto e ícone), sem passada do ux-designer: pede revisão de UX (texto, posição, leitor de tela).
