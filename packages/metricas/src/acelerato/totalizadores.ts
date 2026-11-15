@@ -80,6 +80,8 @@ export function motivoDaPendencia(etapa: string, motivo: MotivoPendencia | null)
 /** Etapa que pausa o relógio de SLA da S1: as de `ETAPAS_PAUSA` e as esperas decididas (mesmo de-para da S9). */
 export function pausaOSla(etapa: string): boolean {
   return (
-    (ETAPAS_PAUSA as readonly string[]).includes(etapa) || MOTIVO_DA_ESPERA.has(normaliza(etapa))
+    (ETAPAS_PAUSA as readonly string[]).includes(etapa) ||
+    normaliza(etapa) === 'pendente' ||
+    MOTIVO_DA_ESPERA.has(normaliza(etapa))
   )
 }
