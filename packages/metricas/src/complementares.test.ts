@@ -353,7 +353,7 @@ describe('Sustentação: S8 e S9', () => {
     expect(r.meses.some((m) => m.informados < m.encerrados)).toBe(true)
   })
 
-  it('S9: pendência sem motivo informado vira "Não informado"', () => {
+  it('S9: pendência sem motivo informado vira "Não classificado"', () => {
     const ac = {
       ...base.ac,
       etapas: base.ac.etapas.map((e) =>
@@ -362,7 +362,7 @@ describe('Sustentação: S8 e S9', () => {
     }
     const ctx = acelerato.criarContextoAC(ac, base.config.hoje, CALENDARIO_PADRAO)
     const r = acelerato.calcularS9(ctx, FS)
-    expect(r.porMotivo.map((m) => m.motivo)).toEqual(['Não informado'])
+    expect(r.porMotivo.map((m) => m.motivo)).toEqual(['Não classificado'])
   })
 
   it('S9: cumprimento da previsão conta retornos até a data prevista', () => {
