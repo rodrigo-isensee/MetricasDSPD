@@ -17,7 +17,7 @@ describe('notas sem texto de dado fictício', () => {
       'Os grupos se sobrepõem: um P1 pode ter contorno.',
     )
     expect(NOTAS_TATICO.T2.cuidados).toBe(
-      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe.',
+      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe. A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a classe passou a vir da etiqueta do cartão.',
     )
     expect(NOTAS_TATICO.T3.cuidados).toBe('Contar cards distorce quando os tamanhos diferem muito.')
     expect(NOTAS_COMPLEMENTARES.T13.cuidados).toBe(

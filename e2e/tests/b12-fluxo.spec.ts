@@ -258,11 +258,10 @@ test.describe('K-007 Tático', () => {
     await expect(painel.faixaAtencao).toBeVisible();
   });
 
-  test('TAT-02/03 T1 por classe, Intangível sem SLE/insuficiente, links cruzados T1/T4', async ({ painel, page }) => {
+  test('TAT-02/03 T1 por classe, links cruzados T1/T4', async ({ painel, page }) => {
     await painel.ir('/tatico');
     await painel.esperarPronto();
-    await expect(painel.cartao('T2').raiz).toContainText('Sem SLE');
-    await expect(painel.cartao('T1').raiz).toContainText(/Intangível: Amostra insuficiente \(\d+ de 20 itens mínimos\), sem barra\./);
+    await expect(painel.cartao('T1').raiz).toContainText('Prioritário');
     await painel.cartao('T1').raiz.getByRole('link', { name: /Demanda × capacidade \(T4\)/ }).click();
     await expect(page).toHaveURL(/#t4/);
     await painel.cartao('T4').raiz.getByRole('link', { name: /lead time \(T1\)/ }).click();

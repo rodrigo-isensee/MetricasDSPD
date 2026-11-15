@@ -5,11 +5,12 @@ import { contarColetasDoSeed, descreverColetasDoSeed, tomarTravaDoSeed } from '.
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
-import { CAMPOS_CARD, CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados } from './allow-list.js';
+import { CAMPOS_CARD, CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados, type MapaTagsDeClasse } from './allow-list.js';
 import { CAMPO_CUSTOMIZADO, dominiosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
 import { ErroReferencia } from './referencia.js';
 import { desembrulhar } from './spike-forma.js';
 import { gravarStgCard, gravarStgRevision } from './staging.js';
+import { lerMapaDeTagsDeClasse } from './tags.js';
 import { resolverResponsaveis, type ResultadoUsuarios } from './usuarios.js';
 
 // F3 do plano 052 (K-182): coleta dos cards do BusinessMap para o staging, incremental e carga inicial de 12 meses. Só GET, pelo
@@ -34,8 +35,9 @@ export const CAMPOS_PEDIDO_CARDS = [...CAMPOS_CARD, 'owner_user_id', 'block_reas
 /**
  * `transitions` (E2.46): histórico de colunas na própria listagem, sem GET por card; `block_times` fica fora (F3b, negado por padrão).
  * `co_owner_ids` (E2.83): os co-responsáveis do card (ADR 0020, 4b e 4c), só em memória, para `dim_card.responsaveis` e o O26.
+ * `tag_ids` (pedido 105, E7.3, ADR 0020 4i): ids das etiquetas do card, só em memória; ao staging vai a classe de serviço (`classes_tag`).
  */
-export const EXPAND_COLETA = 'custom_fields,linked_cards,transitions,co_owner_ids';
+export const EXPAND_COLETA = 'custom_fields,linked_cards,transitions,co_owner_ids,tag_ids';
 export { CAMPOS_CUSTOMIZADOS_FORA };
 
 /**
@@ -193,7 +195,7 @@ async function marcaDagua(db: Consultavel, S: Esquemas): Promise<Date | null> {
 
 interface Execucao {
   d: DepsColeta; S: Esquemas; coletaId: number; filtro: (estado: EstadoCard) => Record<string, string>;
-  dominios: DominiosCamposCustomizados; vistos: Set<string>; falhas: string[]; motivosPendentes: string[];
+  dominios: DominiosCamposCustomizados; mapaTags: MapaTagsDeClasse | undefined; vistos: Set<string>; falhas: string[]; motivosPendentes: string[];
 }
 
 /** Uma leitura (quadro e estado): página por página, cada página numa transação com a marca da página (retomável). */
@@ -224,7 +226,7 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
         for (const r of responsaveis ?? []) x.vistos.add(r);
         if (responsaveis !== null) x.d.responsaveis?.set(id, responsaveis);
         const r = await gravarStgCard(db, {
-          idOrigem: id, card, dominios: x.dominios, coletaId: x.coletaId, agora, quadroId: String(quadro),
+          idOrigem: id, card, dominios: x.dominios, mapaTags: x.mapaTags, coletaId: x.coletaId, agora, quadroId: String(quadro),
           arquivado: estado === 'archived', excluidoDetectado: false,
         }, x.S);
         if (r === 'inserido') c.inseridos += 1;
@@ -298,7 +300,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
      VALUES ('coleta_incremental', $1, 'em_andamento', $2, $3, $4, $5::jsonb) RETURNING coleta_id`,
     [inicio, marcaDe, modo.tipo === 'incremental' ? SOBREPOSICAO_S : 0, VERSAO_COLETOR, JSON.stringify(parametros)]);
   const coletaId = Number(aberta.rows[0]!.coleta_id);
-  const x: Execucao = { d, S, coletaId, filtro, dominios, vistos: new Set(), falhas: [], motivosPendentes: [] };
+  const x: Execucao = { d, S, coletaId, filtro, dominios, mapaTags: undefined, vistos: new Set(), falhas: [], motivosPendentes: [] };
 
   try {
     let referencia: unknown = null;
@@ -313,6 +315,16 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     }
     const streams: ResumoStream[] = [];
     let fatal = false;
+    // 4i: o catálogo de etiquetas vem antes dos cards. Sem ele, ler os cards gravaria versões sem `classes_tag` e a classe já projetada se perderia:
+    // a falha para a leitura dos cards (código e entidade `tags` no controle; nada de rótulo).
+    try {
+      x.mapaTags = await lerMapaDeTagsDeClasse(d.cliente);
+    } catch (e) {
+      if (!(e instanceof ErroBusinessMap)) throw e;
+      x.falhas.push(e.tipo);
+      await registrarFalha(d.pool, S, coletaId, 'tags', null, e.tipo);
+      fatal = true;
+    }
     for (const quadro of d.quadros) {
       for (const estado of ESTADOS) {
         if (fatal) break;

@@ -182,9 +182,9 @@
             "type": "string",
             "enum": [
               "Urgente",
+              "Prioritário",
               "Prazo fixo",
-              "Padrão",
-              "Intangível"
+              "Padrão"
             ]
           },
           "n": {

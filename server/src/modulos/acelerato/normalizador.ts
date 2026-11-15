@@ -117,7 +117,7 @@ export type LinhaProjecao = {
   motivo_pendencia_atual: string | null;
   /** "Tem previsão de retorno" (D-L9-1, decisão do dono): booleano; a data prevista não é coletada. Nulo = versão sem o campo no staging. */
   previsao_retorno: boolean | null;
-  /** Pedido 099, D1 (1a): o único workflow das etapas; nulo sem etapa com workflow e nulo com a contagem `fluxo_multiplo` se houver mais de um. */
+  /** Pedido 099, D1 (1a): o único workflow das etapas; nulo sem etapa com workflow e nulo com a contagem `fluxo_multiplo` (por chamado distinto) se houver mais de um. */
   fluxo: string | null;
 };
 
@@ -130,12 +130,12 @@ const ehSim = (v: string | null): boolean => v !== null && v.trim().toLocaleUppe
 
 /**
  * Fluxo do chamado (pedido 099, D1, 1a): o único `descricao_workflow` não vazio das etapas. Sem etapa (ou sem workflow nelas) é nulo
- * ("sem fluxo"); com mais de um workflow distinto é nulo e soma `fluxo_multiplo`, sem escolher nenhum (nem o da primeira etapa).
+ * ("sem fluxo"); com mais de um workflow distinto é nulo e soma `fluxo_multiplo` (uma vez por chamado distinto, não por versão), sem escolher nenhum (nem o da primeira etapa).
  */
-export function fluxoDoChamado(etapas: readonly EtapaTotal[], c: Contadores): string | null {
+export function fluxoDoChamado(idOrigem: string, etapas: readonly EtapaTotal[], c: Contadores): string | null {
   const distintos = new Set<string>();
   for (const e of etapas) if (typeof e.descricao_workflow === 'string' && e.descricao_workflow !== '') distintos.add(e.descricao_workflow);
-  if (distintos.size > 1) { c.somar('fluxo_multiplo'); return null; }
+  if (distintos.size > 1) { c.somarChamado('fluxo_multiplo', idOrigem); return null; }
   return distintos.size === 1 ? [...distintos][0]! : null;
 }
 
@@ -157,7 +157,7 @@ export function normalizarChamado(
   const categoria = texto(p.categoria);
   const prioridade = texto(p.prioridade);
   const comAgente = logico(p.com_agente) ?? true;
-  if (!comAgente) c.somar('sem_agente');
+  if (!comAgente) c.somarChamado('sem_agente', idOrigem);
 
   const pa = vereditoSla(texto(p.sla_pa_status), logico(p.sla_pa_violado));
   const r = vereditoSla(texto(p.sla_r_status), logico(p.sla_r_violado));
@@ -201,6 +201,6 @@ export function normalizarChamado(
     avaliacao_problema: texto(campos?.avaliacao_problema),
     motivo_pendencia_atual: texto(campos?.motivo_pendencia),
     previsao_retorno: logico(campos?.previsao_retorno_informada),
-    fluxo: fluxoDoChamado(etapas, c),
+    fluxo: fluxoDoChamado(idOrigem, etapas, c),
   };
 }

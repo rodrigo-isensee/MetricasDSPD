@@ -1,0 +1,36 @@
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { carregarConfigMigrar } from '../plataforma/config.js';
+import { categoriaDoErro } from '../plataforma/categoria-erro.js';
+import { criarPool } from '../plataforma/db/pool.js';
+import { montarEsquemas } from '../plataforma/db/esquemas.js';
+import { dataCivilValida, registrarCriterioClasseServico } from '../modulos/referencia/index.js';
+
+// Entrada `criterios-classe-servico [AAAA-MM-DD]` (pedido 105, E7.3): registra em `ref_versao_criterio` a versão da classe de serviço pelas etiquetas (T2.6, métricas O6, O24, T1, T2, T4 e T6) com a data de vigência (padrão: hoje, horário de Brasília; informe a da primeira coleta que grava `classes_tag`). Usa o migrador (dono da referência); idempotente. Imprime só as referências gravadas; na falha, só a categoria de `categoriaDoErro` (nunca pilha, host, porta nem usuário).
+// O `.env` da raiz é lido só aqui, pelo programa, como em `bm:ref-sync-apontamento`; nada dele é impresso. Uso: `pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico <data>`.
+const raiz = fileURLToPath(new URL('../../../', import.meta.url));
+try {
+  process.loadEnvFile(join(raiz, '.env'));
+} catch (e) {
+  if ((e as NodeJS.ErrnoException).code !== 'ENOENT') {
+    process.stderr.write(`falha ao ler o .env (${(e as NodeJS.ErrnoException).code ?? 'erro'})\n`);
+    process.exit(2);
+  }
+}
+const dia = process.argv[2] ?? new Date(Date.now() - 3 * 3_600_000).toISOString().slice(0, 10);
+if (!dataCivilValida(dia) || process.argv.length > 3) {
+  process.stderr.write('uso: bm:criterios-classe-servico [AAAA-MM-DD]\n');
+  process.exit(2);
+}
+let pool: ReturnType<typeof criarPool> | undefined;
+try {
+  const cfg = carregarConfigMigrar();
+  pool = criarPool(cfg.PG_MIGRADOR_URL, { max: 1 });
+  const gravadas = await registrarCriterioClasseServico(pool, montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO), dia, new Date());
+  process.stdout.write(`${JSON.stringify({ vigenteDesde: dia, gravadas })}\n`);
+} catch (e) {
+  process.stderr.write(`bm:criterios-classe-servico falhou: ${categoriaDoErro(e)}\n`);
+  process.exitCode = 1;
+} finally {
+  await pool?.end();
+}

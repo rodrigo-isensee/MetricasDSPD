@@ -4,6 +4,7 @@ export { dataCivil } from './servico.js';
 export { CRITERIOS_ACELERATO, CRITERIO_D7_528, REFERENCIA_D7_528, registrarCriterioD7528, registrarCriteriosAcelerato } from './criterios-acelerato.js';
 export { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, rotuloDeSetorSeguro } from './setor.js';
 export { CRITERIOS_APONTAMENTO, METRICA_ACHADOS_APONTAMENTO, METRICA_DICIONARIO_APONTAMENTO, registrarCriteriosApontamento } from './criterios-apontamento.js';
+export { CRITERIO_CLASSE_SERVICO, METRICAS_COM_CLASSE_SERVICO, REFERENCIA_CLASSE_SERVICO, registrarCriterioClasseServico } from './criterios-classe-servico.js';
 export {
   ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, dataCivilValida, lerDominio, planejarDominio, sincronizarDominio, textoSeguro,
   type LinhaVigente, type ResultadoDominio,

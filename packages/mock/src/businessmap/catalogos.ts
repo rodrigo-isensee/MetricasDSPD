@@ -118,7 +118,7 @@ export function pseudonimo(rng: () => number, total = 24): string {
   return `Pessoa ${String(1 + Math.floor(rng() * total)).padStart(2, '0')}`
 }
 
-/** Classe de serviço por tipo. Intangível (capacidade fixa) = Dívida técnica; sem SLE. */
+/** Classe de serviço por tipo (mock). Dívida técnica = Prioritário (pedido 105: Intangível deixou de ser classe). */
 export function classePorTipo(tipo: TipoCard, r: number): ClasseServico {
   switch (tipo) {
     case 'Incidente':
@@ -130,7 +130,7 @@ export function classePorTipo(tipo: TipoCard, r: number): ClasseServico {
     case 'Melhoria':
       return r < 0.08 ? 'Prazo fixo' : r < 0.1 ? 'Urgente' : 'Padrão'
     case 'Dívida técnica':
-      return r < 0.7 ? 'Intangível' : 'Padrão'
+      return r < 0.7 ? 'Prioritário' : 'Padrão'
     default:
       return 'Padrão'
   }
