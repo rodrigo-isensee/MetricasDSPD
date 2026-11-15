@@ -159,6 +159,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Sustentação (097 K-287): fim do ciclo de apelido anunciado na release 103; os ids antigos `totvs`, `senior` e `fluig` deixam de valer na URL e na API (o filtro aceita só o slug, como `sssc-totvs`), e link antigo com eles mostra a equipe como inválida e ignorada (#401).
 - Contrato (pedido 099, K-275): no O17, `porCausa` passa a anulável (nulo = causa raiz sem dado real) e entra `motivoCausaRaiz`; único consumidor é a web deste repositório (#406).
 - Migração 0037 (pedido 099, K-314 B1): `ref_alvo_prioridade` ganha `exibir_pa` e `exibir_r` (`min`, `h` ou `dia`), nulos nas linhas existentes ("vigência anterior ao K-314"), com CHECK de par preenchido e de "dia" só em tempo útil; `down` tira as restrições e as colunas. O contrato do S1 ganha `exibirEm` (aditivo, nulo na vigência anterior) (#408).
+- Contrato (pedido 105, E7.3, decisão do dono de 2026-11-15): `Intangível` sai do enum de classes de serviço (`CLASSES_SERVICO` passa a Urgente, Prioritário, Prazo fixo e Padrão) em T1, T2, T4, T6 e O6, sem convivência; o único consumidor é a web deste repositório.
+- Contrato (pedido 105): no O12, `vencidosCausaInterna` e `porResponsabilidade` (no total e por linha) passam a anuláveis (nulo = quadro sem o campo de responsabilidade, nunca 0) e entra `motivoResponsabilidade`; no O15, `contagem` de cada fase passa a anulável (nulo abaixo de 20 bugs) e entra `bugsSemFase`.
+- Contrato (pedido 105): O8 reescrito, com `porTamanho` anulável por tipo e `motivoPorTamanho` na resposta (obrigatório só quando nenhum tipo publica `porTamanho`; nenhum card tem tamanho declarado). S5 e S6 reescritos (D2): a faixa `Outro` entra em `motivos` (motivo preenchido sem par no domínio, separada de `naoInformado`) e entram `foraDoFluxo` e `notas`; o S3 real também traz a nota `s7-nao-igual-vazio`.
+- Migração 0038 (pedido 105): `dim_chamado.fluxo` (fluxo do PROC do chamado), nulo até a reprojeção; roda no `db:migrate` (#469). Veja "Ações do dono na base real depois da release 105".
 
 ### Mudanças de critério de cálculo
 - Classe de serviço pelas etiquetas do card (`105:classe-por-etiqueta`, `afeta` O6, O24, T1, T2, T4 e T6): Intangível deixa de ser classe e a classe vem da etiqueta, sem etiqueta = sem classe. O dono registra a versão com `bm:criterios-classe-servico <data da primeira coleta com etiquetas>`; a carga das etiquetas nos cards já coletados exige uma releitura (`bm:coleta carga-inicial --projetar`), porque a coleta incremental não relê card parado (pedido 105, E7.3).
@@ -186,6 +190,9 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Dependências: grupos `producao` (#256) e `dev-dependencies` (#255) do Dependabot; `body-parser` 1.20.9, `qs` 6.16.1 e `ip-address` 10.7.4 no lockfile (pedido 073, E8) (#242).
 - Forge 0.46.0 (pedido 102) (#374). Sem dependência nova.
 - Grupo `producao` do Dependabot (#411): `mariadb` 3.5.4 para 3.5.5 (driver do MySQL do Acelerato; correções de escape sob big5, gbk, sjis e cp932 e no `Pool.escape()`, e conexão com charset não suportado passa a ser recusada; o coletor não define charset e fica no utf8mb4 padrão) e `@tanstack/react-query` 5.105.3 para 5.107.1 (só a correção de laço de renderização com erro de seletor). No lockfile, `@babel/runtime` 7.29.13, `lilconfig` 3.1.5 e `ws` 8.22.2 (via `puppeteer-core`). Sem quebra de comportamento nas notas de versão e sem ação do dono.
+
+### Alterado
+- Classes de serviço (mudança de contrato em "Mudanças que quebram"): o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
 ### Ações do dono na base real depois da release 103
 
@@ -221,9 +228,6 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 5. `pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial --projetar`: releitura completa com projeção (etiquetas do O24, vínculos do O18, fase do O15). Anote a data em que terminar com sucesso.
 6. `pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico <data do passo 5>`: registra a versão `105:classe-por-etiqueta` (grava uma vez só).
 7. `pnpm run coleta ac`, como de costume, e depois a coleta incremental do BusinessMap.
-
-### Alterado
-- Classes de serviço: só Urgente, Prioritário, Prazo fixo e Padrão; Intangível deixa de ser classe (decisão do dono de 2026-11-15). O enum de T1, T2, T4, T6 e O6 troca `Intangível` por `Prioritário` sem convivência; o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
 ## [0.2.0] - 2026-10-29
 
