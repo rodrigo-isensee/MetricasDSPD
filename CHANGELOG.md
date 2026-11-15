@@ -5,6 +5,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- Métricas do fluxo: o filtro Setor recorta os números pelo quadro atual do card (O1, O2, O20, O21, T11, T14, varredura, EI e as demais por story e frente; projeto fora do recorte); parâmetro `setor` no fluxo e na `TENDENCIA_FLUXO`, com a sustentação recusando (pedido 097, K-335, L10b).
 - Métricas: O21 Fluxo reverso com dado real do BusinessMap (direção das transições e ciclo do O3), sem mudar contrato nem cálculo (pedido 099, lote A1, E3.219).
 - Sustentação: S9 e o desconto da S1 leem as esperas reais (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; `Pendente` sem motivo é "Não classificado"), com a versão de critério `criterio-2026-11-14-s1-s9-esperas-pendencia` (`afeta` S1 e S9); Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono (pedido 099, D5a).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
