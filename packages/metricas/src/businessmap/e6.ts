@@ -28,9 +28,11 @@ export function calcularE6(ctx: ContextoBM, f: FiltrosFluxo, ext?: ExtensaoTambe
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, 'projeto')
   const datas = ext?.datasProjeto ?? {}
-  const concluidos = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true }).filter(
-    (m) => m.entrega !== null && dentro(ctx, m.entrega, periodo),
-  )
+  const concluidos = selecionar(ctx, f, 'projeto', {
+    semEquipe: true,
+    semSetor: true,
+    semTipo: true,
+  }).filter((m) => m.entrega !== null && dentro(ctx, m.entrega, periodo))
   const comData = concluidos.flatMap((m) => {
     const d = datas[m.card.card_id]
     if (d === undefined) return []
