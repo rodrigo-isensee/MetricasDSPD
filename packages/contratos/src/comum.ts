@@ -76,7 +76,8 @@ export const TIPO_DA_CATEGORIA: Record<CategoriaTipoCard, TipoCard> = {
   produto: 'Trabalho de produto',
 }
 
-export const CLASSES_SERVICO = ['Urgente', 'Prazo fixo', 'Padrão', 'Intangível'] as const
+/** Pedido 105 (E7.3, decisão do dono de 2026-11-15 12:36): só estas quatro; Intangível deixou de ser classe. */
+export const CLASSES_SERVICO = ['Urgente', 'Prioritário', 'Prazo fixo', 'Padrão'] as const
 export type ClasseServico = (typeof CLASSES_SERVICO)[number]
 
 export const PRIORIDADES = ['P1', 'P2', 'P3', 'P4', 'P5'] as const

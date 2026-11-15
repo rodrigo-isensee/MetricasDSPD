@@ -171,9 +171,10 @@ describe('determinismo da base', () => {
   // extensões segue o de antes.
   // Regravados de novo (099 K-314 B1): exibir_primeiro_atendimento e exibir_restauracao em
   // config.alvos (base de dd6787b1 para 52378641, Acelerato de b047a163 para 930570e9).
+  // Regravada de novo (pedido 105): Intangível deixou de ser classe (base de 52378641 para 61ce1180; Acelerato e extensões iguais).
   it('os hashes da base, do Acelerato e das extensões seguem os de antes', () => {
     const base = mock.gerarBaseMock()
-    expect(mock.hashJson(base)).toBe('52378641')
+    expect(mock.hashJson(base)).toBe('61ce1180')
     expect(mock.hashJson(base.ac)).toBe('930570e9')
     expect(mock.hashJson(mock.gerarExtensaoTambemMock(base))).toBe('82329bc3')
   })
@@ -181,6 +182,6 @@ describe('determinismo da base', () => {
   it('a duração do boot é informada e a base do núcleo não altera a gerada (hash estável)', async () => {
     const { bootMs } = await new NucleoMock().iniciar()
     expect(bootMs).toBeGreaterThanOrEqual(0)
-    expect(mock.hashJson(mock.gerarBaseMock())).toBe('52378641')
+    expect(mock.hashJson(mock.gerarBaseMock())).toBe('61ce1180')
   })
 })

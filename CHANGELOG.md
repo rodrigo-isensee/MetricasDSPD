@@ -5,6 +5,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- O24 com dado real pelas etiquetas de classe de serviço: a coleta do BusinessMap lê o catálogo `GET /tags` e `expand=tag_ids` (só GET), reduz na fronteira para a classe (`classes_tag`; nome e id de etiqueta nunca chegam ao staging) e a projeção preenche `dim_card.classe_servico` (card sem etiqueta de classe fica sem classe, nunca Padrão; duas classes diferentes: sem classe, com a nota `classe_tag_empate`); o O24 entra no mapa real; versão de critério `105:classe-por-etiqueta` (`bm:criterios-classe-servico`, `afeta` O6, O24, T1, T2, T4 e T6); `classe_servico` deixa de aceitar campo customizado como fonte (pedido 105, E7.3).
+
 - Teste e2e B3-002 (O12): com o O12 sem dado real a faixa "Pede atenção" mostra a lacuna e não o link "Ver O12"; o teste deixa de supor o mock antigo e segue provando que `#o12` abre a Semanal com o O12 (pedido 105, E5.1).
 - O12 (Acordos e vencidos) pelo prazo nativo do card: o prazo com data e hora vira o dia civil de Brasília, exceto meia-noite UTC em ponto, que fica no dia gravado (decisão do dono de 2026-11-15, L13 opção c), só conta o card que passou pelo compromisso, descartado antes do prazo sai da conta e depois conta como vencido; a divisão por responsabilidade do atraso e "vencidos por causa interna" saem sem dado real com o motivo (nunca 0, meta não avaliada), com os textos do UX no cartão, no Resumo, no "Pede atenção" e na exportação; versão de critério `criterio-2026-11-14-o12-prazo-do-card`; O12 no mapa de origem real (pedido 099, C2b e C3).
 - O8: a divisão por tamanho de cada tipo olha só os entregues da janela medida, e não todos os cards da base; tipo com tamanho só fora da janela fica nulo, sem pôr tudo em "Sem tamanho" (pedido 099, K-359, A2, E3.319).
@@ -140,6 +142,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Migração 0037 (pedido 099, K-314 B1): `ref_alvo_prioridade` ganha `exibir_pa` e `exibir_r` (`min`, `h` ou `dia`), nulos nas linhas existentes ("vigência anterior ao K-314"), com CHECK de par preenchido e de "dia" só em tempo útil; `down` tira as restrições e as colunas. O contrato do S1 ganha `exibirEm` (aditivo, nulo na vigência anterior) (#408).
 
 ### Mudanças de critério de cálculo
+- Classe de serviço pelas etiquetas do card (`105:classe-por-etiqueta`, `afeta` O6, O24, T1, T2, T4 e T6): Intangível deixa de ser classe e a classe vem da etiqueta, sem etiqueta = sem classe. O dono registra a versão com `bm:criterios-classe-servico <data da primeira coleta com etiquetas>`; a carga das etiquetas nos cards já coletados exige uma releitura (`bm:coleta carga-inicial --projetar`), porque a coleta incremental não relê card parado (pedido 105, E7.3).
 - 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
 - 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
 - Pedido 065: versão de critério registrada em `core/criterios.ts` para BLOQUEADOS e O5 (#214).
@@ -182,6 +185,9 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 5. `pnpm run coleta ac --reconhecer-mudanca`, uma vez: nenhum PR da 104 muda os parâmetros comparados pela coleta; o passo vale para a mudança da 103 (D1a, K-305) ainda não reconhecida, e sem ele a coleta do Acelerato para com `parametros-mudaram`.
 6. Com a coleta parada, `pnpm --filter @metricas-dspd/server run ac:reprojetar-etapas`: refaz os intervalos por etapa com o dia de 8 h 48 e grava a versão `099:D-7-528` com a data do dia (K-308). Imprime só contagens; repetir é seguro.
 7. Coleta do BusinessMap e do Acelerato como de costume.
+
+### Alterado
+- Classes de serviço: só Urgente, Prioritário, Prazo fixo e Padrão; Intangível deixa de ser classe (decisão do dono de 2026-11-15). O enum de T1, T2, T4, T6 e O6 troca `Intangível` por `Prioritário` sem convivência; o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
 ## [0.2.0] - 2026-10-29
 

@@ -29,7 +29,7 @@ const t1 = {
       n: 20,
       estatistica: ok(20, { blocos, total: { p50: 30, p85: 50, p95: 70 }, fracaoFilaPct: 40 }),
     },
-    { classe: 'Intangível', n: 5, estatistica: insuf(5) },
+    { classe: 'Prioritário', n: 5, estatistica: insuf(5) },
   ],
 }
 
@@ -40,7 +40,7 @@ describe('T1 lead time por classe', () => {
     expect(await within(el).findByTestId('amostra-insuficiente-T1-urgente')).toHaveTextContent(
       'Amostra insuficiente (12 de 20 itens mínimos)',
     )
-    expect(within(el).getByTestId('amostra-insuficiente-T1-intangivel')).toBeInTheDocument()
+    expect(within(el).getByTestId('amostra-insuficiente-T1-prioritario')).toBeInTheDocument()
     expect(within(el).getByTestId('leitura-T1')).toHaveTextContent(
       'mediana do lead time é 38 dias úteis',
     )
@@ -78,7 +78,7 @@ const t2 = {
       estouros: { total: 0, porEtapa: [] },
     },
     {
-      classe: 'Intangível',
+      classe: 'Prioritário',
       sle: null,
       n: 30,
       dentroDoSle: null,
@@ -96,9 +96,7 @@ describe('T2 aderência ao SLE', () => {
     expect(padrao).toHaveTextContent('84,4%')
     expect(padrao).toHaveTextContent('Fora da meta')
     expect(within(el).getByTestId('t2-Prazo fixo')).toHaveTextContent('Dentro da meta')
-    expect(within(el).getByTestId('t2-Intangível')).toHaveTextContent(
-      'Sem SLE (cota fixa de capacidade)',
-    )
+    expect(within(el).getByTestId('t2-Prioritário')).toHaveTextContent('SLE: não publicado')
     expect(within(el).getByTestId('t2-Urgente')).toHaveTextContent('SLE: não publicado')
     expect(padrao).toHaveTextContent('publicado em 02/03/2026')
     const mapa = within(el).getByRole('region', { name: /Estouros do SLE/ })

@@ -300,20 +300,20 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
 });
 
 describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id -> coluna', () => {
-  const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'classe_servico'], ['502', 'sistema'], ['503', 'severidade']]) };
-  const LISTA = ['classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
+  const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'origem_demanda'], ['502', 'sistema'], ['503', 'severidade']]) };
+  const LISTA = ['sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
     'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade'] as const;
   const cf = (...c: { field_id: unknown; valor: unknown }[]) => card({ custom_fields: c });
 
   it('campo mapeado preenche a coluna; o que não está no mapa fica nulo e não gera nota', () => {
     const p = proj(cf({ field_id: '501', valor: 'expedita' }, { field_id: 502, valor: 'sis-a' }, { field_id: '999', valor: 'x' }), [], {}, COM_MAPA);
-    expect(p.dim).toMatchObject({ classe_servico: 'expedita', sistema: 'sis-a', severidade: null, area_solicitante: null });
+    expect(p.dim).toMatchObject({ origem_demanda: 'expedita', sistema: 'sis-a', severidade: null, area_solicitante: null });
     expect(p.notas).not.toContain('campo_fora_do_dominio');
   });
 
   it('desconhecido (e valor que não é texto) vira nulo com a nota, sem o valor', () => {
     const p = proj(cf({ field_id: '501', valor: 'desconhecido' }, { field_id: '502', valor: 7 }, { field_id: '503', valor: '' }), [], {}, COM_MAPA);
-    expect(p.dim.classe_servico).toBeNull();
+    expect(p.dim.origem_demanda).toBeNull();
     expect(p.dim.sistema).toBeNull();
     expect(p.dim.severidade).toBeNull();
     expect(p.notas.filter((n) => n === 'campo_fora_do_dominio')).toHaveLength(3);
@@ -344,7 +344,8 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     for (const c of LISTA) expect(sem.dim[c]).toBeNull();
     const antes = Object.fromEntries(Object.entries(sem.dim).filter(([k]) => !(LISTA as readonly string[]).includes(k)));
     expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
-      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada']);
+      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico']);
+    expect(sem.dim.classe_servico).toBeNull();
   });
 });
 

@@ -31,6 +31,7 @@
     "bm:ref-sync": "tsx src/entradas/ref-sync-businessmap.ts",
     "bm:ref-sync-apontamento": "tsx src/entradas/ref-sync-apontamento.ts",
     "bm:criterios-apontamento": "tsx src/entradas/criterios-apontamento.ts",
+    "bm:criterios-classe-servico": "tsx src/entradas/criterios-classe-servico.ts",
     "test:pg": "vitest run --project pg",
     "checksums": "tsx src/plataforma/db/checksums-cli.ts",
     "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts",

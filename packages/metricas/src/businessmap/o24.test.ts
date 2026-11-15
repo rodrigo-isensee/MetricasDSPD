@@ -106,8 +106,8 @@ describe('O24: ordem de chegada', () => {
     expect(r.custo.porTipo).toEqual([])
   })
 
-  it('Urgente, Prazo fixo e Intangível ficam fora, como quem passa na frente e como quem espera (CA-17)', () => {
-    for (const classe of ['Urgente', 'Prazo fixo', 'Intangível'] as const) {
+  it('Urgente, Prioritário e Prazo fixo ficam fora, como quem passa na frente e como quem espera (CA-17)', () => {
+    for (const classe of ['Urgente', 'Prioritário', 'Prazo fixo'] as const) {
       // o mais novo é da outra classe e passa na frente do Padrão antigo: não é início do O24, e o Padrão fica em ordem
       const passa = calcularO24(ctxDe([card('a', C1, I2), card('b', C2, I1, { classe })]), F)
       expect(passa.base.n, classe).toBe(1)
@@ -278,9 +278,9 @@ describe('O24: ordem de chegada', () => {
       expect(estados.some(([maior, st]) => !maior && st === 'insuficiente')).toBe(true)
     })
 
-    it('as classes Urgente, Prazo fixo e Intangível continuam na base, fora da fila do O24', () => {
+    it('as classes Urgente, Prioritário e Prazo fixo continuam na base, fora da fila do O24', () => {
       const classes = new Set(base.bm.cards.map((c) => c.classe_servico))
-      for (const c of ['Urgente', 'Prazo fixo', 'Intangível'] as const)
+      for (const c of ['Urgente', 'Prioritário', 'Prazo fixo'] as const)
         expect(classes.has(c)).toBe(true)
       const sem = gerarBaseBusinessMap(base.config, { omitir: ['ordem'] })
       const antes = new Map(sem.cards.map((c) => [c.card_id, c.criado_em]))

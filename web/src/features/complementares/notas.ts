@@ -236,7 +236,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoSeCalcula:
       'Só classe Padrão, mesmo tipo, na fila de cada equipe. Um início é "fora de ordem" se havia um pedido mais antigo ainda não iniciado. Espera: dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Percentual só com 20 inícios; P50 e P85 só com 20 ultrapassados no tipo.',
     comoLer:
-      'A ordem de chegada é a política da classe Padrão. Urgente, Prazo fixo e Intangível têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
+      'A ordem de chegada é a política da classe Padrão. Urgente, Prioritário e Prazo fixo têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
     meta: 'Sem meta numérica.',
     cuidados: 'Não aponta quem escolheu o que começar.',
   },

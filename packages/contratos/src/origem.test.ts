@@ -46,6 +46,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['O20'], // pedido 099 (lote A2)
         ...['O25'], // pedido 099 (lote A3)
+        ...['O24'], // pedido 105 (E7.3): classe de serviço pelas etiquetas
         ...['O21'], // pedido 099 (lote A1)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)

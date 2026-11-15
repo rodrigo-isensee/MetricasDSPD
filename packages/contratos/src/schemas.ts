@@ -389,7 +389,7 @@ export const resultadoT2 = z.object({
   classes: z.array(
     z.object({
       classe,
-      /** null = "SLE: não publicado" (Intangível ou amostra insuficiente). */
+      /** null = "SLE: não publicado" (classe sem SLE publicado ou amostra insuficiente). */
       sle: z.object({ diasUteis: z.number(), publicadoEm: iso }).nullable(),
       n: z.number(),
       dentroDoSle: taxaSchema.nullable(),

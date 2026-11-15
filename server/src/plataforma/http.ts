@@ -14,6 +14,8 @@ import { z } from 'zod';
 /** Padrões de caminho aceitos (`\d+` = id numérico). Acrescentar um caminho é decisão revista, não ajuste de passagem. */
 export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/(workspaces|boards|cardTypes|customFields|cards|users)$/,
+  // Pedido 105 (E7.3, ADR 0020 item 4i): catálogo de etiquetas, só GET e sem consulta; rótulo e id ficam em memória até a classe.
+  /^\/tags$/,
   /^\/boards\/\d+$/,
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
@@ -45,7 +47,8 @@ export const CONSULTA_PERMITIDA: Readonly<Record<string, RegExp>> = {
 
 /** Só em `/cards` (listagem): estado do card, `fields` e `expand` com valores de uma lista fechada (spike F1 e F3, plano 052). */
 // E2.83: `co_owner_ids` (ids de co-responsável, só em memória, ADR 0020 4b) só existe como `expand` na API v2; `watcher_ids` e o resto, não.
-export const EXPAND_CARDS = /^(custom_fields|transitions|block_times|linked_cards|co_owner_ids)(,(custom_fields|transitions|block_times|linked_cards|co_owner_ids)){0,4}$/;
+// Pedido 105 (E7.3): `tag_ids` (ids das etiquetas do card) só em memória, para a classe de serviço (ADR 0020 item 4i).
+export const EXPAND_CARDS = /^(custom_fields|transitions|block_times|linked_cards|co_owner_ids|tag_ids)(,(custom_fields|transitions|block_times|linked_cards|co_owner_ids|tag_ids)){0,4}$/;
 export const CONSULTA_CARDS: Readonly<Record<string, RegExp>> = {
   state: /^(active|archived|discarded)$/,
   expand: EXPAND_CARDS,

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { registroCard, registroRevisao, registroTransicao, serializar, type DominiosCamposCustomizados } from './allow-list.js';
+import { registroCard, registroRevisao, registroTransicao, serializar, type DominiosCamposCustomizados, type MapaTagsDeClasse } from './allow-list.js';
 
 export type ResultadoStaging = 'inserido' | 'ja_existente';
 
@@ -11,7 +11,7 @@ export type ResultadoStaging = 'inserido' | 'ja_existente';
  * Responsáveis NÃO passam por aqui (4b): ver `responsaveis.ts`.
  */
 export type EntradaStgCard = {
-  idOrigem: string; card: unknown; dominios?: DominiosCamposCustomizados; coletaId: number; agora: Date;
+  idOrigem: string; card: unknown; dominios?: DominiosCamposCustomizados; /** 4i: catálogo etiqueta -> classe; ausente = não lido */ mapaTags?: MapaTagsDeClasse; coletaId: number; agora: Date;
   quadroId: string; arquivado: boolean; excluidoDetectado: boolean;
 };
 
@@ -25,8 +25,8 @@ export type EntradaStgCard = {
 export async function gravarStgCard(
   db: Consultavel, entrada: EntradaStgCard, S: Esquemas = esquemasDoAmbiente(),
 ): Promise<ResultadoStaging> {
-  const { idOrigem, card, dominios, coletaId, agora, quadroId, arquivado, excluidoDetectado } = entrada;
-  const payload = serializar(registroCard(card, dominios));
+  const { idOrigem, card, dominios, mapaTags, coletaId, agora, quadroId, arquivado, excluidoDetectado } = entrada;
+  const payload = serializar(registroCard(card, dominios, mapaTags));
   const sha256 = createHash('sha256').update(payload).digest();
   for (let tentativa = 0; tentativa < 5; tentativa++) {
     const r = await db.query<{ stg_sk: string; payload_sha256: Buffer }>(

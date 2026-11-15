@@ -324,10 +324,10 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     const semMapa = bruto('Alta');
     await grava(semMapa);
     await projetar();
-    expect(await dim(String(semMapa.card_id))).toMatchObject({ classe_servico: null, sistema: null });
+    expect(await dim(String(semMapa.card_id))).toMatchObject({ area_solicitante: null, sistema: null });
     const vAntes = await n('dim_card_versao', 'card_id = $1', [String(semMapa.card_id)]);
 
-    const ligacoes: [string, string][] = [['91201', 'classe_servico'], ['91202', 'sistema']];
+    const ligacoes: [string, string][] = [['91201', 'area_solicitante'], ['91202', 'sistema']];
     for (const [codigo, coluna] of ligacoes) {
       await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('campo_customizado', $1, '2020-01-01', $2, 0)`, [codigo, coluna]);
     }
@@ -336,9 +336,9 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       await grava(desc, new Date(relogio.getTime() + 1000));
       await projetar();
       // o card antigo ganha as colunas e uma versão nova (atributo mudou); o novo tem o desconhecido como nulo
-      expect(await dim(String(semMapa.card_id))).toMatchObject({ classe_servico: 'alta', sistema: 'sis-1' });
+      expect(await dim(String(semMapa.card_id))).toMatchObject({ area_solicitante: 'alta', sistema: 'sis-1' });
       expect(await n('dim_card_versao', 'card_id = $1', [String(semMapa.card_id)])).toBe(vAntes + 1);
-      expect(await dim(String(desc.card_id))).toMatchObject({ classe_servico: null, sistema: 'sis-1' });
+      expect(await dim(String(desc.card_id))).toMatchObject({ area_solicitante: null, sistema: 'sis-1' });
       const r = await projetar();
       expect(r.versoes).toBe(0);
       expect(r.notas.campo_fora_do_dominio).toBeGreaterThanOrEqual(1);

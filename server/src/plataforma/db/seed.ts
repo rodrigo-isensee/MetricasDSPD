@@ -98,7 +98,7 @@ export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquema
   const refLimiteWip = Object.entries(cfg.limite_wip_fluxo).map(([equipe, limite]): Linha => ({
     equipe, vigente_de: vigenteDe, limite,
   }));
-  // SLE sem prazo (Intangível) não tem linha: a coluna é NOT NULL e a leitura devolve a classe sem SLE.
+  // SLE sem prazo não tem linha: a coluna é NOT NULL e a leitura devolve a classe sem SLE.
   const refSle = cfg.sle.flatMap((x): Linha[] =>
     x.dias_uteis === null ? [] : [{ equipe: '*', classe_servico: x.classe, vigente_de: x.publicado_em, percentil: 85, dias_uteis: x.dias_uteis }]);
   const refAlocacao = cfg.alocacao.map((a): Linha => ({

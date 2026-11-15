@@ -102,7 +102,7 @@ export interface AlocacaoAcordada {
 
 export interface SlePublicado {
   classe: ClasseServico
-  dias_uteis: number | null // null = sem SLE (Intangível)
+  dias_uteis: number | null // null = sem SLE publicado para a classe
   publicado_em: string
 }
 

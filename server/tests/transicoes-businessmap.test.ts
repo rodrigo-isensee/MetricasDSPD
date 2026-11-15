@@ -30,12 +30,12 @@ describe('E2.46: histórico de colunas pela listagem (expand=transitions)', () =
   it('pede expand=transitions (sem block_times) e grava cada transição em stg_revision pela allow-list, sem chamada por card', async () => {
     const m = await montar([card(1, [transicao(7, '2026-10-01 10:00:00', '2026-10-02 09:00:00', { user_id: 5, author: MARCA, comment: MARCA }), transicao(8, '2026-10-02 09:00:00', null)])]);
     const r = await coletarCards(m.deps, carga);
-    expect(EXPAND_COLETA).toBe('custom_fields,linked_cards,transitions,co_owner_ids');
+    expect(EXPAND_COLETA).toBe('custom_fields,linked_cards,transitions,co_owner_ids,tag_ids');
     expect(EXPAND_COLETA).not.toContain('block_times');
     const pedidos = m.servidor.pedidos;
     expect(pedidos.every((p) => p.metodo === 'GET')).toBe(true);
     expect(pedidos.some((p) => /revisions|block_times/.test(p.caminho + p.consulta.toString()))).toBe(false);
-    expect([...new Set(pedidos.map((p) => p.caminho))]).toEqual(['/cards']);
+    expect([...new Set(pedidos.map((p) => p.caminho))]).toEqual(['/tags', '/cards']);
     expect(m.banco.estado.revisoes).toHaveLength(2);
     const p0 = JSON.parse(m.banco.estado.revisoes[0]!.payload) as Record<string, unknown>;
     expect(p0).toEqual({ board_id: 35, card_id: '1', column_id: 7, end: '2026-10-02 09:00:00', lane_id: 3, section: 3, start: '2026-10-01 10:00:00', workflow_id: 10 });

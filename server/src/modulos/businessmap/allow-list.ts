@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { CLASSES_SERVICO, type ClasseServico } from '@metricas-dspd/contratos';
 
 /**
  * Allow-list do BusinessMap na fronteira (ADR 0020, itens 4a, 4c, 4d, 4f). Cada entidade tem UMA constante de campos
@@ -60,9 +61,12 @@ function reduzirVinculos(v: unknown): { card_id: unknown; link_type: unknown }[]
 /** Fields do quadro que nunca entram no mapa, nem pelo arquivo nem pelo `ref_dominio`: 36 (ID Acelerato, H-16) e 42 (Responsável CR, pessoa). */
 export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
 
-/** Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração). */
+/**
+ * Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração).
+ * Pedido 105 (E7.3): `classe_servico` saiu daqui; a classe vem só das etiquetas do card (ADR 0020 4i), uma fonte por coluna.
+ */
 export const COLUNAS_LISTA = [
-  'classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
+  'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
   'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade',
 ] as const;
 
@@ -90,8 +94,53 @@ export function reduzirCamposCustomizados(
   return saida;
 }
 
+/**
+ * 4i (ADR 0020, pedido 105 E7.3): etiquetas do card só como CLASSE de serviço. `tag_ids` e o catálogo `GET /tags` (id e rótulo) existem só
+ * em memória da coleta; ao staging vai apenas `classes_tag` (códigos de `CLASSES_SERVICO`). Rótulo, id de etiqueta, contagem e cor nunca entram.
+ */
+export type MapaTagsDeClasse = ReadonlyMap<string, ClasseServico>;
+
+/** Forma comparável do rótulo: sem acento, sem caixa e sem espaço, hífen ou sublinhado ("Prazo fixo", "PrazoFixo" e "prazo-fixo" são a mesma). */
+const formaDoRotulo = (r: string): string => r.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const CLASSE_PELA_FORMA = new Map<string, ClasseServico>(CLASSES_SERVICO.map((c) => [formaDoRotulo(c), c]));
+
+/** Classe de um rótulo de etiqueta (decisão do dono de 2026-11-15: Urgente, Prioritario, PrazoFixo, Padrao e variações de grafia); `undefined` = não é etiqueta de classe. */
+export const classeDoRotuloDeTag = (rotulo: unknown): ClasseServico | undefined =>
+  typeof rotulo === 'string' && rotulo.length <= 120 ? CLASSE_PELA_FORMA.get(formaDoRotulo(rotulo)) : undefined;
+
+const idDeTag = (v: unknown): string | null =>
+  typeof v === 'number' && Number.isInteger(v) && v > 0 ? String(v) : typeof v === 'string' && /^\d{1,10}$/.test(v) ? String(Number(v)) : null;
+
+/** `tag_id` -> classe, a partir da lista de `GET /tags` (cada item com `tag_id` e `label`). Etiqueta que não é de classe é descartada na hora (nem id, nem rótulo ficam). */
+export function mapaDeTagsDeClasse(tags: readonly unknown[]): MapaTagsDeClasse {
+  const mapa = new Map<string, ClasseServico>();
+  for (const t of tags) {
+    if (!ehObjeto(t)) continue;
+    const id = idDeTag(t.tag_id);
+    const classe = classeDoRotuloDeTag(t.label);
+    if (id !== null && classe !== undefined) mapa.set(id, classe);
+  }
+  return mapa;
+}
+
+/**
+ * 4i: classes das etiquetas do card, sem repetição e na ordem de `CLASSES_SERVICO` (hash estável). `tagIds` que não é lista = `undefined`
+ * ("não lido": a chave não entra). Elemento que não é id (número ou texto de dígitos) ou objeto com `tag_id` é descartado; id fora do mapa
+ * é descartado sem guardar id, rótulo nem quantidade. Lista vazia = lido, sem etiqueta de classe.
+ */
+export function reduzirTagsDeClasse(tagIds: unknown, mapa: MapaTagsDeClasse): ClasseServico[] | undefined {
+  if (!Array.isArray(tagIds)) return undefined;
+  const achadas = new Set<ClasseServico>();
+  for (const t of tagIds) {
+    const id = idDeTag(ehObjeto(t) ? t.tag_id : t);
+    const classe = id === null ? undefined : mapa.get(id);
+    if (classe !== undefined) achadas.add(classe);
+  }
+  return CLASSES_SERVICO.filter((c) => achadas.has(c));
+}
+
 /** 4a: registro do card para a `stg_card`. Ordem das chaves = ordem da constante (hash estável). */
-export function registroCard(card: unknown, dominios: DominiosCamposCustomizados = new Map()): Objeto {
+export function registroCard(card: unknown, dominios: DominiosCamposCustomizados = new Map(), mapaTags?: MapaTagsDeClasse): Objeto {
   const entrada = ehObjeto(card) ? card : {};
   const r: Objeto = {};
   copiarEscalares(entrada, CAMPOS_CARD, r);
@@ -107,6 +156,9 @@ export function registroCard(card: unknown, dominios: DominiosCamposCustomizados
   if (vinculos) r.linked_cards = vinculos;
   const campos = reduzirCamposCustomizados(entrada.custom_fields, dominios);
   if (campos) r.custom_fields = campos;
+  // 4i: sem mapa (catálogo não lido) a chave não entra e o hash do card não muda
+  const classes = mapaTags === undefined ? undefined : reduzirTagsDeClasse(entrada.tag_ids, mapaTags);
+  if (classes) r.classes_tag = classes;
   return r;
 }
 

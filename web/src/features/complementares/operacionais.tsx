@@ -673,8 +673,9 @@ export function CartaoO24({ filtros }: P) {
               </AvisoInfo>
             )}
             <Leia>
-              A ordem de chegada é a política da classe Padrão. Urgente, Prazo fixo e Intangível têm
-              regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro.
+              A ordem de chegada é a política da classe Padrão. Urgente, Prioritário e Prazo fixo
+              têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um
+              erro.
             </Leia>
             <LeiaJunto id="o24" />
           </div>
