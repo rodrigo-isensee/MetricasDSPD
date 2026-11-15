@@ -368,8 +368,8 @@ describe('O15 fase de detecção com dado real (CA-1 a CA-11)', () => {
     )
     await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
     const linhas = within(el).getAllByRole('row').slice(1)
-    expect(linhas[1].textContent).toContain('—')
-    expect(linhas[1].textContent).not.toMatch(/\b0\b/)
+    expect(linhas[1]?.textContent).toContain('—')
+    expect(linhas[1]?.textContent).not.toMatch(/\b0\b/)
   })
   it('CA-8: singular com uma fase nula', async () => {
     const el = await abrir(mk([25, null, 22, 20, 21], 90, 0))
