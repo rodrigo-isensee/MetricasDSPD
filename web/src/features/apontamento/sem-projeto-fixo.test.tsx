@@ -120,9 +120,7 @@ describe('097 K-341: linha sem projeto fixa embaixo do AP-PROJETO', () => {
       projetoIds: [ID_SEM_PROJETO],
     }
     const cartao = await renderizar(resposta)
-    expect(within(cartao).getByTestId('projetos-demais')).not.toHaveTextContent(
-      'Horas incompletas',
-    )
+    expect(within(cartao).getByTestId('projetos-demais')).not.toHaveTextContent('Horas incompletas')
     expect(within(cartao).getByTestId('selos-projeto-incompleto')).toHaveTextContent(
       'Sem iniciativa',
     )
