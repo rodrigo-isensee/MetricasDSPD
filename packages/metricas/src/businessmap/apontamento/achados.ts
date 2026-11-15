@@ -1,4 +1,8 @@
-import type { AchadoApontamento, RespostaApontamento } from '@metricas-dspd/contratos'
+import {
+  ID_SEM_PROJETO,
+  type AchadoApontamento,
+  type RespostaApontamento,
+} from '@metricas-dspd/contratos'
 import { ordenarNeutro } from '../../core/ordenar'
 import { horas } from './comum'
 import type { LimiaresAchado } from './tipos'
@@ -58,11 +62,18 @@ export function gerarAchados(
       rotuloRef: null,
     })
 
-  const topo = ordenarNeutro(distribuicao.porProjeto, (l) => [-l.segundos, l.rotulo, l.id])[0]
+  // Decisão 1a do dono (pedido 097, K-324, 2026-11-14): a linha sem projeto nunca é "o projeto que concentra mais horas"; a participação
+  // segue sobre o total de horas e as horas sem projeto saem à parte em `horasSemProjeto` (só quando a linha existe).
+  const comProjeto = distribuicao.porProjeto.filter((l) => l.id !== ID_SEM_PROJETO)
+  const semProjeto = distribuicao.porProjeto.find((l) => l.id === ID_SEM_PROJETO)
+  const topo = ordenarNeutro(comProjeto, (l) => [-l.segundos, l.rotulo, l.id])[0]
   if (topo?.participacao.status === 'ok' && topo.participacao.pct >= lim.concentracaoPct)
     achados.push({
       codigo: 'concentracao-em-projeto',
-      valores: { pct: topo.participacao.pct },
+      valores: {
+        pct: topo.participacao.pct,
+        ...(semProjeto ? { horasSemProjeto: horas(semProjeto.segundos) } : {}),
+      },
       rotuloRef: topo.rotulo,
     })
 
