@@ -17,6 +17,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O5',
   'O6',
   'O7',
+  // Pedido 099 (A4, Q-099-4): o O8 publica o tempo em execução real (o mesmo do O3); a divisão por tamanho segue sem dado real até o campo do WS1.
+  'O8',
   'O9',
   'O10',
   'O11',
@@ -62,6 +64,13 @@ export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
   'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
 
+/**
+ * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
+ * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ */
+export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
+  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
+
 export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
 export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por prioridade'
@@ -80,7 +89,6 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
  * prioridade (`ref_alvo_prioridade`, sem fonte na base real); a EI_SUST não consta do plano 056, então não se calcula por inferência.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
-  O8: MOTIVO_AGUARDANDO_CAMPO,
   O12: MOTIVO_AGUARDANDO_CAMPO,
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,

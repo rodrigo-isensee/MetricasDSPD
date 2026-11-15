@@ -161,6 +161,15 @@ export const VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL: VersaoCriterio = {
   afeta: ['O17'],
 }
 
+/** Pedido 099 (A4, Q-099-4): o O8 passou de "Sem dado real" inteiro para o tempo em execução real; a divisão por tamanho segue sem dado real até o campo do WS1. */
+export const VERSAO_CRITERIO_O8_TEMPO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-14-o8-tempo-real',
+  data: '2026-11-14',
+  descricao:
+    'O tempo em execução das demandas passou a ser calculado com o dado real do BusinessMap (antes o cartão saía inteiro como "Sem dado real"); a divisão por tamanho segue "sem dado real" até o campo de tamanho no quadro (WS1)',
+  afeta: ['O8'],
+}
+
 /** Pedido 099 (D9): o S12 entrou no mapa real só com o volume; a exceção de SLA por registro posterior sai nula (sem fonte), antes ficava no mock. */
 export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-12-s12-volume-real',
@@ -197,6 +206,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
+  VERSAO_CRITERIO_O8_TEMPO_REAL,
   VERSAO_CRITERIO_S12_VOLUME_REAL,
   VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
 ]
