@@ -28,7 +28,7 @@ export const faixaE9 = (idadeDiasUteis: number): string =>
  */
 export function calcularE9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE9 {
   const janela = janelaMovel(ctx.hojeIso, JANELA_POR_GRANULARIDADE.projeto)
-  const projetos = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true })
+  const projetos = selecionar(ctx, f, 'projeto', { semEquipe: true, semSetor: true, semTipo: true })
     .filter((m) => m.inicio === null && m.entrega === null && !m.arquivadoSemDesfecho)
     .map((m) => {
       const idadeDiasUteis = r2(du(ctx, horasUteisEntre(m.entrada, ctx.hoje, ctx.cal)))
