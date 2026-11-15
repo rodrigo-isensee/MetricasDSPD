@@ -6,6 +6,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Adicionado
 - Painel: O20 Fluxo cumulativo com dado real da base do BusinessMap, sem mudar o cálculo nem o contrato, e O20 na medição de custo do `perf-api` (pedido 099, lote A2).
+- Desempenho: a consulta do papel da coluna no índice do BusinessMap passa a usar dois níveis de mapa (quadro, coluna) e a varredura da vida resolve o papel de entrega uma vez por quadro e coluna; o resultado não muda. O O20 a frio na escala 3 do mock (15744 cards, 128012 transições) caiu de 203 a 329 ms para cerca de 110 a 140 ms em processo, abaixo dos 150 ms que liberam a entrada de origem real (ADR 0003, A1; ADR 0026, P3).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
 - Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1; migração 0037) (#408).
 - Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).

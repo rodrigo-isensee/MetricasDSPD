@@ -106,8 +106,17 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       else filhos.set(c.card_pai, [c.card_id])
     }
   }
-  const colMap = new Map(base.colunas.map((c) => [`${c.quadro_id}|${c.coluna}`, c]))
-  const papelDe = (q: string, c: string) => colMap.get(`${q}|${c}`)
+  // Dois níveis (quadro, coluna): sem concatenar chave de texto a cada consulta (quente nas varreduras).
+  const colMap = new Map<string, Map<string, DimColuna>>()
+  for (const c of base.colunas) {
+    let doQuadro = colMap.get(c.quadro_id)
+    if (!doQuadro) {
+      doQuadro = new Map()
+      colMap.set(c.quadro_id, doQuadro)
+    }
+    doQuadro.set(c.coluna, c)
+  }
+  const papelDe = (q: string, c: string) => colMap.get(q)?.get(c)
 
   const raiz = (c: DimCard, g: Granularidade): string | null => {
     let atual: DimCard | undefined = c
