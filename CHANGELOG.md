@@ -11,6 +11,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Sustentação: S9 e o desconto da S1 leem as esperas reais (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; `Pendente` sem motivo é "Não classificado"), com a versão de critério `criterio-2026-11-14-s1-s9-esperas-pendencia` (`afeta` S1 e S9); Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono (pedido 099, D5a).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
 - Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1; migração 0037) (#408).
+- Sustentação: o S1 mostra cada prazo na unidade e no relógio do PROC (15 min corridos, 4 h corridas, 2 dias úteis…), com alvo, mediana, P85, P95 e média da célula na mesma unidade e o dia pelo dia útil do resultado; célula sem unidade registrada sai em horas com o rótulo do relógio (pedido 099, K-314, F1).
 - Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).
 - Aba Apontamento: dia atípico acima de 10 h (pedido 067) (#215) e aviso de coleta parcial (pedido 069, lote M1-a) (#219).
 - Sustentação: S8 conta só incidentes com resposta (pedido 066) (#216).
@@ -55,6 +56,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Painéis: Worker do mock rejeita o pedido quando o `postMessage` lança e recusa com erro claro o pedido feito antes do `iniciar`, sem travar a tela (pedido 037, K-126, A1 e A2).
 - API: todo erro 5xx e a resposta fora do schema passam a logar só tipo e código, em todas as rotas e sem exceção por caminho, nunca a mensagem crua do banco, que pode trazer valor de linha (ADR 0020, item 6; K-347); a constante `ROTA_WEBHOOK_BM` some.
 - Webhook do BusinessMap: erro 5xx do receptor passa a logar só tipo e código, nunca a mensagem crua do banco, que pode trazer valor do payload (ADR 0020, item 6, B-4; K-086); testes de não vazamento por marcador no coletor e no webhook.
 - Aba Apontamento: o resumo do gráfico de horas por projeto recolhido deixa de contar a linha sem projeto como projeto, mantendo as horas dela no total (pedido 097, K-324, parte B).
