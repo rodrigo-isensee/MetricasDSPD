@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ac-reprojetar-fluxo
-commit: ab43b72a12b1ae2bbd5ec8d62be368ee77414f61
+commit: ceb868773503b7c08d4831237e4beafedb5367fa
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
@@ -43,3 +43,7 @@ O item "tech-lead do ac:reprojetar-fluxo (01bcc5c6)" é este parecer; o comando,
 Delta lido: `git diff 01bcc5c6 ab43b72a` (CHANGELOG, `server/tests/acelerato-reprojecao-fluxo.test.ts`, este parecer). A1 resolvido: 7 testes com banco falso cobrem nulo ganha fluxo, múltiplo e sem etapa seguem nulos, lote vazio, cursor, ROLLBACK, guarda de seed e `ctl_coleta` com tarefa e versão; o falso confere o texto do `UPDATE` (`d.fluxo IS NULL`) e do cursor. A2 resolvido: o CHANGELOG avisa que o "última carga" fica com a hora da reprojeção até a próxima coleta. A3 e A4 seguem recomendados (A4: o PR diz o motivo do teto). CI do head: run 43759194037 concluído com sucesso, job `testes` verde (cobertura 100%).
 
 **Parecer final: aprovado** no head ab43b72a.
+
+## Revalidação (E6.25, head ceb86877)
+
+Delta lido por `forge-check parecer delta`: `ab43b72a..ceb86877`, sem o que veio da base. Fora o merge da develop (PR 467, que mudou a assinatura para `fluxoDoChamado(idOrigem, etapas, c)`, decisão "A" do dono: cada chamado conta uma vez), o commit `ceb86877` muda uma linha, `reprojecao-fluxo.ts:38`, que passa a chamar `fluxoDoChamado(id, etapasDe.get(id) ?? [], c)`. Confere com a assinatura de `normalizador.ts:135`; sem guarda nova nem mutante novo. CI do head (run 43761287119): testes, banco, build, segurança, openapi e imagem verdes. **Parecer final: aprovado** no head ceb86877.
