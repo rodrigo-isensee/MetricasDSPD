@@ -260,7 +260,7 @@ describe('ramos dos componentes complementares', () => {
     expect(within(el).queryByTestId('cobertura-S12')).not.toBeInTheDocument()
     expect(within(el).queryByRole('table', { name: /Reincidência por sistema/ })).toBeNull()
     expect(el).toHaveTextContent('é o sistema com mais chamados no período')
-    expect(el).toHaveTextContent('Exceção de SLA por registro posterior')
+    expect(el).toHaveTextContent('Chamados abertos no sistema depois do atendimento')
   })
 
   it('S12 sem meses e com exceção de SLA nula: a nota fixa aparece e o texto da reincidência não diz que nada é publicado', async () => {
@@ -275,7 +275,7 @@ describe('ramos dos componentes complementares', () => {
     renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     const el = await screen.findByTestId('metrica-S12')
     expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
-      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+      'Chamados abertos no sistema depois do atendimento: sem dado (hoje essa marca não vem do Acelerato).',
     )
     const aviso = within(el).getByTestId('campo-sem-fonte-S12')
     expect(aviso).toHaveTextContent('O volume por sistema acima é dado real')
@@ -292,7 +292,7 @@ describe('ramos dos componentes complementares', () => {
     renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     const el = await screen.findByTestId('metrica-S12')
     expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
-      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+      'Chamados abertos no sistema depois do atendimento: sem dado (hoje essa marca não vem do Acelerato).',
     )
   })
 
