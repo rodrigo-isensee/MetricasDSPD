@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-registro-posterior
 branch: fix/105-s1-registro-posterior
-commit: f78a493bd068412dbf2bc1476363121b887b16b1
+commit: 085b5f0b
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
@@ -25,3 +25,15 @@ Pedido 105-melhorias-15-11. Diff de 157b50e0 a f78a493b: 12 arquivos, 27 adiçõ
 - Tamanho: 49 linhas de código e teste, abaixo do teto de 150.
 
 ## Achados
+- A1 (recomendado) web/src/features/sustentacao/components/CartaoS1.tsx:183 · a linha do S1 diz "(de fora do cálculo)" em vez da frase única "ficam de fora do cálculo"; o sentido bate com `s1.ts:74`, só a redação difere. Sem bloqueio.
+
+## Revalidação do delta 085b5f0b (texto, UX)
+Delta f78a493b..085b5f0b lido por `git diff` em web, packages e e2e: só texto e asserções. Confere com o código:
+- "abertos depois do atendimento ficam de fora do cálculo": `indice.ts:95` (`apuravel: fechado && !excecao_sla_registro_posterior`), `s1.ts:36` e `:74` (contagem por diferença) e `s2.ts:33` e `:61` (só apuráveis). Vale para S1, S2, S12 e visão.
+- "nenhum chamado sai do cálculo por esse motivo": a marca não existe no modelo do Acelerato, então a exceção fica 0; bate.
+- S12 "sem dado (hoje essa marca não vem do Acelerato)": `leituraS12` cai nesse texto só com `excecaoSla` nula (`s12.ts:91-94`); testes cobrem nula e presente (10%), nunca 0%.
+- S2 "fechados dentro do prazo ÷ fechados": `s2.ts:51` divide `REALIZADO_NO_PRAZO` pelos fechados apuráveis; a simplificação não altera o sentido.
+- Contrato: `origem.ts` muda só o valor de duas strings, chaves e schemas intactos; sem mudança de cálculo.
+- Testes e e2e de API acompanham as frases novas sem afrouxar asserção; o delta é só texto.
+
+Parecer mantido: aprovado para 085b5f0b.
