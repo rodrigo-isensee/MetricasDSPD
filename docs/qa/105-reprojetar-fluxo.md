@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ac-reprojetar-fluxo
-commit: ab43b72a12b1ae2bbd5ec8d62be368ee77414f61
+commit: ceb868773503b7c08d4831237e4beafedb5367fa
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -41,3 +41,9 @@ Diff `0358e417..ab43b72a` fora de `docs/`: 8 arquivos (comando `reprojetar-fluxo
 - Base real (5144 chamados, todos nulos): não rodei contra o banco real; a prova é o pg do CI e é ação do dono depois da release, descrita no CHANGELOG ("Ações do dono depois da release 105"). Recomendo conferir as contagens da linha de `ctl_coleta` depois da execução.
 
 Sem achados: nenhum bloqueante nem recomendado.
+
+## Revalidação (head ceb86877)
+resultado: aprovado, sem achado. `forge-check parecer delta` (ab43b72a..4d206f5b) lista no domínio só `CHANGELOG.md` e `reprojecao-fluxo.ts:38`: a chamada passa a `fluxoDoChamado(id, etapas, c)`, a assinatura nova trazida pelo PR 467 (cada chamado conta uma vez, decisão "A" do dono). O resto do delta veio da develop. Nenhuma obrigação do plano mudou; a tabela critério, teste e resultado vale como está.
+- CI do head: run 43761287119, sha ceb868773503b7c08d4831237e4beafedb5367fa, conclusão success; `testes`, `banco`, `build`, `openapi`, `seguranca`, `imagem`, `rapida`, `filtro` success (`e2e` e `perf` skipped pelo filtro). O `build` compila o TypeScript, então a assinatura nova fecha com o chamador.
+- Local: `vitest run acelerato-reprojecao-fluxo.test.ts acelerato-projetor.test.ts reprojetar-fluxo-ac-entrada.test.ts`: 3 arquivos, 25 testes passaram.
+- Vermelho e mutação: sem teste novo neste delta (ajuste de chamada); valem os do parecer anterior.
