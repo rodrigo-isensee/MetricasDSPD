@@ -560,6 +560,15 @@
         ],
         "additionalProperties": false
       }
+    },
+    "notas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "primeiro-atendimento-inclui-automatica"
+        ]
+      }
     }
   },
   "required": [

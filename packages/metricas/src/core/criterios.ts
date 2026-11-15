@@ -205,6 +205,18 @@ export const VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA: VersaoCriterio = {
   afeta: ['S1', 'S9'],
 }
 
+/**
+ * Pedido 099 (D4, Q-099-5b = A): o S1 entrou no mapa real. O primeiro atendimento passa a ser o primeiro comentário da tabela do Acelerato
+ * (inclui resposta automática) e a restauração segue `data_pronto`; antes o S1 não tinha dado real publicado.
+ */
+export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-s1-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O S1 passou a ser calculado com o dado real do Acelerato: o primeiro atendimento é o primeiro comentário do chamado (inclui resposta automática) e a restauração vai até a data de pronto',
+  afeta: ['S1'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -223,6 +235,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_S12_VOLUME_REAL,
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
+  VERSAO_CRITERIO_S1_DADO_REAL,
 ]
 
 /**

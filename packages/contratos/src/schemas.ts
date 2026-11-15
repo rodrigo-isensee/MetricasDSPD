@@ -33,7 +33,12 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaS12IdSchema, notaSustentacaoIdSchema } from './origem'
+import {
+  notaCartaoIdSchema,
+  notaS12IdSchema,
+  notaS1IdSchema,
+  notaSustentacaoIdSchema,
+} from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -641,6 +646,8 @@ export const resultadoS1 = z.object({
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),
   ),
+  /** Pedido 099 (D4, Q-099-5b = A): nota do primeiro atendimento na base real (os textos vivem em `origem.ts`). */
+  notas: z.array(notaS1IdSchema).optional(),
 })
 
 const celulaS2 = z.object({ taxa: taxaSchema, statusMeta: statusMetaSchema })
