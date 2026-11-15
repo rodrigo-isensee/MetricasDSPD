@@ -79,6 +79,20 @@ describe('projetarAcelerato (F2)', () => {
     expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');
   });
 
+  it('Q-099-5b: primeiro_atendimento_em segue para a versão e para a vigente, com o instante do primeiro comentário (nulo sem comentário)', async () => {
+    const d = montar({ pendentes: [[stg(10, '1', { data_primeiro_comentario: '2026-09-01 09:20:00' }), stg(11, '2', { data_primeiro_comentario: null })]] });
+    await projetarAcelerato(d.pool, S, () => AGORA);
+    for (const trecho of ['INSERT INTO dspd_ac.dim_chamado_versao', 'INSERT INTO dspd_ac.dim_chamado ']) {
+      const q = com(d, trecho)[0]!;
+      const colunas = /\(([^)]*)\) VALUES/.exec(q.texto)![1]!.split(',').map((x) => x.trim());
+      const i = colunas.indexOf('primeiro_atendimento_em');
+      expect(i).toBeGreaterThan(0);
+      expect(q.valores).toContain('2026-09-01T12:20:00.000Z');
+      expect(q.valores.length % colunas.length).toBe(0);
+      expect(q.valores[colunas.length + i]).toBeNull();
+    }
+  });
+
   it('chamado aberto, excluído ou fora do recorte não gera intervalo por etapa; a vigente é a última versão do lote', async () => {
     const d = montar({
       pendentes: [[stg(20, '3', { data_pronto: null }), stg(21, '4', { lixeira: true }), stg(22, '5', {}, { fora: true }), stg(23, '5', {}, { ausente: true })]],
