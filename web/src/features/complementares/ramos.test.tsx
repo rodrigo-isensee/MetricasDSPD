@@ -308,6 +308,7 @@ describe('ramos dos componentes complementares', () => {
     expect(el).toHaveTextContent('Por tamanho declarado')
     expect(el).toHaveTextContent('Mediana')
     expect(el).toHaveTextContent('P85')
+    expect(within(el).queryByTestId('nota-O8-sem-tamanho')).not.toBeInTheDocument()
   })
 
   it('O8 com porTamanho nulo e sem motivo (contrato permite) não quebra: o gráfico por tamanho sai sem barras, sem aviso', async () => {
@@ -329,6 +330,54 @@ describe('ramos dos componentes complementares', () => {
     expect(el).toHaveTextContent('Mediana')
     expect(within(el).queryByTestId('estado-sem-dado-real-O8-por-tamanho')).not.toBeInTheDocument()
     expect(el).not.toHaveTextContent('Por tamanho declarado')
+  })
+
+  const NOTA_O8 = 'nota-O8-sem-tamanho'
+  const comTamanhoExceto = (nulos: number[]) =>
+    new FonteAjustada({
+      O8: (r: Qualquer) => {
+        r.motivoPorTamanho = null
+        r.tipos.forEach((t: Qualquer, i: number) => {
+          t.estatistica = {
+            status: 'ok',
+            n: 30,
+            valor: { mediana: 4, media: 5, p85: 9, acimaP85AnteriorPct: null },
+            janela: r.base.janela,
+          }
+          t.porTamanho = nulos.includes(i) ? null : [{ tamanho: 'P', mediana: 2 }]
+        })
+      },
+    })
+
+  it('O8 com um tipo sem tamanho: ele sai do gráfico, fica na tabela e entra na nota em parágrafo (CA-1 a CA-4, CA-7)', async () => {
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([0]) })
+    const el = await screen.findByTestId('metrica-O8')
+    const nota = await within(el).findByTestId(NOTA_O8)
+    expect(nota.tagName).toBe('P')
+    expect(nota.closest('svg')).toBeNull()
+    expect(nota).toHaveTextContent(
+      /^Sem divisão por tamanho: .+\. Nenhum card concluído desse tipo, no período, tem tamanho declarado no quadro\. A mediana e o P85 dele estão na tabela acima\.$/,
+    )
+    expect(nota.textContent!.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+    const tipo = nota.textContent!.match(/tamanho: (.+?)\./)![1]
+    expect(el.querySelector('table')?.textContent).toContain(tipo)
+    expect(el.querySelector('svg')?.textContent ?? '').not.toContain(tipo)
+  })
+
+  it('O8 com dois tipos sem tamanho lista os nomes no plural, na ordem da tabela (CA-2)', async () => {
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([0, 1]) })
+    const nota = await screen.findByTestId(NOTA_O8)
+    expect(nota.textContent).toMatch(
+      /^Sem divisão por tamanho: [^,]+, [^,]+?\. Nenhum card concluído desses tipos/,
+    )
+    expect(nota.textContent!.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+  })
+
+  it('O8 com todos os tipos com tamanho não mostra a nota (CA-6)', async () => {
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([]) })
+    const el = await screen.findByTestId('metrica-O8')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    expect(within(el).queryByTestId(NOTA_O8)).not.toBeInTheDocument()
   })
 
   it('O17 não diz "mais frequente" quando todas as causas têm 0 incidentes', async () => {

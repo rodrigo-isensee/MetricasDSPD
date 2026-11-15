@@ -130,6 +130,8 @@ export function CartaoO8({ filtros }: P) {
   )
   const faltam = (d?.tipos ?? []).filter((t) => t.estatistica.status === 'insuficiente')
   const primeiro = ok[0]
+  const comTamanho = ok.filter((t) => t.porTamanho != null)
+  const semTamanho = ok.filter((t) => t.porTamanho == null)
   return (
     <CartaoComplementar
       id="O8"
@@ -191,7 +193,7 @@ export function CartaoO8({ filtros }: P) {
               descricao="Mediana do tempo em execução por tipo e tamanho declarado"
               unidade="dias úteis"
               formatar={(v) => fmtNumero(v, 1)}
-              categorias={ok.map((t) => ({
+              categorias={(comTamanho.length > 0 ? comTamanho : ok).map((t) => ({
                 rotulo: t.tipo,
                 valores: Object.fromEntries(
                   (t.porTamanho ?? []).map((p) => [p.tamanho, p.mediana]),
@@ -203,6 +205,14 @@ export function CartaoO8({ filtros }: P) {
                 cor: ([1, 2, 3, 4] as const)[i] as 1,
               }))}
             />
+          )}
+          {d?.motivoPorTamanho == null && comTamanho.length > 0 && semTamanho.length > 0 && (
+            <p className="text-sm text-texto" data-testid="nota-O8-sem-tamanho">
+              Sem divisão por tamanho: {semTamanho.map((t) => t.tipo).join(', ')}. Nenhum card
+              concluído {semTamanho.length === 1 ? 'desse tipo' : 'desses tipos'}, no período, tem
+              tamanho declarado no quadro. A mediana e o P85{' '}
+              {semTamanho.length === 1 ? 'dele estão' : 'deles estão'} na tabela acima.
+            </p>
           )}
           <Leia>Nunca a média isolada: leia ao lado do tempo de ciclo (O3) e da vazão (O4).</Leia>
         </div>
