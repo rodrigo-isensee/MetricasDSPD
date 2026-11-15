@@ -3,8 +3,8 @@ tipo: revisao-ux
 pedido: 105-melhorias-15-11
 etapa: E7.28
 branch: feature/105-o15-fase-deteccao
-commit: d7059234
-parecer: aprovado com ressalvas
+commit: e0250669
+parecer: aprovado
 revisor: ux-designer
 data: 2026-11-15
 ---
@@ -45,4 +45,21 @@ Onde: `useMetrica.ts:66` e `vazio.ts:12`: `ehVazio` é verdadeiro com `base.n ==
 **Baixo 2. Texto longo e repetido.** A segunda frase da nota (três motivos) é estática e aparece em todo cartão com bug fora; aceitável, mas se o dono quiser a quebra por motivo o contrato precisa trazê-la (já registrado na especificação, perguntas abertas).
 
 ## Pendente para o usuário
-Nenhuma validação de interface nova além do achado médio 1.
+Nenhuma validação de interface nova.
+
+## Revalidação com K-365 (E7.39, cabeça e0250669)
+
+Delta revisado: `vazio.ts`, `CartaoO15.tsx`, `semanal.test.tsx`. Tudo `lido`; nada `medido`.
+
+| Item | Resultado | Evidência (`lido`) |
+|---|---|---|
+| Médio 1 (bugs fora somem com `base.n` = 0) | Resolvido | `vazio.ts:13`: O15 só é vazio com `base.n` = 0 e `bugsSemFase` = 0; com bugs fora, o corpo aparece com a nota `o15-fora` (`CartaoO15.tsx:65-71`), seguindo a recomendação da revisão anterior |
+| CA-5, segunda frase com `base.n` = 0 | Confere | "Percentuais indisponíveis: 0 de 20 bugs mínimos. Nenhum bug com fase de detecção no período." (`:34,39-40`); teste `semanal.test.tsx:363-372` |
+| Singular "1 de 1 bug" (spec, seção 1) | Confere | `textoFora` usa `bug`/`bugs` conforme M (`:24-28`); teste `:366-368` |
+| Vazio sem bug fora | Preservado | teste `:373-379`: segue em `estado-vazio-O15`, sem a nota |
+| CA-7, taxas ok com todas as fases nulas | Confere (Baixo 1 resolvido) | teste `:380-388` |
+
+Sem regressão: a nota continua parágrafo de texto (WCAG 1.4.1), nada novo é interativo, sem pessoa, ranking, meta ou comparação entre times. Sobra o Baixo 2 (texto estático longo), aceito, sem ação.
+
+## Parecer final
+parecer: aprovado. Sem achado crítico, alto ou médio em aberto; o médio 1 foi corrigido e testado.
