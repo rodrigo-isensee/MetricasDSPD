@@ -80,7 +80,7 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
       valor: o10.acimaDe180.time,
       de: o10.time.n,
     })
-  if (o12.vencidosCausaInterna > 0)
+  if (o12.vencidosCausaInterna !== null && o12.vencidosCausaInterna > 0)
     add({
       nivel: 'operacional',
       metrica: 'O12',

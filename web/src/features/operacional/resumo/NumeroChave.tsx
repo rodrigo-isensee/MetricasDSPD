@@ -95,7 +95,17 @@ export function NumeroChave({
   } else {
     corpo = (
       <div className="flex flex-col gap-1">
-        {modelo.valor === null ? (
+        {modelo.semDadoReal !== undefined ? (
+          <span
+            className="flex flex-col gap-1 text-sm text-texto-2"
+            data-testid={`numero-${id}-sem-dado-real-parte`}
+          >
+            <span className="flex items-center gap-1">
+              <Icone nome="info" /> Sem dado real
+            </span>
+            <span>{modelo.semDadoReal}</span>
+          </span>
+        ) : modelo.valor === null ? (
           <span className="text-sm" data-testid={`numero-${id}-insuficiente`}>
             {modelo.insuficiente}
           </span>

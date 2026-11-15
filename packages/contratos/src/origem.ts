@@ -50,6 +50,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S1',
   // Pedido 099 (D9): S12 real só com o volume por sistema; reincidência e exceção de SLA por registro posterior saem sem fonte (nulas, com nota).
   'S12',
+  // Pedido 099 (O12, E3.223): acordos e vencidos pelo prazo nativo do card; a parte de responsabilidade do atraso sai nula com o motivo (`RESPONSABILIDADE_ATRASO_COM_FONTE`).
+  'O12',
   // Pedido 099 (D5a): S9 real pelas esperas decididas (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; Pendente como não classificado); a previsão de retorno segue sem data na base (n = 0, insuficiente).
   'S9',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
@@ -67,6 +69,18 @@ export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
   'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
 
+/**
+ * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
+ * Frase em minúsculas sem ponto final, completada pelo componente.
+ */
+export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
+  'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (o prazo do card diz quando venceu, não de quem foi o atraso)'
+/**
+ * Pedido 099 (O12): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['O12', 'VISAO_GERAL']`, quando o campo de
+ * responsabilidade do atraso existir no quadro e vier preenchido da fonte. Falso: o O12 publica `porResponsabilidade` e `vencidosCausaInterna`
+ * `null` com o motivo, e `statusMeta = 'sem-referencia'`; nunca 0.
+ */
+export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
 /**
  * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
  * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
@@ -89,12 +103,11 @@ export const BLOQUEIOS_COM_DADO_REAL = true
 export const AJUSTE_PRIORIDADE_COM_FONTE = false
 
 /**
- * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
+ * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 e O26 seguem mock até a F6b, sem motivo próprio.
  * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); a EI_SUST não consta do plano
  * 056, então não se calcula por inferência.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
-  O12: MOTIVO_AGUARDANDO_CAMPO,
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
@@ -105,7 +118,7 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
-/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O19 a O26, FL2, FL3, Visão geral e a tendência da sustentação). */
+/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, O26, FL2, FL3, Visão geral e a tendência da sustentação). */
 export const MOTIVO_FONTE_REAL_NAO_DEFINIDA = 'fonte real ainda não definida'
 
 /**
