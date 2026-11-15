@@ -36,6 +36,13 @@ export const CRITERIOS_APONTAMENTO: readonly CriterioApontamento[] = [
     motivo: 'Decisão do dono (pedido 089, 2026-11-10): D2 = A (execução técnica, com comentário que o dicionário não reconheceu, não é falha de qualidade) e D3 = A (rótulo "Sem comentário"). Afeta o flag sem-vinculo, o subgrupo e o achado de não classificado.',
     metricas: [METRICA_ACHADOS_APONTAMENTO, METRICA_DICIONARIO_APONTAMENTO],
   },
+  {
+    // Pedido 097 (K-324, decisão 1a do dono de 2026-11-14). A vigência é a da implantação (a entrada recebe a data), nunca a da decisão.
+    referencia: '097:concentracao-sem-linha-sem-projeto',
+    descricao: 'Achado de concentração da aba Apontamento: a linha sem projeto ("Sem iniciativa") deixa de poder ser o projeto que mais concentra horas; o achado pode apontar outro projeto e traz à parte as horas sem projeto',
+    motivo: 'Decisão do dono (pedido 097, 2026-11-14, opção 1a): sem projeto não é projeto. Afeta só o achado concentracao-em-projeto; a participação segue sobre o total de horas.',
+    metricas: [METRICA_ACHADOS_APONTAMENTO],
+  },
 ];
 
 /** Registra as que faltam, com a data civil `vigenteDesde` (AAAA-MM-DD). Devolve as referências gravadas agora. */
