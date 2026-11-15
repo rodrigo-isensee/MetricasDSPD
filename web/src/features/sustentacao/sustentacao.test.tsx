@@ -156,7 +156,7 @@ describe('painel Sustentação', () => {
       'Amostra insuficiente (10 de 20 itens mínimos)',
     )
     expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(
-      /\d+ chamados com exceção de registro posterior \(fora/,
+      /\d+ chamados registrados depois do atendimento \(fora desta apuração/,
     )
     const tabela = within(mttr).getByTestId('tabela-S1-MTTR-detalhe')
     expect(within(tabela).getByRole('row', { name: /^P2/ })).toHaveTextContent(
