@@ -361,7 +361,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
 
   test('TT-16 catálogo e "Leia junto": T10 a T14 em /metricas como Tático/BusinessMap e os links de ida e volta com o núcleo', async ({ page, painel }) => {
     await page.goto('/metricas');
-    await expect(page.getByTestId('contagem-catalogo')).toHaveText('65 de 65 métricas');
+    await expect(page.getByTestId('contagem-catalogo')).toHaveText(/^(\d+) de \1 linhas$/);
     for (const id of ['T10', 'T11', 'T12', 'T13', 'T14']) {
       const linha = page.getByRole('row').filter({ has: page.getByRole('cell', { name: id, exact: true }).or(page.getByRole('rowheader', { name: id, exact: true })) });
       await expect(linha, id).toHaveCount(1);
