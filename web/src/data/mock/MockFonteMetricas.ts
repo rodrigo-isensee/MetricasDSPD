@@ -68,7 +68,17 @@ class ClienteWorker {
     if (this.falha) return Promise.reject(this.falha)
     return new Promise((resolver, rejeitar) => {
       this.pendentes.set(pedido.id, { resolver, rejeitar })
-      this.worker.postMessage(pedido)
+      try {
+        this.worker.postMessage(pedido)
+      } catch (e) {
+        // postMessage pode lançar (ex.: DataCloneError): sem isto o pedido ficaria pendente para sempre.
+        this.pendentes.delete(pedido.id)
+        rejeitar(
+          new Error(
+            `Falha ao enviar ao Worker do mock: ${e instanceof Error || e instanceof DOMException ? e.message : String(e)}`,
+          ),
+        )
+      }
     })
   }
 }
