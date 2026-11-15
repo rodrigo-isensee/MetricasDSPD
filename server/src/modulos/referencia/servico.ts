@@ -27,7 +27,7 @@ export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Dat
       // L6 do 097 (E4): só as categorias que têm story na base, na ordem de TIPOS_FILTRO ("Incidente" some: nenhuma story cai nele).
       tipos: TIPOS_FILTRO.filter((t) => t !== 'Incidente' && tiposPresentes.has(t)).map((t) => ({ id: TIPO_ID[t], nome: t })),
       sistemas: (await lerSistemasBM(db, S)).map((s) => ({ id: slug(s.id), nome: s.nome })),
-      // L10a do 097 (E7): setores do dicionário versionado (nome sem sobrenome), id = slug do nome; vazio até a P-097-9.
+      // L10a do 097 (E7): setores do dicionário versionado (nome sem sobrenome), id = slug do nome; 6 quadros no dicionário, o 35 fora até a P-097-10; a lista só existe após o bm:ref-sync.
       setores: setoresPorSlug(await lerSetoresBM(db, S)),
       historico: { inicio: inicio ?? fim, fim },
     };
