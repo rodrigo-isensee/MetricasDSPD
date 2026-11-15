@@ -35,7 +35,7 @@ export async function reprojetarFluxoAcelerato(pool: PoolLike, S: Esquemas, agor
       if (lote.rows.length === 0) break;
       const ids = lote.rows.map((x) => x.chamado_id);
       const etapasDe = await etapasDoStaging(db, S, ids);
-      const novos = ids.map((id) => ({ id, fluxo: fluxoDoChamado(etapasDe.get(id) ?? [], c) })).filter((x): x is { id: string; fluxo: string } => x.fluxo !== null);
+      const novos = ids.map((id) => ({ id, fluxo: fluxoDoChamado(id, etapasDe.get(id) ?? [], c) })).filter((x): x is { id: string; fluxo: string } => x.fluxo !== null);
       if (novos.length > 0) {
         const r = await db.query(
           `UPDATE ${S.ac}.dim_chamado d SET fluxo = v.fluxo FROM unnest($1::text[], $2::text[]) AS v(chamado_id, fluxo) WHERE d.chamado_id = v.chamado_id AND d.fluxo IS NULL`,
