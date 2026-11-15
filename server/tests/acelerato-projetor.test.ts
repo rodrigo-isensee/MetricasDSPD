@@ -148,20 +148,35 @@ describe('fluxo do chamado (pedido 099, D1 1a)', () => {
   const e = (w: string | null | undefined) => ({ descricao: 'Pendente', tempo_sla_segundos: 60, quantidade_vezes: 1, ...(w === undefined ? {} : { descricao_workflow: w }) });
   it('um só workflow, repetido em várias etapas, é o fluxo; sem contagem', () => {
     const c = new Contadores();
-    expect(fluxoDoChamado([e('SSVO'), e('SSVO'), e(null)], c)).toBe('SSVO');
+    expect(fluxoDoChamado('1', [e('SSVO'), e('SSVO'), e(null)], c)).toBe('SSVO');
     expect(c.entradas()).toEqual([]);
   });
   it('sem etapa, ou sem workflow nelas, é nulo e não conta fluxo_multiplo', () => {
     const c = new Contadores();
-    expect(fluxoDoChamado([], c)).toBeNull();
-    expect(fluxoDoChamado([e(null), e(undefined), e('')], c)).toBeNull();
+    expect(fluxoDoChamado('1', [], c)).toBeNull();
+    expect(fluxoDoChamado('1', [e(null), e(undefined), e('')], c)).toBeNull();
     expect(c.entradas()).toEqual([]);
   });
   it('mais de um workflow distinto é nulo com a contagem fluxo_multiplo, sem escolher nenhum (nem o da primeira etapa)', () => {
     const c = new Contadores();
-    expect(fluxoDoChamado([e('SSVO'), e('PROC')], c)).toBeNull();
-    expect(fluxoDoChamado([e('PROC'), e('SSVO'), e('PROC')], c)).toBeNull();
+    expect(fluxoDoChamado('1', [e('SSVO'), e('PROC')], c)).toBeNull();
+    expect(fluxoDoChamado('2', [e('PROC'), e('SSVO'), e('PROC')], c)).toBeNull();
     expect(c.entradas()).toEqual([['fluxo_multiplo', 2]]);
+  });
+  it('K-354 (decisão A): duas versões do mesmo chamado contam fluxo_multiplo uma vez só', () => {
+    const c = new Contadores();
+    fluxoDoChamado('1', [e('SSVO'), e('PROC')], c);
+    fluxoDoChamado('1', [e('SSVO'), e('PROC')], c);
+    expect(c.entradas()).toEqual([['fluxo_multiplo', 1]]);
+  });
+  it('K-354 (decisão A): lote com duas versões do mesmo chamado conta fluxo_multiplo e sem_agente 1 cada', async () => {
+    const d = montar({
+      pendentes: [[stg(10, '1', { com_agente: false }), stg(11, '1', { com_agente: false })]],
+      etapas: [etapaStg('1', '5', 'Pendente', 60, 'SSVO'), etapaStg('1', '6', 'Em Atendimento N2', 60, 'PROC')],
+    });
+    const r = await projetarAcelerato(d.pool, S, () => AGORA);
+    expect(r).toMatchObject({ versoes: 2, chamados: 1 });
+    expect(r.contagens).toMatchObject({ fluxo_multiplo: 1, sem_agente: 1 });
   });
   it('o projetor grava o fluxo só em dim_chamado (a versão não ganha a coluna) e conta o chamado de dois workflows', async () => {
     const d = montar({

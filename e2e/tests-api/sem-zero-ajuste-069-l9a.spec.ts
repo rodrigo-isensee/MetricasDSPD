@@ -8,7 +8,7 @@ import { semParteDeAjusteDePrioridade } from '../../server/src/modulos/metricas/
 // (`semParteDeAjusteDePrioridade`, importada sem cópia). O portão `real && !AJUSTE_PRIORIDADE_COM_FONTE` do servico.ts fica
 // com o teste pg (painel-real-f6), que roda na CI. Sem banco.
 const NOTA_S3 = 'Ajustes manuais de prioridade: sem dado real'
-const NOTA_S2 = 'Exceção de SLA por registro posterior sem fonte'
+const NOTA_S2 = 'Chamados abertos no sistema depois do atendimento ficam de fora do cálculo.'
 
 async function aplicarRegraDoServidor(
   page: import('@playwright/test').Page,
