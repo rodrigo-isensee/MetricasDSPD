@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/099-d2-motivos-sust
-commit: 03ad3399be37e984bcd5f6abab0663485907f06a
+commit: 8c494dcb06261bfd3550c2f6f5f95b42af531a9a
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
@@ -30,10 +30,20 @@ data: 2026-11-15
 - A3 (recomendado) server/src/modulos/metricas/parte-sem-dado.ts:43 · a volta para `comNotaExcecaoSlaSemFonte` em `semParteDeAjusteDePrioridade` não tem mais chamador (a lista é só `['S3']`), e `comNotaMotivos` (linha 55) repete `comNotaSust`. Trocar por `return resultado` e juntar as duas num auxiliar genérico.
 - A4 (recomendado) web/src/features/sustentacao/notas.ts:48 · "o último, ainda que pequeno, merece leitura própria" falava do quinto motivo da lista fechada. Com `Outro` no domínio publicado e a ordem por volume, "o último" deixou de apontar um motivo definido. Nomear o motivo ou tirar a frase (com o UX).
 
+- A5 (recomendado) docs/api/metricas.md:470 · a frase "O S3 não ganhou nota de 'Não = vazio' ... fica como pergunta" contradiz a linha 469 e o código (o S3 real agora traz `s7-nao-igual-vazio`); e a linha 472 ainda cita "N chamados de outros fluxos ficaram fora", texto trocado por U1. Atualizar as duas.
+
+## Revalidação no head 8c494dcb (delta 03ad3399..8c494dcb)
+Lido só o `forge-check parecer delta` (13 arquivos no domínio; QA e UX fora dele). CI do head verde (citado, não rerrodado).
+- **A1, A3, A4: resolvidos.** A1 pelo texto do U1 em `comuns.tsx` ("é de outro fluxo, não tem fluxo ou tem mais de um", singular e plural, teste atualizado com o texto inteiro). A3: `semParteDeAjusteDePrioridade` devolve `resultado` para o que não é S3 e `comNota<T>` genérico substituiu as duas cópias; os testes passaram a chamar `comNotaExcecaoSlaSemFonte` direto. A4: a frase "o último" saiu de `notas.ts` do S5.
+- **A2 resolvido (S3 com a nota).** `comNotaAjusteNaoIgualVazio` vale para S3 e S7 e não se aplica ao S3 sem dado real (nota `ajuste-prioridade-sem-dado-real`, ajustes `null`). Mutante: tirei a guarda `includes('ajuste-prioridade-sem-dado-real')`; o teste "D2: as notas de S5 e S7 não se repetem..." falhou (morto); restaurado, passa. O teste de L1 afirma `notas == ['s7-nao-igual-vazio']` no S3 com campo na fonte.
+- **Mudança incompatível do S3: aceito.** O enum de `notas` do S3 ganha `s7-nao-igual-vazio` (schema, `openapi.json`, contrato S3 e fotografia regenerados e coerentes); o web monta o texto de `TEXTO_NOTA_MOTIVOS` (`origem.ts:232`), então a tela não quebra com o id novo. Sem convivência, como no D2 e sem consumidor externo.
+- **U4 não aplicado: confere.** `s6.ts:44` calcula `taxaContorno = taxa(contorno, xs.length)`, e `xs` inclui `Outro` e `Não informado` no denominador; o texto "aparecem separados" é o verdadeiro, e o do UX ("não entram na taxa") seria falso.
+- Pontos menores, sem bloquear: o literal `'s7-nao-igual-vazio'` em `schemas.ts:678` repete o id que `origem.ts` já tem (o enum do S3 poderia usar `NOTA_MOTIVOS_IDS` filtrado); vale juntar quando o S3 for tocado de novo. Tamanho do delta: 51 linhas de código e teste (dentro da orientação).
+
 ## Riscos e pendências fora do review
 - Depois do merge, o dono roda o `ac:ref-sync` (para carregar `fluxo_proc`) e a reprojeção que preenche `dim_chamado.fluxo` (migração 0038, coluna nascida nula). Com a lista carregada e a coluna ainda nula, S5, S6 e S7 publicam `n = 0` e todos os chamados em `foraDoFluxo`: o resultado fica insuficiente, sem dado errado. O CHANGELOG e o PR devem dizer a ordem.
 - O D2 está empilhado no D1b (PR 452): entra na develop só depois dele.
 - Parecer do QA (E6.4) corre em paralelo e não é alterado aqui.
 
 ## Veredito
-Aprovado no head `03ad3399`. As três decisões do dono estão no código como foram ditas, o recorte de fluxo para sem dado quando a lista falta, e as regras invioláveis se mantêm. As duas primeiras escolhas do autor estão certas; a terceira deixa uma ressalva de fora (A2, recomendado). A tela pede revisão de UX.
+Aprovado no head `8c494dcb` (revalidado; A1 a A4 resolvidos, A5 recomendado de documentação). Antes, no head `03ad3399`: As três decisões do dono estão no código como foram ditas, o recorte de fluxo para sem dado quando a lista falta, e as regras invioláveis se mantêm. As duas primeiras escolhas do autor estão certas; a terceira deixa uma ressalva de fora (A2, recomendado). A tela pede revisão de UX.
