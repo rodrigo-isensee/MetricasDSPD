@@ -4,6 +4,9 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ## [Não publicado]
 
+### Corrigido
+- Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
+
 ### Adicionado
 - Acelerato: domínios `cpe_*` (valores literais da B6-d em UTF-8, cada grafia como entrada, sem de-para nem vigência; `cpe_tipo_prioridade` sem valores) e `etapa_fluxo` (114 chaves da B5-a na ordem aprovada, AP-099-1) em `acelerato-dominio.json`, com nova versão de critério; o dono roda `ac:ref-sync` e `--reconhecer-mudanca` depois do merge (pedido 099, D1 1b e 1c).
 - Teste do destino do item O12 da faixa de atenção: código `O12` e `#o12` quando há vencidos por causa interna (pedido 105, K-362, E3.1).
