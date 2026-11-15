@@ -6,6 +6,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Adicionado
 - Recomendados do O21, O16 e O8 resolvidos: comentário de origem e linha da API sem "mock" para o O21, testes `.pg` do O16 e do O8 sem laço vazio e com o ramo conferido, contrato do O8 exige o motivo só quando nenhum tipo publica `porTamanho`; o cálculo não muda (pedido 105, K-348, K-352, K-353).
+- Teste e2e B3-002 (O12): com o O12 sem dado real a faixa "Pede atenção" mostra a lacuna e não o link "Ver O12"; o teste deixa de supor o mock antigo e segue provando que `#o12` abre a Semanal com o O12 (pedido 105, E5.1).
+- O12 (Acordos e vencidos) pelo prazo nativo do card: o prazo com data e hora vira o dia civil de Brasília, exceto meia-noite UTC em ponto, que fica no dia gravado (decisão do dono de 2026-11-15, L13 opção c), só conta o card que passou pelo compromisso, descartado antes do prazo sai da conta e depois conta como vencido; a divisão por responsabilidade do atraso e "vencidos por causa interna" saem sem dado real com o motivo (nunca 0, meta não avaliada), com os textos do UX no cartão, no Resumo, no "Pede atenção" e na exportação; versão de critério `criterio-2026-11-14-o12-prazo-do-card`; O12 no mapa de origem real (pedido 099, C2b e C3).
 - O8: a divisão por tamanho de cada tipo olha só os entregues da janela medida, e não todos os cards da base; tipo com tamanho só fora da janela fica nulo, sem pôr tudo em "Sem tamanho" (pedido 099, K-359, A2, E3.319).
 - O8: a divisão por tamanho é decidida por tipo de demanda; o tipo sem tamanho declarado fica com `porTamanho` nulo, nunca inteiro em "Sem tamanho" (pedido 099, L24 a, K-359).
 - Testes do O20: três mutantes vivos mortos (menor ordem da faixa entre quadros, soma das transições do período e papel de entrega por quadro), predicado único `colunaDaEquipe` para as colunas da equipe e a herança de papel e tipo do primeiro quadro documentada em `docs/api/metricas.md`; o cálculo não muda (pedido 099, K-349, E3.306).
@@ -70,6 +72,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Painéis: no cartão recolhido em erro, o foco volta ao Expandir depois do Tentar de novo, e cada Tentar de novo leva o título do cartão no nome acessível (pedido 097, K-344, B-2 e B-3).
 - Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
 - Testes: o P5 da propriedade de ordem (`regras.property.test.ts`) embaralha e reindexa só a fonte que a métrica lê, em vez de reconstruir os três contextos a cada rodada; mesma propriedade e fronteiras, sem subir o `testTimeout` (pedido 099, K-356, E3.293).
 - Testes da aba Apontamento (web): os auxiliares `pronto`/`esperar` passam a esperar todos os cartões saírem do esqueleto, não só o KPI, e o teste que lia o mapa diário logo depois do KPI deixa de falhar sob carga; sem mudança de código de produção (pedido 037, K-355).

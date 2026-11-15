@@ -398,7 +398,7 @@ test.describe('Visão Resumo', () => {
       ['p85', 'Ver O3 na Semanal', 'dias úteis'],
       ['vazao', 'Ver O4 na Semanal', 'itens'],
       ['acima-p95', 'Ver O2 na Diária', 'itens'],
-      ['vencidos-internos', 'Ver O12 na Semanal', 'itens'],
+      ['vencidos-internos', 'Ver O12 na Semanal', 'acordos'],
       ['s2', 'Ver S2 na Sustentação', 'prioridades avaliadas'],
       ['s1', 'Ver S1 na Sustentação', 'prioridades avaliadas'],
       ['volume', 'Ver S3 na Sustentação', 'chamados abertos'],
