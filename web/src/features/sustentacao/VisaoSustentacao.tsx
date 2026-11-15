@@ -63,7 +63,8 @@ export default function VisaoSustentacao({ filtros }: { filtros: FiltrosSustenta
       >
         Chamados da organização DSPD Sustentação, tipo DSPD - SSSC, equipes SSSC TOTVS, SENIOR e
         FLUIG, excluídos os removidos. Tempos e aderência usam somente chamados fechados. Chamados
-        com exceção de SLA por registro posterior ficam fora destas apurações.
+        abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem
+        do Acelerato, então nenhum chamado sai do cálculo por esse motivo.
       </p>
       <Atencao filtros={filtros} />
       <IndiceDeSecoes secoes={SECOES} />
