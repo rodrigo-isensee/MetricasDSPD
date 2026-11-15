@@ -61,6 +61,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Testes: o P5 da propriedade de ordem (`regras.property.test.ts`) embaralha e reindexa só a fonte que a métrica lê, em vez de reconstruir os três contextos a cada rodada; mesma propriedade e fronteiras, sem subir o `testTimeout` (pedido 099, K-356, E3.293).
 - Painéis: Worker do mock rejeita o pedido quando o `postMessage` lança e recusa com erro claro o pedido feito antes do `iniciar`, sem travar a tela (pedido 037, K-126, A1 e A2).
 - API: todo erro 5xx e a resposta fora do schema passam a logar só tipo e código, em todas as rotas e sem exceção por caminho, nunca a mensagem crua do banco, que pode trazer valor de linha (ADR 0020, item 6; K-347); a constante `ROTA_WEBHOOK_BM` some.
 - Webhook do BusinessMap: erro 5xx do receptor passa a logar só tipo e código, nunca a mensagem crua do banco, que pode trazer valor do payload (ADR 0020, item 6, B-4; K-086); testes de não vazamento por marcador no coletor e no webhook.
