@@ -20,7 +20,7 @@ Código testado: 5ec7d8e8, diff contra origin/feature/099-d1a-fluxo-chamado (CI 
 Aprovado. Conferi o JSON contra `resposta-b6d-utf8.md` e `resposta-b5a.md` por script (sem valor a mais nem a menos, grafia exata, ordem de primeira aparição). Rodei `dominio-acelerato.test.ts` (35 passam, `--maxWorkers=2`) e 8 mutantes por cópia, restaurando o original. Um mutante sobrevive: o rótulo de `etapa_fluxo` não é fixado por teste (A1, baixo, vira cartão).
 
 ## Achados
-- A1 (recomendado) server/tests/dominio-acelerato.test.ts:277 · rótulo de etapa_fluxo não é conferido contra a B5-a: trocar "Encerrado" por "Fechado" na chave 3316 passa a suíte (mutante M8 sobrevive). Fixar chave→rótulo, ao menos por amostra.
+- A1 (recomendado) server/tests/dominio-acelerato.test.ts:281 · rótulo de etapa_fluxo não é conferido contra a B5-a: trocar "Encerrado" por "Fechado" na chave 3316 passa a suíte (mutante M8 sobrevive). Fixar chave→rótulo, ao menos por amostra.
 
 ## Conferência contra a fonte
 | Domínio | Esperado (B6-d / B5-a) | JSON | Resultado |
