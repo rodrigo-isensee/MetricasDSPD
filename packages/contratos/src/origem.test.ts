@@ -4,8 +4,10 @@ import {
   AJUSTE_PRIORIDADE_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
   NOTA_S12_IDS,
+  NOTA_S1_IDS,
   NOTA_SUSTENTACAO_IDS,
   notaS12IdSchema,
+  notaS1IdSchema,
   notaSustentacaoIdSchema,
   TEXTO_NOTA_QUALQUER,
   corpoSemDadoReal,
@@ -22,7 +24,7 @@ import {
   origemDaMetrica,
   TEXTO_NOTA_CARTAO,
 } from './origem'
-import { resultadoO1, resultadoO2, resultadoO3, resultadoO5, resultadoS12 } from './schemas'
+import { resultadoO1, resultadoO2, resultadoO3, resultadoO5, resultadoS1, resultadoS12 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
   it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, BLOQUEADOS, O5 e O19 (pedido 075, 6b), a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
@@ -196,5 +198,15 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
     for (const id of NOTA_S12_IDS) expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
     expect(resultadoS12.shape.notas.safeParse(['excecao-sla-s12-sem-fonte']).success).toBe(true)
     expect(resultadoS12.shape.excecaoSla.safeParse(null).success).toBe(true)
+  })
+
+  it('pedido 099 (D4): a nota do S1 tem enum e texto próprios; o enum da sustentação e o do S12 não crescem', () => {
+    expect(notaS1IdSchema.safeParse('primeiro-atendimento-inclui-automatica').success).toBe(true)
+    expect(notaSustentacaoIdSchema.safeParse('primeiro-atendimento-inclui-automatica').success).toBe(false)
+    expect(notaS12IdSchema.safeParse('primeiro-atendimento-inclui-automatica').success).toBe(false)
+    expect(notaCartaoIdSchema.safeParse('primeiro-atendimento-inclui-automatica').success).toBe(false)
+    for (const id of NOTA_S1_IDS) expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
+    expect(resultadoS1.shape.notas.safeParse(['primeiro-atendimento-inclui-automatica']).success).toBe(true)
+    expect(resultadoS1.shape.notas.safeParse(['excecao-sla-sem-fonte']).success).toBe(false)
   })
 })

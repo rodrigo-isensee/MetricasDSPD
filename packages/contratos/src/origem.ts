@@ -169,13 +169,25 @@ export const TEXTO_NOTA_S12 = {
 export type NotaS12Id = keyof typeof TEXTO_NOTA_S12
 export const NOTA_S12_IDS = ['excecao-sla-s12-sem-fonte'] as const satisfies readonly NotaS12Id[]
 export const notaS12IdSchema = z.enum(NOTA_S12_IDS)
-/** Texto de qualquer nota que o cartão mostra (os dos três enums). */
+/**
+ * Pedido 099 (D4, Q-099-5b = A): nota só do S1, em enum à parte (o enum da sustentação não cresce). O primeiro atendimento é o
+ * primeiro comentário da tabela do Acelerato, que não separa o atendente da resposta automática. O texto vive só aqui.
+ */
+export const TEXTO_NOTA_S1 = {
+  'primeiro-atendimento-inclui-automatica':
+    'Primeiro atendimento: inclui respostas automáticas; o processo pede o primeiro atendimento significativo do atendente.',
+} as const
+export type NotaS1Id = keyof typeof TEXTO_NOTA_S1
+export const NOTA_S1_IDS = ['primeiro-atendimento-inclui-automatica'] as const satisfies readonly NotaS1Id[]
+export const notaS1IdSchema = z.enum(NOTA_S1_IDS)
+/** Texto de qualquer nota que o cartão mostra (os dos quatro enums). */
 export const TEXTO_NOTA_QUALQUER: Readonly<
-  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id, string>
+  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id | NotaS1Id, string>
 > = {
   ...TEXTO_NOTA_CARTAO,
   ...TEXTO_NOTA_SUSTENTACAO,
   ...TEXTO_NOTA_S12,
+  ...TEXTO_NOTA_S1,
 }
 
 /** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */
