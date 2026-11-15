@@ -72,12 +72,18 @@ d('O16 Estoque e idade de bugs com dado real (099, lote C8): PostgreSQL, papel d
     // Nenhuma severidade presumida: os 3 bugs com severidade gravada e os nulos mantêm o que a base tem.
     const doTeste = new Set(cardsDeBug);
     const sevDoTeste = r.corpo.maisAntigos.filter((m) => doTeste.has(m.cardId));
+    // O laço não pode passar vazio: os bugs do teste são os mais antigos do estoque (criados antes de 2026-09-01, de-para da semente).
+    expect(sevDoTeste.length).toBeGreaterThan(0);
     for (const m of sevDoTeste) expect(['Crítica', 'Alta', 'Baixa', SEM]).toContain(m.severidade);
+    // Nenhuma severidade presumida: o bug do teste sem severidade gravada sai como "Sem severidade" e o com severidade mantém a sua.
+    const gravadas = new Map<string, string>([[cardsDeBug[0]!, 'Crítica'], [cardsDeBug[1]!, 'Alta'], [cardsDeBug[2]!, 'Baixa']]);
+    for (const m of sevDoTeste) expect(m.severidade).toBe(gravadas.get(m.cardId) ?? SEM);
     expect(r.corpo.maisAntigos.length).toBeLessThanOrEqual(10);
     expect(r.corpo.meses.length).toBeGreaterThan(0);
   }, 60_000);
 
   it('(a2) o bug sem severidade segue contado depois que a severidade chega pela reprojeção: sai de "Sem severidade" sem sair do estoque', async () => {
+    expect(cardsDeBug.length).toBeGreaterThanOrEqual(5); // dependência do seed, como no caso (a)
     const antes = await o16('periodo=12m');
     const semAntes = n(antes.corpo, SEM);
     const alvo = cardsDeBug[cardsDeBug.length - 1]!;
@@ -89,12 +95,15 @@ d('O16 Estoque e idade de bugs com dado real (099, lote C8): PostgreSQL, papel d
   }, 60_000);
 
   it('(b) abaixo de 20 entregas a densidade é nula (insuficiente), nunca um número', async () => {
+    expect(cardsDeBug.length).toBeGreaterThanOrEqual(5); // dependência do seed, como no caso (a)
     const r = await o16('periodo=custom&de=2026-09-20&ate=2026-09-20');
     expect(r.status).toBe(200);
+    expect(r.corpo.meses.length).toBeGreaterThan(0); // o laço não pode passar vazio
     for (const m of r.corpo.meses) expect(m.densidade).toBeNull();
   }, 60_000);
 
   it('(c) nenhum campo de pessoa na resposta, só o id do card na lista dos mais antigos', async () => {
+    expect(cardsDeBug.length).toBeGreaterThanOrEqual(5); // dependência do seed, como no caso (a)
     for (const q of ['periodo=12m', 'periodo=custom&de=2026-09-20&ate=2026-09-20']) {
       const r = await o16(q);
       expect(r.status, q).toBe(200);

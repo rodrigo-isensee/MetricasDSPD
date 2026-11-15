@@ -1,3 +1,4 @@
+import { MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import type pg from 'pg';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -129,10 +130,28 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     expect(b.body).not.toBe(a.body);
     const o8 = b.json() as { tipos: { porTamanho: unknown[] | null }[]; motivoPorTamanho: string | null };
     expect(o8.tipos.length).toBeGreaterThan(0);
-    // A divisão por tamanho só é publicada se algum card da base real traz tamanho; sem nenhum, vem nula com o motivo (nunca lista vazia).
-    const algumTamanho = o8.tipos.some((t) => t.porTamanho !== null);
-    expect(o8.motivoPorTamanho === null).toBe(algumTamanho);
-    for (const t of o8.tipos) expect(t.porTamanho === null || t.porTamanho.length > 0).toBe(true);
+    // A divisão por tamanho só é publicada se algum card da base real traz tamanho; o ramo esperado vem da própria base, não do resultado.
+    const comTamanho = Number(
+      (await mig.query<{ n: string }>(`SELECT COUNT(*) AS n FROM ${R.bm}.dim_card WHERE tamanho_declarado IS NOT NULL`)).rows[0]?.n,
+    );
+    if (comTamanho === 0) {
+      // Base sem tamanho (caso do seed, WS1 pendente): toda a divisão é nula e o motivo é o do contrato, nunca lista vazia.
+      expect(o8.motivoPorTamanho).toBe(MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL);
+      for (const t of o8.tipos) expect(t.porTamanho).toBeNull();
+    } else {
+      expect(o8.motivoPorTamanho).toBeNull();
+      for (const t of o8.tipos) expect(t.porTamanho?.length ?? 0).toBeGreaterThan(0);
+    }
+  }, 60_000);
+
+  it('(d3) O8 (A4, Q-099-4): sem nenhum tamanho declarado na base real, toda a divisão por tamanho é nula e o motivo é exatamente o do contrato', async () => {
+    await mig.query(`UPDATE ${R.bm}.dim_card SET tamanho_declarado = NULL`);
+    const r = await (await app()).inject('/api/v1/metricas/O8');
+    expect(r.statusCode).toBe(200);
+    const o8 = r.json() as { tipos: { porTamanho: unknown[] | null }[]; motivoPorTamanho: string | null };
+    expect(o8.tipos.length).toBeGreaterThan(0);
+    expect(o8.motivoPorTamanho).toBe(MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL);
+    for (const t of o8.tipos) expect(t.porTamanho).toBeNull();
   }, 60_000);
 
   it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {

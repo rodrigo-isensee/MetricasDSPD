@@ -900,31 +900,42 @@ export const resultadoO6 = z.object({
 })
 
 /** O8: tamanho das demandas (tempo em execução, dias úteis), nunca média isolada. */
-export const resultadoO8 = z.object({
-  ...comum,
-  janelaPercentis: janelaSchema,
-  tipos: z.array(
-    z.object({
-      tipo,
-      n: z.number(),
-      estatistica: estatisticaSchema(
-        z.object({
-          mediana: z.number(),
-          media: z.number(),
-          p85: z.number(),
-          /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
-          acimaP85AnteriorPct: z.number().nullable(),
-        }),
-      ),
-      /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
-      porTamanho: z
-        .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
-        .nullable(),
-    }),
-  ),
-  /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
-  motivoPorTamanho: z.string().min(1).nullable(),
-})
+export const resultadoO8 = z
+  .object({
+    ...comum,
+    janelaPercentis: janelaSchema,
+    tipos: z.array(
+      z.object({
+        tipo,
+        n: z.number(),
+        estatistica: estatisticaSchema(
+          z.object({
+            mediana: z.number(),
+            media: z.number(),
+            p85: z.number(),
+            /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
+            acimaP85AnteriorPct: z.number().nullable(),
+          }),
+        ),
+        /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+        porTamanho: z
+          .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
+          .nullable(),
+      }),
+    ),
+    /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
+    motivoPorTamanho: z.string().min(1).nullable(),
+  })
+  // Pedido 105 (K-353, A2 do review do O8): `porTamanho` nulo exige o motivo; a API só produz os estados coerentes.
+  .superRefine((r, ctx) => {
+    if (r.motivoPorTamanho === null && r.tipos.some((t) => t.porTamanho === null)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['motivoPorTamanho'],
+        message: 'porTamanho nulo exige motivoPorTamanho',
+      })
+    }
+  })
 
 /** O11: composição do backlog (retrato no fim de cada mês). */
 export const resultadoO11 = z.object({

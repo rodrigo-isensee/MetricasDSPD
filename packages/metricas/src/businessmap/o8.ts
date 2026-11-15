@@ -32,6 +32,8 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
     )
     const es = todos.filter((e) => e.dia >= ini && e.dia <= fim)
     total += es.length
+    // O8 só seleciona cards de granularidade 'story' (selecionar(..., 'story')): o rótulo da amostra é o da própria granularidade;
+    // frente e projeto nunca entram aqui (K-353, A4 do review do O8).
     const amostra = amostraBM(
       'story',
       es.map((e) => e.ciclo),
