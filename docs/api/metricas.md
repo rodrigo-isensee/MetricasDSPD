@@ -72,7 +72,7 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 | 401 | `UNAUTHENTICATED` | sem credencial [ADR] |
 | 403 | `FORBIDDEN` | sem permissão [ADR] |
 | 404 | `METRICA_NAO_ENCONTRADA` | id inexistente |
-| 503 | `REFERENCIA_AUSENTE` | S1 e VISAO_GERAL sem `ref_alvo_prioridade` carregada (nenhum prazo é presumido), **só no modo mock explícito**; na API padrão essas duas métricas respondem 200 com o estado "sem dado real" |
+| 503 | `REFERENCIA_AUSENTE` | S1 e VISAO_GERAL sem `ref_alvo_prioridade` carregada (nenhum prazo é presumido), **no modo mock explícito e, desde o pedido 099 (D4), também o S1 na API padrão** (o S1 é real; sem os alvos carregados pelo `ac:ref-sync` a API não presume prazo); a VISAO_GERAL, na API padrão, responde 200 com o estado "sem dado real" |
 | 422 | `PERIODO_FORA_DO_HISTORICO` | `custom` fora de `historico` ou `de > ate` |
 | 503 | `BASE_INDISPONIVEL` | base analítica fora do ar |
 | 500 | `INTERNAL_ERROR` | inesperado, sem detalhes internos |
@@ -439,3 +439,6 @@ Depois da prova do dono (`fato_bloqueio` com 172 linhas e `evt_bloqueio` `fim` c
 - Contrato: `resultadoS1.notas` (opcional, enum próprio `NOTA_S1_IDS` com o id `primeiro-atendimento-inclui-automatica`; o texto vive em `TEXTO_NOTA_S1`, em `origem.ts`). **Compatível** (campo opcional novo; o enum de notas da sustentação, o do S12 e o do cartão não mudam, `politica-de-mudanca.md`).
 - Origem do dado (Q-099-5b = A, D-13 do plano 056): `primeiro_atendimento_em` de `dspd_ac.dim_chamado` é o instante de `data_primeiro_comentario` da tabela do Acelerato (só o instante; nunca autor nem texto). A coluna não separa o atendente da resposta automática, por isso a nota: "inclui respostas automáticas; o processo pede o primeiro atendimento significativo do atendente". Reabre se a ciência de dados mostrar coluna que os separe ou se a etapa Em triagem entrar em produção. Chamado sem comentário fica com o primeiro atendimento nulo e fora da amostra do MTTA (nunca inferido).
 - A API devolve a nota em todo S1 da base real, com ou sem amostra suficiente. No modo mock explícito nada muda (sem nota).
+- Mapa real (D4): `S1` entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK` (o motivo "aguardando prazos de SLA por prioridade" deixa de existir). A API padrão devolve o resultado calculado, sem o corpo `sem-dado-real`. Sem `ref_alvo_prioridade` carregada responde 503 `REFERENCIA_AUSENTE` (nenhum prazo é presumido): o portão do S1 é o `ac:ref-sync` do dono. Percentis só com 20 ou mais chamados por prioridade e prazo.
+- Versão de critério `criterio-2026-11-15-s1-dado-real` (data 2026-11-15, `afeta: ['S1']`) marca o gráfico (T2.6). Modo mock explícito: nada muda (sem nota).
+- Limite conhecido: `primeiro_atendimento_em` só é projetado nas versões do staging que ainda não tinham versão na dimensão; os chamados já projetados ficam com o primeiro atendimento nulo até uma reprojeção (não incluída neste lote).

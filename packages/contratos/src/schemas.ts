@@ -33,7 +33,12 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaS12IdSchema, notaS1IdSchema, notaSustentacaoIdSchema } from './origem'
+import {
+  notaCartaoIdSchema,
+  notaS12IdSchema,
+  notaS1IdSchema,
+  notaSustentacaoIdSchema,
+} from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 

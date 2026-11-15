@@ -105,10 +105,10 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     expect(depois.every((t) => t.tipo_coluna === 'fila')).toBe(true);
   }, 60_000);
 
-  it('(d) FL2, FL3, S1 e Visão geral respondem "sem dado real" na base real, nunca o número do seed (que só o modo mock explícito lê)', async () => {
+  it('(d) FL2, FL3 e Visão geral respondem "sem dado real" na base real, nunca o número do seed (que só o modo mock explícito lê)', async () => {
     const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const real = await app();
-    for (const id of ['T1', 'T7', 'E1', 'E2', 'S1', 'VISAO_GERAL', 'O8', 'O26']) {
+    for (const id of ['T1', 'T7', 'E1', 'E2', 'VISAO_GERAL', 'O8', 'O26']) {
       const a = await mock.inject(`/api/v1/metricas/${id}`);
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(a.statusCode, id).toBe(200);
@@ -119,10 +119,10 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     }
   }, 60_000);
 
-  it('(e) Sustentação (E2.115): S3 e S12 leem a base real do Acelerato; S1, S5, S9 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
+  it('(e) Sustentação (E2.115): S1 (D4), S3 e S12 leem a base real do Acelerato; S5, S9 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
     await mig.query(`UPDATE ${R.ac}.dim_chamado SET categoria_sistema = 'Sistema só da base real'`);
     const real = await app();
-    for (const id of ['S3', 'S12']) {
+    for (const id of ['S1', 'S3', 'S12']) {
       const r = await real.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.json(), id).not.toHaveProperty('estado');
@@ -131,7 +131,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     const s12 = (await real.inject('/api/v1/metricas/S12')).json();
     expect(s12.excecaoSla).toBeNull();
     expect(s12.notas).toEqual(['excecao-sla-s12-sem-fonte']);
-    for (const id of ['S1', 'S5', 'S9', 'EI_SUST']) {
+    for (const id of ['S5', 'S9', 'EI_SUST']) {
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(b.statusCode, id).toBe(200);
       expect(b.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });
