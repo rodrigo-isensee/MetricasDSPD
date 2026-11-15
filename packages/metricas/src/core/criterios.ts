@@ -217,6 +217,19 @@ export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
   afeta: ['S1'],
 }
 
+/**
+ * Pedido 105 (E7.4, O18 = c do dono, 2026-11-15): o bug é da entrega quando ligado a ela no BusinessMap por vínculo pai e filho ou relacionado;
+ * vínculo de bug com bug não liga a entrega; a janela de 30 dias da entrega (briefing 4.2) segue. O bug conta pelo tipo, sem exigir fase de detecção.
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_O18_VINCULOS: VersaoCriterio = {
+  id: 'criterio-2026-11-15-o18-vinculos',
+  data: '2026-11-15',
+  descricao:
+    'O18 passou a ser calculado com o dado real do BusinessMap: o bug é da entrega quando ligado a ela por vínculo pai e filho ou relacionado, até 30 dias após a entrega; vínculo de bug com bug não liga a uma entrega',
+  afeta: ['O18'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -236,6 +249,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
   VERSAO_CRITERIO_S1_DADO_REAL,
+  VERSAO_CRITERIO_O18_VINCULOS,
 ]
 
 /**

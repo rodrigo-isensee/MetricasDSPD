@@ -1,3 +1,5 @@
+import { ID_SEM_PROJETO } from '@metricas-dspd/contratos'
+
 /** Quantos projetos o cartão AP-PROJETO mostra antes do "ver todos" (097, E5, CA-33). */
 export const LIMITE_MAIORES = 10
 
@@ -35,5 +37,25 @@ export function dezMaiores<T extends { segundos: number }>(
   return {
     visiveis: linhas.slice(0, limite),
     demais: { quantidade: demais.length, segundos: demais.reduce((s, l) => s + l.segundos, 0) },
+  }
+}
+
+export interface SemProjetoApartado<T> {
+  /** Só projetos de verdade, na ordem recebida: é o que as dez vagas e todas as contagens enxergam. */
+  projetos: T[]
+  /** A linha sem projeto (`ID_SEM_PROJETO`), fora das vagas e das contagens; `undefined` quando não existe. */
+  semProjeto: T | undefined
+}
+
+/**
+ * Tira a linha sem projeto da lista (097, K-341, decisão 3a do dono): ela não é projeto, então não disputa as dez
+ * vagas nem entra em "de N", "Ver todos os N" e "Demais N". A tela a coloca fixa no fim, com as horas dela.
+ */
+export function separarSemProjeto<T extends { id: string }>(
+  linhas: readonly T[],
+): SemProjetoApartado<T> {
+  return {
+    projetos: linhas.filter((l) => l.id !== ID_SEM_PROJETO),
+    semProjeto: linhas.find((l) => l.id === ID_SEM_PROJETO),
   }
 }

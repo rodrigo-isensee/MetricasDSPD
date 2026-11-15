@@ -209,6 +209,28 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     expect(lidos.map((x) => x.card_id)).toEqual([filho]);
   });
 
+  it('O18 (pedido 105): origem_bug do bug é a entrega ligada por parent ou relative; bug com bug fica sem origem; segunda projeção sem efeito; a API lê a coluna', async () => {
+    const entrega = await staging(novo({ type_id: TIPO.produto }), [transicao(COL.F, t(2))]);
+    const outraBug = await staging(novo(), [transicao(COL.F, t(2))]);
+    const bugPai = await staging(novo({ linked_cards: [{ card_id: Number(entrega), link_type: 'parent' }] }), [transicao(COL.F, t(2))]);
+    const bugRel = await staging(novo({ linked_cards: [{ card_id: Number(entrega), link_type: 'relative' }] }), [transicao(COL.F, t(2))]);
+    const bugComBug = await staging(novo({ linked_cards: [{ card_id: Number(outraBug), link_type: 'relative' }] }), [transicao(COL.F, t(2))]);
+    const produtoLigado = await staging(novo({ type_id: TIPO.produto, linked_cards: [{ card_id: Number(entrega), link_type: 'relative' }] }), [transicao(COL.F, t(2))]);
+    await projetar();
+    const confere = async (): Promise<void> => {
+      expect((await dim(bugPai)).origem_bug).toBe(entrega);
+      expect((await dim(bugRel)).origem_bug).toBe(entrega);
+      expect((await dim(bugComBug)).origem_bug).toBeNull();
+      expect((await dim(outraBug)).origem_bug).toBeNull();
+      expect((await dim(produtoLigado)).origem_bug).toBeNull();
+    };
+    await confere();
+    await projetar();
+    await confere();
+    const lido = (await api.query<{ origem_bug: string | null }>(`SELECT origem_bug FROM ${E.bm}.dim_card WHERE card_id = $1`, [bugRel])).rows[0]!;
+    expect(lido.origem_bug).toBe(entrega);
+  });
+
   it('H-7: card de workflow fora de todo cálculo fica na base e nos fatos, sem granularidade nem equipe', async () => {
     const id = await staging(novo({ workflow_id: Number(WX), column_id: COL.FX }), [transicao(COL.FX, t(2), null, WX)]);
     await projetar();
