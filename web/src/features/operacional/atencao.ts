@@ -66,7 +66,7 @@ export function itensSemanal(
       para: '#o10',
       texto: `${fmtInteiro(o10.acimaDe180.time)} ${plural(o10.acimaDe180.time, 'item do backlog com', 'itens do backlog com')} mais de 180 dias`,
     })
-  if (o12 && o12.vencidosCausaInterna > 0)
+  if (o12 && o12.vencidosCausaInterna !== null && o12.vencidosCausaInterna > 0)
     itens.push({
       id: 'o12',
       codigo: 'O12',
@@ -75,6 +75,12 @@ export function itensSemanal(
     })
   return itens
 }
+
+/** Linha de lacuna do O12 (099, CA-O12-4): sem o campo de responsabilidade o item some, e o painel diz a lacuna no lugar dele. */
+export const LACUNA_O12 =
+  'O12: vencidos por causa interna sem dado real (aguardando o campo de responsabilidade do atraso).'
+export const lacunasSemanal = (o12: Ou<ResultadoDe<'O12'>>): string[] =>
+  o12 && o12.vencidosCausaInterna === null ? [LACUNA_O12] : []
 
 type PrioridadesS2 = ResultadoDe<'S2'>['prioridades']
 type PrioridadesS1 = ResultadoDe<'S1'>['prioridades']
