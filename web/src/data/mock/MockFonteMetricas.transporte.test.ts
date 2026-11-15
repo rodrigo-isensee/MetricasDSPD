@@ -177,6 +177,49 @@ describe('transporte do MockFonteMetricas', () => {
     await expect(pb).rejects.toThrow('mensagem não clonável')
   })
 
+  it('postMessage que lança rejeita o pedido, sem deixá-lo pendente', async () => {
+    class Lanca extends FalsoWorker {
+      override postMessage(): void {
+        throw new DOMException('não clonável', 'DataCloneError')
+      }
+    }
+    vi.stubGlobal('Worker', Lanca)
+    const f = new MockFonteMetricas({ latenciaMs: 0 })
+    await expect(f.dataReferencia()).rejects.toThrow(
+      'Falha ao enviar ao Worker do mock: não clonável',
+    )
+    const cliente = (f as unknown as { cliente: { pendentes: Map<number, unknown> } }).cliente
+    expect(cliente.pendentes.size).toBe(0)
+  })
+
+  it('postMessage que lança valor que não é Error também rejeita, com o texto', async () => {
+    class LancaTexto extends FalsoWorker {
+      override postMessage(): void {
+        throw 'texto solto' as unknown as Error
+      }
+    }
+    vi.stubGlobal('Worker', LancaTexto)
+    const f = new MockFonteMetricas({ latenciaMs: 0 })
+    await expect(f.criterios()).rejects.toThrow('Falha ao enviar ao Worker do mock: texto solto')
+  })
+
+  it('pedido antes do iniciar é recusado com erro claro, sem mudar o fluxo normal', async () => {
+    const estado: EstadoWorker = {}
+    const r = await tratarPedido(estado, { id: 7, metodo: 'criterios', args: [] })
+    expect(r).toStrictEqual({
+      id: 7,
+      ok: false,
+      erro: {
+        nome: 'Error',
+        mensagem: "Núcleo do mock não iniciado: o pedido 'criterios' veio antes de 'iniciar'",
+      },
+    })
+    expect((await tratarPedido(estado, { id: 8, metodo: 'iniciar', args: [{}] })).ok).toBe(true)
+    expect((await tratarPedido(estado, { id: 9, metodo: 'dataReferencia', args: [] })).ok).toBe(
+      true,
+    )
+  })
+
   it('resposta com id desconhecido é ignorada', async () => {
     vi.stubGlobal('Worker', FalsoWorker)
     const f = new MockFonteMetricas({ latenciaMs: 0 })
@@ -212,4 +255,61 @@ describe('invólucro do Worker', () => {
     expect(enviados[1]).toStrictEqual({ id: 2, ok: true, valor: '2026-10-09' })
     self.onmessage = null
   })
+
+  it(
+    'resposta não clonável vira erro com o id do pedido, em vez de deixá-lo pendente',
+    { timeout: 40000 },
+    async () => {
+      const enviados: unknown[] = []
+      let primeira = true
+      vi.spyOn(self, 'postMessage').mockImplementation(((m: unknown) => {
+        if (primeira) {
+          primeira = false
+          throw new DOMException('não clonável', 'DataCloneError')
+        }
+        enviados.push(m)
+      }) as never)
+      vi.resetModules()
+      await import('./nucleoMock.worker')
+      const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
+      onmessage({ data: { id: 5, metodo: 'iniciar', args: [{}] } })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+      expect(enviados[0]).toStrictEqual({
+        id: 5,
+        ok: false,
+        erro: {
+          nome: 'DataCloneError',
+          mensagem: 'Falha ao responder do Worker do mock: não clonável',
+        },
+      })
+      self.onmessage = null
+    },
+  )
+
+  it(
+    'resposta cuja falha lançada não é Error vira erro com nome Error e o texto',
+    { timeout: 40000 },
+    async () => {
+      const enviados: unknown[] = []
+      let primeira = true
+      vi.spyOn(self, 'postMessage').mockImplementation(((m: unknown) => {
+        if (primeira) {
+          primeira = false
+          throw 'texto solto' as unknown as Error
+        }
+        enviados.push(m)
+      }) as never)
+      vi.resetModules()
+      await import('./nucleoMock.worker')
+      const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
+      onmessage({ data: { id: 6, metodo: 'iniciar', args: [{}] } })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+      expect(enviados[0]).toStrictEqual({
+        id: 6,
+        ok: false,
+        erro: { nome: 'Error', mensagem: 'Falha ao responder do Worker do mock: texto solto' },
+      })
+      self.onmessage = null
+    },
+  )
 })
