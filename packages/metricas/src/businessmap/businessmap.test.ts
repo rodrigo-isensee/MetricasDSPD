@@ -360,8 +360,57 @@ describe('qualidade (O15, O18)', () => {
       }),
     )
     const r = calcularO15(ctxDe(bugs), F)
-    expect(r.fases.map((f) => f.contagem)).toEqual([1, 1, 0, 0, 1])
+    // pedido 105 (E7.5): abaixo de 20 por fase a contagem não sai (só o total, em `base.n`)
+    expect(r.fases.map((f) => f.contagem)).toEqual([null, null, null, null, null])
+    expect(r.base.n).toBe(3)
+    expect(r.bugsSemFase).toBe(0)
     expect(r.contencao).toMatchObject({ status: 'insuficiente', k: 2, n: 3 })
+  })
+
+  const bugsDaFase = (
+    fase: 'Desenvolvimento' | 'Produção' | null,
+    n: number,
+    prefixo: string,
+  ): EspecCard[] =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `${prefixo}${i}`,
+      tipo: fase === 'Produção' ? ('Defeito em produção' as const) : ('Bug interno' as const),
+      ...(fase === null ? {} : { fase }),
+      criado: '2026-09-10T09:00-03:00',
+      trilha: [['Aguardando priorização', '2026-09-10T09:00-03:00']] as [string, string][],
+    }))
+
+  it('O15 (105, E7.5): o mínimo de 20 vale por fase (20 publica, 19 não) e o total conta as duas', () => {
+    const r = calcularO15(
+      ctxDe([...bugsDaFase('Desenvolvimento', 20, 'D'), ...bugsDaFase('Produção', 19, 'P')]),
+      F,
+    )
+    expect(r.fases.map((f) => f.contagem)).toEqual([20, null, null, null, null])
+    expect(r.base.n).toBe(39)
+    expect(r.escape).toMatchObject({ status: 'ok', k: 19, n: 39 })
+    expect(r.contencao).toMatchObject({ status: 'ok', k: 20, n: 39 })
+  })
+
+  it('O15 (105, E7.5): bug sem fase (sem pai na base ou coluna sem fase) fica fora da conta e é contado à parte', () => {
+    const r = calcularO15(
+      ctxDe([...bugsDaFase('Desenvolvimento', 20, 'D'), ...bugsDaFase(null, 7, 'S')]),
+      F,
+    )
+    expect(r.bugsSemFase).toBe(7)
+    expect(r.base.n).toBe(20)
+    expect(r.fases.map((f) => f.contagem)).toEqual([20, null, null, null, null])
+    expect(r.contencao).toMatchObject({ status: 'ok', k: 20, n: 20 })
+    expect(r.serieMensal.reduce((a, m) => a + m.n, 0)).toBe(20)
+  })
+
+  it('O15 (105, E7.5): o que não é bug (story) não entra nem como sem fase', () => {
+    const story: EspecCard = {
+      id: 'ST',
+      tipo: 'Trabalho de produto',
+      criado: '2026-09-10T09:00-03:00',
+      trilha: [['Aguardando priorização', '2026-09-10T09:00-03:00']],
+    }
+    expect(calcularO15(ctxDe([story]), F).bugsSemFase).toBe(0)
   })
 })
 

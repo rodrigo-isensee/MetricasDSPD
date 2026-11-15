@@ -60,6 +60,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O16'], // pedido 099 (lote C8)
         ...['S5', 'S6', 'S7'], // pedido 105 (D2): só os cinco fluxos do PROC
         ...['O12'], // pedido 099 (E3.223)
+        ...['O15'], // pedido 105 (E7.5)
         ...['O18'], // pedido 105 (E7.4)
       ].sort(),
     )
@@ -93,8 +94,14 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O14 e O15', () => {
-    for (const id of ['O14', 'O15'] as const) {
+  it('O15 é real pela fase de detecção (pedido 105, E7.5), sem motivo de mock', () => {
+    expect(METRICAS_ORIGEM_REAL.has('O15')).toBe(true)
+    expect(origemDaMetrica('O15')).toBe('real')
+    expect(motivoDaOrigemSemDado('O15')).toBeNull()
+  })
+
+  it('é sem dado, com o motivo, para O14', () => {
+    for (const id of ['O14'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }

@@ -60,10 +60,13 @@ function reduzirVinculos(v: unknown): { card_id: unknown; link_type: unknown }[]
 /** Fields do quadro que nunca entram no mapa, nem pelo arquivo nem pelo `ref_dominio`: 36 (ID Acelerato, H-16) e 42 (Responsável CR, pessoa). */
 export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
 
-/** Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração). */
+/**
+ * Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração).
+ * `fase_deteccao` saiu em 105 (E7.5): vem só da projeção pela coluna do pai do bug, para não haver duas fontes.
+ */
 export const COLUNAS_LISTA = [
   'classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
-  'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade',
+  'responsabilidade_atraso', 'origem_demanda', 'severidade',
 ] as const;
 
 /**
