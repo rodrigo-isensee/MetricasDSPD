@@ -5,6 +5,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- Acelerato: domínios `cpe_*` (valores literais da B6-d em UTF-8, cada grafia como entrada, sem de-para nem vigência; `cpe_tipo_prioridade` sem valores) e `etapa_fluxo` (114 chaves da B5-a na ordem aprovada, AP-099-1) em `acelerato-dominio.json`, com nova versão de critério; o dono roda `ac:ref-sync` e `--reconhecer-mudanca` depois do merge (pedido 099, D1 1b e 1c).
 - Acelerato: `dim_chamado.fluxo` guarda o workflow em que cada chamado correu (o único `descricao_workflow` das etapas; nulo sem etapa e nulo com a contagem `fluxo_multiplo` se houver mais de um, sem escolher), base para os motivos da Sustentação; migração 0038, sem reescrever histórico, preenchida só pela reprojeção do dono (pedido 099, D1 1a).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
 - Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1; migração 0037) (#408).
