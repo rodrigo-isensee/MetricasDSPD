@@ -16,3 +16,4 @@ export {
 } from './dicionario.js';
 export { analisarArgumentosEliminacao, eliminarPessoa, lerUsuarioDaEntrada, type ArgsEliminacao, type ArgsEliminacaoCli, type DepsEliminacao, type ResultadoEliminacao } from './eliminacao.js';
 export { montarDepsApontamento, type EntradaMontagem } from './montagem.js';
+export { contarComentarios, executarD1, lerContagemComentario, type ContagemComentario } from './d1-comentario.js';

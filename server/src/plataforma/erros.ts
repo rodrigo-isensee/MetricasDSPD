@@ -28,6 +28,9 @@ const corpo = (code: string, message: string, details?: unknown[]): CorpoErro =>
 const detalhes = (issues: readonly { path: PropertyKey[]; message: string }[]): unknown[] =>
   issues.map((i) => ({ caminho: i.path.map(String).join('.'), mensagem: i.message }));
 
+/** Rota do receptor do webhook do BusinessMap: erro 5xx dela nunca loga a mensagem crua (ADR 0020, item 6). */
+const ROTA_WEBHOOK_BM = '/webhooks/businessmap';
+
 export function tratarErro(erro: FastifyError, req: FastifyRequest, resposta: FastifyReply): FastifyReply {
   if (hasZodFastifySchemaValidationErrors(erro)) {
     return resposta.status(400).send(corpo('VALIDATION_ERROR', 'Parâmetros inválidos.', detalhes(erro.validation.map((v) => ({
@@ -45,7 +48,9 @@ export function tratarErro(erro: FastifyError, req: FastifyRequest, resposta: Fa
   if (status >= 400 && status < 500) {
     return resposta.status(status).send(corpo(status === 400 ? 'VALIDATION_ERROR' : status === 413 ? 'PAYLOAD_GRANDE' : 'REQUISICAO_INVALIDA', 'Requisição inválida.'));
   }
-  req.log.error({ err: erro }, 'erro inesperado');
+  // ADR 0020 item 6 (B-4): no receptor do webhook o erro de banco pode trazer valor do payload (detalhe do Postgres); o log leva só tipo e código.
+  if (req.routeOptions.url === ROTA_WEBHOOK_BM) req.log.error({ erro: { tipo: erro.name, codigo: erro.code } }, 'erro inesperado');
+  else req.log.error({ err: erro }, 'erro inesperado');
   return resposta.status(500).send(corpo('INTERNAL_ERROR', 'Erro interno.'));
 }
 
