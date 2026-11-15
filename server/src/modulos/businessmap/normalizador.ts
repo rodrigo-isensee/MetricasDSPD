@@ -165,9 +165,11 @@ export function dataAcordada(valor: unknown, notas: string[]): string | null {
     if (valido && dia === valor) return valor;
     if (valido) {
       const instante = new Date(valor);
-      // Ano 0001 com deslocamento negativo cairia no ano 0 do `date` do PostgreSQL: fora.
-      const civil = Number.isNaN(instante.getTime()) ? null : diaCivilNoFuso.format(instante);
-      if (civil !== null && !civil.startsWith('0000') && /^\d{4}-\d{2}-\d{2}$/.test(civil)) return civil;
+      // O regex e a data civil já garantem um instante válido (ano 0001 a 9999, deslocamento até 23:59), então `format` não lança.
+      // Ano 0001 com deslocamento negativo cairia no ano 0 e o limite superior no ano 10000: o Intl os escreve sem os quatro dígitos
+      // ("1-12-31", "10000-01-01"), e o `date` do PostgreSQL não os guarda; a forma AAAA-MM-DD de quatro dígitos é a guarda.
+      const civil = diaCivilNoFuso.format(instante);
+      if (SO_DATA.test(civil)) return civil;
     }
   }
   notas.push('deadline_fora_da_forma');

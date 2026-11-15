@@ -395,4 +395,11 @@ describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de s
   it('ano 0001 é aceito', () => {
     expect(proj(card({ deadline: '0001-01-01' })).dim.data_acordada).toBe('0001-01-01');
   });
+  it('data e hora cujo dia civil sai do intervalo do date (ano 0 ou 10000 no fuso do prazo) vira null com a nota', () => {
+    for (const deadline of ['0001-01-01T00:00:00Z', '9999-12-31T23:59:59-23:59']) {
+      const p = proj(card({ deadline }));
+      expect(p.dim.data_acordada).toBeNull();
+      expect(p.notas.filter((n) => n === 'deadline_fora_da_forma')).toHaveLength(1);
+    }
+  });
 });
