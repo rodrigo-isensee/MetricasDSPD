@@ -135,7 +135,8 @@
               "Contorno aplicado",
               "Reclassificado, não é incidente",
               "Encerrado sem retorno",
-              "Duplicado"
+              "Duplicado",
+              "Outro"
             ]
           },
           "n": {
@@ -182,7 +183,8 @@
                     "Contorno aplicado",
                     "Reclassificado, não é incidente",
                     "Encerrado sem retorno",
-                    "Duplicado"
+                    "Duplicado",
+                    "Outro"
                   ]
                 },
                 "n": {
@@ -274,6 +276,9 @@
           "additionalProperties": false
         }
       ]
+    },
+    "foraDoFluxo": {
+      "type": "number"
     }
   },
   "required": [
@@ -282,7 +287,8 @@
     "motivos",
     "evolucao",
     "naoInformado",
-    "taxaContorno"
+    "taxaContorno",
+    "foraDoFluxo"
   ],
   "additionalProperties": false
 }

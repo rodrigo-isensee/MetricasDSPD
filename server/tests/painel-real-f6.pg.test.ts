@@ -152,7 +152,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     for (const t of o8.tipos) expect(t.porTamanho).toBeNull();
   }, 60_000);
 
-  it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
+  it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 (sem os fluxos do PROC carregados) e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
     await mig.query(`UPDATE ${R.ac}.dim_chamado SET categoria_sistema = 'Sistema só da base real'`);
     const real = await app();
     for (const id of ['S1', 'S3', 'S9', 'S12']) {

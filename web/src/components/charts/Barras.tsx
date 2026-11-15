@@ -109,8 +109,10 @@ export function Barras({
   }))
   const uid = uidSvg(useId())
   // Duas ou mais séries sem padrão informado: cada uma recebe um padrão por posição (cor nunca é o único canal, A6).
-  const semPadrao = series.filter((s) => !s.padrao).length
-  const cfg = series.map((s, i) => ({
+  // Série sem nenhum valor em nenhuma categoria não entra: nem na legenda, nem na tabela, nem no desenho.
+  const comValor = series.filter((s) => categorias.some((c) => c.valores[s.chave] != null))
+  const semPadrao = comValor.filter((s) => !s.padrao).length
+  const cfg = comValor.map((s, i) => ({
     ...s,
     cor: s.cor ?? corNaPosicao(i),
     padrao: s.padrao ?? (semPadrao >= 2 ? (PADROES[i % PADROES.length] as Padrao) : 'liso'),

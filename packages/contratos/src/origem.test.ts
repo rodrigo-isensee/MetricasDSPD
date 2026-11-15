@@ -6,6 +6,7 @@ import {
   RESPONSABILIDADE_ATRASO_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
   NOTA_S12_IDS,
+  NOTA_MOTIVOS_IDS,
   NOTA_S1_IDS,
   NOTA_SUSTENTACAO_IDS,
   notaS12IdSchema,
@@ -19,11 +20,13 @@ import {
   MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   MOTIVO_ORIGEM_MOCK,
+  MOTIVO_FLUXOS_PROC_NAO_CARREGADOS,
   motivoDaOrigemSemDado,
   motivoSemDadoReal,
   semDadoRealSchema,
   NOTAS_FIXAS_DO_CARTAO,
   notaCartaoIdSchema,
+  notaMotivosIdSchema,
   origemDaMetrica,
   TEXTO_NOTA_CARTAO,
 } from './origem'
@@ -55,21 +58,24 @@ describe('origemDaMetrica (H-13)', () => {
         ...['S1'], // pedido 099 (D4, Q-099-5b = A)
         ...['O8'], // pedido 099 (A4, Q-099-4): tempo real; divisão por tamanho sem dado real
         ...['O16'], // pedido 099 (lote C8)
+        ...['S5', 'S6', 'S7'], // pedido 105 (D2): só os cinco fluxos do PROC
         ...['O12'], // pedido 099 (E3.223)
         ...['O18'], // pedido 105 (E7.4)
       ].sort(),
     )
   })
 
-  it('sustentação: S5, S6, S7, S11 e EI_SUST seguem sem dado real, cada uma com o seu motivo; S1 (D4) e S9 (D5a) são reais', () => {
+  it('sustentação: S11 e EI_SUST seguem sem dado real, cada uma com o seu motivo; S1 (D4), S9 (D5a) e S5, S6 e S7 (pedido 105, D2) são reais', () => {
     expect(origemDaMetrica('S1')).toBe('real')
     expect(motivoDaOrigemSemDado('S1')).toBeNull()
-    for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
-      expect(origemDaMetrica(id), id).toBe('sem-dado')
-      expect(motivoDaOrigemSemDado(id), id).toBe(
-        'aguardando tipo e domínio do campo do chamado (P-DS-19)',
-      )
+    for (const id of ['S5', 'S6', 'S7'] as const) {
+      expect(origemDaMetrica(id), id).toBe('real')
+      expect(motivoDaOrigemSemDado(id), id).toBeNull()
     }
+    expect(origemDaMetrica('S11')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('S11')).toBe(
+      'aguardando tipo e domínio do campo do chamado (P-DS-19)',
+    )
     // Pedido 099 (D5a): S9 é real pelas esperas decididas; sem motivo de dado fictício.
     expect(origemDaMetrica('S9')).toBe('real')
     expect(motivoDaOrigemSemDado('S9')).toBeNull()
@@ -215,6 +221,18 @@ describe('estado sem dado real (pedido 060, P3)', () => {
   })
 })
 
+describe('notas do S5 e do S7 (pedido 105, D2)', () => {
+  it('enum à parte, com texto próprio; o enum da sustentação e o do S1 não crescem', () => {
+    for (const id of NOTA_MOTIVOS_IDS) {
+      expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
+      expect(notaMotivosIdSchema.safeParse(id).success).toBe(true)
+      expect(notaSustentacaoIdSchema.safeParse(id).success).toBe(false)
+      expect(notaCartaoIdSchema.safeParse(id).success).toBe(false)
+    }
+    expect(MOTIVO_FLUXOS_PROC_NAO_CARREGADOS.length).toBeGreaterThan(0)
+  })
+})
+
 describe('notas só da sustentação (pedido 069, L9-a)', () => {
   it('enum à parte: os ids novos não entram no enum de O1 a O3 e todo id tem texto', () => {
     for (const id of NOTA_SUSTENTACAO_IDS) {
@@ -223,7 +241,8 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
       expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
     }
     expect(notaSustentacaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(false)
-    expect(AJUSTE_PRIORIDADE_COM_FONTE).toBe(false)
+    // Pedido 105 (D2): o interruptor ligou com a versão de critério afeta S3 e S7; o campo já está projetado.
+    expect(AJUSTE_PRIORIDADE_COM_FONTE).toBe(true)
   })
 
   it('pedido 099 (D9): a nota do S12 tem enum e texto próprios; o enum da sustentação não cresce', () => {
