@@ -70,13 +70,17 @@ describe('Catálogo de métricas (/metricas)', () => {
   })
 
   it('o parágrafo de abertura e a legenda falam de dado real, sem dado fictício', async () => {
+    const total = new Set(linhasDoCatalogo().map((x) => x.codigo)).size
     renderizarApp('/metricas')
     await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
     expect(
       screen.getByText(
-        /Tudo o que existe no DSPD: as métricas do briefing, as complementares acrescentadas depois dele e a de percepção \(a pesquisa de valor do serviço\); a espera invisível aparece em uma linha por nível\./,
+        new RegExp(
+          `Tudo o que existe no DSPD: ${total} métricas \\(as do briefing, as complementares acrescentadas depois dele e a de percepção, a pesquisa de valor do serviço\\); a espera invisível aparece em uma linha por nível\\.`,
+        ),
       ),
     ).toBeInTheDocument()
+    expect(total).toBe(62)
     expect(screen.queryByText(/45 métricas/)).not.toBeInTheDocument()
     expect(
       screen.getByText(
@@ -92,7 +96,7 @@ describe('Catálogo de métricas (/metricas)', () => {
     const u = userEvent.setup()
     renderizarApp('/metricas')
     await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('65 de 65 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('65 de 65 linhas')
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
@@ -122,14 +126,14 @@ describe('Catálogo de métricas (/metricas)', () => {
       'Pesquisa de percepção',
     )
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('33 de 65 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('33 de 65 linhas')
     const opcoes = within(screen.getByLabelText('Painel'))
       .getAllByRole('option')
       .map((o) => o.textContent)
     expect(opcoes).toContain('Operacional · Sustentação')
     expect(opcoes).not.toContain('Sustentação')
     await u.selectOptions(screen.getByLabelText('Painel'), 'sustentacao')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 65 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 65 linhas')
   })
 
   it('o link do catálogo leva ao painel com a seção aberta no cartão', async () => {
