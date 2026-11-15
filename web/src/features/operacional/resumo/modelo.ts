@@ -29,6 +29,8 @@ export interface NumeroModelo {
   status?: 'dentro' | 'fora'
   /** "Poucos itens (n=14). Estatística não publicada." */
   insuficiente?: string
+  /** Parte sem dado real (099, O12): "Sem dado real" e o motivo no lugar do número, nunca 0. */
+  semDadoReal?: string
   visao: 'diaria' | 'semanal' | 'sustentacao'
 }
 
@@ -122,17 +124,29 @@ export function numeroAcimaP95(o2: ResultadoDe<'O2'>): NumeroModelo {
 }
 
 export function numeroVencidosInternos(o12: ResultadoDe<'O12'>): NumeroModelo {
-  return {
+  const base: NumeroModelo = {
     id: 'vencidos-internos',
     codigo: 'O12',
     cartao: 'o12',
     rotulo: 'Vencidos por causa interna',
+    valor: null,
+    unidade: '',
+    base: `${fmtInteiro(o12.base.n)} ${o12.base.unidade}`,
+    visao: 'semanal',
+  }
+  // Sem o campo de responsabilidade no quadro (099, CA-O12-3): sem número, sem selo de meta.
+  if (o12.vencidosCausaInterna === null)
+    return {
+      ...base,
+      meta: 'Meta: zero. Não avaliada sem dado real.',
+      semDadoReal: 'Aguardando o campo de responsabilidade do atraso no quadro.',
+    }
+  return {
+    ...base,
     valor: fmtInteiro(o12.vencidosCausaInterna),
     unidade: plural(o12.vencidosCausaInterna, 'item', 'itens'),
-    base: `${fmtInteiro(o12.base.n)} ${o12.base.unidade}`,
     meta: 'Meta: zero',
     ...(o12.statusMeta === 'sem-referencia' ? {} : { status: o12.statusMeta }),
-    visao: 'semanal',
   }
 }
 

@@ -148,6 +148,18 @@ describe('demais números', () => {
       status: 'dentro',
       meta: 'Meta: zero',
     })
+    // 099: parte sem dado real (nulo): sem número, sem selo de meta, motivo em texto; nunca "0".
+    const semDado = numeroVencidosInternos({
+      ...base,
+      vencidosCausaInterna: null,
+      statusMeta: 'sem-referencia',
+    } as never)
+    expect(semDado).toMatchObject({
+      valor: null,
+      meta: 'Meta: zero. Não avaliada sem dado real.',
+      semDadoReal: 'Aguardando o campo de responsabilidade do atraso no quadro.',
+    })
+    expect(semDado.status).toBeUndefined()
     expect(
       numeroVencidosInternos({
         ...base,
