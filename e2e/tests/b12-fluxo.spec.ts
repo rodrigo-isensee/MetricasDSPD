@@ -232,7 +232,10 @@ test.describe('K-023 Operacional semanal', () => {
     await painel.ir(SEM);
     await painel.esperarPronto();
     await expect(page.locator('#o12')).toHaveCount(1);
-    await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveAttribute('href', /cadencia=semanal.*#o12|#o12/);
+    // O12 sem dado real (099, CA-O12-4): sem número de vencidos por causa interna a faixa não tem o link "Ver O12"
+    // e diz a lacuna no lugar dele; com número real o item aparece (atencao.test.ts cobre o link para #o12).
+    await expect(painel.faixaAtencao).toContainText(/O12: vencidos por causa interna sem dado real/);
+    await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveCount(0);
     // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12');
     await painel.esperarPronto();
