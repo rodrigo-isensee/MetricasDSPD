@@ -2,7 +2,12 @@ import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router'
 import type { FiltroAtivo } from '@/components/ui'
 import { fmtData } from '@/lib/formatar'
-import { ID_SEM_EQUIPE, ROTULO_FILTRO_EQUIPE, ROTULO_SEM_EQUIPE } from './textos'
+import {
+  ID_SEM_EQUIPE,
+  ROTULO_FILTRO_EQUIPE,
+  ROTULO_FILTRO_SETOR,
+  ROTULO_SEM_EQUIPE,
+} from './textos'
 import type { Ordem } from './ordem'
 import {
   NIVEIS_MATRIZ,
@@ -14,14 +19,22 @@ import {
 } from './types'
 
 /**
- * Filtros da aba na URL (AP-8): só ids de lista (a equipe é um slug, nunca nome de pessoa), ids e códigos de lista fechada. Nada de texto livre,
+ * Filtros da aba na URL (AP-8): só ids de lista (setor e equipe são slugs, nunca nome de pessoa), ids e códigos de lista fechada. Nada de texto livre,
  * nada em `localStorage`. Valor fora do formato é descartado sem eco (o nome que alguém digitar na URL não volta à tela).
  */
 
 /** Marca interna em `invalidos` do link antigo com `pessoa=`; a barra mostra o aviso próprio, não a chave. */
 export const CHAVE_PESSOA_RETIRADA = 'pessoa'
 
-const CHAVES_LISTA = ['equipe', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qualidade'] as const
+const CHAVES_LISTA = [
+  'setor',
+  'equipe',
+  'projeto',
+  'tipo',
+  'subtarefa',
+  'subgrupo',
+  'qualidade',
+] as const
 export type ChaveLista = (typeof CHAVES_LISTA)[number]
 
 /**
@@ -34,6 +47,7 @@ const cabeNoTeto = (chave: ChaveLista, itens: string[]): boolean =>
   consultaApontamentoSchema.safeParse({ [chave]: itens }).success
 
 const ROTULOS: Record<ChaveLista | 'periodo' | 'anomalos', string> = {
+  setor: ROTULO_FILTRO_SETOR,
   equipe: ROTULO_FILTRO_EQUIPE,
   projeto: 'Projeto',
   tipo: 'Tipo',
@@ -108,6 +122,16 @@ export function opcoesDeEquipe(
   )
 }
 
+/**
+ * Opções de setor da resposta (o servidor já traz "Sem setor" com o próprio rótulo). Campo opcional do contrato:
+ * `undefined` = resposta sem setores e a barra não mostra o filtro; lista vazia = filtro com "sem opções".
+ */
+export function opcoesDeSetor(
+  opcoes: OpcoesApontamento,
+): readonly { id: string; rotulo: string }[] | undefined {
+  return opcoes.setores
+}
+
 const LISTA_DE_OPCOES = {
   projeto: 'projetos',
   tipo: 'tipos',
@@ -123,7 +147,11 @@ function nomeDoValor(
 ): string {
   if (!opcoes) return id
   const lista: readonly { id: string; nome: string }[] = (
-    chave === 'equipe' ? opcoesDeEquipe(opcoes) : opcoes[LISTA_DE_OPCOES[chave]]
+    chave === 'equipe'
+      ? opcoesDeEquipe(opcoes)
+      : chave === 'setor'
+        ? (opcoesDeSetor(opcoes) ?? [])
+        : opcoes[LISTA_DE_OPCOES[chave]]
   ).map((o) => ({ id: o.id, nome: o.rotulo }))
   return lista.find((o) => o.id === id)?.nome ?? id
 }

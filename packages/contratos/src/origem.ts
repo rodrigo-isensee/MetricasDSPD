@@ -22,6 +22,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O11',
   'O13',
   'O19',
+  // Pedido 099 (lote A2, E3.222): o O20 Fluxo cumulativo lê a varredura da vida dos cards da base real (Q-RO-1: avanço 24289, retorno 602); a frio custa ~110 a 140 ms em processo na escala 3 do mock (A1 do ADR 0003).
+  'O20',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
   // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.

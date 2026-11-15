@@ -9,12 +9,8 @@ import {
   SeletorLocal,
   type TextoNota,
 } from '@/components/ui'
-import type {
-  FiltroFluxoChave,
-  FiltrosFluxo,
-  FiltrosSustentacao,
-  ResultadoEI,
-} from '@metricas-dspd/contratos'
+import type { FiltrosFluxo, FiltrosSustentacao, ResultadoEI } from '@metricas-dspd/contratos'
+import type { FiltroCartaoChave } from '@/components/ui/CartaoMetrica'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica, type MetricaQuery } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
@@ -70,7 +66,7 @@ const CFG: Record<Nivel, Config> = {
 interface Props {
   nivel: Nivel
   q: MetricaQuery<ResultadoEI>
-  aplicaveis?: readonly FiltroFluxoChave[]
+  aplicaveis?: readonly FiltroCartaoChave[]
   periodo: FiltrosFluxo['periodo']
   className?: string
 }

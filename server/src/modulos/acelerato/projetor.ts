@@ -26,7 +26,9 @@ const ATRIBUTOS = [
   'restaurado_em', 'data_finalizado', 'status_sla_r', 'status_sla_pa', 'nivel_resolucao', 'arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte',
   'justificativa_informada', 'prioridade_ajustada_manualmente', 'motivo_escalacao', 'motivo_encerramento', 'avaliacao_problema', 'motivo_pendencia_atual', 'previsao_retorno',
 ] as const;
-type Atributo = (typeof ATRIBUTOS)[number];
+/** `dim_chamado` ganha o `fluxo` (0038); `dim_chamado_versao` não: a versão fica como o staging a deu. */
+const ATRIBUTOS_DIM = [...ATRIBUTOS, 'fluxo'] as const;
+type Atributo = (typeof ATRIBUTOS_DIM)[number];
 const valorDe = (l: LinhaProjecao, a: Atributo): string | number | boolean | null => {
   const v = l[a];
   return v instanceof Date ? v.toISOString() : v;
@@ -72,9 +74,9 @@ function inserirLote(S: Esquemas, tabela: string, colunas: readonly string[], li
 export async function etapasDoStaging(db: Consultavel, S: Esquemas, ids: readonly string[]): Promise<Map<string, EtapaTotal[]>> {
   const etapasDe = new Map<string, EtapaTotal[]>();
   for (const e of (await ultimasDeEtapas(db, S, ids)).values()) {
-    const p = e.payload as { descricao: string | null; tempo_sla_segundos: number | null; quantidade_vezes: number | null };
+    const p = e.payload as { descricao: string | null; descricao_workflow?: string | null; tempo_sla_segundos: number | null; quantidade_vezes: number | null };
     const lista = etapasDe.get(e.chamadoId) ?? [];
-    lista.push({ descricao: p.descricao, tempo_sla_segundos: p.tempo_sla_segundos, quantidade_vezes: p.quantidade_vezes });
+    lista.push({ descricao: p.descricao, tempo_sla_segundos: p.tempo_sla_segundos, quantidade_vezes: p.quantidade_vezes, descricao_workflow: p.descricao_workflow ?? null });
     etapasDe.set(e.chamadoId, lista);
   }
   return etapasDe;
@@ -130,11 +132,11 @@ async function projetarLote(
 
   // A vigente é a última versão do staging de cada chamado no lote (ordem por `stg_sk`).
   const vigentes = new Map(linhas.map((x) => [x.stg.id_origem, x.dim]));
-  const dimCols = ['chamado_id', ...ATRIBUTOS, 'coletado_em', 'atualizado_por_coleta_id'];
+  const dimCols = ['chamado_id', ...ATRIBUTOS_DIM, 'coletado_em', 'atualizado_por_coleta_id'];
   // `dim_chamado` é projeção (a história fica no staging e em `dim_chamado_versao`): a vigente é refeita por chamado, sem UPSERT.
   await db.query(`DELETE FROM ${S.ac}.dim_chamado WHERE chamado_id = ANY($1::text[])`, [[...vigentes.keys()]]);
   const d = inserirLote(S, 'dim_chamado', dimCols,
-    [...vigentes.values()].map((x) => [x.chamado_id, ...ATRIBUTOS.map((a) => valorDe(x, a)), agora.toISOString(), coletaId]));
+    [...vigentes.values()].map((x) => [x.chamado_id, ...ATRIBUTOS_DIM.map((a) => valorDe(x, a)), agora.toISOString(), coletaId]));
   await db.query(d.texto, d.valores);
 
   const { etapas, semIntervalo } = await regravarIntervalos(db, S, [...vigentes.values()], etapasDe, cal, coletaId, agora);

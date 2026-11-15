@@ -113,7 +113,16 @@ function chipsDe(
 ): ChipFiltro[] {
   const chips: ChipFiltro[] = []
   const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
+  const setores = opcoes?.dominio === 'businessmap' ? opcoes.setores : undefined
   const f = filtros as FiltrosFluxo & FiltrosSustentacao
+  if (visiveis.includes('setor'))
+    for (const id of f.setor ?? [])
+      chips.push({
+        chave: 'setor',
+        rotulo: ROTULO_FILTRO.setor,
+        valor: rotuloDe(setores, id),
+        valorId: id,
+      })
   if (visiveis.includes('equipe'))
     for (const id of f.equipe)
       chips.push({
@@ -201,8 +210,11 @@ export function useFiltros(
   const efetivo = useMemo(() => {
     const f = leitura.filtros as FiltrosFluxo & FiltrosSustentacao
     if (ehSust) return f
+    const { setor, ...resto } = f
     return {
-      ...f,
+      ...resto,
+      // Só com seleção: sem setor o objeto é o de antes (mesma chave de cache e mesma consulta).
+      ...(config.filtros.includes('setor') && setor && setor.length > 0 ? { setor } : {}),
       equipe: config.filtros.includes('equipe') ? f.equipe : [],
       tipo: config.filtros.includes('tipo') ? f.tipo : [],
     }
@@ -220,7 +232,7 @@ export function useFiltros(
     const livre = lerFluxo(params, opcoes, config.periodoPadrao, '').filtros
     const txt = paramsDeFluxo(livre)
     const upd: Parameters<typeof memoria.atualizar>[0] = {}
-    for (const k of ['equipe', 'tipo', 'sistema'] as const) {
+    for (const k of ['setor', 'equipe', 'tipo', 'sistema'] as const) {
       if (params.has(k)) upd[k] = txt[k]
       else if (config.filtros.includes(k)) upd[k] = null
     }
@@ -351,6 +363,7 @@ export function useFiltros(
         const txt = paramsDeFluxo(f)
         const padraoP = f.periodo.tipo === config.periodoPadrao
         memoria.atualizar({
+          setor: txt.setor,
           ...(config.filtros.includes('equipe') ? { equipe: txt.equipe } : {}),
           ...(config.filtros.includes('tipo') ? { tipo: txt.tipo } : {}),
           sistema: txt.sistema,
@@ -385,6 +398,7 @@ export function useFiltros(
   const vazio = useCallback(
     (): FiltrosFluxo & FiltrosSustentacao => ({
       ...lerAgora(),
+      setor: [],
       equipe: [],
       tipo: [],
       sistema: [],
@@ -403,6 +417,8 @@ export function useFiltros(
         f.prioridade = valorId
           ? f.prioridade.filter((x) => x.toLowerCase() !== valorId.toLowerCase())
           : []
+      else if (chave === 'setor')
+        f.setor = valorId ? (f.setor ?? []).filter((x) => x !== valorId) : []
       else if (chave === 'equipe') f.equipe = valorId ? f.equipe.filter((x) => x !== valorId) : []
       else if (chave === 'sistema')
         f.sistema = valorId ? f.sistema.filter((x) => x !== valorId) : []
