@@ -362,7 +362,9 @@ export const MAIORES = {
  * dentro das horas. Sempre que a linha existe, o texto diz "e horas sem projeto" (desenho, parte B; UX, L8b).
  */
 export const RESUMO_PROJETO = (n: number, horas: string, temSemProjeto: boolean) =>
-  `Recolhido. ${fmtInteiro(n)} ${n === 1 ? 'projeto' : 'projetos'}${temSemProjeto ? ' e horas sem projeto' : ''}, ${horas} no total.`
+  n === 0 && temSemProjeto
+    ? `Recolhido. Nenhum projeto, só horas sem projeto, ${horas} no total.`
+    : `Recolhido. ${fmtInteiro(n)} ${n === 1 ? 'projeto' : 'projetos'}${temSemProjeto ? ' e horas sem projeto' : ''}, ${horas} no total.`
 
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 

@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { CHAVE_RECOLHIDOS } from '@/components/ui'
 import ApontamentoPage from './ApontamentoPage'
 import { RESPOSTA_FICTICIA, fonteFicticia, respostaComLinhaSemProjeto } from './fixture'
+import { RESUMO_PROJETO } from './textos'
 import type { FonteApontamento } from './types'
 
 function renderizar(fonte: FonteApontamento = fonteFicticia) {
@@ -109,10 +110,14 @@ describe('recolher cartão na aba Apontamento (097 E5, L8b)', () => {
     )
   })
 
-  it('só com a linha sem projeto, o resumo diz 0 projetos e horas sem projeto (K-324)', async () => {
+  it('só com a linha sem projeto, o resumo diz Nenhum projeto, só horas sem projeto (K-324)', async () => {
     expect(await resumoCom(respostaComLinhaSemProjeto(true))).toHaveTextContent(
-      'Recolhido. 0 projetos e horas sem projeto, 12 h no total.',
+      'Recolhido. Nenhum projeto, só horas sem projeto, 12 h no total.',
     )
+  })
+
+  it('sem projeto e sem a linha sem projeto, o texto mantém a contagem (0 projetos)', () => {
+    expect(RESUMO_PROJETO(0, '0 h', false)).toBe('Recolhido. 0 projetos, 0 h no total.')
   })
 
   it('com um projeto e a linha sem projeto, o resumo usa o singular (K-324)', async () => {
