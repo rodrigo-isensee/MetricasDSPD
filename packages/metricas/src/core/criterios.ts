@@ -171,6 +171,19 @@ export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
 }
 
 /**
+ * Pedido 099 (D5a): a S9 passa a ler as esperas reais do Acelerato como pendência e a S1 as desconta do relógio. Decisão do dono (Q-099-8
+ * revista e Q-099-21): Aguardando Solicitante, Suporte Terceiros, Fornecedor e Janela de Mudança contam; `Pendente` sem motivo é
+ * "Não classificado". Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até o dono decidir.
+ */
+export const VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA: VersaoCriterio = {
+  id: 'criterio-2026-11-14-s1-s9-esperas-pendencia',
+  data: '2026-11-14',
+  descricao:
+    'As esperas Aguardando Solicitante, Suporte Terceiros, Fornecedor e Janela de Mudança contam como pendência no tempo em pendência (S9) e saem do relógio de resolução da S1; Pendente sem motivo é "Não classificado"; Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono',
+  afeta: ['S1', 'S9'],
+}
+
+/**
  * Pedido 099 (D4, Q-099-5b = A): o S1 entrou no mapa real. O primeiro atendimento passa a ser o primeiro comentário da tabela do Acelerato
  * (inclui resposta automática) e a restauração segue `data_pronto`; antes o S1 não tinha dado real publicado.
  */
@@ -197,6 +210,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
   VERSAO_CRITERIO_S12_VOLUME_REAL,
+  VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
   VERSAO_CRITERIO_S1_DADO_REAL,
 ]
 

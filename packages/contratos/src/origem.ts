@@ -24,12 +24,14 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O19',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
+  // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
+  'O21',
   'EI_FL1',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
   'BLOQUEADOS',
   'PV1',
-  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 voltou a mock: depende de campo que a base real não tem. S12 entrou no pedido 099 (D9) só com o volume.
+  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S12 entrou no pedido 099 (D9) só com o volume.
   'S2',
   'S3',
   'S4',
@@ -42,6 +44,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S1',
   // Pedido 099 (D9): S12 real só com o volume por sistema; reincidência e exceção de SLA por registro posterior saem sem fonte (nulas, com nota).
   'S12',
+  // Pedido 099 (D5a): S9 real pelas esperas decididas (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; Pendente como não classificado); a previsão de retorno segue sem data na base (n = 0, insuficiente).
+  'S9',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -59,8 +63,6 @@ export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
 
 export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
-export const MOTIVO_S9_MOTIVO_PENDENCIA =
-  'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
 export const BLOQUEIOS_COM_DADO_REAL = true
@@ -72,8 +74,8 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
 
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
- * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); S9 espera o motivo de
- * pendência (P-DS-19); a EI_SUST não consta do plano 056, então não se calcula por inferência.
+ * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); a EI_SUST não consta do plano
+ * 056, então não se calcula por inferência.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O8: MOTIVO_AGUARDANDO_CAMPO,
@@ -85,7 +87,6 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S6: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S7: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
-  S9: MOTIVO_S9_MOTIVO_PENDENCIA,
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }

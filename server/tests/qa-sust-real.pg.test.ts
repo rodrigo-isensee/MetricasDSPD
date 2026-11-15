@@ -11,8 +11,8 @@ import { poolDe, url } from './pg/ctx.js';
 // base REAL do Acelerato e que as demais da sustentação seguem a base do seed. Falha se o mapa de origem ou o roteamento voltar atrás.
 const d = describe.skipIf(!url);
 const AGORA = new Date('2026-10-10T15:00:00Z');
-const REAIS = ['S1', 'S2', 'S3', 'S4', 'S8', 'S10', 'S12'] as const;
-const MOCK = ['S5', 'S6', 'S7', 'S9', 'S11', 'EI_SUST'] as const;
+const REAIS = ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as const;
+const MOCK = ['S5', 'S6', 'S7', 'S11', 'EI_SUST'] as const;
 
 d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
   const base = gerarBaseMock({ escala: 0.15 });

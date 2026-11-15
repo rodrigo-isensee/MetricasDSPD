@@ -5,6 +5,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- Métricas: O21 Fluxo reverso com dado real do BusinessMap (direção das transições e ciclo do O3), sem mudar contrato nem cálculo (pedido 099, lote A1, E3.219).
+- Sustentação: S9 e o desconto da S1 leem as esperas reais (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; `Pendente` sem motivo é "Não classificado"), com a versão de critério `criterio-2026-11-14-s1-s9-esperas-pendencia` (`afeta` S1 e S9); Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono (pedido 099, D5a).
 - Sustentação (pedido 099, D4): o cartão do S1 mostra a nota "inclui respostas automáticas" que a API publica (Q-099-5b = A).
 - Sustentação (pedido 099, D4): o primeiro atendimento do S1 passa a ser o primeiro comentário do chamado (`primeiro_atendimento_em` projetado de `data_primeiro_comentario`, só o instante) e o S1 entra no mapa real, com a nota de que o primeiro atendimento inclui respostas automáticas e a versão de critério `criterio-2026-11-15-s1-dado-real`; sem os alvos do `ac:ref-sync` a API responde 503 (Q-099-5b = A).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
@@ -53,11 +55,14 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- API: todo erro 5xx e a resposta fora do schema passam a logar só tipo e código, em todas as rotas e sem exceção por caminho, nunca a mensagem crua do banco, que pode trazer valor de linha (ADR 0020, item 6; K-347); a constante `ROTA_WEBHOOK_BM` some.
+- Webhook do BusinessMap: erro 5xx do receptor passa a logar só tipo e código, nunca a mensagem crua do banco, que pode trazer valor do payload (ADR 0020, item 6, B-4; K-086); testes de não vazamento por marcador no coletor e no webhook.
 - Aba Apontamento: o resumo do gráfico de horas por projeto recolhido deixa de contar a linha sem projeto como projeto, mantendo as horas dela no total (pedido 097, K-324, parte B).
 - Ambiente local e homologação: o healthcheck do postgres checa o banco `metricas` por TCP (`-h 127.0.0.1`), então só passa depois do init e da reinicialização do servidor, e o 1º `db:migrate` após o `db:up` deixa de falhar por socket (K-143, pedido 102).
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 - Suíte: trava em `/tmp/claude-uid` (pedido 079) (#263); teste da trava não pendura dentro do `pronto` (pedido 085) (#280); E2E L3-01 espera a altura da página estabilizar antes do axe (pedido 080) (#265).
 - Testes: regra de fronteira do eslint cobre todo `src` fora de `modulos` (pedido 073, E4) (#240); sustentação sem início de histórico do Acelerato (077, lote 3b) (#273); colunas e GRANT de `fato_bloqueio` e `evt_bloqueio` (075, lote 4c) (#274).
+- CI: a rodada de restauração espera o banco pronto por TCP em `127.0.0.1` no `metricas`, o banco que a migração usa, antes de migrar; antes checava por socket com o init ainda rodando (K-343, mesma corrida do K-143).
 - Entradas: `ref-sync-apontamento` imprime só a categoria do erro, como `ref-sync-ac` e `ref-sync-businessmap` (K-244) (#283).
 - Testes: o caso sem configuração do `ref-sync-apontamento` não lê mais o `.env` da máquina (K-261) (#297).
 - Ferramentas: pre-push com lint e typecheck só nos arquivos e pacotes alterados (pedido 083) (#268, #270).
