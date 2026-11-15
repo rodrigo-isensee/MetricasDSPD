@@ -310,6 +310,27 @@ describe('ramos dos componentes complementares', () => {
     expect(el).toHaveTextContent('P85')
   })
 
+  it('O8 com porTamanho nulo e sem motivo (contrato permite) não quebra: o gráfico por tamanho sai sem barras, sem aviso', async () => {
+    const incoerente = new FonteAjustada({
+      O8: (r: Qualquer) => {
+        for (const t of r.tipos) t.porTamanho = null
+        r.motivoPorTamanho = null
+        r.tipos[0].estatistica = {
+          status: 'ok',
+          n: 30,
+          valor: { mediana: 4, media: 5, p85: 9, acimaP85AnteriorPct: null },
+          janela: r.base.janela,
+        }
+      },
+    })
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: incoerente })
+    const el = await screen.findByTestId('metrica-O8')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    expect(el).toHaveTextContent('Mediana')
+    expect(within(el).queryByTestId('estado-sem-dado-real-O8-por-tamanho')).not.toBeInTheDocument()
+    expect(el).not.toHaveTextContent('Por tamanho declarado')
+  })
+
   it('O17 não diz "mais frequente" quando todas as causas têm 0 incidentes', async () => {
     const zerado = new FonteAjustada({
       O17: (r: Qualquer) => {
