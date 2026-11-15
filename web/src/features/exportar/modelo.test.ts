@@ -97,6 +97,17 @@ describe('textoFiltros', () => {
     )
     expect(t).toBe('Equipe: SSSC TOTVS · Prioridade: P1 · Período: 01/01/2026 a 31/03/2026')
   })
+  it('Setor (097 L11): aparece primeiro só com seleção, com o nome das opções ou, sem elas, o id', () => {
+    const comNomes = {
+      ...opcoesBm,
+      setores: [{ id: 'plataformas', nome: 'Plataformas' }],
+    } as OpcoesFiltro
+    const f = { ...FLUXO, setor: ['plataformas'] }
+    expect(textoFiltros('O12', f, comNomes)).toMatch(/^Setor: Plataformas · Equipe:/)
+    expect(textoFiltros('O12', f, undefined)).toMatch(/^Setor: plataformas · /)
+    expect(textoFiltros('O12', f, opcoesAc)).toMatch(/^Setor: plataformas · /)
+    expect(textoFiltros('O12', FLUXO, comNomes)).not.toContain('Setor')
+  })
   it('sem opções carregadas usa o próprio id', () => {
     expect(textoFiltros('O3', { ...FLUXO, equipe: ['x'], sistema: ['y'] }, undefined)).toContain(
       'Equipe: x',

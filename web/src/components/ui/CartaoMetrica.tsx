@@ -14,6 +14,9 @@ import {
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
+
+/** Filtros que podem atuar num cartão do fluxo: os do contrato e o Setor (097 L11; entra no contrato com o L10b). */
+export type FiltroCartaoChave = FiltroFluxoChave | 'setor'
 import { SemDadoRealErro } from '@/data/http/SemDadoRealErro'
 import { fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
@@ -77,7 +80,7 @@ export interface CartaoMetricaProps {
   fonte: FonteDoCartao
   granularidade: GranularidadeDoCartao
   /** Filtros que atuam no cartão (tabela 2.2). Omitido = todos os ativos atuam (sustentação). */
-  aplicaveis?: readonly FiltroFluxoChave[]
+  aplicaveis?: readonly FiltroCartaoChave[]
   criterios?: CriteriosResultado
   /**
    * Janela de percentis do resultado (`janelaPercentis` do DTO) e período escolhido: com os dois, o
@@ -181,7 +184,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
     return () => reportarAtualizando(id, false)
   }, [id, atualizando, reportarAtualizando])
 
-  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroFluxoChave)
+  const atua = (chave: string) => !p.aplicaveis || p.aplicaveis.includes(chave as FiltroCartaoChave)
   const aplicados = filtrosAtivos.filter((f) => atua(f.chave))
   const naoAfetam = [...new Set(filtrosAtivos.filter((f) => !atua(f.chave)).map((f) => f.rotulo))]
   const textoAplicados = aplicados.map((f) => `${f.rotulo} ${f.valor}`)

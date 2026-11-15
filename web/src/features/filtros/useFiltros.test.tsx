@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { MemoryRouter, useLocation } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { Provedores } from '@/app/App'
+import type { Dominio, OpcoesFiltro } from '@metricas-dspd/contratos'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { fonteDeTeste } from '@/test/helpers'
 import { useFiltros } from './useFiltros'
 
@@ -10,9 +12,10 @@ function montar<P extends 'operacional' | 'estrategico' | 'sustentacao'>(
   painel: P,
   url: string,
   prefixo?: string,
+  fonte: MockFonteMetricas = fonteDeTeste,
 ) {
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <Provedores fonte={fonteDeTeste}>
+    <Provedores fonte={fonte}>
       <MemoryRouter initialEntries={[url]}>{children}</MemoryRouter>
     </Provedores>
   )
@@ -27,6 +30,44 @@ function montar<P extends 'operacional' | 'estrategico' | 'sustentacao'>(
 
 const aguardarOpcoes = (r: ReturnType<typeof montar>) =>
   waitFor(() => expect(r.result.current.uso.opcoes).toBeDefined())
+
+class FonteComSetores extends MockFonteMetricas {
+  constructor() {
+    super({ latenciaMs: 0 })
+  }
+  override async opcoesFiltro<D extends Dominio>(
+    dominio: D,
+  ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
+    const r = await super.opcoesFiltro(dominio)
+    if (r.dominio !== 'businessmap') return r
+    return {
+      ...r,
+      setores: [
+        { id: 'plataformas', nome: 'Plataformas' },
+        { id: 'marketing', nome: 'Marketing e Vendas' },
+        { id: 'sistemas', nome: 'Sistemas Corporativos' },
+      ],
+    }
+  }
+}
+
+describe('useFiltros: remover o filtro Setor (097 L11)', () => {
+  it('um valor, todos, e valor que não está selecionado não muda nada', async () => {
+    const r = montar(
+      'operacional',
+      '/operacional?setor=plataformas,marketing',
+      undefined,
+      new FonteComSetores(),
+    )
+    await aguardarOpcoes(r)
+    act(() => r.result.current.uso.remover('setor', 'plataformas'))
+    expect(r.result.current.loc.search).toBe('?setor=marketing')
+    act(() => r.result.current.uso.remover('setor'))
+    expect(r.result.current.loc.search).toBe('')
+    act(() => r.result.current.uso.remover('setor', 'marketing'))
+    expect(r.result.current.loc.search).toBe('')
+  })
+})
 
 describe('useFiltros: remover cada filtro', () => {
   it('tipo, equipe e sistema: um valor ou todos; período volta ao padrão', async () => {

@@ -69,7 +69,7 @@ describe('mapa diário recortado pela Equipe (K-286, volta 1 da revisão de UX)'
     )
     const cartao = await screen.findByTestId('metrica-AP-DIARIO')
     const aviso = await within(cartao).findByTestId('diario-sem-pessoas')
-    expect(aviso).toHaveTextContent(DIARIO_VAZIO.semEquipe)
+    expect(aviso).toHaveTextContent(DIARIO_VAZIO.semRecorte)
     expect(aviso).toHaveTextContent('Nenhum apontamento nesta janela. Troque as datas do mapa.')
     expect(aviso).not.toHaveTextContent(/equipe/i)
     expect(within(aviso).queryByRole('button')).toBeNull()
@@ -80,14 +80,14 @@ describe('mapa diário recortado pela Equipe (K-286, volta 1 da revisão de UX)'
     renderizar(`${URL_ABA}?equipe=portal`, fonteDe(respostaFicticia))
     const dica = await screen.findByTestId('dica-anomalia')
     expect(dica).toHaveTextContent(
-      'O dia é avaliado com todas as horas da pessoa, não só as da equipe escolhida.',
+      'O dia é avaliado com todas as horas da pessoa, não só as do setor ou da equipe escolhidos.',
     )
   })
 
   it('A3: sem Equipe, a dica não traz essa frase', async () => {
     renderizar(URL_ABA, fonteDe(respostaFicticia))
     const dica = await screen.findByTestId('dica-anomalia')
-    expect(dica).not.toHaveTextContent(/não só as da equipe/)
+    expect(dica).not.toHaveTextContent(/não só as do setor ou da equipe/)
   })
 
   it('A4: o nome da grade e a legenda da tabela dizem a equipe, nunca pessoa', async () => {

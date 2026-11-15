@@ -16,6 +16,7 @@ const CAMINHO = '/api/apontamento'
 export function consultaParaQuery(c: ConsultaApontamento): string {
   const q = new URLSearchParams()
   for (const chave of [
+    'setor',
     'equipe',
     'projeto',
     'tipo',

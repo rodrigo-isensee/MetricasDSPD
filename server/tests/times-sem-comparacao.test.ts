@@ -47,6 +47,19 @@ describe('tabela de times: só filtro, nunca comparação entre times (regra inv
     expect(views.length).toBeGreaterThan(0);
     for (const v of views) expect(v).not.toMatch(/ref_time/);
   });
+  it('097 K-337: o apontamento usa o setor (quadro do card) so como recorte: sem GROUP BY, contagem, soma nem ordem por quadro ou setor, e sem bloco agregado por setor no contrato', () => {
+    for (const f of ['modulos/apontamento/repositorio.ts', 'modulos/apontamento/servico.ts']) {
+      const fonte = readFileSync(join(RAIZ, f), 'utf8');
+      expect(fonte, f).not.toMatch(/GROUP BY[^`]*(setor|quadro)|count\([^)]*(setor|quadro)|sum\([^)]*(setor|quadro)|avg\([^)]*(setor|quadro)|ORDER BY[^\n`]*(setor|quadro)|\.sort\([^)]*setor|\.reduce\([^)]*setor/i);
+    }
+    const contrato = readFileSync(new URL('../../packages/contratos/src/apontamento.ts', import.meta.url).pathname, 'utf8');
+    expect(contrato).not.toMatch(/porSetor|matrizSetor|quadroId|quadro_id/);
+    expect(consultaApontamentoSchema.safeParse({ setor: 'setor-alfa' }).success).toBe(true);
+    expect(consultaApontamentoSchema.safeParse({ setor: 'setor-alfa,sem-setor' }).success).toBe(true);
+    expect(consultaApontamentoSchema.safeParse({ setor: 'Setor Alfa' }).success).toBe(false); // não é slug
+    expect(consultaApontamentoSchema.safeParse({ porSetor: 'x' }).success).toBe(false); // consulta estrita: sem chave de agrupamento
+    expect(consultaApontamentoSchema.safeParse({ setor: Array.from({ length: 51 }, (_, i) => `s${String(i)}`).join(',') }).success).toBe(false); // teto de 50
+  });
   it('097 L2: o apontamento usa dim_card.equipe so como recorte: sem GROUP BY, contagem, soma nem ordem por time, e sem bloco agregado por equipe no contrato', () => {
     for (const f of ['modulos/apontamento/repositorio.ts', 'modulos/apontamento/servico.ts']) {
       const fonte = readFileSync(join(RAIZ, f), 'utf8');
