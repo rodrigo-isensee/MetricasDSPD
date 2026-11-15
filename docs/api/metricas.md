@@ -26,13 +26,15 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 
 | Domínio (métricas) | Parâmetros |
 |---|---|
-| Fluxo (O*, T*, E*, BLOQUEADOS, EI_FL1..3) | `equipe`, `tipo` (ids de `TIPO_ID`), `sistema`, `periodo` |
+| Fluxo (O*, T*, E*, BLOQUEADOS, EI_FL1..3) | `equipe`, `tipo` (ids de `TIPO_ID`), `sistema`, `setor` (CSV de slugs de `opcoes.setores`, pedido 097 L10b; ver abaixo), `periodo` |
 | Sustentação (S*, EI_SUST) | `equipe` (CSV de slugs do nome da equipe, ex.: `sssc-totvs`; os ids antigos `totvs,senior,fluig` seguem aceitos como apelido; slug sem dado dá recorte vazio, slug fora de `^[a-z0-9][a-z0-9-]{0,59}$` dá 400), `prioridade` (`P1..P5`), `periodo` |
 | Pesquisa de percepção (PV1) | nenhum (só `dataReferencia`) |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
-| TENDENCIA_FLUXO, TENDENCIA_SUST | só `dataReferencia` e `equipe` opcional (janela e demais recortes fixos nos padrões) |
+| TENDENCIA_FLUXO | só `dataReferencia`, `equipe` e `setor` opcionais (janela e demais recortes fixos nos padrões) |
+| TENDENCIA_SUST | só `dataReferencia` e `equipe` opcional; `setor` dá 400 (o Setor é só do BusinessMap) |
 
 - Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`packages/contratos/src/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
+- **`setor` (pedido 097, L10b, E7; parâmetro novo e opcional, compatível):** slugs do nome do setor sem sobrenome (`GET /api/v1/filtros/businessmap`, `setores[].id`), em CSV; ausente ou vazio = Todos; slug fora de `^[a-z0-9][a-z0-9-]{0,59}$` dá 400; slug sem dado dá recorte vazio (200). Só o fluxo e a `TENDENCIA_FLUXO`; a sustentação, a `TENDENCIA_SUST` e a `VISAO_GERAL` o recusam (400, parâmetro desconhecido): BusinessMap e Acelerato não se misturam. **Recorte pelo quadro atual do card** (consulta C5 do dono: nenhum card mudou de quadro, sem versão do card na data): o dicionário `quadro -> setor` vem do `ref_dominio` (`setor_quadro`) e o card sem quadro no dicionário (por exemplo o quadro 35, dos projetos) fica de fora de qualquer setor e dentro de "Todos". Vários setores = um conjunto consolidado, nunca comparação: nenhuma resposta ganha bloco, série ou ordenação por setor. O **projeto** não é recortado pelo setor (como a equipe: E1 a E6, E9, T9 projetos, EI_FL3 e, nas stories, E2 e E7); a frente e a story são. O limite de WIP do O1 e o detalhe por coluna de uma equipe seguem as equipes do recorte (equipe com coluna em quadro do setor). A chave de cache e o ETag levam o setor.
 - `periodo`: `4s | 12s | 6m | 12m` (padrão `12s`) ou `custom` com `de` e `ate` (AAAA-MM-DD, dentro de `historico`).
 - Parâmetro de outro domínio (ex.: `sistema` em S1) -> 400 `VALIDATION_ERROR`.
 - `dataReferencia` (opcional, AAAA-MM-DD): recalcula com corte no fim desse dia (America/Sao_Paulo); padrão (decisão S-a) = instante da última coleta bem-sucedida da fonte da métrica (sem coleta: agora). Futura (depois de hoje) -> 400. VISAO_GERAL usa o corte mais antigo das duas fontes (provisório). Parâmetros desconhecidos (qualquer filtro de pessoa) -> 400. `de`/`ate` só com `periodo=custom`; `custom` exige os dois.

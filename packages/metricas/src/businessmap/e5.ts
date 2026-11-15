@@ -17,10 +17,12 @@ export function calcularE5(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE5 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, 'frente')
   const j = janelaMovelDia(diaDeIso(janela.fim), JANELA_POR_GRANULARIDADE.frente)
-  const frentes = selecionar(ctx, f, 'frente', { semEquipe: true, semTipo: true })
-  const projetos = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true }).filter(
-    (p) => p.entrega === null && !p.arquivadoSemDesfecho,
-  )
+  const frentes = selecionar(ctx, f, 'frente', { semEquipe: true, semSetor: true, semTipo: true })
+  const projetos = selecionar(ctx, f, 'projeto', {
+    semEquipe: true,
+    semSetor: true,
+    semTipo: true,
+  }).filter((p) => p.entrega === null && !p.arquivadoSemDesfecho)
   const v = vazaoSemanal(ctx, frentes, j)
   const amostra = amostraBM('frente', v.contagens, j)
   const linhas = projetos
