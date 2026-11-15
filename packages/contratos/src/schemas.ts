@@ -33,7 +33,12 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaS12IdSchema, notaSustentacaoIdSchema } from './origem'
+import {
+  notaCartaoIdSchema,
+  notaS12IdSchema,
+  notaS1IdSchema,
+  notaSustentacaoIdSchema,
+} from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -638,6 +643,8 @@ export const resultadoS1 = z.object({
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),
   ),
+  /** Pedido 099 (D4, Q-099-5b = A): nota do primeiro atendimento na base real (os textos vivem em `origem.ts`). */
+  notas: z.array(notaS1IdSchema).optional(),
 })
 
 const celulaS2 = z.object({ taxa: taxaSchema, statusMeta: statusMetaSchema })
@@ -909,9 +916,14 @@ export const resultadoO8 = z.object({
           acimaP85AnteriorPct: z.number().nullable(),
         }),
       ),
-      porTamanho: z.array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() })),
+      /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+      porTamanho: z
+        .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
+        .nullable(),
     }),
   ),
+  /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
+  motivoPorTamanho: z.string().min(1).nullable(),
 })
 
 /** O11: composição do backlog (retrato no fim de cada mês). */

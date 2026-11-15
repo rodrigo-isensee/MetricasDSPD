@@ -53,8 +53,15 @@ function renderizar(resposta: RespostaApontamento) {
 }
 
 async function aba() {
-  const kpis = await screen.findByTestId('metrica-AP-KPIS')
-  await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await screen.findByTestId('metrica-AP-KPIS')
+  // todos os cartões saem do esqueleto cada um no seu tempo (K-355): ler outro cartão logo após o KPI é corrida
+  await waitFor(
+    () => {
+      for (const c of screen.getAllByTestId(/^metrica-/))
+        expect(c).toHaveAttribute('data-estado', 'ok')
+    },
+    { timeout: 8000 },
+  )
 }
 
 describe('063: aviso de registro de horas incompleto', () => {

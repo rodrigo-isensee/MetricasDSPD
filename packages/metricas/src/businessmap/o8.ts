@@ -1,5 +1,5 @@
 import type { ResultadoO8, FiltrosFluxo } from '@metricas-dspd/contratos'
-import { TIPOS_CARD } from '@metricas-dspd/contratos'
+import { MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL, TIPOS_CARD } from '@metricas-dspd/contratos'
 import { diaDeIso } from '../core/calendario'
 import { medianaDe, publicavel, resumoComMedia } from '../core/estatistica'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
@@ -13,6 +13,8 @@ const TAMANHOS = ['P', 'M', 'G', 'Sem tamanho'] as const
 /**
  * O8: tamanho das demandas = tempo em execução (dias úteis, o mesmo ciclo do O3). Mediana e média
  * só junto do P85 (nunca média isolada, 7.2), e % acima do P85 da janela anterior.
+ * Pedido 099 (A4, Q-099-4): a divisão por tamanho só sai com `tamanho_declarado` preenchido em algum card da base; sem
+ * nenhum, `porTamanho` é nulo com o motivo (nunca tudo em "Sem tamanho", que pareceria dado).
  */
 export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
   const periodo = periodoDe(ctx, f)
@@ -22,6 +24,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
   const ini = diaDeIso(janela.inicio)
   const fim = diaDeIso(janela.fim)
   let total = 0
+  const comTamanho = ctx.idx.base.cards.some((c) => c.tamanho_declarado !== null)
   const tipos = TIPOS_CARD.map((tipo) => {
     const todos = entreguesDe(
       ctx,
@@ -55,24 +58,26 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
       tipo,
       n: es.length,
       estatistica,
-      porTamanho: TAMANHOS.map((tamanho) => {
-        const xs = es.filter((e) => (e.m.card.tamanho_declarado ?? 'Sem tamanho') === tamanho)
-        return {
-          tamanho,
-          n: xs.length,
-          mediana: publicavel(xs.length)
-            ? r2(
-                medianaDe(
-                  amostraBM(
-                    'story',
-                    xs.map((e) => e.ciclo),
-                    janela,
-                  ),
-                ),
-              )
-            : null,
-        }
-      }).filter((t) => t.n > 0),
+      porTamanho: !comTamanho
+        ? null
+        : TAMANHOS.map((tamanho) => {
+            const xs = es.filter((e) => (e.m.card.tamanho_declarado ?? 'Sem tamanho') === tamanho)
+            return {
+              tamanho,
+              n: xs.length,
+              mediana: publicavel(xs.length)
+                ? r2(
+                    medianaDe(
+                      amostraBM(
+                        'story',
+                        xs.map((e) => e.ciclo),
+                        janela,
+                      ),
+                    ),
+                  )
+                : null,
+            }
+          }).filter((t) => t.n > 0),
     }
   }).filter((c) => c.n > 0)
   return {
@@ -80,5 +85,6 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
     criterios: criterios('O8', periodo, janela, ctx),
     janelaPercentis: janela,
     tipos,
+    motivoPorTamanho: comTamanho ? null : MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   }
 }
