@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/099-d2-motivos-sust
-commit: 8c494dcb06261bfd3550c2f6f5f95b42af531a9a
+commit: bc27eae640b8ed5e65d14d40e50b10e2ff4d092a
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
@@ -39,6 +39,9 @@ Lido só o `forge-check parecer delta` (13 arquivos no domínio; QA e UX fora de
 - **Mudança incompatível do S3: aceito.** O enum de `notas` do S3 ganha `s7-nao-igual-vazio` (schema, `openapi.json`, contrato S3 e fotografia regenerados e coerentes); o web monta o texto de `TEXTO_NOTA_MOTIVOS` (`origem.ts:232`), então a tela não quebra com o id novo. Sem convivência, como no D2 e sem consumidor externo.
 - **U4 não aplicado: confere.** `s6.ts:44` calcula `taxaContorno = taxa(contorno, xs.length)`, e `xs` inclui `Outro` e `Não informado` no denominador; o texto "aparecem separados" é o verdadeiro, e o do UX ("não entram na taxa") seria falso.
 - Pontos menores, sem bloquear: o literal `'s7-nao-igual-vazio'` em `schemas.ts:678` repete o id que `origem.ts` já tem (o enum do S3 poderia usar `NOTA_MOTIVOS_IDS` filtrado); vale juntar quando o S3 for tocado de novo. Tamanho do delta: 51 linhas de código e teste (dentro da orientação).
+
+## Revalidação no head bc27eae6 (merge da develop)
+Lido o `forge-check parecer delta` (8c494dcb..bc27eae6) e o diff do merge contra o lado da feature. O merge só combinou os dois lados nos cinco conflitos (CHANGELOG, `acelerato-dominio.json`, `dominio-acelerato.ts`, `origem.test.ts`, `qa-f6-painel.test.ts`): S5, S6 e S7 seguem como reais, O12 entra como real vindo da develop, e não há marcador de conflito. A5 corrigido em `docs/api/metricas.md` (as duas frases sumiram). Nada muda a regra: parecer segue aprovado, agora no head `bc27eae6`; CI do head verde (citado, não rerrodado).
 
 ## Riscos e pendências fora do review
 - Depois do merge, o dono roda o `ac:ref-sync` (para carregar `fluxo_proc`) e a reprojeção que preenche `dim_chamado.fluxo` (migração 0038, coluna nascida nula). Com a lista carregada e a coluna ainda nula, S5, S6 e S7 publicam `n = 0` e todos os chamados em `foraDoFluxo`: o resultado fica insuficiente, sem dado errado. O CHANGELOG e o PR devem dizer a ordem.
