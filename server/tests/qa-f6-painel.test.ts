@@ -35,6 +35,13 @@ const VERSOES = COLUNAS.map((c) => ({ quadro_id: '35', coluna_id: c.coluna_id, t
 const tr = (id: string, de: string | null, para: string, iso: string): LinhaTransicao =>
   ({ card_id: id, quadro_id: '35', coluna_origem_id: de, coluna_destino_id: para, tipo_coluna: null, direcao: 'avanco', ocorrido_em: t(iso) });
 
+
+/** Alvos de prioridade do PROC (`ref_alvo_prioridade`, D3): P1 e o primeiro atendimento do P2 em tempo corrido, o resto em tempo útil. */
+const ALVOS = [
+  ['P1', '0.25', 'corrido', '4', 'corrido', 'min', 'h'], ['P2', '0.5', 'corrido', '8', 'util', 'min', 'h'], ['P3', '2', 'util', '17.6', 'util', 'h', 'dia'],
+  ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
+].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
+
 type OpcoesReal = { sle?: boolean; cards?: LinhaCard[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e a API não a faz mais (pedido 060). */
 function banco(o: OpcoesReal = {}): Respondedor {
@@ -43,6 +50,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
   return (c: Chamada) => {
     const x = c.texto;
     if (!x.includes('r_dspd')) return doSeed(c);
+    if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
     if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z')]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
@@ -92,12 +100,12 @@ function varrer(o: unknown, aoNodo: (n: Nodo, caminho: string) => void, caminho 
 }
 
 describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
-  it('sem dado real no painel operacional são exatamente O8, O12, O14, O15, O18 (com o motivo da H-13) e O22 a O26 menos o O25; as reais são as 12 da H-13 mais BLOQUEADOS, O5 e O19 (pedido 075, 6b), O20 (pedido 099, lote A2), O21 (pedido 099, lote A1), O25 (pedido 099, lote A3), O16 (pedido 099, lote C8), O17 por sistema (pedido 099, B da Q-099-7) e PV1 (pedido 060)', () => {
-    const ficticiasFL1 = ['O8', 'O12', 'O14', 'O15', 'O18'] as MetricaId[];
+  it('sem dado real no painel operacional são exatamente O12, O14, O15, O18 (com o motivo da H-13) e O22 a O26 menos o O25; as reais são as 12 da H-13 mais BLOQUEADOS, O5 e O19 (pedido 075, 6b), O20 (pedido 099, lote A2), O21 (pedido 099, lote A1), O25 (pedido 099, lote A3), O16 (pedido 099, lote C8), O17 por sistema (pedido 099, B da Q-099-7), O8 no tempo real (pedido 099, A4) e PV1 (pedido 060)', () => {
+    const ficticiasFL1 = ['O12', 'O14', 'O15', 'O18'] as MetricaId[];
     const comp = ['O22', 'O23', 'O24', 'O26'] as MetricaId[];
     for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('sem-dado'); expect(motivoDaOrigemSemDado(id), id).toBe('aguardando campo no quadro'); }
     for (const id of comp) expect(origemDaMetrica(id), id).toBe('sem-dado');
-    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'O16', 'O17', 'O20', 'O21', 'O25', 'PV1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
+    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'O8', 'O16', 'O17', 'O20', 'O21', 'O25', 'PV1', 'S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
     // FL2, FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
     for (const id of METRICA_IDS.filter((m) => /^(T|E)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('sem-dado');
   });
