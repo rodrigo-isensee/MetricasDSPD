@@ -216,6 +216,26 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.totais.vencidos).toBe(1)
   })
 
+  it('O12 (interruptor ligado, futuro): vencido de causa interna aciona a meta como "fora"', () => {
+    const base = umaBase([entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') })])
+    const comInterno: BaseBM = {
+      ...base,
+      cards: base.cards.map((c) => ({ ...c, responsabilidade_atraso: 'Interno' as const })),
+    }
+    const r = calcularO12(ctxDe(comInterno), F, true)
+    expect(r.totais.vencidos).toBe(1)
+    expect(r.vencidosCausaInterna).toBe(1)
+    expect(r.statusMeta).toBe('fora')
+  })
+
+  it('O12: card que não está ativo nem descartado (estado impossível no índice) não conta como acordo', () => {
+    const base = umaBase([entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') })])
+    const ctx = ctxDe(base)
+    // O índice nunca produz este par (excluído é descartado); a proteção de `conta` segue valendo se um dia produzir.
+    Object.assign(ctx.idx.marcos[0] as object, { ativo: false, descartado: false })
+    expect(calcularO12(ctx, F).totais.acordos).toBe(0)
+  })
+
   it('O18: bug sem origem informada não é atribuído a nenhuma story', () => {
     const base = umaBase([
       ...varios(20, (i) => entregue(`S${i}`, 0, 1 + (i % 3))),
