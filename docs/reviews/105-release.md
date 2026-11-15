@@ -4,7 +4,7 @@ contrato: 1
 pedido: 105-melhorias-15-11
 branch: docs/105-release
 commit: 4d89240da40fb458d2c4b607c52b887219e15229
-parecer: reprovado
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
 ---
@@ -36,3 +36,14 @@ Lido em `git diff origin/main...origin/develop -- packages/contratos/src`: `CLAS
 ## Parecer
 
 Reprovado sobre a develop em 4d89240d por A1: o CHANGELOG é fiel ao que entra (52 PRs cobertos, ações do dono em ordem certa, critérios com data e comando, migração 0038 com `down`, regras invioláveis preservadas), mas deixa de declarar na seção própria as mudanças que quebram contrato da 105. A1 se corrige só no texto do CHANGELOG, sem código; A2 a A4 vão junto. Volta ao autor da E5.12; na revalidação leio só o delta do CHANGELOG e do roteiro, e o run do CI da develop fica a conferir.
+
+## Revalidação (docs/105-release em d6147b00, sobre a develop revisada em 4d89240d)
+
+Delta lido: `2812e09c` (CHANGELOG) e `d6147b00` (roteiro), só texto, sem código.
+- A1 resolvido: "Mudanças que quebram" da 105 traz Intangível fora do enum (E7.3), O12 e O15 anuláveis, O8, S5 e S6 reescritos e a migração 0038, com consumidor único (a web deste repositório).
+- A2 e A4 resolvidos: o "### Alterado" subiu para antes das "Ações do dono" e aponta para a seção de quebras.
+- A3 resolvido: o roteiro trata o #469 como já mesclado na develop e ganhou a seção 4, rollback da 0038 (`down` com `DSPD_PERMITIR_DOWN=1` e backup do dia).
+- Rótulo: O8 (#442, #450), O12 (#451) e S5/S6 (#462) vêm do pedido 099; só o O15 (#465, K-365) é do 105. Ajustei o CHANGELOG, com O12 e O15 em linhas próprias, cada uma com o PR.
+- Segurança, QA e devops da release aprovaram. O run do CI da develop em 4d89240d segue a conferir pelo CI do PR da release.
+
+Parecer: aprovado.
