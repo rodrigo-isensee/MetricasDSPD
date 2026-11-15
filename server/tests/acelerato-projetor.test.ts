@@ -2,6 +2,8 @@ import { acelerato } from '@metricas-dspd/metricas';
 import { CALENDARIO_PADRAO, horasUteisEntre } from '@metricas-dspd/metricas/core';
 import { describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
+import { Contadores } from '../src/modulos/acelerato/allow-list.js';
+import { fluxoDoChamado } from '../src/modulos/acelerato/normalizador.js';
 import { carregarNaturezaPorPrefixo, projetarAcelerato, TAMANHO_LOTE } from '../src/modulos/acelerato/projetor.js';
 import { criarDublePg, type Chamada } from './duble-pg.js';
 
@@ -13,8 +15,8 @@ const stg = (sk: number, id: string, payload: Record<string, unknown>, marcas: {
     com_agente: true, prioridade: 'P2 - ALTO', data_criacao: '2026-09-01 09:00:00', data_pronto: '2026-09-02 15:00:00', lixeira: false, arquivado: false,
     sla_pa_violado: false, sla_pa_status: 'REALIZADO_NO_PRAZO', sla_r_violado: false, sla_r_status: 'REALIZADO_NO_PRAZO', campos: { reincidente_90d: 'sim' }, ...payload },
 });
-const etapaStg = (chamado: string, id: string, descricao: string, tempo: number) => ({
-  chamado_id: chamado, id_origem: id, stg_sk: '1', payload_sha256: Buffer.alloc(32), ausente_na_extracao: false, payload: { descricao, descricao_workflow: null, tempo_sla_segundos: tempo, quantidade_vezes: 1 },
+const etapaStg = (chamado: string, id: string, descricao: string, tempo: number, workflow: string | null = null) => ({
+  chamado_id: chamado, id_origem: id, stg_sk: '1', payload_sha256: Buffer.alloc(32), ausente_na_extracao: false, payload: { descricao, descricao_workflow: workflow, tempo_sla_segundos: tempo, quantidade_vezes: 1 },
 });
 
 type Cenario = { pendentes: ReturnType<typeof stg>[][]; etapas?: ReturnType<typeof etapaStg>[]; naturezas?: { codigo: string; rotulo: string }[]; semPendencia?: boolean; versaoD7?: boolean };
@@ -77,6 +79,20 @@ describe('projetarAcelerato (F2)', () => {
     expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');
   });
 
+  it('Q-099-5b: primeiro_atendimento_em segue para a versão e para a vigente, com o instante do primeiro comentário (nulo sem comentário)', async () => {
+    const d = montar({ pendentes: [[stg(10, '1', { data_primeiro_comentario: '2026-09-01 09:20:00' }), stg(11, '2', { data_primeiro_comentario: null })]] });
+    await projetarAcelerato(d.pool, S, () => AGORA);
+    for (const trecho of ['INSERT INTO dspd_ac.dim_chamado_versao', 'INSERT INTO dspd_ac.dim_chamado ']) {
+      const q = com(d, trecho)[0]!;
+      const colunas = /\(([^)]*)\) VALUES/.exec(q.texto)![1]!.split(',').map((x) => x.trim());
+      const i = colunas.indexOf('primeiro_atendimento_em');
+      expect(i).toBeGreaterThan(0);
+      expect(q.valores).toContain('2026-09-01T12:20:00.000Z');
+      expect(q.valores.length % colunas.length).toBe(0);
+      expect(q.valores[colunas.length + i]).toBeNull();
+    }
+  });
+
   it('chamado aberto, excluído ou fora do recorte não gera intervalo por etapa; a vigente é a última versão do lote', async () => {
     const d = montar({
       pendentes: [[stg(20, '3', { data_pronto: null }), stg(21, '4', { lixeira: true }), stg(22, '5', {}, { fora: true }), stg(23, '5', {}, { ausente: true })]],
@@ -125,5 +141,42 @@ describe('projetarAcelerato (F2)', () => {
     const d = criarDublePg((q) => (q.texto.includes('INSERT INTO dspd_ac.dim_chamado_versao') ? new Error('falhou') : q.texto.includes("campo = 'natureza_prefixo'") ? [{ codigo: 'PFX-I', rotulo: 'incidente' }] : q.texto.startsWith('SELECT 1 FROM') ? [{ x: 1 }] : q.texto.includes('INSERT INTO dspd_ac.ctl_coleta ') ? [{ coleta_id: '1' }] : q.texto.includes('FROM dspd_ac.stg_chamado s') ? [stg(1, '1', {})] : []));
     await expect(projetarAcelerato(d.pool, S, () => AGORA)).rejects.toThrow('falhou');
     expect(d.chamadas.map((x) => x.texto)).toContain('ROLLBACK');
+  });
+});
+
+describe('fluxo do chamado (pedido 099, D1 1a)', () => {
+  const e = (w: string | null | undefined) => ({ descricao: 'Pendente', tempo_sla_segundos: 60, quantidade_vezes: 1, ...(w === undefined ? {} : { descricao_workflow: w }) });
+  it('um só workflow, repetido em várias etapas, é o fluxo; sem contagem', () => {
+    const c = new Contadores();
+    expect(fluxoDoChamado([e('SSVO'), e('SSVO'), e(null)], c)).toBe('SSVO');
+    expect(c.entradas()).toEqual([]);
+  });
+  it('sem etapa, ou sem workflow nelas, é nulo e não conta fluxo_multiplo', () => {
+    const c = new Contadores();
+    expect(fluxoDoChamado([], c)).toBeNull();
+    expect(fluxoDoChamado([e(null), e(undefined), e('')], c)).toBeNull();
+    expect(c.entradas()).toEqual([]);
+  });
+  it('mais de um workflow distinto é nulo com a contagem fluxo_multiplo, sem escolher nenhum (nem o da primeira etapa)', () => {
+    const c = new Contadores();
+    expect(fluxoDoChamado([e('SSVO'), e('PROC')], c)).toBeNull();
+    expect(fluxoDoChamado([e('PROC'), e('SSVO'), e('PROC')], c)).toBeNull();
+    expect(c.entradas()).toEqual([['fluxo_multiplo', 2]]);
+  });
+  it('o projetor grava o fluxo só em dim_chamado (a versão não ganha a coluna) e conta o chamado de dois workflows', async () => {
+    const d = montar({
+      pendentes: [[stg(10, '1', {}), stg(11, '2', {}), stg(12, '3', {})]],
+      etapas: [etapaStg('1', '5', 'Pendente', 60, 'SSVO'), etapaStg('1', '6', 'Em Atendimento N2', 60, 'SSVO'),
+        etapaStg('2', '5', 'Pendente', 60, 'SSVO'), etapaStg('2', '6', 'Em Atendimento N2', 60, 'PROC')],
+    });
+    const r = await projetarAcelerato(d.pool, S, () => AGORA);
+    expect(r.contagens).toMatchObject({ fluxo_multiplo: 1 });
+    const dim = com(d, 'INSERT INTO dspd_ac.dim_chamado ')[0]!;
+    const cols = /\(([^)]*)\) VALUES/.exec(dim.texto)![1]!.split(',').map((x) => x.trim());
+    const n = cols.length;
+    expect(cols).toContain('fluxo');
+    const col = cols.indexOf('fluxo');
+    expect([0, 1, 2].map((i) => dim.valores[i * n + col])).toEqual(['SSVO', null, null]);
+    expect(com(d, 'INSERT INTO dspd_ac.dim_chamado_versao')[0]!.texto).not.toContain('fluxo');
   });
 });

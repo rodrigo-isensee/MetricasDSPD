@@ -62,11 +62,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'O tamanho das demandas, medido pelo tempo em execução, e quantas passam do P85 anterior.',
     comoSeCalcula:
-      'Mediana, média e P85 do tempo em execução (dias úteis) por tipo, cruzados com o tamanho declarado (P, M, G). Só com 20 itens ou mais.',
+      'Mediana, média e P85 do tempo em execução (dias úteis) por tipo (dado real do BusinessMap, o mesmo do O3). A divisão por tamanho declarado (P, M, G) fica sem dado real até o campo de tamanho existir no quadro. Só com 20 itens ou mais.',
     comoLer: 'Olhe a mediana e o P85 juntos; a média aparece sempre ao lado deles, nunca sozinha.',
     meta: 'Sem meta; leia com O3 e O4.',
     cuidados:
-      'A média isolada esconde itens muito grandes. O tamanho declarado é do card, não da pessoa.',
+      'A média isolada esconde itens muito grandes. O tamanho declarado, quando existir, é do card, não da pessoa.',
   },
   O11: {
     oQueE: 'O backlog dividido em itens ainda em definição e itens prontos para começar.',
