@@ -7,6 +7,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ### Adicionado
 - Aba Apontamento (web): filtro Setor na barra, antes da Equipe, com as opções de `opcoes.setores` (inclui "Sem setor"); some quando a resposta não traz o campo; vai na URL e na consulta como lista de slugs, só recorte, sem bloco nem comparação por setor (pedido 097, K-337).
 - Aba Apontamento: filtro Setor (parâmetro `setor` e `opcoes.setores`, pelo quadro do card e pelo dicionário de setores sem sobrenome; "Sem setor" para card fora dos quadros mapeados), só recorte, sem bloco por setor; o papel da aba ganha `SELECT` em `dim_card.quadro_id` e no mapa do `ref_dominio`, e o dono roda `db:migrate` para reaplicar os GRANTs (pedido 097, K-337, parte do servidor).
+- Métricas: O21 Fluxo reverso com dado real do BusinessMap (direção das transições e ciclo do O3), sem mudar contrato nem cálculo (pedido 099, lote A1, E3.219).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
 - Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1; migração 0037) (#408).
 - Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).
