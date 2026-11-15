@@ -105,16 +105,23 @@ export const CLASSES_T: readonly ClasseServico[] = ['Urgente', 'Prazo fixo', 'Pa
 export const r2 = (v: number): number => Math.round(v * 100) / 100
 
 /**
+ * A coluna é da equipe? Base real: a coluna diz a equipe do workflow dela; base semeada (sem `equipe`): vale o quadro
+ * `quadro-<slug>`. Predicado único (O20 e `colunasDaEquipe`).
+ */
+export const colunaDaEquipe = (
+  c: { equipe?: string; quadro_id: string },
+  equipe: string,
+): boolean =>
+  c.equipe === undefined ? c.quadro_id === `quadro-${slug(equipe)}` : c.equipe === equipe
+
+/**
  * Colunas de trabalho e homologação de uma equipe, em ordem. Base real: a coluna diz a equipe do workflow
  * dela; base semeada (sem `equipe`): vale o quadro `quadro-<slug>`.
  */
 export function colunasDaEquipe(ctx: ContextoBM, equipe: string) {
-  const quadro = `quadro-${slug(equipe)}`
   return ordenarNeutro(
     ctx.idx.base.colunas.filter(
-      (c) =>
-        (c.equipe === undefined ? c.quadro_id === quadro : c.equipe === equipe) &&
-        (c.papel === 'trabalho' || c.papel === 'homologacao'),
+      (c) => colunaDaEquipe(c, equipe) && (c.papel === 'trabalho' || c.papel === 'homologacao'),
     ),
     (c) => [c.ordem, c.coluna],
   )
