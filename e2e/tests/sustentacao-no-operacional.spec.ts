@@ -316,12 +316,15 @@ test.describe('Sustentação no Operacional: acessibilidade, layout e desempenho
     await painel.ir('/operacional');
     await expect(page).toHaveTitle(/^Operacional · Resumo · Métricas DSPD/);
     await page.getByRole('radio', { name: 'Sustentação' }).click({ force: true });
+    await expect(page.getByRole('radio', { name: 'Sustentação' })).toBeChecked();
     await expect(page.getByTestId('anuncio-visao')).toHaveText('Visão Sustentação. Fonte: Acelerato.');
     await expect(page).toHaveTitle(/^Operacional · Sustentação · Métricas DSPD/);
     await expect(page.getByRole('radio', { name: 'Sustentação' })).toBeFocused();
     await page.getByRole('radio', { name: 'Semanal' }).click({ force: true });
+    await expect(page.getByRole('radio', { name: 'Semanal' })).toBeChecked();
     await expect(page).toHaveTitle(/^Operacional · Semanal/);
     await page.getByRole('radio', { name: 'Diária' }).click({ force: true });
+    await expect(page.getByRole('radio', { name: 'Diária' })).toBeChecked();
     await expect(page).toHaveTitle(/^Operacional · Diária/);
   });
 

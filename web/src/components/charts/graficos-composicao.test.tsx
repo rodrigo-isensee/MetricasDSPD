@@ -71,6 +71,25 @@ describe('Barras', () => {
     expect(texto).toContain('Concluídos')
   })
 
+  it('série sem nenhum valor fica fora da legenda e da tabela alternativa', () => {
+    const cats = [
+      { rotulo: 'Sem 1', valores: { a: 3, vazia: null } },
+      { rotulo: 'Sem 2', valores: { a: 5 } },
+    ]
+    const ss = [
+      { chave: 'a', rotulo: 'Concluídos' },
+      { chave: 'vazia', rotulo: 'Sem tamanho' },
+    ]
+    const { unmount } = render(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    const legenda = screen.getByRole('list', { name: 'Legenda' })
+    expect(within(legenda).getByText('Concluídos')).toBeInTheDocument()
+    expect(within(legenda).queryByText('Sem tamanho')).not.toBeInTheDocument()
+    unmount()
+    tabela(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    expect(screen.getByRole('columnheader', { name: /Concluídos/ })).toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: /Sem tamanho/ })).not.toBeInTheDocument()
+  })
+
   it('tooltip da linha usa o formatador próprio da linha', async () => {
     const { container } = render(
       <Barras
