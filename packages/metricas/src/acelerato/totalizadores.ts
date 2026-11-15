@@ -48,3 +48,38 @@ export function totalizadorDaEtapa(
 
 /** Etapas que pausam o relógio de SLA (briefing 3.4). */
 export const ETAPAS_PAUSA: readonly EtapaAcelerato[] = ['Pendente', 'Aguardando validação']
+
+/** Motivo da pendência sem motivo conhecido: a etapa `Pendente` sem "Motivo de Pendência" (Decisão do dono, pedido 099, D5a). */
+export const MOTIVO_NAO_CLASSIFICADO = 'Não classificado'
+
+const normaliza = (etapa: string): string => etapa.trim().toLocaleLowerCase('pt-BR')
+
+/**
+ * De-para das esperas reais do Acelerato para o motivo de pendência (pedido 099, D5a; versão de critério `afeta = ['S1', 'S9']`).
+ * Decididas pelo dono: "Aguardando Solicitante" é aguardando solicitante; "Aguardando Suporte Terceiros" e "Aguardando Fornecedor" são
+ * aguardando fornecedor; "Aguardando Janela de Mudança" (com ou sem o sufixo "(Deploy Produção)") é aguardando janela de mudança.
+ * Fora, até decisão do dono: Equipe Interna, Aprovação, Mudança e Data Acordada (não se inferem). Comparação sem diferença de caixa.
+ */
+const MOTIVO_DA_ESPERA: ReadonlyMap<string, MotivoPendencia> = new Map([
+  ['aguardando solicitante', 'Aguardando solicitante'],
+  ['aguardando suporte terceiros', 'Aguardando fornecedor'],
+  ['aguardando fornecedor', 'Aguardando fornecedor'],
+  ['aguardando janela de mudança', 'Aguardando janela de mudança'],
+  ['aguardando janela de mudança (deploy produção)', 'Aguardando janela de mudança'],
+])
+
+/**
+ * Motivo de pendência de um intervalo de etapa, ou `null` se a etapa não é pendência. `Pendente` vale pelo motivo gravado, ou
+ * "Não classificado" sem ele; as esperas decididas valem pelo de-para acima.
+ */
+export function motivoDaPendencia(etapa: string, motivo: MotivoPendencia | null): string | null {
+  if (normaliza(etapa) === 'pendente') return motivo ?? MOTIVO_NAO_CLASSIFICADO
+  return MOTIVO_DA_ESPERA.get(normaliza(etapa)) ?? null
+}
+
+/** Etapa que pausa o relógio de SLA da S1: as de `ETAPAS_PAUSA` e as esperas decididas (mesmo de-para da S9). */
+export function pausaOSla(etapa: string): boolean {
+  return (
+    (ETAPAS_PAUSA as readonly string[]).includes(etapa) || MOTIVO_DA_ESPERA.has(normaliza(etapa))
+  )
+}

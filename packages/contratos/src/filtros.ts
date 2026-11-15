@@ -37,6 +37,11 @@ export const filtrosFluxoSchema = z.object({
   equipe: z.array(z.string()),
   tipo: z.array(tipoFiltroSchema),
   sistema: z.array(z.string()),
+  /**
+   * Setores (slug do nome sem sobrenome, `OpcoesFiltroFluxo.setores`; 097, L10b): recorte pelo quadro atual do card. Ausente ou vazio =
+   * "Todos". Só do BusinessMap; nunca bloco, série ou ordenação por setor.
+   */
+  setor: z.array(z.string()).optional(),
   periodo: periodoSchema,
 })
 export type FiltrosFluxo = z.infer<typeof filtrosFluxoSchema>

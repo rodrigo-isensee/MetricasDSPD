@@ -21,8 +21,15 @@ function renderizar(fonte: FonteApontamento = fonteFicticia) {
 }
 
 async function esperar(codigo: string) {
-  const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await screen.findByTestId(`metrica-${codigo}`)
+  // todos os cartões saem do esqueleto cada um no seu tempo (K-355): ler outro cartão logo após este é corrida
+  await waitFor(
+    () => {
+      for (const c of screen.getAllByTestId(/^metrica-/))
+        expect(c).toHaveAttribute('data-estado', 'ok')
+    },
+    { timeout: 8000 },
+  )
 }
 
 beforeEach(() => localStorage.clear())

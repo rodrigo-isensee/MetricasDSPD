@@ -293,6 +293,11 @@ export const RESPOSTA_FICTICIA: RespostaApontamento = {
   nomesReais: false,
   opcoes: {
     pessoas: pessoasOpcao,
+    setores: [
+      { id: 'plataformas', rotulo: 'Plataformas' },
+      { id: 'sistemas-corporativos', rotulo: 'Sistemas Corporativos' },
+      { id: 'sem-setor', rotulo: 'Sem setor' },
+    ],
     equipes: [
       { id: 'integracoes', rotulo: 'Integrações' },
       { id: 'portal', rotulo: 'Portal' },
@@ -574,6 +579,7 @@ export function respostaFicticia(
   const existe = (ids: string[] | undefined, lista: readonly { id: string }[]) =>
     !ids || ids.every((id) => lista.some((x) => x.id === id))
   const valido =
+    existe(consulta.setor, o.setores ?? []) &&
     existe(consulta.equipe, o.equipes ?? []) &&
     existe(consulta.projeto, o.projetos) &&
     existe(consulta.tipo, o.tipos) &&

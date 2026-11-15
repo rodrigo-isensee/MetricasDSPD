@@ -82,7 +82,7 @@ test.describe('perf-api A1', () => {
 
   test('A1 isolada: uma chamada por vez (servidor), fria e quente', async ({ request }) => {
     test.setTimeout(10 * 60_000);
-    const ids = ['O1', 'O2', 'O3', 'O4', 'O9', 'O10', 'T1', 'T2', 'T3', 'E1', 'E2', 'S1', 'S2', 'S3', ...TENDENCIAS];
+    const ids = ['O1', 'O2', 'O3', 'O4', 'O9', 'O10', 'O20', 'T1', 'T2', 'T3', 'E1', 'E2', 'S1', 'S2', 'S3', ...TENDENCIAS];
     const dataRef = await dataReferenciaDasTendencias(request);
     const porId: Record<string, { fria: number; quentes: number[] }> = {};
     const frias: number[] = [];

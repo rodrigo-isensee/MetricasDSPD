@@ -217,6 +217,7 @@ describe('escrita do fluxo e memória', () => {
       ate: '2026-04-01',
     })
     expect(paramsDeFluxo({ ...f, equipe: [], tipo: [], periodo: { tipo: '4s' } })).toEqual({
+      setor: null,
       equipe: null,
       tipo: null,
       sistema: 's1',

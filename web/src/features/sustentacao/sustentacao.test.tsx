@@ -1,8 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { TEXTO_NOTA_S1 } from '@metricas-dspd/contratos'
 import { describe, expect, it } from 'vitest'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
-import { fmtTempoPrioridade, fmtHU } from './formatar'
+import { fmtPrazo, fmtHU } from './formatar'
 
 /** A Sustentação está em calibração no cenário padrão (sem Dentro/Fora); estes casos exigem as metas avaliadas. */
 const SEM_CALIBRACAO = '/sustentacao?mock=sem-calibracao'
@@ -14,22 +15,40 @@ async function cartao(codigo: string, url = '/sustentacao') {
   return { ...r, el: el }
 }
 
-describe('formatação da Sustentação (J2)', () => {
-  it('P1 a P3 em h úteis; P4 e P5 em dias úteis; nunca minutos', () => {
-    expect(fmtTempoPrioridade(0.25, 'P1', 8.8)).toBe('0,25 h úteis')
-    expect(fmtTempoPrioridade(16, 'P3', 8.8)).toBe('16 h úteis')
-    expect(fmtTempoPrioridade(4.4, 'P4', 8.8)).toBe('0,5 dia útil')
-    expect(fmtTempoPrioridade(4, 'P4', 8.8)).toBe('0,45 dia útil')
-    expect(fmtTempoPrioridade(88, 'P5', 8.8)).toBe('10 dias úteis')
-    expect(fmtTempoPrioridade(44, 'P4', 8.8)).toBe('5 dias úteis')
-    expect(fmtTempoPrioridade(8.8, 'P5', 8.8)).toBe('1 dia útil')
-    expect(fmtTempoPrioridade(13.2, 'P4', 8.8)).toBe('1,5 dias úteis')
+describe('formatação do prazo do S1 (K-314, Q-099-11)', () => {
+  it('cada prazo na unidade e no relógio do PROC (os 10 prazos, dia útil de 8,8 h)', () => {
+    expect(fmtPrazo(0.25, 'min', 'corrido', 8.8)).toBe('15 min corridos')
+    expect(fmtPrazo(0.5, 'min', 'corrido', 8.8)).toBe('30 min corridos')
+    expect(fmtPrazo(4, 'h', 'corrido', 8.8)).toBe('4 h corridas')
+    expect(fmtPrazo(8, 'h', 'util', 8.8)).toBe('8 h úteis')
+    expect(fmtPrazo(2, 'h', 'util', 8.8)).toBe('2 h úteis')
+    expect(fmtPrazo(17.6, 'dia', 'util', 8.8)).toBe('2 dias úteis')
+    expect(fmtPrazo(4, 'h', 'util', 8.8)).toBe('4 h úteis')
+    expect(fmtPrazo(44, 'dia', 'util', 8.8)).toBe('5 dias úteis')
+    expect(fmtPrazo(8.8, 'dia', 'util', 8.8)).toBe('1 dia útil')
+    expect(fmtPrazo(88, 'dia', 'util', 8.8)).toBe('10 dias úteis')
   })
 
-  it('converte em dias úteis pelo horasPorDiaUtil do resultado, sem constante', () => {
-    expect(fmtTempoPrioridade(17.6, 'P5', 8.8)).toBe('2 dias úteis')
-    expect(fmtTempoPrioridade(17.6, 'P5', 8)).toBe('2,2 dias úteis')
-    expect(fmtTempoPrioridade(8.8, 'P4', 8)).toBe('1,1 dias úteis')
+  it('duas casas sem zeros sobrando; singular até 1,0', () => {
+    expect(fmtPrazo(4, 'dia', 'util', 8.8)).toBe('0,45 dia útil')
+    expect(fmtPrazo(13.2, 'dia', 'util', 8.8)).toBe('1,5 dias úteis')
+    expect(fmtPrazo(1, 'h', 'corrido', 8.8)).toBe('1 h corrida')
+    expect(fmtPrazo(0.5, 'h', 'util', 8.8)).toBe('0,5 h útil')
+    expect(fmtPrazo(1 / 60, 'min', 'corrido', 8.8)).toBe('1 min corrido')
+  })
+
+  it('converte dias pelo horasPorDiaUtil do resultado, sem constante', () => {
+    expect(fmtPrazo(17.6, 'dia', 'util', 8)).toBe('2,2 dias úteis')
+    expect(fmtPrazo(8.8, 'dia', 'util', 8)).toBe('1,1 dias úteis')
+  })
+
+  it('sem unidade de exibição (vigência anterior ao K-314): horas com o rótulo do relógio, sem deduzir pelo valor', () => {
+    expect(fmtPrazo(17.6, null, 'util', 8.8)).toBe('17,6 h úteis')
+    expect(fmtPrazo(0.25, null, 'corrido', 8.8)).toBe('0,25 h corrida')
+    expect(fmtPrazo(8.8, null, 'util', 8.8)).toBe('8,8 h úteis')
+  })
+
+  it('fmtHU segue em h úteis (S4, S9, S10)', () => {
     expect(fmtHU(0.25)).toBe('0,25 h úteis')
     expect(fmtHU(26.4)).toBe('26,4 h úteis')
   })
@@ -70,6 +89,32 @@ describe('S3 e S2 sem zero falso (pedido 069, L9-a)', () => {
   })
 })
 
+describe('S1 com a nota da Q-099-5b (pedido 099)', () => {
+  it('mostra no cartão o texto da nota que o resultado indica', async () => {
+    const fonte = Object.create(fonteDeTeste, {
+      obter: {
+        value: async (id: string, ...resto: unknown[]) => {
+          const r = await (
+            fonteDeTeste.obter as (...a: unknown[]) => Promise<Record<string, unknown>>
+          )(id, ...resto)
+          const c = structuredClone(r)
+          if (id === 'S1') c.notas = ['primeiro-atendimento-inclui-automatica']
+          return c
+        },
+      },
+    }) as typeof fonteDeTeste
+    renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    await waitFor(
+      () =>
+        expect(within(s1).getByTestId('notas-cartao-S1')).toHaveTextContent(
+          TEXTO_NOTA_S1['primeiro-atendimento-inclui-automatica'],
+        ),
+      { timeout: 8000 },
+    )
+  })
+})
+
 describe('painel Sustentação', () => {
   it('mostra "Pede atenção no período" com link para S2 (SUS-01)', async () => {
     renderizarApp('/sustentacao?mock=sem-calibracao')
@@ -94,7 +139,13 @@ describe('painel Sustentação', () => {
       expect(within(el).getByText('Granularidade: chamado')).toBeInTheDocument()
       expect(within(el).queryByText(/BusinessMap/)).toBeNull()
     }
-    expect(screen.queryByText(/minutos|(?<!8 h 48 )\bmin\b|horas corridas/)).toBeNull()
+    // CA-8: minutos só no S1 (P1 e P2, primeiro atendimento, corridos); fora dele, nem minutos nem horas corridas.
+    for (const c of ['S2', 'S3', 'S4', 'S5', 'S6', 'S7']) {
+      const el = screen.getByTestId(`metrica-${c}`)
+      expect(within(el).queryByText(/minutos|(?<!8 h 48 )\bmin\b|horas corridas/)).toBeNull()
+    }
+    const mtta = within(screen.getByTestId('metrica-S1')).getByTestId('s1-mtta')
+    expect(within(mtta).queryByText(/minutos|\bmin\b(?! corridos)/)).toBeNull()
   })
 
   it('S1: sempre por prioridade; P1 com amostra insuficiente sem barra; exceções à parte; alvo com status em ícone e texto', async () => {

@@ -106,6 +106,8 @@ export type RefBM = {
   equipes: string[]; sistemas: LinhaDominio[]; limitesWip: { equipe: string; limite: number }[]; limiteFrentes: number | null;
   sle: LinhaGlobal[]; alocacao: LinhaGlobal[]; objetivos: LinhaDominio[]; areasInternas: LinhaDominio[];
   fichas: LinhaFicha[]; criterios: VersaoCriterio[];
+  /** Setor de cada quadro (L10b do 097): `id` = quadro, `nome` = rótulo do dicionário, já sem sobrenome. Ausente = nenhum. */
+  setores?: { id: string; nome: string }[];
 };
 
 export const fichaDe = (l: LinhaFicha): FichaResultado => ({ ...(l.ficha as Omit<FichaResultado, 'card_id'>), card_id: l.card_id });
@@ -146,6 +148,7 @@ export function montarBaseBM(l: LinhasBM, o: OpcoesMontagem = {}): BaseBM {
     transicoes: l.transicoes.map((t) => transicaoDe(t, nomes, quadros)),
     bloqueios: l.bloqueios.map((b) => bloqueioDe(b, nomes, quadros)),
     colunas, fichas: l.ref.fichas.map(fichaDe), config: configBM(l.ref, l.real === true ? colunas : undefined),
+    setores: (l.ref.setores ?? []).map((s) => ({ quadro_id: s.id, nome: s.nome })),
   };
 }
 
