@@ -32,6 +32,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O16',
   // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
   'O21',
+  // Pedido 105 (E7.4, O18 = c): entregas com e sem bug pelos vínculos do BusinessMap (pai e filho ou relacionado) projetados em `dim_card.origem_bug`.
+  'O18',
   'EI_FL1',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
@@ -121,7 +123,6 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = true
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
-  O18: MOTIVO_AGUARDANDO_CAMPO,
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }

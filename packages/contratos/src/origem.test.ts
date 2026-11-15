@@ -60,6 +60,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O16'], // pedido 099 (lote C8)
         ...['S5', 'S6', 'S7'], // pedido 105 (D2): só os cinco fluxos do PROC
         ...['O12'], // pedido 099 (E3.223)
+        ...['O18'], // pedido 105 (E7.4)
       ].sort(),
     )
   })
@@ -92,11 +93,16 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O14, O15 e O18', () => {
-    for (const id of ['O14', 'O15', 'O18'] as const) {
+  it('é sem dado, com o motivo, para O14 e O15', () => {
+    for (const id of ['O14', 'O15'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
+  })
+
+  it('O18 é real pelos vínculos do BusinessMap (pedido 105, E7.4), sem motivo de dado fictício', () => {
+    expect(origemDaMetrica('O18')).toBe('real')
+    expect(motivoDaOrigemSemDado('O18')).toBeNull()
   })
 
   it('O12 é real pelo prazo do card (pedido 099, E3.223); a parte de responsabilidade tem motivo próprio no DTO', () => {
