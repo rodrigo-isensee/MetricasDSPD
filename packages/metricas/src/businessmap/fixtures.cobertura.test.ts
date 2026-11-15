@@ -216,8 +216,8 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.totais.vencidos).toBe(1)
     // Por mês (os dois cards caem em meses distintos): inverter a comparação do descarte trocaria o card contado e falharia aqui.
     const mesDe = (iso: string) => r.meses.find((m) => m.mes === iso.slice(0, 7))
-    expect(mesDe(util(2) as string)).toMatchObject({ acordos: 1, vencidos: 1 })
-    expect(mesDe(util(25) as string)).toMatchObject({ acordos: 0, vencidos: 0 })
+    expect(mesDe(util(2))).toMatchObject({ acordos: 1, vencidos: 1 })
+    expect(mesDe(util(25))).toMatchObject({ acordos: 0, vencidos: 0 })
   })
 
   it('O12 (interruptor ligado, futuro): vencido de causa interna aciona a meta como "fora"', () => {
