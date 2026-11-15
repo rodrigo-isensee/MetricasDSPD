@@ -27,6 +27,14 @@ export type ListasRecorte = {
 /** Contagens sem valor (`ctl_coleta_contagem`): o que ficou nulo por estar fora do domínio, o que falta, etc. */
 export class Contadores {
   private readonly mapa = new Map<string, number>();
+  private readonly vistos = new Set<string>();
+  /** Soma 1 por chamado distinto (K-354, decisão A): a segunda versão do mesmo chamado, na mesma chave, não soma de novo. */
+  somarChamado(chave: string, chamadoId: string): void {
+    const marca = `${chave}\u0000${chamadoId}`;
+    if (this.vistos.has(marca)) return;
+    this.vistos.add(marca);
+    this.somar(chave);
+  }
   somar(chave: string, n = 1): void { this.mapa.set(chave, (this.mapa.get(chave) ?? 0) + n); }
   obter(chave: string): number { return this.mapa.get(chave) ?? 0; }
   entradas(): [string, number][] { return [...this.mapa.entries()].sort(([a], [b]) => a.localeCompare(b)); }
