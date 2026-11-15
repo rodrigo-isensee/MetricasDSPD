@@ -301,23 +301,41 @@ describe('recolher cartão: K-324 parte C', () => {
     expect(screen.getByTestId('resumo-recolhido-O3')).toHaveTextContent(
       'Não foi possível carregar este cartão.',
     )
-    await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Tentar de novo/ }))
     expect(onTentarDeNovo).toHaveBeenCalledTimes(1)
     expect(screen.getByTestId('recolher-O3')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('B-2: depois do Tentar de novo o foco está no Expandir do mesmo cartão', async () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="erro" onTentarDeNovo={vi.fn()} />]} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Tentar de novo/ }))
+    expect(screen.getByTestId('recolher-O3')).toHaveFocus()
+  })
+
+  it('B-3: o Tentar de novo do recolhido leva o título do cartão no nome acessível', () => {
+    guardar({ versao: 1, paineis: { operacional: ['O3'] } })
+    render(<Painel cartoes={[<Cartao key="a" estado="erro" onTentarDeNovo={vi.fn()} />]} />)
+    const btn = screen.getByRole('button', { name: /^Tentar de novo: / })
+    const titulo = screen
+      .getByTestId('recolher-O3')
+      .getAttribute('aria-label')!
+      .replace('Expandir cartão: ', '')
+    expect(btn).toHaveAccessibleName(`Tentar de novo: ${titulo}`)
   })
 
   it('C2: recolhido em erro sem callback não mostra "Tentar de novo"', () => {
     guardar({ versao: 1, paineis: { operacional: ['O3'] } })
     render(<Painel cartoes={[<Cartao key="a" estado="erro" />]} />)
     expect(screen.getByTestId('resumo-recolhido-O3')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Tentar de novo/ })).toBeNull()
   })
 
   it('C2: recolhido em estado ok, mesmo com callback, não mostra "Tentar de novo"', () => {
     guardar({ versao: 1, paineis: { operacional: ['O3'] } })
     render(<Painel cartoes={[<Cartao key="a" estado="ok" onTentarDeNovo={vi.fn()} />]} />)
     expect(screen.getByTestId('resumo-recolhido-O3')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Tentar de novo/ })).toBeNull()
   })
 
   it('C3: a linha de selos só reserva altura (min-h-6) expandida e com base', async () => {
