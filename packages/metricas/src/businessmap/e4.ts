@@ -9,7 +9,7 @@ import type { ContextoBM } from './indice'
 /** E4: projetos iniciados × concluídos por trimestre, acumulado em aberto e manter × evoluir (natureza fictícia). */
 export function calcularE4(ctx: ContextoBM, f: FiltrosFluxo, ext?: ExtensaoBM): ResultadoE4 {
   const periodo = periodoDe(ctx, f)
-  const projetos = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true })
+  const projetos = selecionar(ctx, f, 'projeto', { semEquipe: true, semSetor: true, semTipo: true })
   const trimestres = trimestresEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia)
   const linhas = trimestres.map((b) => {
     const j = { inicio: isoDeDia(b.inicioDia), fim: isoDeDia(b.fimDia) }

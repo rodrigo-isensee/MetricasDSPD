@@ -270,6 +270,31 @@ describe('F3: falhas (só código e id, nunca texto)', () => {
     expect(JSON.stringify(m.banco.estado)).not.toContain('TITULO-MARCADOR');
   });
 
+  it('ADR 0020 B-4: payload inválido com marcador (id, título e transição) não aparece no log, em ctl_coleta_falha, no fechamento nem no resultado; só código, entidade e id', async () => {
+    const MARCA = 'MARCADOR-K086-PAYLOAD';
+    const m = await montar({
+      cards: { '35|active': [card(1, { transitions: [{ column_id: MARCA, start: '', end: MARCA, comment: MARCA }] }), card(MARCA, { title: MARCA, description: MARCA }), card(null, { title: MARCA })] },
+      porPagina: 100, users: {}, status: {}, corpos: {},
+    });
+    const r = await coletarCards(m.deps, carga);
+    expect(m.banco.estado.falhas).toEqual([
+      { entidade: 'card_35_active', idOrigem: '1', erro: 'transicao-invalida' },
+      { entidade: 'card_35_active', idOrigem: null, erro: 'card-sem-id' },
+      { entidade: 'card_35_active', idOrigem: null, erro: 'card-sem-id' },
+    ]);
+    expect(m.logs.length).toBeGreaterThan(0);
+    for (const saida of [JSON.stringify(m.logs), JSON.stringify(m.banco.estado.falhas), JSON.stringify(m.banco.estado.fechamentos), JSON.stringify(r)]) expect(saida).not.toContain(MARCA);
+  });
+
+  it('ADR 0020 B-4: erro de banco com marcador na mensagem não vai ao log nem ao fechamento da coleta', async () => {
+    const MARCA = 'MARCADOR-K086-BANCO';
+    const m = await montar({ cards: { '35|active': [card(1, { title: MARCA })] }, porPagina: 100, users: {}, status: {}, corpos: {} }, { falharAoGravar: true });
+    await expect(coletarCards(m.deps, carga)).rejects.toThrow();
+    expect(JSON.stringify(m.banco.estado.fechamentos)).not.toContain(MARCA);
+    expect(JSON.stringify(m.logs)).not.toContain(MARCA);
+    expect(JSON.stringify(m.banco.estado.falhas)).not.toContain(MARCA);
+  });
+
   it('item da lista que nem objeto é conta como card sem id; resposta sem bloco de paginação vale como página única', async () => {
     const m = await montar({ cards: { '35|active': [card(1), null as never, 'texto' as never] }, porPagina: 100, users: {}, status: {}, corpos: {}, semPaginacao: true });
     const r = await coletarCards(m.deps, carga);

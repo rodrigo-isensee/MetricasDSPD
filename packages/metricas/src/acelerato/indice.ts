@@ -7,7 +7,7 @@ import {
   type Calendario,
 } from '../core/calendario'
 import type { VersaoCriterio } from '../core/criterios'
-import { TOTALIZADORES, ETAPAS_PAUSA, totalizadorDaEtapa, type Totalizador } from './totalizadores'
+import { TOTALIZADORES, pausaOSla, totalizadorDaEtapa, type Totalizador } from './totalizadores'
 import type { BaseAC, Chamado, EtapaChamado } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
@@ -79,7 +79,7 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
       const t = totalizadorDaEtapa(e.etapa, e.motivo_pendencia)
       if (t) porTotalizador[t] += h
       porEtapa.set(e.etapa, (porEtapa.get(e.etapa) ?? 0) + h)
-      if (ETAPAS_PAUSA.includes(e.etapa)) {
+      if (pausaOSla(e.etapa)) {
         const a = Math.max(e.entrada, c.aberto_em)
         const z = Math.min(fim, fimRest)
         if (z > a) {

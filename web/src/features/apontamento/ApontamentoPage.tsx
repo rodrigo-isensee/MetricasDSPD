@@ -93,6 +93,8 @@ export default function ApontamentoPage({
       definirDiario: uso.definirDiario,
       equipes: ativos.filter((a) => a.chave === 'equipe').map((a) => a.valor),
       removerEquipe: () => uso.remover('equipe'),
+      setores: ativos.filter((a) => a.chave === 'setor').map((a) => a.valor),
+      removerSetor: () => uso.remover('setor'),
     }),
     [dados.resposta, dados.erro, dados.atualizando, dados.tentarDeNovo, estado, uso, ativos],
   )

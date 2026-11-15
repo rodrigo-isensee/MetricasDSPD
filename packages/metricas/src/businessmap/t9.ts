@@ -7,9 +7,11 @@ import { ordenarNeutro } from '../core/ordenar'
 /** T9: avanço real (frentes concluídas ÷ total, pelos filhos) e crescimento de escopo. Censo por projeto. */
 export function calcularT9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT9 {
   const periodo = periodoDe(ctx, f)
-  const projetos = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true }).filter(
-    (p) => p.entrega === null && !p.arquivadoSemDesfecho,
-  )
+  const projetos = selecionar(ctx, f, 'projeto', {
+    semEquipe: true,
+    semSetor: true,
+    semTipo: true,
+  }).filter((p) => p.entrega === null && !p.arquivadoSemDesfecho)
   const frentes = selecionar(ctx, f, 'frente', { semTipo: true })
   const linhasBrutas = projetos
     .map((p) => {
