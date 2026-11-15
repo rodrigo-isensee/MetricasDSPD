@@ -23,12 +23,16 @@ describe('resultadoO8: motivoPorTamanho (superRefine)', () => {
     expect(r.success).toBe(false)
     if (!r.success) {
       expect(r.error.issues[0]?.path).toEqual(['motivoPorTamanho'])
-      expect(r.error.issues[0]?.message).toBe('porTamanho nulo em todos os tipos exige motivoPorTamanho')
+      expect(r.error.issues[0]?.message).toBe(
+        'porTamanho nulo em todos os tipos exige motivoPorTamanho',
+      )
     }
   })
 
   it('aceita porTamanho nulo com motivo', () => {
-    expect(resultadoO8.safeParse(corpo('nenhum card tem tamanho declarado', null)).success).toBe(true)
+    expect(resultadoO8.safeParse(corpo('nenhum card tem tamanho declarado', null)).success).toBe(
+      true,
+    )
   })
 
   it('aceita porTamanho publicado sem motivo (motivo nulo)', () => {
