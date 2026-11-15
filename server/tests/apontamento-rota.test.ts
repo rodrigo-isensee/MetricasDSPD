@@ -1,4 +1,4 @@
-import { respostaApontamentoSchema } from '@metricas-dspd/contratos';
+import { ID_SEM_PROJETO, respostaApontamentoSchema } from '@metricas-dspd/contratos';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { montarEsquemas, S_PADRAO } from '../src/plataforma/db/esquemas.js';
@@ -429,6 +429,14 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
     expect(c.opcoes.projetos.map((p) => p.rotulo).sort()).toEqual(['Card 900', 'Sem iniciativa']);
     expect(c.opcoes.subgrupos.map((g) => g.rotulo).sort()).toEqual(['Execução técnica', 'codigo-sem-rotulo']);
     expect(c.qualidade.geral.porFlag.find((f) => f.flag === 'sem-iniciativa')!.apontamentos).toBe(3);
+    await app.close();
+  });
+  it('K-324: apontamento sem iniciativa sai em distribuicao.porProjeto com o id ID_SEM_PROJETO, com as horas na linha e no kpis.segundos', async () => {
+    const { app } = await montar({ linhas: [linha({ projeto_id: null, projeto_titulo: null, segundos: 5400 })] });
+    const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
+    expect(ID_SEM_PROJETO).toBe('sem-projeto');
+    expect(c.distribuicao.porProjeto.map((l) => [l.id, l.segundos])).toEqual([[ID_SEM_PROJETO, 5400]]);
+    expect(c.kpis.segundos).toBe(5400);
     await app.close();
   });
   it('com o nome real ligado e nenhum apontamento, nenhuma consulta de nome é feita', async () => {
