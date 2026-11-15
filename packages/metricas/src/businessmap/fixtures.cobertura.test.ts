@@ -24,7 +24,11 @@ import {
   MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
   RESPONSABILIDADE_ATRASO_COM_FONTE,
 } from '@metricas-dspd/contratos'
-import { VERSAO_CRITERIO_O12_PRAZO_DO_CARD, VERSOES_DA_BIBLIOTECA } from '../core/criterios'
+import {
+  VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
+  VERSAO_CRITERIO_O18_VINCULOS,
+  VERSOES_DA_BIBLIOTECA,
+} from '../core/criterios'
 import { blocosDe } from './blocos'
 import { idadeHUEm } from './estado'
 import { criarContextoBM } from './indice'
@@ -179,6 +183,8 @@ describe('O2, O10, O12, O18: casos de borda', () => {
   it('O12 (T2.6): a versão de critério do prazo do card marca O12 e Visão geral', () => {
     expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O12_PRAZO_DO_CARD)
     expect(VERSAO_CRITERIO_O12_PRAZO_DO_CARD.afeta).toEqual(['O12', 'VISAO_GERAL'])
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O18_VINCULOS)
+    expect(VERSAO_CRITERIO_O18_VINCULOS.afeta).toEqual(['O18'])
   })
 
   it('O12 (Q-099-23 b = A): card com prazo que nunca passou pelo compromisso não conta como acordo', () => {

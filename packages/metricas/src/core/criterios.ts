@@ -217,6 +217,56 @@ export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
   afeta: ['S1'],
 }
 
+/**
+ * Pedido 105 (E7.5, decisão do dono de 2026-11-15): o O15 passou de "Sem dado real" para dado real. A fase de detecção do bug é a coluna em que
+ * estava o card da demanda (o pai do bug, vínculo parent e child) quando o bug foi criado, pela tabela coluna para fase aprovada (`fase_deteccao_coluna`);
+ * só entram os bugs com pai na base. Data do PR (a do merge corrige se escorregar): o dono confirma a da primeira projeção com a tabela.
+ */
+export const VERSAO_CRITERIO_O15_FASE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-o15-fase-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O15 passou a ser calculado com a fase em que o bug foi encontrado: a coluna do card da demanda (pai do bug) na abertura do bug, pela tabela coluna para fase aprovada; só entram os bugs com pai na base, com a nota de quantos ficaram fora; cada fase só publica a contagem com 20 bugs ou mais',
+  afeta: ['O15'],
+}
+
+/**
+ * Pedido 105 (D2): o campo "Prioridade ajustada manualmente?" passa a alimentar o S3 (`ajustesManuais`) e o S7; só "Sim" conta, e a coleta não
+ * separa "Não" de campo vazio. Antes o S3 publicava `ajustesManuais: null` e o S7 não tinha dado real.
+ */
+export const VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-ajuste-prioridade-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O ajuste manual de prioridade passou a vir do campo "Prioridade ajustada manualmente?" do Acelerato (só "Sim" conta; "Não" e campo vazio não se separam), no S3 e no S7',
+  afeta: ['S3', 'S7'],
+}
+
+/**
+ * Pedido 105 (D2, P1 a P3 do dono): S5, S6 e S7 passam a ter dado real, só dos cinco fluxos do PROC; os motivos gravados entram por de-para só
+ * dos pares óbvios (caixa e vírgula) e o preenchido sem par vira a faixa "Outro", separada de "Não informado".
+ */
+export const VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-motivos-proc-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'S5, S6 e S7 passaram a ser calculados com o dado real do Acelerato, só dos cinco fluxos do PROC; motivo sem par no domínio vira "Outro", separado de "Não informado"',
+  afeta: ['S5', 'S6', 'S7'],
+}
+
+/**
+ * Pedido 105 (E7.4, O18 = c do dono, 2026-11-15): o bug é da entrega quando ligado a ela no BusinessMap por vínculo pai e filho ou relacionado;
+ * vínculo de bug com bug não liga a entrega; a janela de 30 dias da entrega (briefing 4.2) segue. O bug conta pelo tipo, sem exigir fase de detecção.
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_O18_VINCULOS: VersaoCriterio = {
+  id: 'criterio-2026-11-15-o18-vinculos',
+  data: '2026-11-15',
+  descricao:
+    'O18 passou a ser calculado com o dado real do BusinessMap: o bug é da entrega quando ligado a ela por vínculo pai e filho ou relacionado, até 30 dias após a entrega; vínculo de bug com bug não liga a uma entrega',
+  afeta: ['O18'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -236,6 +286,10 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
   VERSAO_CRITERIO_S1_DADO_REAL,
+  VERSAO_CRITERIO_O15_FASE_DADO_REAL,
+  VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
+  VERSAO_CRITERIO_O18_VINCULOS,
 ]
 
 /**

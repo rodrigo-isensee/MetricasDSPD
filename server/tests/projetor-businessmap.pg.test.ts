@@ -209,6 +209,28 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     expect(lidos.map((x) => x.card_id)).toEqual([filho]);
   });
 
+  it('O18 (pedido 105): origem_bug do bug é a entrega ligada por parent ou relative; bug com bug fica sem origem; segunda projeção sem efeito; a API lê a coluna', async () => {
+    const entrega = await staging(novo({ type_id: TIPO.produto }), [transicao(COL.F, t(2))]);
+    const outraBug = await staging(novo(), [transicao(COL.F, t(2))]);
+    const bugPai = await staging(novo({ linked_cards: [{ card_id: Number(entrega), link_type: 'parent' }] }), [transicao(COL.F, t(2))]);
+    const bugRel = await staging(novo({ linked_cards: [{ card_id: Number(entrega), link_type: 'relative' }] }), [transicao(COL.F, t(2))]);
+    const bugComBug = await staging(novo({ linked_cards: [{ card_id: Number(outraBug), link_type: 'relative' }] }), [transicao(COL.F, t(2))]);
+    const produtoLigado = await staging(novo({ type_id: TIPO.produto, linked_cards: [{ card_id: Number(entrega), link_type: 'relative' }] }), [transicao(COL.F, t(2))]);
+    await projetar();
+    const confere = async (): Promise<void> => {
+      expect((await dim(bugPai)).origem_bug).toBe(entrega);
+      expect((await dim(bugRel)).origem_bug).toBe(entrega);
+      expect((await dim(bugComBug)).origem_bug).toBeNull();
+      expect((await dim(outraBug)).origem_bug).toBeNull();
+      expect((await dim(produtoLigado)).origem_bug).toBeNull();
+    };
+    await confere();
+    await projetar();
+    await confere();
+    const lido = (await api.query<{ origem_bug: string | null }>(`SELECT origem_bug FROM ${E.bm}.dim_card WHERE card_id = $1`, [bugRel])).rows[0]!;
+    expect(lido.origem_bug).toBe(entrega);
+  });
+
   it('H-7: card de workflow fora de todo cálculo fica na base e nos fatos, sem granularidade nem equipe', async () => {
     const id = await staging(novo({ workflow_id: Number(WX), column_id: COL.FX }), [transicao(COL.FX, t(2), null, WX)]);
     await projetar();
@@ -407,6 +429,71 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       expect(r.notas.priority_fora_do_mapa).toBeGreaterThanOrEqual(1);
     } finally {
       await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'prioridade_severidade'`);
+    }
+  });
+
+  it('105 (E7.5): fase de detecção do bug pela coluna do pai na criação do bug, pela tabela fase_deteccao_coluna; história preservada (versão nova, nunca sobrescrita); sem tabela, nenhuma', async () => {
+    // pai: backlog em t(2), desenvolvimento em t(4), revisão em t(7); pai2: desenvolvimento em t(2) e entrega em t(4)
+    const pai = await staging(novo({ type_id: TIPO.produto, column_id: COL.P }), [transicao(COL.B, t(2)), transicao(COL.F, t(4)), transicao(COL.P, t(7))]);
+    const pai2 = await staging(novo({ type_id: TIPO.produto, column_id: COL.E }), [transicao(COL.F, t(2)), transicao(COL.E, t(4))]);
+    const filhoDe = (idPai: string | number, quando: string): Cartao => novo({ created_at: quando, linked_cards: [{ card_id: Number(idPai), link_type: 'parent' }] });
+    const antesDoDev = await staging(filhoDe(pai, t(3)));
+    const emDev = await staging(filhoDe(pai, t(5)));
+    const emRevisao = await staging(filhoDe(pai, t(8)));
+    const naInicial = await staging(filhoDe(pai, t(1)));
+    const emDevDoPai2 = await staging(filhoDe(pai2, t(3)));
+    const depoisDeEntregue = await staging(filhoDe(pai2, t(5)));
+    const semPai = await staging(novo());
+    const paiForaDaBase = await staging(filhoDe(700_000_001, t(5)));
+    const naoBug = await staging(novo({ type_id: TIPO.produto, created_at: t(5), linked_cards: [{ card_id: Number(pai), link_type: 'parent' }] }));
+    const todos = [antesDoDev, emDev, emRevisao, naInicial, emDevDoPai2, depoisDeEntregue, semPai, paiForaDaBase, naoBug];
+    const fases = async (): Promise<(string | null)[]> => Promise.all(todos.map(async (id) => (await dim(id)).fase_deteccao as string | null));
+    const versoes = (id: string): Promise<number> => n('dim_card_versao', 'card_id = $1', [id]);
+
+    // sem tabela: nenhuma fase e nenhuma contagem de fase
+    const sem = await projetar();
+    expect(await fases()).toEqual(todos.map(() => null));
+    expect(sem.fasesDeteccaoGravadas).toBe(0);
+    expect(sem.notas.fase_sem_mapa).toBeUndefined();
+    const v0 = await versoes(emDev);
+
+    const tabela: [string, string][] = [[String(COL.F), 'Desenvolvimento'], [String(COL.P), 'Revisão de código'], [String(COL.E), 'Produção']];
+    for (const [codigo, rotulo] of tabela) {
+      await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('fase_deteccao_coluna', $1, '2020-01-01', $2, 0)`, [codigo, rotulo]);
+    }
+    try {
+      const r = await projetar();
+      // antesDoDev: pai ainda em backlog em t(3) -> sem fase (P-2); emDev: Desenvolvimento; emRevisao: Revisão de código; naInicial: coluna inicial do pai (backlog) -> sem fase
+      expect(await fases()).toEqual([null, 'Desenvolvimento', 'Revisão de código', null, 'Desenvolvimento', 'Produção', null, null, null]);
+      expect(r.notas.fase_pai_antes_do_desenvolvimento).toBeGreaterThanOrEqual(2);
+      expect(r.notas.bug_pai_fora_da_base).toBeGreaterThanOrEqual(1);
+      expect(r.notas.bug_sem_card_pai).toBeGreaterThanOrEqual(1);
+      expect(r.fasesDeteccaoGravadas).toBeGreaterThanOrEqual(3);
+      // a história fica: a versão sem fase continua, e entra uma nova com a fase
+      expect(await versoes(emDev)).toBe(v0 + 1);
+      expect((await dono.query(`SELECT fase_deteccao FROM ${E.bm}.dim_card_versao WHERE card_id = $1 ORDER BY vigente_de`, [emDev])).rows).toEqual([{ fase_deteccao: null }, { fase_deteccao: 'Desenvolvimento' }]);
+      expect(await versoes(semPai)).toBe(1);
+
+      // idempotente: nada novo
+      const depois = await projetar();
+      expect(depois.fasesDeteccaoGravadas).toBe(0);
+      expect(depois.versoes).toBe(0);
+      expect(await versoes(emDev)).toBe(v0 + 1);
+
+      // troca de linha da tabela (D-x do dono): a fase muda, a anterior fica na versão antiga
+      await dono.query(`UPDATE ${E.bm}.ref_dominio SET vigente_ate = '2020-06-01' WHERE campo = 'fase_deteccao_coluna' AND codigo = $1`, [String(COL.F)]);
+      await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('fase_deteccao_coluna', $1, '2020-06-01', 'Teste interno', 0)`, [String(COL.F)]);
+      await projetar();
+      expect((await dim(emDev)).fase_deteccao).toBe('Teste interno');
+      expect((await dono.query(`SELECT fase_deteccao FROM ${E.bm}.dim_card_versao WHERE card_id = $1 ORDER BY vigente_de`, [emDev])).rows)
+        .toEqual([{ fase_deteccao: null }, { fase_deteccao: 'Desenvolvimento' }, { fase_deteccao: 'Teste interno' }]);
+
+      // reconstruir a projeção a partir da staging não apaga a fase (vem da versão vigente)
+      await projetar({ reconstruir: true });
+      expect((await dim(emDev)).fase_deteccao).toBe('Teste interno');
+      expect((await dim(emRevisao)).fase_deteccao).toBe('Revisão de código');
+    } finally {
+      await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'fase_deteccao_coluna'`);
     }
   });
 });

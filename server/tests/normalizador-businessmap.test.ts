@@ -45,7 +45,7 @@ const REF: Referencia = {
   ], (t) => String(t.time_id)),
   tipos: agrupar([
     { ...V, tipo_id: '10', eh_item: true, categoria: 'bug_interno' }, { ...V, tipo_id: '11', eh_item: true, categoria: 'produto' },
-    { ...V, tipo_id: '12', eh_item: false, categoria: null },
+    { ...V, tipo_id: '12', eh_item: false, categoria: null }, { ...V, tipo_id: '13', eh_item: true, categoria: null },
   ], (t) => t.tipo_id),
   camposLista: new Map(),
 };
@@ -215,6 +215,36 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
     expect(proj(card({ workflow_id: undefined }), []).dim).toMatchObject({ granularidade: null, equipe: null });
   });
 
+  it('O18 (pedido 105): bug pertence à entrega ligada por parent ou relative; bug com bug, child, não item e fora do staging não valem; várias: a de menor id', () => {
+    const tipos: Record<string, string> = { '20': '11', '21': '11', '22': '10', '23': '12' };
+    const porTipo = { tipoDoPai: (id: string) => tipos[id] };
+    const origem = (vinculos: unknown, extra: Partial<EntradaCard> = porTipo, c: Record<string, unknown> = {}) => proj(card({ linked_cards: vinculos, ...c }), [], extra);
+    expect(origem([{ card_id: 20, link_type: 'parent' }]).dim.origem_bug).toBe('20');
+    expect(origem([{ card_id: 20, link_type: 'relative' }]).dim.origem_bug).toBe('20');
+    const varias = origem([{ card_id: 21, link_type: 'relative' }, { card_id: 20, link_type: 'parent' }, { card_id: 20, link_type: 'relative' }]);
+    expect(varias.dim.origem_bug).toBe('20');
+    expect(varias.notas).toContain('varias_entregas_bug');
+    const comBug = origem([{ card_id: 22, link_type: 'parent' }, { card_id: 23, link_type: 'relative' }]);
+    expect(comBug.dim.origem_bug).toBeNull();
+    expect(comBug.notas).toContain('bug_sem_entrega');
+    expect(origem([{ card_id: 20, link_type: 'child' }]).dim.origem_bug).toBeNull();
+    expect(origem([{ card_id: 20, link_type: 'parent' }], { tipoDoPai: () => undefined }).dim.origem_bug).toBeNull();
+    expect(origem([{ card_id: 7, link_type: 'parent' }], { tipoDoPai: () => '11' }).dim.origem_bug).toBeNull();
+    expect(origem([null, { card_id: [1], link_type: 'parent' }, { card_id: 20 }]).dim.origem_bug).toBeNull();
+    expect(origem('x').dim.origem_bug).toBeNull();
+    // só bug tem entrega de origem: o card de produto ligado a outro não grava nada, nem nota
+    const produto = origem([{ card_id: 20, link_type: 'parent' }], porTipo, { type_id: 11 });
+    expect(produto.dim.origem_bug).toBeNull();
+    expect(produto.notas).not.toContain('bug_sem_entrega');
+    // item sem categoria: como origem vale como entrega (não é bug); como card ligado não é bug, então não tem origem
+    expect(origem([{ card_id: 24, link_type: 'parent' }], { tipoDoPai: () => '13' }).dim.origem_bug).toBe('24');
+    const semCategoria = origem([{ card_id: 20, link_type: 'parent' }], porTipo, { type_id: 13 });
+    expect(semCategoria.dim.origem_bug).toBeNull();
+    expect(semCategoria.notas).not.toContain('bug_sem_entrega');
+    // o vínculo parent segue valendo para o card_pai do bug
+    expect(origem([{ card_id: 20, link_type: 'parent' }]).dim.card_pai).toBe('20');
+  });
+
   it('pai pelo vínculo nativo parent; vários pais: o de menor id; pai Sprint não vale (H-2); pai fora do staging vale como está', () => {
     const vinculos = [{ card_id: 30, link_type: 'parent' }, { card_id: 9, link_type: 'parent' }, { card_id: 50, link_type: 'child' }, { card_id: 9, link_type: 'parent' }, null, { card_id: 8, link_type: 'relative' }];
     const doProduto = proj(card({ linked_cards: vinculos }), [], { tipoDoPai: (id) => (id === '9' ? '11' : undefined) });
@@ -320,6 +350,12 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
   });
 
+  it('105: fase_deteccao deixou de ser coluna de lista; campo mapeado a ela é ignorado e o dim traz nulo (a fase vem da projeção pela coluna do pai)', () => {
+    const p = proj(cf({ field_id: '501', valor: 'Produção' }), [], {}, { ...REF, camposLista: new Map([['501', 'fase_deteccao']]) });
+    expect(p.dim.fase_deteccao).toBeNull();
+    expect(p.notas).not.toContain('campo_fora_do_dominio');
+  });
+
   it('coluna fora do enum no mapa é recusada (nada é gravado nem entra no dim)', () => {
     const ruim: Referencia = { ...REF, camposLista: new Map([['501', 'titulo'], ['502', 'responsaveis'], ['503', '__proto__']]) };
     const p = proj(cf({ field_id: '501', valor: 'x' }, { field_id: '502', valor: 'y' }, { field_id: '503', valor: 'z' }), [], {}, ruim);
@@ -344,7 +380,7 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     for (const c of LISTA) expect(sem.dim[c]).toBeNull();
     const antes = Object.fromEntries(Object.entries(sem.dim).filter(([k]) => !(LISTA as readonly string[]).includes(k)));
     expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
-      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico']);
+      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'origem_bug', 'classe_servico']);
     expect(sem.dim.classe_servico).toBeNull();
   });
 });

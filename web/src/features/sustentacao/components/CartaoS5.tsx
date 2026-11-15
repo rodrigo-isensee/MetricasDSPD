@@ -4,6 +4,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { CartaoMotivos } from './CartaoMotivos'
+import { NotaForaDoFluxo } from './comuns'
 
 const FOCO = 'Sem conhecimento técnico no N1'
 
@@ -26,13 +27,14 @@ export function CartaoS5({ filtros }: { filtros: FiltrosSustentacao }) {
       total={d?.base.n ?? 0}
       {...(d ? { naoInformado: d.naoInformado } : {})}
       foco={FOCO}
+      extra={d && <NotaForaDoFluxo n={d.foraDoFluxo} testid="s5-fora-do-fluxo" />}
       estadoProps={{
         codigo: 'S5',
         titulo: m.nome,
         pergunta: m.pergunta,
         estado: q.estado,
         atualizando: q.atualizando,
-        ...(d ? { criterios: d.criterios } : {}),
+        ...(d ? { criterios: d.criterios, notasDoCartao: d.notas } : {}),
         ...(leitura ? { leitura } : {}),
         nota: NOTAS_SUSTENTACAO.S5 as NonNullable<(typeof NOTAS_SUSTENTACAO)[string]>,
         meta: m.meta,

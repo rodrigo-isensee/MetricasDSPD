@@ -42,21 +42,22 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
   },
   S5: {
     oQueE: 'A distribuição dos motivos de escalação.',
-    comoSeCalcula: 'Campo "Motivo da escalação", obrigatório na saída de "Em diagnóstico".',
+    comoSeCalcula:
+      'Campo "Motivo da escalação" dos chamados dos cinco fluxos do PROC. Motivo preenchido que não está na lista vira "Outro"; campo vazio vira "Não informado". "Não informado" aparece só na tabela.',
     comoLer:
-      'Cada motivo aponta para uma ação diferente; o último, ainda que pequeno, merece leitura própria.',
+      'Cada motivo aponta para uma ação diferente; um motivo pequeno também merece leitura própria.',
     meta: 'Reduzir a escalação por falta de conhecimento técnico no N1 (texto).',
     cuidados: 'Distingue escalação legítima de escalação por comodidade.',
   },
   S6: {
     oQueE: 'A distribuição do motivo de encerramento.',
     comoSeCalcula:
-      'Campo "Motivo de encerramento" no encerramento (domínio fechado de cinco valores).',
+      'Campo "Motivo de encerramento" dos chamados dos cinco fluxos do PROC. Motivo preenchido que não está na lista vira "Outro"; campo vazio vira "Não informado". "Não informado" aparece só na tabela.',
     comoLer:
       'Contorno é o insumo da Gestão de Problemas; reclassificado mede qualidade da entrada; sem retorno e duplicado medem higiene.',
     meta: 'Acompanhamento contínuo da taxa de contorno (texto).',
     cuidados:
-      'Um quinto a um terço por contorno significa causa raiz viva. Motivo vazio aparece como "Não informado".',
+      'Um quinto a um terço por contorno significa causa raiz viva. "Outro" e "Não informado" aparecem separados.',
   },
   S7: {
     oQueE:

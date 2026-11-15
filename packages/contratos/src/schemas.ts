@@ -13,8 +13,8 @@ import {
   METRICA_IDS,
   FASES_DETECCAO,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
-  MOTIVOS_ENCERRAMENTO,
-  MOTIVOS_ESCALACAO,
+  MOTIVOS_ENCERRAMENTO_PUBLICADOS,
+  MOTIVOS_ESCALACAO_PUBLICADOS,
   NATUREZAS_ENTREGA,
   NIVEIS_RESOLUCAO,
   ORIGENS_DEMANDA,
@@ -34,7 +34,9 @@ import {
   taxaSchema,
 } from './comum'
 import {
+  NOTA_SUSTENTACAO_IDS,
   notaCartaoIdSchema,
+  notaMotivosIdSchema,
   notaS12IdSchema,
   notaS1IdSchema,
   notaSustentacaoIdSchema,
@@ -312,9 +314,15 @@ export const resultadoO15 = z.object({
     z.object({
       fase: z.enum(FASES_DETECCAO),
       grupo: z.enum(['contido', 'negocio', 'producao']),
-      contagem: z.number(),
+      /** Bugs da fase; `null` abaixo do mínimo de 20 (a fase não publica contagem, só entra no total de `base.n`). */
+      contagem: z.number().int().nullable(),
     }),
   ),
+  /**
+   * Bugs do período sem fase de detecção (sem pai na base, pai sem coluna conhecida ou coluna sem fase na tabela aprovada): ficam
+   * fora da conta e a nota do cartão diz quantos (pedido 105, E7.5). `base.n` conta só os que têm fase.
+   */
+  bugsSemFase: z.number().int().min(0),
   contencao: taxaSchema,
   escape: taxaSchema,
   serieMensal: z.array(
@@ -675,7 +683,8 @@ export const resultadoS3 = z.object({
       ajustesManuais: z.number().nullable(),
     }),
   ),
-  notas: z.array(notaSustentacaoIdSchema).optional(),
+  /** Pedido 105 (D2, A2): o S3 real também traz a nota `s7-nao-igual-vazio` (texto neutro do ajuste, comum ao S7). */
+  notas: z.array(z.enum([...NOTA_SUSTENTACAO_IDS, 's7-nao-igual-vazio'])).optional(),
   /**
    * Janela inteira do período filtrado (chamados abertos entre `periodo.inicio` e `periodo.fim`), não a soma de
    * meses: o volume e a proporção de P1+P2 já calculados pela biblioteca (a tela não soma nem divide).
@@ -723,14 +732,22 @@ const distMotivo = <T extends readonly [string, ...string[]]>(valores: T) =>
       }),
     ),
   })
-export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO).extend({
+/**
+ * Pedido 105 (D2, P1 e P3 do dono): a faixa `Outro` (motivo preenchido sem par no domínio) entra em `motivos`, separada de `naoInformado` (campo
+ * vazio). `foraDoFluxo` = chamados do período e dos filtros fora dos cinco fluxos do PROC, que não entram na métrica (0 quando a base não separa fluxo).
+ */
+const foraDoFluxo = z.number()
+export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO_PUBLICADOS).extend({
   /** Escalados (N2, N3 ou fornecedor) sem motivo de escalação: "Não informado", nunca inferido. */
   naoInformado: z.number(),
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
 })
-export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({
+export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO_PUBLICADOS).extend({
   /** Chamados fechados sem motivo de encerramento ("Não informado"). */
   naoInformado: z.number(),
   taxaContorno: taxaSchema,
+  foraDoFluxo,
 })
 
 const blocoS7 = z.object({
@@ -747,6 +764,8 @@ const blocoS7 = z.object({
 })
 export const resultadoS7 = z.object({
   ...comum,
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
   ajusteDePrioridade: blocoS7.extend({ justificados: z.object({ k: z.number(), n: z.number() }) }),
   reclassificacaoDeTipo: blocoS7,
 })
