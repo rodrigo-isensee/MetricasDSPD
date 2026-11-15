@@ -60,6 +60,17 @@ describe('E10 Lote 2: recusa do reconhecimento sem versão ou com sobrescrita', 
     expect(GRUPOS_DE_LISTA.vocabulario_sha256).not.toContain('cpe_justificativa_informada');
   });
 
+  it.each([
+    ['recorte_sha256', [...LISTAS_BANCO, L('equipe', '999', 'Outra')], ['tipo_recorte', 'organizacao_recorte', 'equipe']],
+    ['fluxo_sha256', [...LISTAS_BANCO, { ...L('etapa_fluxo', '99', '99'), ordem: 1 }], ['etapa_fluxo']],
+  ])('%s: a consulta de vigência recebe exatamente os campos do grupo, escritos aqui (não lidos da constante do código)', async (chave, listas, campos) => {
+    const recebidos: string[][] = [];
+    const { deps, comListas } = await cenario((c) => { recebidos.push(c); return [{ tem_versao: true }]; });
+    const resultado = await coletarAcelerato(deps(comListas([...listas]), { reconhecerMudanca: true }), 'incremental');
+    expect(resultado.estado, chave).toBe('ok');
+    expect(recebidos).toEqual([campos]);
+  });
+
   it('chave ausente na linha anterior não é conferida (isenção); sem mudança não consulta nada', async () => {
     const consultas: unknown[] = [];
     const { deps, comListas } = await cenario(() => { consultas.push(1); return []; });
