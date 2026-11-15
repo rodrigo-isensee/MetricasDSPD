@@ -77,6 +77,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Aba Apontamento (pedido 097, K-341, decisão do dono de 2026-11-14): no cartão Horas por projeto, a linha sem projeto ("Sem iniciativa") sai do gráfico e das dez vagas dos maiores e aparece como linha própria depois de "Demais" e do botão "Ver todos", com as horas dela, fora de "de N", "Mostrando todos os N projetos", "Ver todos os N" e "Demais N" e fora da região rolável; a frase de leitura não a escolhe e o achado de concentração diz à parte quantas horas ficaram sem projeto (`horasSemProjeto`). CA-33 e CA-34 atualizados na especificação de UX.
 - Painéis: no cartão recolhido em erro, o foco volta ao Expandir depois do Tentar de novo, e cada Tentar de novo leva o título do cartão no nome acessível (pedido 097, K-344, B-2 e B-3).
 - Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
 - Testes: o P5 da propriedade de ordem (`regras.property.test.ts`) embaralha e reindexa só a fonte que a métrica lê, em vez de reconstruir os três contextos a cada rodada; mesma propriedade e fronteiras, sem subir o `testTimeout` (pedido 099, K-356, E3.293).
