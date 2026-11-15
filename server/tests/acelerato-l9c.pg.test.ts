@@ -137,7 +137,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     expect(depois[antes.length - 1]!.motivo_encerramento).toBe('Beta');
   }, 60_000);
 
-  it('paridade: S2, S3, S4, S8 e S10 reais não mudam quando as colunas da F3 mudam (constante de ajuste de prioridade falsa)', async () => {
+  it('paridade: S2, S4, S8 e S10 reais não mudam quando as colunas da F3 mudam; o S3 muda com o ajuste de prioridade (constante de ajuste verdadeira)', async () => {
     const base = gerarBaseMock({ escala: 0.05 });
     const PR = prefixoDeTeste();
     const R = montarEsquemas(PR);
@@ -151,7 +151,10 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     const antes = await ler();
     await dono.query(`UPDATE ${R.ac}.dim_chamado SET motivo_escalacao = 'Z', motivo_encerramento = 'Z', avaliacao_problema = 'Z', motivo_pendencia_atual = 'Z',
       previsao_retorno = NOT coalesce(previsao_retorno, false), prioridade_ajustada_manualmente = NOT prioridade_ajustada_manualmente`);
-    expect(await ler()).toEqual(antes);
+    const depois = await ler();
+    // ids na ordem de ler(): S2, S3, S4, S8, S10. O S3 depende da coluna de ajuste de propósito (AJUSTE_PRIORIDADE_COM_FONTE); os demais seguem iguais.
+    expect(depois[1]).not.toEqual(antes[1]);
+    expect(depois.filter((_, i) => i !== 1)).toEqual(antes.filter((_, i) => i !== 1));
     await api.end();
     for (const s of [R.bm, R.ac, R.core]) await dono.query(`DROP SCHEMA IF EXISTS ${s} CASCADE`);
   }, 180_000);

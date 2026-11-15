@@ -524,6 +524,32 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
   const NOTA_S3 = 'ajuste-prioridade-sem-dado-real';
   const NOTA_S2 = 'excecao-sla-sem-fonte';
   const mock = async () => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(seed)).pool, agora: () => AGORA, nivelLog: 'silent' });
+  afterEach(() => { vi.doUnmock('@metricas-dspd/contratos'); vi.resetModules(); });
+
+  it('L1b (reversão do interruptor, pedido 105): com AJUSTE_PRIORIDADE_COM_FONTE falso o S3 real volta a publicar ajustesManuais nulo com a nota; S3 em outra métrica não muda', async () => {
+    vi.resetModules();
+    vi.doMock('@metricas-dspd/contratos', async (orig) => ({ ...(await orig<Record<string, unknown>>()), AJUSTE_PRIORIDADE_COM_FONTE: false }));
+    const { buildApp: buildDesligado } = await import('../src/app.js');
+    const app = await buildDesligado({ db: criarDublePg(banco({ chamados: [chamado('1', { prioridade_ajustada_manualmente: true })] })).pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
+    const s3 = (await app.inject('/api/v1/metricas/S3')).json() as { notas?: string[]; meses: { ajustesManuais: number | null }[] };
+    expect(s3.notas).toContain(NOTA_S3);
+    expect(s3.meses.every((m) => m.ajustesManuais === null)).toBe(true);
+    const s4 = (await app.inject('/api/v1/metricas/S4')).json() as { notas?: string[] };
+    expect(s4.notas ?? []).not.toContain(NOTA_S3);
+  }, 60_000);
+
+  it('D2: as notas de S5 e S7 não se repetem quando o resultado já as traz', async () => {
+    const { comNotaS5SemRisco, comNotaS7NaoIgualVazio } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const uma = comNotaS5SemRisco('S5', { motivos: [] }) as { notas: string[] };
+    expect(uma.notas).toEqual(['s5-risco-sla-sem-fonte']);
+    expect((comNotaS5SemRisco('S5', uma) as { notas: string[] }).notas).toEqual(['s5-risco-sla-sem-fonte']);
+    const sete = comNotaS7NaoIgualVazio('S7', uma) as { notas: string[] };
+    expect(sete.notas).toEqual(['s5-risco-sla-sem-fonte', 's7-nao-igual-vazio']);
+    expect((comNotaS7NaoIgualVazio('S7', sete) as { notas: string[] }).notas).toEqual(sete.notas);
+    const outro = { motivos: [] };
+    expect(comNotaS5SemRisco('S6', outro)).toBe(outro);
+    expect(comNotaS7NaoIgualVazio('S6', outro)).toBe(outro);
+  });
 
   it('L1 (pedido 105, D2): com o campo na fonte, o S3 real publica o número de ajustes manuais, sem a nota de sem dado real, e valida no contrato', async () => {
     const { app } = await montar({ chamados: [chamado('1', { prioridade_ajustada_manualmente: true }), chamado('2')] });
