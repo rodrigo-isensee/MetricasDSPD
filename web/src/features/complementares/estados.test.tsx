@@ -150,3 +150,31 @@ describe.each(['E4', 'S8', 'S11', 'S12'])('%s: campo sem fonte', (codigo) => {
     expect(within(el).queryByRole('img')).not.toBeInTheDocument()
   })
 })
+
+/** S11 pela Decisão 18b: conversão nula vira "sem dado real" com o motivo, nunca 0; semFluxo aparece. */
+class FonteS11SemConversao extends MockFonteMetricas {
+  constructor() {
+    super({ latenciaMs: 0 })
+  }
+  override async obter<K extends MetricaId>(id: K, filtros: FiltrosDe<K>): Promise<ResultadoDe<K>> {
+    const r = await fonteDeTeste.obter(id, filtros)
+    return {
+      ...r,
+      conversao: null,
+      motivoConversao: 'a base não tem o vínculo avaliação-problema',
+      semFluxo: 7,
+    }
+  }
+}
+
+describe('S11: conversão sem dado real', () => {
+  it('mostra "sem dado real" com o motivo e os chamados fora do fluxo', async () => {
+    renderizarCartao(<CartaoS11 filtros={FILTROS_SUSTENTACAO} />, {
+      fonte: new FonteS11SemConversao(),
+    })
+    const el = await screen.findByTestId('metrica-S11')
+    await waitFor(() => expect(el).toHaveTextContent('sem dado real'))
+    expect(el).toHaveTextContent('a base não tem o vínculo avaliação-problema')
+    expect(el).toHaveTextContent('7 chamados ficaram fora do cálculo')
+  })
+})

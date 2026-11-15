@@ -287,12 +287,23 @@ export function CartaoS11({ filtros }: P) {
                 g: g.grupo === 'Contorno' ? 'Encerrados por contorno' : g.grupo,
                 t: celula(g.taxa),
               })),
-              { g: 'Avaliações que viraram Registro de Problema', t: celula(r.conversao) },
+              {
+                g: 'Avaliações que viraram Registro de Problema',
+                t: r.conversao === null ? 'sem dado real' : celula(r.conversao),
+              },
             ]}
           />
           <Leia>
             Um chamado pode estar em mais de um grupo; o total do escopo conta cada um uma vez.
           </Leia>
+          {r.conversao === null && r.motivoConversao !== null && (
+            <Leia>{`Conversão sem dado real: ${r.motivoConversao}`}</Leia>
+          )}
+          {r.semFluxo > 0 && (
+            <Leia>
+              {`${fmtInteiro(r.semFluxo)} chamados ficaram fora do cálculo por não ter fluxo definido (ou ter mais de um).`}
+            </Leia>
+          )}
         </div>
       )}
     </CartaoComplementar>
