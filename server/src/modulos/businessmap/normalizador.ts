@@ -141,15 +141,34 @@ export interface CardProjetado { dim: LinhaDimCard; transicoes: FatoTransicaoPro
 const NIVEL_PARA_GRANULARIDADE: Record<string, string> = { projeto: 'projeto', feature: 'frente', story: 'story' };
 const texto = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
 /**
- * Parse estrito do `deadline` (099-o12-deadline §2): só `AAAA-MM-DD` com ano >= 0001 (o PostgreSQL não tem ano 0), mês e dia válidos; o dia é gravado como está (data civil, sem fuso).
- * Data e hora, texto ou número viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela). Nada se converte.
+ * Fuso em que o instante do `deadline` vira dia civil. A Q-RO-6c mostrou que as 1639 stories com prazo trazem data e hora, e em qual dia
+ * uma hora cai é regra: este é o parâmetro único da opção (a) recomendada, "data no horário de Brasília", PENDENTE DA DECISÃO DO DONO
+ * (lista do dono, decisão 13, O12 com prazo de hora). Trocar a opção muda só esta constante e vira versão de critério (T2.6).
+ */
+export const FUSO_DO_PRAZO = 'America/Sao_Paulo';
+const diaCivilNoFuso = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO_DO_PRAZO, year: 'numeric', month: '2-digit', day: '2-digit' });
+const SO_DATA = /^\d{4}-\d{2}-\d{2}$/;
+// Data e hora ISO 8601 com deslocamento explícito (Z ou ±HH:MM). Sem deslocamento o instante é ambíguo e não se supõe um.
+const DATA_E_HORA = /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+/**
+ * Parse estrito do `deadline` (099-o12-deadline §2): `AAAA-MM-DD` (o dia é gravado como está, data civil) ou data e hora ISO com
+ * deslocamento explícito (o instante vira o dia civil em `FUSO_DO_PRAZO`). Ano >= 0001 (o PostgreSQL não tem ano 0), mês e dia válidos.
+ * Texto, número, data e hora sem deslocamento ou data impossível viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela).
  */
 export function dataAcordada(valor: unknown, notas: string[]): string | null {
   if (valor === undefined || valor === null) return null;
-  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    const d = new Date(`${valor}T00:00:00Z`);
+  if (typeof valor === 'string') {
+    const dia = SO_DATA.test(valor) ? valor : (DATA_E_HORA.exec(valor)?.[1] ?? null);
     // Ano 0000: o Date do JS aceita, o `date` do PostgreSQL não (abortaria o INSERT do lote inteiro); exige ano >= 1.
-    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor && !valor.startsWith('0000')) return valor;
+    const base = dia === null ? null : new Date(`${dia}T00:00:00Z`);
+    const valido = dia !== null && base !== null && !Number.isNaN(base.getTime()) && !dia.startsWith('0000') && base.toISOString().slice(0, 10) === dia;
+    if (valido && dia === valor) return valor;
+    if (valido) {
+      const instante = new Date(valor);
+      // Ano 0001 com deslocamento negativo cairia no ano 0 do `date` do PostgreSQL: fora.
+      const civil = Number.isNaN(instante.getTime()) ? null : diaCivilNoFuso.format(instante);
+      if (civil !== null && !civil.startsWith('0000') && /^\d{4}-\d{2}-\d{2}$/.test(civil)) return civil;
+    }
   }
   notas.push('deadline_fora_da_forma');
   return null;
