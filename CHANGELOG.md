@@ -5,6 +5,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- O8: a divisão por tamanho de cada tipo olha só os entregues da janela medida, e não todos os cards da base; tipo com tamanho só fora da janela fica nulo, sem pôr tudo em "Sem tamanho" (pedido 099, K-359, A2, E3.319).
+- O8: a divisão por tamanho é decidida por tipo de demanda; o tipo sem tamanho declarado fica com `porTamanho` nulo, nunca inteiro em "Sem tamanho" (pedido 099, L24 a, K-359).
 - Testes do O20: três mutantes vivos mortos (menor ordem da faixa entre quadros, soma das transições do período e papel de entrega por quadro), predicado único `colunaDaEquipe` para as colunas da equipe e a herança de papel e tipo do primeiro quadro documentada em `docs/api/metricas.md`; o cálculo não muda (pedido 099, K-349, E3.306).
 - Filtro Setor na barra do Fluxo (FL1, FL2 e FL3, antes de Equipe, com busca e estados) e no bloco Fluxo do Resumo, nunca na Sustentação: setor na URL, aviso "Resultado consolidado de N setores. O sistema não compara setores.", Setor por cartão em "Filtros aplicados" e "Não afetado por"; o efeito nos cálculos vem com o L10b (pedido 097, L11, K-336).
 - Acelerato: `dim_chamado.fluxo` guarda o workflow em que cada chamado correu (o único `descricao_workflow` das etapas; nulo sem etapa e nulo com a contagem `fluxo_multiplo` se houver mais de um, sem escolher), base para os motivos da Sustentação; migração 0038, sem reescrever histórico, preenchida só pela reprojeção do dono (pedido 099, D1 1a).
@@ -67,6 +69,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
 - Testes: o P5 da propriedade de ordem (`regras.property.test.ts`) embaralha e reindexa só a fonte que a métrica lê, em vez de reconstruir os três contextos a cada rodada; mesma propriedade e fronteiras, sem subir o `testTimeout` (pedido 099, K-356, E3.293).
 - Testes da aba Apontamento (web): os auxiliares `pronto`/`esperar` passam a esperar todos os cartões saírem do esqueleto, não só o KPI, e o teste que lia o mapa diário logo depois do KPI deixa de falhar sob carga; sem mudança de código de produção (pedido 037, K-355).
 - Painéis: Worker do mock rejeita o pedido quando o `postMessage` lança e recusa com erro claro o pedido feito antes do `iniciar`, sem travar a tela (pedido 037, K-126, A1 e A2).
