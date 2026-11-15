@@ -25,6 +25,15 @@ import type { OpcoesNucleo, Pedido, Resposta } from './protocolo'
 /** Equipes do Acelerato que o mock lista (o gerador só tem estas três). */
 const EQUIPES_AC = ['SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG'] as const
 
+/**
+ * Recorte da Sustentação com lista longa (K-215): as três equipes do gerador mais nomes fictícios, para o texto passar
+ * do limite de 4 e mostrar o `<details>` no preview e no e2e. Só rótulo do recorte; o filtro de equipes segue com as três.
+ */
+const EQUIPES_RECORTE_AC: readonly string[] = [
+  ...EQUIPES_AC,
+  ...['ALFA', 'BETA', 'GAMA', 'DELTA', 'ÔMEGA'].map((n) => `SSSC ${n}`),
+]
+
 type Carregado = {
   ctx: lib.ContextosMetricas
   /** Critérios da pesquisa (dominio 'pesquisa', T2.6), lidos do contexto da terceira fonte. */
@@ -244,7 +253,7 @@ export class NucleoMock {
             recorte: {
               organizacoes: [...new Set(base.ac.chamados.map((c) => c.organizacao))],
               tipos: [...new Set(base.ac.chamados.map((c) => c.tipo_fila))],
-              equipes: [...EQUIPES_AC],
+              equipes: [...EQUIPES_RECORTE_AC],
             },
             historico: {
               inicio: lib.dataIso(

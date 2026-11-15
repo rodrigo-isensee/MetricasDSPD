@@ -61,15 +61,11 @@ describe('juntar', () => {
 })
 
 describe('texto do recorte da Sustentação (K-215)', () => {
-  it('mock da API: o texto vem do recorte, sem expansão (CA-1)', async () => {
+  it('mock da API: o texto vem do recorte, com lista longa recolhida (CA-1, CA-2)', async () => {
     renderizarCartao(<Recorte />, { fonte: fonteDeTeste })
-    expect(await screen.findByText(/equipes SSSC TOTVS, SSSC SENIOR e SSSC FLUIG, excluídos/)).toBe(
-      paragrafo(),
-    )
-    expect(paragrafo()).toHaveTextContent(
-      /SSSC TOTVS, SSSC SENIOR e SSSC FLUIG, excluídos os removidos\./,
-    )
-    expect(listas()).toHaveLength(0)
+    expect(await screen.findByText(/de 8 equipes, excluídos os removidos\./)).toBe(paragrafo())
+    expect(listas()).toHaveLength(1)
+    expect(listas()[0]).not.toHaveAttribute('open')
   })
 
   it('1 organização, 1 tipo e 1 equipe: singular, sem expansão', async () => {
