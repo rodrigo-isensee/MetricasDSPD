@@ -179,7 +179,7 @@ export const VERSAO_CRITERIO_O12_PRAZO_DO_CARD: VersaoCriterio = {
   id: 'criterio-2026-11-14-o12-prazo-do-card',
   data: '2026-11-14',
   descricao:
-    'O12 usa como data acordada o prazo nativo (deadline) do card do BusinessMap, que pode mudar depois do compromisso; a responsabilidade do atraso segue sem dado real',
+    'O12 usa como data acordada o prazo nativo (deadline) do card do BusinessMap, que pode mudar depois do compromisso; o prazo com hora vira o dia de Brasília; a responsabilidade do atraso segue sem dado real',
   afeta: ['O12', 'VISAO_GERAL'],
 }
 
