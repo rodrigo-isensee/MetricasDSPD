@@ -46,6 +46,38 @@ describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
   })
 })
 
+describe('T2: fronteira de 20 itens', () => {
+  const semSle = { status: 'insuficiente', n: 0, minimo: 20, janela: null }
+  const comN = (n: number) =>
+    new FonteAjustada({
+      T2: (r: { classes: { n: number; dentroDoSle: unknown }[] }) =>
+        r.classes.forEach((c) => {
+          c.n = n
+          c.dentroDoSle = semSle
+        }),
+    })
+
+  it('n = 20 sem SLE publicado: já não é amostra insuficiente', async () => {
+    renderizarCartao(<CartaoT2 filtros={FILTROS_FLUXO} />, { fonte: comN(20) })
+    const el = await pronto('T2')
+    const itens = within(el).getAllByTestId(/^t2-/)
+    for (const li of itens) {
+      expect(li).toHaveTextContent('SLE ainda não publicado para esta classe.')
+      expect(li).not.toHaveTextContent('Amostra insuficiente')
+    }
+  })
+
+  it('n = 19: amostra insuficiente, com "19 de 20 itens mínimos"', async () => {
+    renderizarCartao(<CartaoT2 filtros={FILTROS_FLUXO} />, { fonte: comN(19) })
+    const el = await pronto('T2')
+    const itens = within(el).getAllByTestId(/^t2-/)
+    for (const li of itens) {
+      expect(li).toHaveTextContent('Amostra insuficiente (19 de 20 itens mínimos)')
+      expect(li).not.toHaveTextContent('SLE ainda não publicado')
+    }
+  })
+})
+
 describe('T3: alocação sem desvio calculado', () => {
   it('percentual publicado sem desvio: mostra 0,0 p.p. sem sinal e não cita no resumo', async () => {
     renderizarCartao(<CartaoT3 filtros={FILTROS_FLUXO} />, {
