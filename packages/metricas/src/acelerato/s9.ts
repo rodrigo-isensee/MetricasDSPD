@@ -13,30 +13,25 @@ import {
 } from './comum'
 import type { ContextoAC } from './indice'
 import { MOTIVOS_PENDENCIA } from './modelo'
-
-const SEM_MOTIVO = 'Não informado'
+import { MOTIVO_NAO_CLASSIFICADO, motivoDaPendencia } from './totalizadores'
 
 /**
- * S9: tempo em pendência (horas úteis na etapa `Pendente`) por motivo, e cumprimento da previsão de
- * retorno. Uma distribuição por motivo; nunca agregadas.
+ * S9: tempo em pendência (horas úteis) por motivo, e cumprimento da previsão de retorno. Pendência é a etapa `Pendente` e as esperas
+ * decididas (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança), pelo de-para de `totalizadores.ts` (pedido 099, D5a);
+ * `Pendente` sem motivo é "Não classificado". Uma distribuição por motivo; nunca agregadas.
  */
 export function calcularS9(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS9 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f)
   const xs = selecionarAC(ctx, f)
   const pendencias = xs.flatMap((x) =>
-    x.etapas
-      .filter(
-        (e) => e.etapa === 'Pendente' && e.saida !== null && noIntervalo(ctx, e.saida, janela),
-      )
-      .map((e) => ({
-        x,
-        motivo: e.motivo_pendencia ?? SEM_MOTIVO,
-        horas: horasUteisEntre(e.entrada, e.saida as number, ctx.cal),
-        saida: e.saida as number,
-      })),
+    x.etapas.flatMap((e) => {
+      const motivo = motivoDaPendencia(e.etapa, e.motivo_pendencia)
+      if (motivo === null || e.saida === null || !noIntervalo(ctx, e.saida, janela)) return []
+      return [{ x, motivo, horas: horasUteisEntre(e.entrada, e.saida, ctx.cal), saida: e.saida }]
+    }),
   )
-  const motivos = [...MOTIVOS_PENDENCIA, SEM_MOTIVO]
+  const motivos = [...MOTIVOS_PENDENCIA, MOTIVO_NAO_CLASSIFICADO]
     .map((motivo) => {
       const doMotivo = pendencias.filter((p) => p.motivo === motivo)
       return {
