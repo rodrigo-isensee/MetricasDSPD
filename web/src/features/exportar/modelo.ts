@@ -403,11 +403,20 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     janela: textoJanelaBloco(d),
     base: textoBase(d.base, e.id === 'E3' ? (e.dto as ResultadoE3).comFicha.k : undefined),
     amostraInsuficiente: textoInsuficiente(e.dto),
-    nota: resumoDaNota(e.nota),
+    nota: [resumoDaNota(e.nota), notaDeParteSemDado(e.dto)].filter(Boolean).join(' '),
     criterios: textoCriterios([...d.criterios.serie, ...d.criterios.janela]),
     tabela: tabelaDoDto(e.dto),
   }
 }
+
+/** O12 (099, CA-O12-8): parte sem dado real (responsabilidade do atraso nula) é dita na nota do arquivo; a célula nula sai como "-", nunca 0. */
+const notaDeParteSemDado = (dto: unknown): string =>
+  typeof dto === 'object' &&
+  dto !== null &&
+  'motivoResponsabilidade' in dto &&
+  typeof dto.motivoResponsabilidade === 'string'
+    ? 'Responsabilidade do atraso: sem dado real (aguardando o campo no quadro do BusinessMap).'
+    : ''
 
 /** Bloco de uma métrica sem fonte real: só o contexto e o motivo; nenhum número, percentil, base nem tabela (pedido 060, P4). */
 export function construirBlocoSemDadoReal(e: {

@@ -6,6 +6,7 @@ import {
   contarForaS2,
   itensDiaria,
   itensSemanal,
+  lacunasSemanal,
   itensSustentacao,
 } from './atencao'
 
@@ -127,5 +128,21 @@ describe('atencao.ts: Sustentação e contagens', () => {
       ['s1', '#s1', 'Mediana acima do alvo em 2 prioridades'],
     ])
     expect(itensSustentacao(s2([true, 'dentro']), s1(['dentro', true]))).toEqual([])
+  })
+})
+
+describe('099 (CA-O12-4): vencidos por causa interna sem dado real', () => {
+  it('nulo não gera o item e a lacuna do O12 é dita no lugar dele', () => {
+    const o12 = { vencidosCausaInterna: null } as never
+    expect(itensSemanal(undefined, undefined, o12)).toEqual([])
+    expect(lacunasSemanal(o12)).toEqual([
+      'O12: vencidos por causa interna sem dado real (aguardando o campo de responsabilidade do atraso).',
+    ])
+  })
+  it('com o campo (futuro) não há lacuna e o item volta', () => {
+    const o12 = { vencidosCausaInterna: 2 } as never
+    expect(lacunasSemanal(o12)).toEqual([])
+    expect(itensSemanal(undefined, undefined, o12)).toHaveLength(1)
+    expect(lacunasSemanal(undefined)).toEqual([])
   })
 })
