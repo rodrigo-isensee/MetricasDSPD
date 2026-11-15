@@ -47490,6 +47490,10 @@
                                   "pct": {
                                     "type": "number",
                                     "minimum": 0
+                                  },
+                                  "horasSemProjeto": {
+                                    "type": "number",
+                                    "minimum": 0
                                   }
                                 },
                                 "required": [
