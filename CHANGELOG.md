@@ -6,6 +6,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Corrigido
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
+- Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 
 ### Adicionado
 - S1 e S2: o texto do "registro posterior" vira linguagem simples (chamado registrado depois que o atendimento já aconteceu; pela regra fica de fora, mas hoje o Acelerato não traz essa marca e nenhum chamado é excluído por esse motivo) e o MTTR diz "pendente ou em validação", como o cálculo já faz; sem mudar cálculo (pedido 105, E3.48).
@@ -88,6 +89,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 - Aba Apontamento (pedido 097, K-341, decisão do dono de 2026-11-14): no cartão Horas por projeto, a linha sem projeto ("Sem iniciativa") sai do gráfico e das dez vagas dos maiores e aparece como linha própria depois de "Demais" e do botão "Ver todos", com as horas dela, fora de "de N", "Mostrando todos os N projetos", "Ver todos os N" e "Demais N" e fora da região rolável; a frase de leitura não a escolhe e o achado de concentração diz à parte quantas horas ficaram sem projeto (`horasSemProjeto`). CA-33 e CA-34 atualizados na especificação de UX.
 - Painéis: no cartão recolhido em erro, o foco volta ao Expandir depois do Tentar de novo, e cada Tentar de novo leva o título do cartão no nome acessível (pedido 097, K-344, B-2 e B-3).
 - Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
@@ -229,6 +231,7 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 - Documentação: textos do lote 3 das métricas também disponíveis (K-154) (#155); política do Dependabot (K-169) (#160); leitura de "enviada" como PR para a `develop` (K-162) (#157).
 
 ### Corrigido
+- Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 
 - Web: `develop` voltou ao verde após o Dependabot (`no-deprecated` do `matchMedia`, aquecimento do teste da PV1) (K-151) (#149).
 - Teste do servidor `SELECT *` que estourava 30 s (K-150) (#158).

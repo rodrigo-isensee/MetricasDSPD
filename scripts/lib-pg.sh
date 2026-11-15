@@ -9,7 +9,11 @@
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [ -f "$RAIZ/.env" ] && [ -z "${DSPD_NAO_CARREGAR_ENV:-}" ] && { set -a; . "$RAIZ/.env"; set +a; }
 
-export PGHOST="${PGHOST:-127.0.0.1}" PGPORT="${PGPORT:-5432}"
+# Porta: PGPORT, ou PG_PORT (a mesma variável de scripts/db.sh), ou 5432. As duas definidas e diferentes: recusa (não adivinha a base).
+if [ -n "${PGPORT:-}" ] && [ -n "${PG_PORT:-}" ] && [ "$PGPORT" != "$PG_PORT" ]; then
+  echo "ERRO: PGPORT=$PGPORT e PG_PORT=$PG_PORT divergem; defina só uma (PG_PORT é a usada por scripts/db.sh)" >&2; exit 1
+fi
+export PGHOST="${PGHOST:-127.0.0.1}" PGPORT="${PGPORT:-${PG_PORT:-5432}}"
 export PGUSER="${PGUSER:-dspd_migrador}" PGDATABASE="${PGDATABASE:-metricas}"
 if [ -z "${PGPASSWORD:-}" ] && [ -z "${PGPASSFILE:-}" ] && [ ! -f "$HOME/.pgpass" ] && [ "$PGUSER" = dspd_migrador ] && [ -n "${DSPD_PWD_MIGRADOR:-}" ]; then
   export PGPASSWORD="$DSPD_PWD_MIGRADOR"
