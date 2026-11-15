@@ -10,6 +10,7 @@ import { criarPool, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { semear } from '../src/plataforma/db/seed.js';
 import { CONFIG, LISTAS_BANCO, TLS, criarMysqlFalso, linha } from './acelerato-duble.js';
 import { novaColeta, poolDe, url } from './pg/ctx.js';
+import { quantasDesde } from './pg/migracoes-por-numero.js';
 
 const d = describe.skipIf(!url);
 const F3 = ['motivo_escalacao', 'motivo_encerramento', 'avaliacao_problema', 'motivo_pendencia', 'prioridade_ajustada'] as const;
@@ -46,7 +47,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
   });
 
   it('migração: linhas nulas seguem nulas, só o tipo muda nas duas dimensões, as views seguem lidas pela API; com valor, falha sem mudar nada', async () => {
-    await migrar(url!, { prefixo: P, direcao: 'down', quantas: 3 }); // desfaz a 0037, a 0036 e a 0035
+    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) }); // desfaz a 0037, a 0036 e a 0035
     expect(await tipoDe('dim_chamado')).toMatch(/timestamp\(3\) with time zone/);
     await insere('n1', 'NULL'); await insere('n2', 'NULL');
     const antes = await linhas();
@@ -59,7 +60,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     for (const v of ['vw_abertos', 'vw_fechados_sla', 'vw_populacao_sssc']) await expect(api.query(`SELECT previsao_retorno FROM ${E.ac}.${v} LIMIT 1`), v).resolves.toBeDefined();
     await api.end();
 
-    await migrar(url!, { prefixo: P, direcao: 'down', quantas: 3 });
+    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) });
     await insere('v1', 'now()');
     const comValor = await linhas();
     await expect(migrar(url!, { prefixo: P })).rejects.toThrow(/previsao_retorno tem valor/);
@@ -68,7 +69,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     await dono.query(`DELETE FROM ${E.ac}.dim_chamado WHERE chamado_id = 'v1'`);
     await migrar(url!, { prefixo: P });
     await insere('b1', 'true'); // booleano gravado: a volta recusa sem mudar nada
-    await expect(migrar(url!, { prefixo: P, direcao: 'down', quantas: 3 })).rejects.toThrow(/volta para timestamptz foi recusada/);
+    await expect(migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) })).rejects.toThrow(/volta para timestamptz foi recusada/);
     expect(await tipoDe('dim_chamado')).toBe('boolean');
     await dono.query(`DELETE FROM ${E.ac}.dim_chamado`);
   }, 120_000);
