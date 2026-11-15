@@ -3,14 +3,14 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ac-reprojetar-fluxo
-commit: ab43b72a12b1ae2bbd5ec8d62be368ee77414f61
+commit: ceb868773503b7c08d4831237e4beafedb5367fa
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-15
 ---
-# Review de segurança: ac:reprojetar-fluxo (E6.19)
+# Review de segurança: ac:reprojetar-fluxo (E6.19, revalidado em E6.27)
 
-Propósito: conferir que o comando que preenche `dim_chamado.fluxo` dos chamados já projetados não leva pessoa nem texto livre do staging a lugar nenhum, que o SQL é parametrizado e que não há GRANT novo. Público: tech-lead, node-backend, qa-engineer. Revisão estática do diff `0358e417..ab43b72a` (código de `server/`); os commits posteriores (`d99bb897`, `159fb3a2`) tocam só `docs/reviews` e `docs/qa`. Nenhum código foi alterado.
+Propósito: conferir que o comando que preenche `dim_chamado.fluxo` dos chamados já projetados não leva pessoa nem texto livre do staging a lugar nenhum, que o SQL é parametrizado e que não há GRANT novo. Público: tech-lead, node-backend, qa-engineer. Revisão estática do diff `0358e417..ab43b72a` (código de `server/`) e, na revalidação, do commit `ceb86877`. Nenhum código foi alterado.
 
 ## Achados
 - A1 (recomendado) server/src/modulos/acelerato/reprojecao-fluxo.ts:27 · a linha `ctl_coleta` de tarefa `projecao` move a marca d'água de "última carga" da tela até a próxima coleta; é integridade de informação, não vazamento, e o aviso está no CHANGELOG ("Ações do dono depois da release 105"), então não bloqueia.
@@ -28,9 +28,14 @@ Banco e credencial do migrador (`PG_MIGRADOR_URL`). Sem dependência nova, sem r
 - **Cadeia de suprimentos.** `server/package.json` ganha só um script (`ac:reprojetar-fluxo`); nenhum pacote novo, lockfile intocado.
 - **Uso indevido.** Operar exige a credencial do migrador (já privilegiada); o comando não amplia o que ela faz e é idempotente.
 
+## Revalidação (E6.27, head ceb86877)
+- `forge-check parecer delta`: no domínio, só `server/src/modulos/acelerato/reprojecao-fluxo.ts` (o `CHANGELOG.md` é documentação). O diff é uma linha, `reprojecao-fluxo.ts:38`: `fluxoDoChamado(id, etapasDe.get(id) ?? [], c)`.
+- Releitura de `fluxoDoChamado` (`normalizador.ts:135-140`): o `idOrigem` só é entregue a `c.somarChamado('fluxo_multiplo', idOrigem)`, o contador em memória que conta chamado distinto; não entra em SQL, log nem saída. Para o banco continua indo só o que já ia (`chamado_id` e fluxo no `UPDATE` parametrizado). O `id` vem de `dim_chamado.chamado_id`, identificador de origem, não dado de pessoa.
+- Sem GRANT, migração, dependência, segredo nem fronteira nova; os demais itens da evidência acima seguem válidos. Nenhum achado novo.
+
 ## Provas
-- CI do head `ab43b72a`: run 43759194037, `success` (a suíte inteira, inclusive o job `banco` com os `.pg`, roda só no CI). Os runs posteriores são de commits só de `docs/`.
-- Testes do comando lidos (`acelerato-reprojecao-fluxo.test.ts`, `.pg.test.ts`, `reprojetar-fluxo-ac-entrada.test.ts`); cobertos pelo CI acima, não rodei a suíte local.
+- CI do head `ceb86877`: run 43761287119, `success` (a suíte inteira, inclusive o job `banco` com os `.pg`, roda só no CI), conforme o brief E6.27. Os commits posteriores (`4d206f5b`, `e4bec57c`) tocam só `docs/reviews` e `docs/qa`.
+- Testes do comando lidos na rodada anterior (`acelerato-reprojecao-fluxo.test.ts`, `.pg.test.ts`, `reprojetar-fluxo-ac-entrada.test.ts`); não rodei a suíte local.
 - Ferramentas locais de varredura: nenhuma além da leitura; o job `seguranca` do CI cobre `gitleaks`, auditoria e SAST.
 
 ## Plano em cartões
