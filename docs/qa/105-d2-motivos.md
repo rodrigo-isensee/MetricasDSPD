@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/099-d2-motivos-sust
-commit: 8c494dcb06261bfd3550c2f6f5f95b42af531a9a
+commit: bc27eae640b8ed5e65d14d40e50b10e2ff4d092a
 parecer: aprovado
 resultado: aprovado; A1 e A2 do parecer anterior resolvidos em 8c494dcb; sem achados abertos
 escopo: incremental
@@ -16,6 +16,10 @@ data: 2026-11-15
 # QA: D2, S5, S6 e S7 com dado real (pedido 105, E6.4)
 
 Testado até 03ad3399 (a ponta de CI verde: depois do aebccf9b entraram cobertura do server, paridade do acelerato-l9c pg e as páginas e fotografias dos contratos). Diff conferido contra `origin/feature/099-d1b-dominios` (40 arquivos). Decisões do dono: P1 = B (cinco fluxos do PROC), P2 = A (de-para só dos pares óbvios), P3 = A (faixa Outro separada de Não informado).
+
+## Revalidação 8c494dcb → bc27eae6 (E6.13, merge da develop)
+
+O merge da develop (D1b, #452, K-329) e a correção do A5 em `docs/api/metricas.md` não mudam a regra do D2: o diff combinado do merge (`git diff --cc`) não traz hunk fora de `docs/reviews`, ou seja, as resoluções dos conflitos (CHANGELOG, acelerato-dominio.json, dominio-acelerato.ts, origem.test.ts, qa-f6-painel.test.ts) só mantiveram linhas de um dos dois lados; `acelerato-dominio.json` e `dominio-acelerato.ts` seguem iguais ao lado do D2 (`fluxo_proc` presente). O que a develop trouxe é O8, O12, catálogo e o domínio do Acelerato, sem tocar S5, S6 e S7. O texto do A5 em `docs/api/metricas.md` bate com `NotaForaDoFluxo` e com a nota do S3. CI do head bc27eae6 verde (informado no brief). Sem achados novos; parecer mantido.
 
 ## Delta 03ad3399 → 8c494dcb (revalidação)
 
