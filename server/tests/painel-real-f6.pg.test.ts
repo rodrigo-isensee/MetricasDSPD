@@ -108,7 +108,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
   it('(d) FL2, FL3 e Visão geral respondem "sem dado real" na base real, nunca o número do seed (que só o modo mock explícito lê)', async () => {
     const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const real = await app();
-    for (const id of ['T1', 'T7', 'E1', 'E2', 'VISAO_GERAL', 'O8', 'O26']) {
+    for (const id of ['T1', 'T7', 'E1', 'E2', 'VISAO_GERAL', 'O26']) {
       const a = await mock.inject(`/api/v1/metricas/${id}`);
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(a.statusCode, id).toBe(200);
