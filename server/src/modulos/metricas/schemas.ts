@@ -39,6 +39,8 @@ function periodoDe(q: { periodo: string; de?: string | undefined; ate?: string |
 /** Fluxo (BusinessMap). Parâmetro desconhecido (inclusive qualquer filtro de pessoa ou de sustentação) reprova (400). */
 export const queryFluxoSchema = z.object({
   equipe: lista(idSlug),
+  /** Setores (slug do nome sem sobrenome, `opcoes.setores`; 097, L10b). Só o fluxo: a sustentação continua a recusar `setor` (400). */
+  setor: lista(idSlug),
   tipo: lista(z.string().refine((id) => NOME_POR_ID.has(id), 'tipo desconhecido')),
   sistema: lista(idSlug),
   ...comumQuery,
@@ -47,7 +49,7 @@ export const queryFluxoSchema = z.object({
 }).strict().transform((q, ctx): ConsultaCalculo<FiltrosFluxo> => {
   const periodo = periodoDe(q, ctx);
   const r: ConsultaCalculo<FiltrosFluxo> = {
-    filtros: { equipe: q.equipe ?? [], tipo: (q.tipo ?? []).map((id) => NOME_POR_ID.get(id) as TipoFiltro), sistema: q.sistema ?? [], periodo },
+    filtros: { equipe: q.equipe ?? [], tipo: (q.tipo ?? []).map((id) => NOME_POR_ID.get(id) as TipoFiltro), sistema: q.sistema ?? [], setor: q.setor ?? [], periodo },
   };
   if (q.dataReferencia !== undefined) r.dataReferencia = q.dataReferencia;
   if (q.page !== undefined) r.page = q.page;
@@ -76,6 +78,14 @@ export const queryVisaoGeralSchema = z.object({ dataReferencia: data.optional() 
 export const queryTendenciaSchema = z.object({ dataReferencia: data.optional(), equipe: lista(idSlug) }).strict()
   .transform((q): ConsultaCalculo<{ equipe: string[] }> => {
     const r: ConsultaCalculo<{ equipe: string[] }> = { filtros: { equipe: q.equipe ?? [] } };
+    if (q.dataReferencia !== undefined) r.dataReferencia = q.dataReferencia;
+    return r;
+  });
+
+/** Tendência mensal do fluxo (TENDENCIA_FLUXO): a da sustentação mais `setor` (CSV de slugs; 097, L10b). Sem período, tipo nem prioridade. */
+export const queryTendenciaFluxoSchema = z.object({ dataReferencia: data.optional(), equipe: lista(idSlug), setor: lista(idSlug) }).strict()
+  .transform((q): ConsultaCalculo<{ equipe: string[]; setor: string[] }> => {
+    const r: ConsultaCalculo<{ equipe: string[]; setor: string[] }> = { filtros: { equipe: q.equipe ?? [], setor: q.setor ?? [] } };
     if (q.dataReferencia !== undefined) r.dataReferencia = q.dataReferencia;
     return r;
   });

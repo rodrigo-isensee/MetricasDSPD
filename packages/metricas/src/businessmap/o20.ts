@@ -8,7 +8,7 @@ import {
 } from '../core/calendario'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
-import { baseAmostral, criterios, periodoDe } from './comum'
+import { baseAmostral, criterios, equipesDoRecorte, periodoDe } from './comum'
 import type { ContextoBM } from './indice'
 import type { PapelColuna } from './modelo'
 import { varreduraPorColuna, varreduraVida } from './varredura'
@@ -53,7 +53,7 @@ export function calcularO20(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO20 {
   const instantes = dias.map((d) => Math.min(ctx.hoje, fimDoExpediente(d, ctx.cal)))
   const equipe =
     f.equipe.length === 1
-      ? ctx.idx.base.config.equipes.find((e) => slug(e.nome) === f.equipe[0])
+      ? equipesDoRecorte(ctx, f).find((e) => slug(e.nome) === f.equipe[0])
       : undefined
   const agrupamento = equipe ? ('coluna' as const) : ('papel' as const)
 

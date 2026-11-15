@@ -7,7 +7,9 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ### Adicionado
 - Aba Apontamento (web): filtro Setor na barra, antes da Equipe, com as opções de `opcoes.setores` (inclui "Sem setor"); some quando a resposta não traz o campo; vai na URL e na consulta como lista de slugs, só recorte, sem bloco nem comparação por setor (pedido 097, K-337).
 - Aba Apontamento: filtro Setor (parâmetro `setor` e `opcoes.setores`, pelo quadro do card e pelo dicionário de setores sem sobrenome; "Sem setor" para card fora dos quadros mapeados), só recorte, sem bloco por setor; o papel da aba ganha `SELECT` em `dim_card.quadro_id` e no mapa do `ref_dominio`, e o dono roda `db:migrate` para reaplicar os GRANTs (pedido 097, K-337, parte do servidor).
+- Métricas do fluxo: o filtro Setor recorta os números pelo quadro atual do card (O1, O2, O20, O21, T11, T14, varredura, EI e as demais por story e frente; projeto fora do recorte); parâmetro `setor` no fluxo e na `TENDENCIA_FLUXO`, com a sustentação recusando (pedido 097, K-335, L10b).
 - Métricas: O21 Fluxo reverso com dado real do BusinessMap (direção das transições e ciclo do O3), sem mudar contrato nem cálculo (pedido 099, lote A1, E3.219).
+- Sustentação: S9 e o desconto da S1 leem as esperas reais (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; `Pendente` sem motivo é "Não classificado"), com a versão de critério `criterio-2026-11-14-s1-s9-esperas-pendencia` (`afeta` S1 e S9); Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono (pedido 099, D5a).
 - BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
 - Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1; migração 0037) (#408).
 - Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).
@@ -54,6 +56,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- API: todo erro 5xx e a resposta fora do schema passam a logar só tipo e código, em todas as rotas e sem exceção por caminho, nunca a mensagem crua do banco, que pode trazer valor de linha (ADR 0020, item 6; K-347); a constante `ROTA_WEBHOOK_BM` some.
 - Webhook do BusinessMap: erro 5xx do receptor passa a logar só tipo e código, nunca a mensagem crua do banco, que pode trazer valor do payload (ADR 0020, item 6, B-4; K-086); testes de não vazamento por marcador no coletor e no webhook.
 - Aba Apontamento: o resumo do gráfico de horas por projeto recolhido deixa de contar a linha sem projeto como projeto, mantendo as horas dela no total (pedido 097, K-324, parte B).
 - Ambiente local e homologação: o healthcheck do postgres checa o banco `metricas` por TCP (`-h 127.0.0.1`), então só passa depois do init e da reinicialização do servidor, e o 1º `db:migrate` após o `db:up` deixa de falhar por socket (K-143, pedido 102).

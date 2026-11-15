@@ -7,9 +7,11 @@ import { ordenarNeutro } from '../core/ordenar'
 /** E3: entrega x resultado por iniciativa. Censo (sem mínimo de 20); iniciativas sem ficha vêm primeiro. */
 export function calcularE3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE3 {
   const periodo = periodoDe(ctx, f)
-  const ini = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true }).filter(
-    (m) => m.card.tipo === 'Iniciativa',
-  )
+  const ini = selecionar(ctx, f, 'projeto', {
+    semEquipe: true,
+    semSetor: true,
+    semTipo: true,
+  }).filter((m) => m.card.tipo === 'Iniciativa')
   const iniciativasBrutas = ini.map((m) => {
     const ficha = ctx.idx.base.fichas.find((x) => x.card_id === m.card.card_id) ?? null
     return {
