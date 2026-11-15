@@ -213,6 +213,12 @@ describe('O6 previsibilidade e O8 tamanho', () => {
     expect(peq.tipos[0]?.porTamanho).toBeNull()
   })
 
+  it('O8: o contrato fecha o par (porTamanho nulo exige o motivo); o estado incoerente é recusado', () => {
+    const r = calcularMetrica('O8', F, { bm: bmDe(cards(25, 0)), ac: ctxMock.ac })
+    expect(SCHEMAS_RESULTADO.O8.safeParse(r).success).toBe(true)
+    expect(SCHEMAS_RESULTADO.O8.safeParse({ ...r, motivoPorTamanho: null }).success).toBe(false)
+  })
+
   it('O8: com tamanho declarado em algum card, a divisão publica e o motivo é nulo; cai em "Sem tamanho" quem não declarou', () => {
     const base = umaBase(cards(25, 0), [])
     const com = businessmap.criarContextoBM(

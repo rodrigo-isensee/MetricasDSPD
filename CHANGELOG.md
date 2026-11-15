@@ -9,6 +9,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Adicionado
 - O8: o tipo sem tamanho declarado sai do gráfico por tamanho e entra numa nota de texto abaixo dele ("Sem divisão por tamanho: ..."), sem número novo; a tabela, o cálculo e o contrato não mudam (pedido 105, K-361, E3.9).
+- Recomendados do O21, O16 e O8 resolvidos: comentário de origem e linha da API sem "mock" para o O21, testes `.pg` do O16 e do O8 sem laço vazio e com o ramo conferido, contrato do O8 exige o motivo só quando nenhum tipo publica `porTamanho`; o cálculo não muda (pedido 105, K-348, K-352, K-353).
 - Acelerato: domínios `cpe_*` (valores literais da B6-d em UTF-8, cada grafia como entrada, sem de-para nem vigência; `cpe_tipo_prioridade` sem valores) e `etapa_fluxo` (114 chaves da B5-a na ordem aprovada, AP-099-1) em `acelerato-dominio.json`, com nova versão de critério; o dono roda `ac:ref-sync` e `--reconhecer-mudanca` depois do merge (pedido 099, D1 1b e 1c).
 - Teste do destino do item O12 da faixa de atenção: código `O12` e `#o12` quando há vencidos por causa interna (pedido 105, K-362, E3.1).
 - Teste e2e B3-002 (O12): com o O12 sem dado real a faixa "Pede atenção" mostra a lacuna e não o link "Ver O12"; o teste deixa de supor o mock antigo e segue provando que `#o12` abre a Semanal com o O12 (pedido 105, E5.1).
