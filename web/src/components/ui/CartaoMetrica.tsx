@@ -9,6 +9,7 @@ import {
   type CriteriosResultado,
   type MetricaId,
   type NotaCartaoId,
+  type NotaS1Id,
   type NotaSustentacaoId,
   type Periodo,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
@@ -88,7 +89,7 @@ export interface CartaoMetricaProps {
   /** Selos extras. */
   selos?: ReactNode
   /** Notas que o resultado indica para o cartão (ex.: O3 com "SLE não definido", H-24); os textos vêm do contrato. */
-  notasDoCartao?: readonly (NotaCartaoId | NotaSustentacaoId)[] | undefined
+  notasDoCartao?: readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id)[] | undefined
   /** Controles do cabeçalho do cartão além de "Como ler" e "Ver como tabela". */
   acoes?: ReactNode
   /** Sem alternativa em tabela (listas que já são tabelas). */
@@ -120,8 +121,8 @@ const SEMANAS_DO_PERIODO: Partial<Record<Periodo['tipo'], number>> = { '4s': 4, 
  */
 function notasDoCartaoVisiveis(
   codigo: string,
-  doResultado: readonly (NotaCartaoId | NotaSustentacaoId)[] | undefined,
-): readonly (NotaCartaoId | NotaSustentacaoId)[] {
+  doResultado: readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id)[] | undefined,
+): readonly (NotaCartaoId | NotaSustentacaoId | NotaS1Id)[] {
   const id = idDeMetrica(codigo) as MetricaId
   const fixas = origemDaMetrica(id) === 'real' ? (NOTAS_FIXAS_DO_CARTAO[id] ?? []) : []
   return [...new Set([...fixas, ...(doResultado ?? [])])]

@@ -164,6 +164,7 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
           }
         : {})}
       {...(leitura ? { leitura } : {})}
+      notasDoCartao={d?.notas}
       nota={NOTAS_SUSTENTACAO.S1 as NonNullable<(typeof NOTAS_SUSTENTACAO)[string]>}
       meta={m.meta}
       fonte={m.fonte}
