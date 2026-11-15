@@ -15,15 +15,15 @@ const GRUPOS = [
 
 type DadosO15 = NonNullable<ReturnType<typeof useMetrica<'O15'>>['dados']>
 
+/** Só é chamada com duas ou mais fases (uma só tem texto próprio). */
 function juntarNomes(nomes: string[]): string {
-  return nomes.length < 2
-    ? nomes.join('')
-    : `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`
+  return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`
 }
 
+/** `m` tem sempre 2 ou mais: o cartão só desenha o corpo com base maior que zero (estado vazio, `ehVazio`), então `m` passa de `n`. */
 function textoFora(n: number, m: number): string {
   return n === 1
-    ? `1 de ${fmtInteiro(m)} ${m === 1 ? 'bug' : 'bugs'} do período ficou fora desta conta: não tem fase de detecção na base.`
+    ? `1 de ${fmtInteiro(m)} bugs do período ficou fora desta conta: não tem fase de detecção na base.`
     : `${fmtInteiro(n)} de ${fmtInteiro(m)} bugs do período ficaram fora desta conta: não têm fase de detecção na base.`
 }
 
