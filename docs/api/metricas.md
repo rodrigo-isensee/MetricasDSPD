@@ -437,5 +437,6 @@ Depois da prova do dono (`fato_bloqueio` com 172 linhas e `evt_bloqueio` `fim` c
 
 ## Pedido 099, lote D5a: S9 por pendência real (esperas decididas)
 - `S9` (e o relógio de resolução da `S1`) passa a ler as esperas reais do Acelerato como pendência, pelo de-para de `packages/metricas/src/acelerato/totalizadores.ts` (`motivoDaPendencia`, `pausaOSla`): Aguardando Solicitante = `Aguardando solicitante`; Aguardando Suporte Terceiros e Aguardando Fornecedor = `Aguardando fornecedor`; Aguardando Janela de Mudança (com ou sem "(Deploy Produção)") = `Aguardando janela de mudança`; `Pendente` sem motivo = `Não classificado` (antes `Não informado`). Aguardando Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora da S9 e do desconto da S1 até decisão do dono (não se inferem).
+- `S9` entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK` (`MOTIVO_S9_MOTIVO_PENDENCIA` deixa de existir): a base real devolve o S9 calculado, não mais o estado "sem dado real".
 - Contrato: nenhum campo muda; `porMotivo[].motivo` segue `string`. Muda o valor de texto `Não informado` para `Não classificado` na S9. `cumprimentoPrevisao` segue sem data de previsão na base real (`insuficiente`, n = 0).
 - Versão de critério `criterio-2026-11-14-s1-s9-esperas-pendencia` (data 2026-11-14, `afeta: ['S1', 'S9']`) marca o gráfico (T2.6).
