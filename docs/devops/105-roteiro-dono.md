@@ -2,7 +2,7 @@
 
 **Escopo:** só o computador local (WSL), onde ficam os dados reais. A VM (servidor interno) segue no cartão **K-340** e não está neste roteiro.
 
-Para quem não é técnico. Nada deste documento foi executado pelo time: os comandos são seus, depois do merge da release 105 na `main`. Cada comando foi conferido no código da `develop` (ponta `0358e417`); o que o código não prova aparece como **a confirmar**. Nenhuma senha, chave ou nome de pessoa aparece aqui.
+Para quem não é técnico. Nada deste documento foi executado pelo time: os comandos são seus, depois do merge da release 105 na `main`. Cada comando foi conferido no código da `develop`; o que o código não prova aparece como **a confirmar**. Nenhuma senha, chave ou nome de pessoa aparece aqui.
 
 Como usar: **não use a pasta `~/Metricas/MetricasDSPD`**. É a pasta onde o Jarvis grava o quadro o tempo todo, e um `git checkout main` ali é recusado quando há arquivo modificado. O roteiro roda numa pasta própria da `main`, `~/Metricas/MetricasDSPD-main`, sem mexer na do Jarvis.
 
@@ -56,13 +56,14 @@ O banco do Compose precisa estar de pé: `(set -a; . ~/Metricas/MetricasDSPD/.en
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run db:migrate); echo "rc=$?"
 ```
 - Tempo: segundos.
+- Antes de migrar, faça o backup do dia (seção 4, que também traz a volta da 0038).
 - Deve mostrar: a migração `0038` (coluna `fluxo` em `dim_chamado` do Acelerato) aplicada, se ainda faltar, e rc=0. Rodar de novo diz que não há migração pendente.
 - Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existe a **0038** (pedido 099, D1); por isso este passo é obrigatório.
 - Se der erro: pare e avise. Pode repetir.
 
 ### 0.3 Acelerato: preencher o fluxo dos chamados já na base (`ac:reprojetar-fluxo`)
 
-Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes das cargas do BusinessMap** (passos 1 a 4). Comando novo, da branch `feature/105-ac-reprojetar-fluxo` (aprovado em review e QA; precisa estar mesclado na `main` junto com a release):
+Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes das cargas do BusinessMap** (passos 1 a 4). Comando novo, que já está na `develop` e chega à `main` junto com a release:
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo); echo "rc=$?"
 ```
@@ -193,6 +194,28 @@ Esperado: `chamados` = 5144 (ou mais, se a coleta já trouxe novos) e `com_fluxo
 1. Se algo estiver estranho nas conferências, pare e avise o Jarvis; não religue a agenda.
 2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
 3. Só então religue o que parou no 0.1 (no Windows, "Habilitar" a tarefa; no cron, tire o `#`). Se não havia agenda de coleta aqui, nada a religar.
+
+## 4. Voltar atrás: rollback da migração 0038
+
+Só se algo der errado depois do `db:migrate` do passo 0.2. A 0038 só criou a coluna `dim_chamado.fluxo`; ela tem volta (`down` tira a coluna, que é derivada e refeita pela reprojeção), mas o `down` apaga dado de verdade, então o sistema o recusa sem duas travas: `DSPD_PERMITIR_DOWN=1` **e** o backup de hoje confirmado.
+
+1. Backup do dia (faça **antes** do `db:migrate`, e de novo aqui se já virou o dia em Brasília). Use uma pasta **fora** do projeto, em disco do WSL (ext4); o script recusa pasta dentro do repositório:
+```
+(cd ~/Metricas/MetricasDSPD-main && DSPD_BACKUP_DIR=~/backups-metricas DSPD_PG_CONTAINER=metricasdspd-postgres-1 bash scripts/db-backup.sh); echo "rc=$?"
+```
+   Deve terminar com `[backup] ok: ...` e rc=0; isso grava `ultimo-backup-ok` com a data de hoje na pasta. A senha vem do `~/.pgpass` ou de `PGPASSWORD` no ambiente; não escreva a senha no comando.
+   **Atenção à porta:** `scripts/db-backup.sh` lê **`PGPORT`** (padrão 5432), não `PG_PORT`, que é o nome usado no `.env` pelo `db:migrate`. Com o Compose na porta padrão não muda nada; se o seu `.env` tem `PG_PORT` diferente de 5432, exporte também `PGPORT` com o mesmo valor, senão o backup mira a porta errada.
+2. Desfazer só a 0038 (uma migração):
+```
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; DSPD_PERMITIR_DOWN=1 DSPD_BACKUP_DIR=~/backups-metricas pnpm run db:migrate down 1); echo "rc=$?"
+```
+   Deve mostrar `down: 1 migração(ões)` e rc=0. Sem as duas variáveis, ou com backup de outro dia, o comando recusa e nada é apagado. Não use `down` com número maior que 1 sem falar com o Jarvis.
+3. Conferir que a coluna saiu (deve imprimir `0`):
+```
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='fluxo'"
+```
+4. Para reaplicar depois, rode o `db:migrate` do passo 0.2 de novo. O código da release usa `fluxo`: com a 0038 desfeita, S5, S6 e S7 não funcionam até reaplicar ou reverter o merge da release (`git revert`, pelo tech-lead).
+5. Restaurar o `.dump` do backup (perda de dado maior) é decisão do Jarvis; `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
 
 ## O que fica fora deste roteiro
 
