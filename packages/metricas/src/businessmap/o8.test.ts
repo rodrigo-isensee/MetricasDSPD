@@ -52,4 +52,35 @@ describe('O8 divisão por tamanho por tipo (L24 a)', () => {
     expect(r.tipos.every((t) => t.porTamanho === null)).toBe(true)
     expect(r.motivoPorTamanho).not.toBeNull()
   })
+
+  it('tipo com tamanho só em card fora da janela fica nulo, nunca tudo em "Sem tamanho" (A2)', () => {
+    const antigo: EspecCard[] = [
+      {
+        id: 'ANTIGO',
+        tipo: 'Melhoria',
+        criado: '2025-01-02T09:00-03:00',
+        trilha: [
+          ['Aguardando priorização', '2025-01-02T09:00-03:00'],
+          ['Em desenvolvimento', '2025-01-03T08:00-03:00'],
+          ['Entregue', '2025-01-06T12:00-03:00'],
+        ],
+      },
+    ]
+    const b = umaBase([...antigo, ...cards('M', 25, 'Melhoria')], [])
+    const c = criarContextoBM(
+      {
+        ...b,
+        cards: b.cards.map((x) =>
+          x.card_id === 'ANTIGO' ? { ...x, tamanho_declarado: 'G' as const } : x,
+        ),
+      },
+      HOJE_TESTE,
+      CALENDARIO_PADRAO,
+    )
+    const r = calcularO8(c, F)
+    const melhoria = r.tipos.find((t) => t.tipo === 'Melhoria')
+    expect(melhoria?.n).toBe(25)
+    expect(melhoria?.porTamanho).toBeNull()
+    expect(r.motivoPorTamanho).not.toBeNull()
+  })
 })

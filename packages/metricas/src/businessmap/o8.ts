@@ -25,10 +25,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
   const ini = diaDeIso(janela.inicio)
   const fim = diaDeIso(janela.fim)
   let total = 0
-  // L24 (a): a divisão por tamanho é decidida por tipo, só com tamanho declarado em card daquele tipo.
-  const tiposComTamanho = new Set(
-    ctx.idx.base.cards.filter((c) => c.tamanho_declarado !== null).map((c) => c.tipo),
-  )
+  // L24 (a), A2: a divisão por tipo é decidida pelos entregues da janela (e filtros) do próprio tipo.
   const tipos = TIPOS_CARD.map((tipo) => {
     const todos = entreguesDe(
       ctx,
@@ -36,6 +33,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
     )
     const es = todos.filter((e) => e.dia >= ini && e.dia <= fim)
     total += es.length
+    const tipoComTamanho = es.some((e) => e.m.card.tamanho_declarado !== null)
     const amostra = amostraBM(
       'story',
       es.map((e) => e.ciclo),
@@ -62,7 +60,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
       tipo,
       n: es.length,
       estatistica,
-      porTamanho: !tiposComTamanho.has(tipo)
+      porTamanho: !tipoComTamanho
         ? null
         : TAMANHOS.map((tamanho) => {
             const xs = es.filter((e) => (e.m.card.tamanho_declarado ?? 'Sem tamanho') === tamanho)
