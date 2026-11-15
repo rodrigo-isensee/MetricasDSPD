@@ -20,6 +20,11 @@ import {
   type FatoBloqueio,
   type FatoTransicao,
 } from './index'
+import {
+  MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
+  RESPONSABILIDADE_ATRASO_COM_FONTE,
+} from '@metricas-dspd/contratos'
+import { VERSAO_CRITERIO_O12_PRAZO_DO_CARD, VERSOES_DA_BIBLIOTECA } from '../core/criterios'
 import { blocosDe } from './blocos'
 import { idadeHUEm } from './estado'
 import { criarContextoBM } from './indice'
@@ -140,15 +145,99 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.itens).toEqual([])
   })
 
-  it('O12: acordo vencido sem classificação do atraso conta como "não classificado"', () => {
+  it('O12 (interruptor ligado, futuro): acordo vencido sem classificação do atraso conta como "não classificado"', () => {
+    const base = umaBase([
+      entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
+      entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
+    ])
+    const r = calcularO12(ctxDe(base), F, true)
+    expect(r.totais.acordos).toBe(2)
+    expect(r.totais.vencidos).toBe(1)
+    expect(r.totais.porResponsabilidade?.naoClassificado).toBe(1)
+    expect(r.vencidosCausaInterna).toBe(0)
+    expect(r.motivoResponsabilidade).toBeNull()
+    expect(r.statusMeta).toBe('dentro')
+  })
+
+  it('O12 (C5-o12-zero-falso): sem o campo no quadro a responsabilidade sai nula com o motivo, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
     const base = umaBase([
       entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
       entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
     ])
     const r = calcularO12(ctxDe(base), F)
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
     expect(r.totais.acordos).toBe(2)
     expect(r.totais.vencidos).toBe(1)
-    expect(r.totais.porResponsabilidade.naoClassificado).toBe(1)
+    expect(r.totais.porResponsabilidade).toBeNull()
+    expect(r.meses.every((m) => m.porResponsabilidade === null)).toBe(true)
+    expect(r.vencidosCausaInterna).toBeNull()
+    expect(r.motivoResponsabilidade).toBe(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL)
+    expect(r.statusMeta).toBe('sem-referencia')
+    expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
+  })
+
+  it('O12 (T2.6): a versão de critério do prazo do card marca O12 e Visão geral', () => {
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O12_PRAZO_DO_CARD)
+    expect(VERSAO_CRITERIO_O12_PRAZO_DO_CARD.afeta).toEqual(['O12', 'VISAO_GERAL'])
+  })
+
+  it('O12 (Q-099-23 b = A): card com prazo que nunca passou pelo compromisso não conta como acordo', () => {
+    const semCompromisso: EspecCard = {
+      id: 'B1',
+      criado: em(0, '08:00'),
+      trilha: [['Aguardando priorização', em(0, '08:00')]],
+      dataAcordada: em(1, '12:00'),
+    }
+    const base = umaBase([semCompromisso, entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') })])
+    const r = calcularO12(ctxDe(base), F)
+    expect(r.totais.acordos).toBe(1)
+    expect(r.totais.vencidos).toBe(1)
+  })
+
+  const comprometido: [string, string][] = [
+    ['Aguardando priorização', em(0, '08:00')],
+    ['Pronto para desenvolver', em(0, '09:00')],
+  ]
+  it('O12 (Q-099-23 c = A): descartado antes do prazo sai da conta; descartado depois do prazo conta como vencido', () => {
+    const base = umaBase([
+      entregue('D1', 0, 1, {
+        dataAcordada: em(25, '12:00'), // setembro: prazo depois do descarte
+        descarte: em(3, '12:00'),
+        trilha: comprometido,
+      }),
+      entregue('D2', 0, 1, {
+        dataAcordada: em(2, '12:00'), // agosto: prazo antes do descarte
+        descarte: em(4, '12:00'),
+        trilha: comprometido,
+      }),
+    ])
+    const r = calcularO12(ctxDe(base), F)
+    expect(r.totais.acordos).toBe(1)
+    expect(r.totais.vencidos).toBe(1)
+    // Por mês (os dois cards caem em meses distintos): inverter a comparação do descarte trocaria o card contado e falharia aqui.
+    const mesDe = (iso: string) => r.meses.find((m) => m.mes === iso.slice(0, 7))
+    expect(mesDe(util(2))).toMatchObject({ acordos: 1, vencidos: 1 })
+    expect(mesDe(util(25))).toMatchObject({ acordos: 0, vencidos: 0 })
+  })
+
+  it('O12 (interruptor ligado, futuro): vencido de causa interna aciona a meta como "fora"', () => {
+    const base = umaBase([entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') })])
+    const comInterno: BaseBM = {
+      ...base,
+      cards: base.cards.map((c) => ({ ...c, responsabilidade_atraso: 'Interno' as const })),
+    }
+    const r = calcularO12(ctxDe(comInterno), F, true)
+    expect(r.totais.vencidos).toBe(1)
+    expect(r.vencidosCausaInterna).toBe(1)
+    expect(r.statusMeta).toBe('fora')
+  })
+
+  it('O12: card que não está ativo nem descartado (estado impossível no índice) não conta como acordo', () => {
+    const base = umaBase([entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') })])
+    const ctx = ctxDe(base)
+    // O índice nunca produz este par (excluído é descartado); a proteção de `conta` segue valendo se um dia produzir.
+    Object.assign(ctx.idx.marcos[0] as object, { ativo: false, descartado: false })
+    expect(calcularO12(ctx, F).totais.acordos).toBe(0)
   })
 
   it('O18: bug sem origem informada não é atribuído a nenhuma story', () => {
