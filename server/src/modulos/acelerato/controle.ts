@@ -3,6 +3,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 import type { ConfigAcelerato } from './config.js';
 import { ErroColeta } from './erros.js';
 import { CAMPOS_ETAPA_F3, COLUNAS_DA_LINHA, NOMES_CAMPO_FATIA_F1, TABELA_ORIGEM, campoDominioEtapa } from './listas-fechadas.js';
+import { CAMPO_ETAPA_FLUXO } from './referencia.js';
 import { sha256Texto, sqlSha256 } from './sql.js';
 
 /**
@@ -70,7 +71,7 @@ export type UltimoSucesso = { marca: Date | null; parametros: Partial<Parametros
 export const GRUPOS_DE_LISTA = {
   recorte_sha256: [...CAMPOS_RECORTE],
   vocabulario_sha256: [...CAMPOS_VOCABULARIO, ...CAMPOS_ETAPA_F3.filter((c) => c.tratamento === 'lista').map((c) => campoDominioEtapa(c.chave))],
-  fluxo_sha256: ['etapa_fluxo'],
+  fluxo_sha256: [CAMPO_ETAPA_FLUXO],
 } as const satisfies Partial<Record<keyof ParametrosColeta, readonly string[]>>;
 const PREFIXO_VERSAO_LISTA = '056:ref-dominio:';
 const FUSO_MS = 3 * 3_600_000; // -03:00 (P-DS-2)

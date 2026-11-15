@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcoesFiltro } from '@metricas-dspd/contratos'
 import { PERIODOS_PADRAO, TIPO_ID } from '@metricas-dspd/contratos'
@@ -37,6 +37,14 @@ export interface UseFiltros<F> {
   filtros: F
   config: (typeof PAINEIS)[PainelId]
   opcoes: OpcoesFiltro | undefined
+  /** A consulta das opções falhou (a lista de cada filtro mostra o erro). */
+  opcoesErro: boolean
+  /** Uma nova tentativa de "Tentar de novo" está em andamento (a lista segue no estado de erro). */
+  opcoesTentando: boolean
+  /** Alguma nova tentativa já falhou outra vez (o texto do erro muda). */
+  opcoesRepetiu: boolean
+  /** Repete a consulta das opções. */
+  recarregarOpcoes: () => void
   /** Aplica na hora (sem botão "Aplicar"): cada chamada é uma entrada no histórico (Voltar desfaz). */
   definir: (parcial: Partial<F>, opcoes?: { replace?: boolean }) => void
   /** Remove um filtro (ou só um valor dele). Período volta ao padrão. */
@@ -65,8 +73,31 @@ function useBase(painel: PainelId, prefixo: string) {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { data: opcoes } = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
-  return { config, params, navigate, location, opcoes: opcoes, prefixo }
+  const q = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
+  // No TanStack Query v5 uma consulta sem dado que busca de novo sai de `error`; aqui o erro vale até a
+  // nova tentativa terminar, para o botão (e o foco) ficar no lugar e a falha repetida ser percebida.
+  const [tentando, setTentando] = useState(false)
+  const [repeticoes, setRepeticoes] = useState(0)
+  const recarregarOpcoes = () => {
+    if (tentando) return
+    setTentando(true)
+    void q.refetch().then((r) => {
+      setTentando(false)
+      if (r.isError) setRepeticoes((n) => n + 1)
+    })
+  }
+  return {
+    config,
+    params,
+    navigate,
+    location,
+    opcoes: q.data,
+    opcoesErro: q.isError || tentando,
+    opcoesTentando: tentando,
+    opcoesRepetiu: repeticoes > 0,
+    recarregarOpcoes,
+    prefixo,
+  }
 }
 
 /** Nome pelo id; sem opções carregadas (ou id desconhecido), mostra o próprio id. */
@@ -139,7 +170,17 @@ export function useFiltros(
   o: OpcaoHook = {},
 ): UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao> {
   const prefixo = o.prefixo ?? ''
-  const { config, params, navigate, location, opcoes } = useBase(painel, prefixo)
+  const {
+    config,
+    params,
+    navigate,
+    location,
+    opcoes,
+    opcoesErro,
+    opcoesTentando,
+    opcoesRepetiu,
+    recarregarOpcoes,
+  } = useBase(painel, prefixo)
   const ehSust = config.dominio === 'sustentacao'
   const memoria = useMemoriaFiltros()
   const guardados = useMemoriaAtual()
@@ -388,6 +429,10 @@ export function useFiltros(
     filtros: efetivo,
     config,
     opcoes,
+    opcoesErro,
+    opcoesTentando,
+    opcoesRepetiu,
+    recarregarOpcoes,
     definir,
     remover,
     limpar,

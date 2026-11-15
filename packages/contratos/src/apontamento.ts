@@ -355,7 +355,11 @@ const achado = <C extends CodigoAchado, V extends z.ZodRawShape>(cod: C, valores
 export const achadoApontamentoSchema = z.discriminatedUnion('codigo', [
   achado('nao-classificado-alto', { pct: z.number().nonnegative(), n: contagem }),
   achado('sem-comentario-alto', { pct: z.number().nonnegative(), n: contagem }),
-  achado('concentracao-em-projeto', { pct: z.number().nonnegative() }), // rótulo do projeto em `rotuloRef`
+  // rótulo do projeto em `rotuloRef`; nunca a linha sem projeto (097, K-324). `horasSemProjeto` (horas) só vem quando há horas sem projeto.
+  achado('concentracao-em-projeto', {
+    pct: z.number().nonnegative(),
+    horasSemProjeto: z.number().nonnegative().optional(),
+  }),
   achado('dias-atipicos', { n: contagem, limite: z.number().positive() }),
   achado('utilizacao-mensal-variou', {
     pctAnterior: z.number().nonnegative(),
