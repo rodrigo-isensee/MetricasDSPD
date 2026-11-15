@@ -7606,28 +7606,35 @@
                                 "type": "number"
                               },
                               "porResponsabilidade": {
-                                "type": "object",
-                                "properties": {
-                                  "Interno": {
-                                    "type": "number"
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "Interno": {
+                                        "type": "number"
+                                      },
+                                      "Solicitante": {
+                                        "type": "number"
+                                      },
+                                      "Terceiro": {
+                                        "type": "number"
+                                      },
+                                      "naoClassificado": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "Interno",
+                                      "Solicitante",
+                                      "Terceiro",
+                                      "naoClassificado"
+                                    ],
+                                    "additionalProperties": false
                                   },
-                                  "Solicitante": {
-                                    "type": "number"
-                                  },
-                                  "Terceiro": {
-                                    "type": "number"
-                                  },
-                                  "naoClassificado": {
-                                    "type": "number"
+                                  {
+                                    "type": "null"
                                   }
-                                },
-                                "required": [
-                                  "Interno",
-                                  "Solicitante",
-                                  "Terceiro",
-                                  "naoClassificado"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               "pctVencidos": {
                                 "oneOf": [
@@ -7716,28 +7723,35 @@
                               "type": "number"
                             },
                             "porResponsabilidade": {
-                              "type": "object",
-                              "properties": {
-                                "Interno": {
-                                  "type": "number"
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "Interno": {
+                                      "type": "number"
+                                    },
+                                    "Solicitante": {
+                                      "type": "number"
+                                    },
+                                    "Terceiro": {
+                                      "type": "number"
+                                    },
+                                    "naoClassificado": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "Interno",
+                                    "Solicitante",
+                                    "Terceiro",
+                                    "naoClassificado"
+                                  ],
+                                  "additionalProperties": false
                                 },
-                                "Solicitante": {
-                                  "type": "number"
-                                },
-                                "Terceiro": {
-                                  "type": "number"
-                                },
-                                "naoClassificado": {
-                                  "type": "number"
+                                {
+                                  "type": "null"
                                 }
-                              },
-                              "required": [
-                                "Interno",
-                                "Solicitante",
-                                "Terceiro",
-                                "naoClassificado"
-                              ],
-                              "additionalProperties": false
+                              ]
                             },
                             "pctVencidos": {
                               "oneOf": [
@@ -7814,7 +7828,16 @@
                           "additionalProperties": false
                         },
                         "vencidosCausaInterna": {
-                          "type": "number"
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "motivoResponsabilidade": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
                         "statusMeta": {
                           "type": "string",
@@ -7831,6 +7854,7 @@
                         "meses",
                         "totais",
                         "vencidosCausaInterna",
+                        "motivoResponsabilidade",
                         "statusMeta"
                       ],
                       "additionalProperties": false

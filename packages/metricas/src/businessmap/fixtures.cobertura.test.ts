@@ -20,7 +20,11 @@ import {
   type FatoBloqueio,
   type FatoTransicao,
 } from './index'
-import { MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL, RESPONSABILIDADE_ATRASO_COM_FONTE } from '@metricas-dspd/contratos'
+import {
+  MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
+  RESPONSABILIDADE_ATRASO_COM_FONTE,
+} from '@metricas-dspd/contratos'
+import { VERSAO_CRITERIO_O12_PRAZO_DO_CARD, VERSOES_DA_BIBLIOTECA } from '../core/criterios'
 import { blocosDe } from './blocos'
 import { idadeHUEm } from './estado'
 import { criarContextoBM } from './indice'
@@ -172,6 +176,11 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
   })
 
+  it('O12 (T2.6): a versão de critério do prazo do card marca O12 e Visão geral', () => {
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O12_PRAZO_DO_CARD)
+    expect(VERSAO_CRITERIO_O12_PRAZO_DO_CARD.afeta).toEqual(['O12', 'VISAO_GERAL'])
+  })
+
   it('O12 (Q-099-23 b = A): card com prazo que nunca passou pelo compromisso não conta como acordo', () => {
     const semCompromisso: EspecCard = {
       id: 'B1',
@@ -191,8 +200,16 @@ describe('O2, O10, O12, O18: casos de borda', () => {
   ]
   it('O12 (Q-099-23 c = A): descartado antes do prazo sai da conta; descartado depois do prazo conta como vencido', () => {
     const base = umaBase([
-      entregue('D1', 0, 1, { dataAcordada: em(6, '12:00'), descarte: em(3, '12:00'), trilha: comprometido }),
-      entregue('D2', 0, 1, { dataAcordada: em(2, '12:00'), descarte: em(4, '12:00'), trilha: comprometido }),
+      entregue('D1', 0, 1, {
+        dataAcordada: em(6, '12:00'),
+        descarte: em(3, '12:00'),
+        trilha: comprometido,
+      }),
+      entregue('D2', 0, 1, {
+        dataAcordada: em(2, '12:00'),
+        descarte: em(4, '12:00'),
+        trilha: comprometido,
+      }),
     ])
     const r = calcularO12(ctxDe(base), F)
     expect(r.totais.acordos).toBe(1)

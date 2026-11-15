@@ -434,3 +434,19 @@ Depois da prova do dono (`fato_bloqueio` com 172 linhas e `evt_bloqueio` `fim` c
 - `S12` entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK`: a base real devolve o volume por sistema (`meses`). Reincidência segue sem fonte (`campoDisponivel: false`, proporção insuficiente) e a exceção de SLA por registro posterior sai `excecaoSla: null` (nunca 0%), com a nota `excecao-sla-s12-sem-fonte` em `notas`. A coluna `excecao_sla_registro_posterior` nasce `false` e não distingue "não" de "sem fonte".
 - Contrato: `resultadoS12.excecaoSla` passa a `Taxa | null` e `resultadoS12.notas` (opcional, enum próprio `NOTA_S12_IDS` com o id `excecao-sla-s12-sem-fonte`; o enum de notas da sustentação, do S2, S3 e da tendência, não muda). **Incompatível** (campo antes obrigatório e não nulo passa a nulável), em `/api/v1/metricas/S12` apenas; a web já lê a exceção nula (d86d33d3). Decisão de `aceitas.json` ou v2: do tech-lead.
 - Versão de critério `criterio-2026-11-12-s12-volume-real` (data 2026-11-12, `afeta: ['S12']`) marca o gráfico (T2.6). Modo mock explícito: nada muda (taxa de exceção e sem nota).
+
+## Pedido 099, lotes C2b e C3: O12 pelo prazo do card, responsabilidade do atraso sem dado real
+- **Origem da data acordada (decisão B da Q-099-10):** o prazo nativo (`deadline`) do card do BusinessMap, lido como está hoje (Q-099-23 a = A). O prazo vem com data e hora (Q-RO-6c: 1639 de 1639 stories com prazo) e vira o dia civil de Brasília (`FUSO_DO_PRAZO`, opção a, **pendente da decisão do dono**; data e hora sem deslocamento explícito, texto ou data impossível ficam nulos com a nota `deadline_fora_da_forma`).
+- **Quem conta como acordo (Q-099-23 b e c = A):** só o card que passou pelo ponto de compromisso (`comprometido_em` preenchido); card no backlog com prazo não conta. Descartado antes do prazo sai da conta; descartado depois do prazo conta como vencido. Subtarefa nunca conta.
+- **Contrato de `GET /api/v1/metricas/O12` (incompatível: campos passam a anuláveis; `resultadoO12`, `packages/contratos/src/schemas.ts`):**
+  - `meses[].porResponsabilidade` e `totais.porResponsabilidade`: objeto `{ Interno, Solicitante, Terceiro, naoClassificado }` **ou `null`**.
+  - `vencidosCausaInterna`: `number` **ou `null`**.
+  - `motivoResponsabilidade`: texto **ou `null`** (campo novo, obrigatório na resposta; `MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL`, frase em minúsculas sem ponto final).
+  - Enquanto `RESPONSABILIDADE_ATRASO_COM_FONTE` (`packages/contratos/src/origem.ts`) for `false` (hoje): as três partes saem `null`, `motivoResponsabilidade` traz o motivo e `statusMeta = "sem-referencia"` (a meta "zero vencidos por causa interna" não é avaliada). Nunca 0. `meses[].acordos`, `meses[].vencidos`, `totais.acordos`, `totais.vencidos` e `pctVencidos` seguem com dado e com o mínimo de 20 acordos (abaixo, `insuficiente`).
+  - Com o interruptor `true` (futuro, PR próprio com versão de critério): `porResponsabilidade` e `vencidosCausaInterna` voltam, `motivoResponsabilidade = null` e `statusMeta` `dentro`/`fora`.
+- **Visão geral:** o alerta `O12_VENCIDOS_INTERNOS` não é gerado com `vencidosCausaInterna = null`.
+- **Mapa de origem:** O12 entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK` (commit separado, ADR 0026 P3); responde o resultado calculado, sem o corpo `sem-dado-real`.
+- **T2.6:** versão de critério `criterio-2026-11-14-o12-prazo-do-card` (data do PR; a do merge corrige se escorregar), `afeta: ['O12', 'VISAO_GERAL']`, marcada nas séries e na janela do O12.
+- **Exportar (web):** a nota do arquivo do O12 inclui "Responsabilidade do atraso: sem dado real (aguardando o campo no quadro do BusinessMap)."; a célula nula sai como "-" (convenção do exportador), nunca 0.
+- Para o react-frontend: o cartão trata `null` pelos textos de `docs/ux/099-o12-textos.md` (já aplicados neste lote).
+

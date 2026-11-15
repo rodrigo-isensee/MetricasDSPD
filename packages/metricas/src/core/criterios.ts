@@ -170,6 +170,19 @@ export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   afeta: ['S12'],
 }
 
+/**
+ * Pedido 099 (O12, Q-099-10 = B, Q-099-23 = AAA, Q-099-4 = A): a data acordada é o prazo nativo (`deadline`) do card, convertido ao dia civil de Brasília
+ * (opção a da Q-RO-6c, pendente da decisão do dono); a Visão geral entra porque o alerta de vencidos internos deixa de ser gerado sem o campo de
+ * responsabilidade. Data do PR (a do merge corrige se escorregar): o dono confirma a da primeira projeção real com o prazo.
+ */
+export const VERSAO_CRITERIO_O12_PRAZO_DO_CARD: VersaoCriterio = {
+  id: 'criterio-2026-11-14-o12-prazo-do-card',
+  data: '2026-11-14',
+  descricao:
+    'O12 usa como data acordada o prazo nativo (deadline) do card do BusinessMap, que pode mudar depois do compromisso; a responsabilidade do atraso segue sem dado real',
+  afeta: ['O12', 'VISAO_GERAL'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -185,6 +198,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
   VERSAO_CRITERIO_S12_VOLUME_REAL,
+  VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
 ]
 
 /**
