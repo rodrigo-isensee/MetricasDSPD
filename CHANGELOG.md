@@ -5,6 +5,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Adicionado
+- Acelerato: `dim_chamado.fluxo` guarda o workflow em que cada chamado correu (o único `descricao_workflow` das etapas; nulo sem etapa e nulo com a contagem `fluxo_multiplo` se houver mais de um, sem escolher), base para os motivos da Sustentação; migração 0038, sem reescrever histórico, preenchida só pela reprojeção do dono (pedido 099, D1 1a).
 - Aba Apontamento (web): filtro Setor na barra, antes da Equipe, com as opções de `opcoes.setores` (inclui "Sem setor"); some quando a resposta não traz o campo; vai na URL e na consulta como lista de slugs, só recorte, sem bloco nem comparação por setor (pedido 097, K-337).
 - Aba Apontamento: filtro Setor (parâmetro `setor` e `opcoes.setores`, pelo quadro do card e pelo dicionário de setores sem sobrenome; "Sem setor" para card fora dos quadros mapeados), só recorte, sem bloco por setor; o papel da aba ganha `SELECT` em `dim_card.quadro_id` e no mapa do `ref_dominio`, e o dono roda `db:migrate` para reaplicar os GRANTs (pedido 097, K-337, parte do servidor).
 - Métricas do fluxo: o filtro Setor recorta os números pelo quadro atual do card (O1, O2, O20, O21, T11, T14, varredura, EI e as demais por story e frente; projeto fora do recorte); parâmetro `setor` no fluxo e na `TENDENCIA_FLUXO`, com a sustentação recusando (pedido 097, K-335, L10b).
