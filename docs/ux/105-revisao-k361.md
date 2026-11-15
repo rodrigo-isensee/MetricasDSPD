@@ -2,13 +2,23 @@
 
 parecer: aprovado com ressalvas (nenhum achado crítico ou alto). Revisão sobre 9bc48a00, contra `docs/ux/105-k361-o8-sem-tamanho.md`. Tudo abaixo é `lido` (código e testes); não rodei a interface nem medi contraste ou leitor de tela (o QA mede, `@axe`).
 
+## Delta sobre 9183853f (volta 1; lido, nada medido)
+Releitura de `fluxo.tsx`, `ramos.test.tsx` e da especificação em 9183853f. Estado dos achados:
+- **R-1 resolvido.** `fluxo.tsx:192-194` renderiza o `h4` "Por tamanho declarado" também no ramo com gráfico (`ok.length > 0 && divide`), antes das barras, e a nota (213-220) vem depois do gráfico. O teste da linha 345 agora afirma o título no caso incoerente. Não há título duplicado: o ramo do `motivoPorTamanho` tem `divide` falso.
+- **R-2 resolvido.** O CA-4 da especificação agora diz "sem número de dado ... (P85 é o nome do percentil, não um número de dado)", coerente com a microcopy e com o teste.
+- **R-3 resolvido.** O teste de CA-3 (linhas 376-379) acha a linha do tipo na tabela e confere mediana e P85 (`fmtDiasUteis(4)` e `fmtDiasUteis(9)`). O `vi.mock` de `Barras` (linhas 26-36) confere que o tipo sem tamanho não está em `categorias`, o que fecha o mutante `categorias={ok.map`.
+- **R-4 continua aberto (baixo, `lido`).** `Barras.tsx:156-160` monta a legenda de todas as `series`, sem filtrar as sem valor, e a tabela alternativa (121-127) também cria uma coluna por série. Com um painel onde ninguém tem "Sem tamanho" (o caso comum, pois L24 (a) proíbe jogar o tipo sem tamanho nessa série), a legenda mostra "Sem tamanho" sem barra, e a coluna da tabela fica toda "—". Não bloqueia: a legenda não afirma valor, mas pode levar a ler que há cards sem tamanho. Correção sugerida: passar a `series` só as chaves com algum valor em `comTamanho`; vira cartão próprio se preferirem. O QA confere no navegador.
+- Sem achado novo. Fora do escopo segue como estava (tipo com `porTamanho` e todas as medianas nulas).
+
+Veredito do delta: R-1 a R-3 resolvidos; só R-4 (baixo) segue. O parecer continua aprovado com ressalvas, sem achado crítico ou alto.
+
 ## Critérios de aceite (lido em `web/src/features/complementares/fluxo.tsx`)
 | CA | Resultado | Onde |
 |---|---|---|
 | CA-1 | atende | `comTamanho` alimenta `categorias` do gráfico (linha 196); o tipo sem tamanho sai |
 | CA-2 | atende | nota nas linhas 209-216, depois do gráfico; lista na ordem da tabela (`ok.filter` mantém a ordem); singular e plural tratados |
 | CA-3 | atende | a tabela continua com `ok.map`, e a nota aponta "na tabela acima" |
-| CA-4 | atende, com ressalva R-2 | sem número de dado, sem %, sem "zero" |
+| CA-4 | atende (R-2 resolvido na especificação) | sem número de dado, sem %, sem "zero" |
 | CA-5 | atende | `motivoPorTamanho != null` mantém `EstadoSemDadoReal` e a nota exige `motivoPorTamanho == null` |
 | CA-6 | atende | a nota exige `semTamanho.length > 0` |
 | CA-7 | atende (`lido`) | é um `<p>` fora do svg; o teste confere `tagName === 'P'` e `closest('svg') === null` |
