@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/099-recomendados-o8-o16-o21
-commit: e7bd8dfa34d20440c6f63764d7df1d4fea590046
+commit: 91043934dd4767310ae3bf81146bb8e5e7e6dec9
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -48,6 +48,13 @@ O teste novo é `o8-motivo-por-tamanho.test.ts`; o código que ele guarda é o s
 | M4 | laço (a) do O16 esvaziado (`filter(() => false)`) | morreu: `expected 0 to be greater than 0` |
 | M5 | guarda do seed trocada por `0 >= 5` | morreu: (a2), (b) e (c) falham |
 Sobreviventes: nenhum.
+
+## Revalidação em 91043934 (delta desde e7bd8dfa)
+O `forge-check parecer delta` lista no domínio do QA: CHANGELOG.md, docs/api/metricas.md, o8.ts e painel-real-f6.pg.test.ts (o resto veio da develop). Sem marcador de conflito em o8.ts nem no CHANGELOG. Os achados A1 e A2 acima de e7bd8dfa: A1 resolvido; o A2 do review (caso d2) também.
+- A1 (merge da develop, K-359): resolvido. O o8.ts traz o comentário novo (L24 a), `tipoComTamanho` por tipo e `algumPublica` para o motivo. `o8.test.ts` passa local (3 de 3). O superRefine do contrato segue compatível: o motivo só sai quando nenhum tipo publica, a mesma regra L24 (a) que o M2 guardava.
+- d2 do pg (A1 e A2 do review): o caso deixou de contar `dim_card` e passa a afirmar que cada tipo é nulo ou lista não vazia, e que o motivo do contrato só existe quando nenhum tipo publica. O ramo sem tamanho fica no (d3), como o comentário diz. Fronteira protegida: lista vazia (nunca) e motivo com algum tipo publicando.
+- Prova do d2: o job `banco` do CI do head 91043934 está verde (run 43724890774; também `testes`, `rapida`, `seguranca`, `openapi`, `build`, `filtro` e `imagem`; `e2e` e `perf` pulados pelo filtro). Não rodei o pg local.
+- Sobreviventes: nenhum. M1 a M5 seguem válidos (o delta não toca o contrato nem o O16).
 
 ## Pendências para o CI
 Suíte inteira: check-run `bateria` do sha e7bd8dfa (CI verde, run 43722981532). Os testes `.pg` rodam lá; localmente rodei só o O16.
