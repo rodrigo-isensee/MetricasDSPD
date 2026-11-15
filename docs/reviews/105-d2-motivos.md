@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/099-d2-motivos-sust
-commit: bc27eae640b8ed5e65d14d40e50b10e2ff4d092a
+commit: 3054dbbb91194a9f320f7bb0cefb073943ffa559
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-15
@@ -42,6 +42,9 @@ Lido só o `forge-check parecer delta` (13 arquivos no domínio; QA e UX fora de
 
 ## Revalidação no head bc27eae6 (merge da develop)
 Lido o `forge-check parecer delta` (8c494dcb..bc27eae6) e o diff do merge contra o lado da feature. O merge só combinou os dois lados nos cinco conflitos (CHANGELOG, `acelerato-dominio.json`, `dominio-acelerato.ts`, `origem.test.ts`, `qa-f6-painel.test.ts`): S5, S6 e S7 seguem como reais, O12 entra como real vindo da develop, e não há marcador de conflito. A5 corrigido em `docs/api/metricas.md` (as duas frases sumiram). Nada muda a regra: parecer segue aprovado, agora no head `bc27eae6`; CI do head verde (citado, não rerrodado).
+
+## Revalidação no head 3054dbbb (merge do O18)
+Lido o diff do merge contra os dois pais. Contra o lado do D2 (`60fbd652`): 16 arquivos, todos do O18 (`o18.ts`, normalizador e projetor, `VERSAO_CRITERIO_O18_VINCULOS`, `O18` em `METRICAS_ORIGEM_REAL` e fora de `MOTIVO_ORIGEM_MOCK`, doc da API), sem tocar S5, S6, S7 nem as duas versões de critério do D2. Contra o lado do O18 (`79493687`): só o que é do D2 (`S5`, `S6`, `S7`, `MOTIVO_FLUXOS_PROC_NAO_CARREGADOS`, `AJUSTE_PRIORIDADE_COM_FONTE = true`, `TEXTO_NOTA_MOTIVOS`, as duas versões de critério antes da do O18). Os quatro conflitos (`docs/api/metricas.md`, `origem.ts`, `criterios.ts`, `qa-f6-painel.test.ts`) saíram pela união: `VERSOES_DA_BIBLIOTECA` traz as três versões sem repetir id; o teste de origem lista O18 e S5 a S7 como reais e só O14 e O15 como fictícias. Nenhuma regra mudou. Testes dos arquivos em conflito: `origem.test.ts` 24 passaram, `qa-f6-painel.test.ts` 6, `packages/metricas/src/core` 94. CI do head verde (run `43744602998` no push e `43744608161` no PR; citado, não rerrodado). Parecer segue aprovado, agora no head `3054dbbb`.
 
 ## Riscos e pendências fora do review
 - Depois do merge, o dono roda o `ac:ref-sync` (para carregar `fluxo_proc`) e a reprojeção que preenche `dim_chamado.fluxo` (migração 0038, coluna nascida nula). Com a lista carregada e a coluna ainda nula, S5, S6 e S7 publicam `n = 0` e todos os chamados em `foraDoFluxo`: o resultado fica insuficiente, sem dado errado. O CHANGELOG e o PR devem dizer a ordem.

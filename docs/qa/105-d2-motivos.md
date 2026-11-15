@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/099-d2-motivos-sust
-commit: bc27eae640b8ed5e65d14d40e50b10e2ff4d092a
+commit: 3054dbbb91194a9f320f7bb0cefb073943ffa559
 parecer: aprovado
 resultado: aprovado; A1 e A2 do parecer anterior resolvidos em 8c494dcb; sem achados abertos
 escopo: incremental
@@ -16,6 +16,18 @@ data: 2026-11-15
 # QA: D2, S5, S6 e S7 com dado real (pedido 105, E6.4)
 
 Testado até 03ad3399 (a ponta de CI verde: depois do aebccf9b entraram cobertura do server, paridade do acelerato-l9c pg e as páginas e fotografias dos contratos). Diff conferido contra `origin/feature/099-d1b-dominios` (40 arquivos). Decisões do dono: P1 = B (cinco fluxos do PROC), P2 = A (de-para só dos pares óbvios), P3 = A (faixa Outro separada de Não informado).
+
+## Revalidação bc27eae6 → 3054dbbb (E6.15, merge do O18)
+
+O código é o de 3054dbbb (o 55bc6ff6 acrescenta só a revalidação do review). Diff do merge contra os dois pais, nos quatro arquivos em conflito, conferido linha a linha:
+- `docs/api/metricas.md`: as seções do D2 e do O18 (E7.4) estão ambas, na ordem D2 e depois O18; nada removido.
+- `packages/contratos/src/origem.ts`: `S5`, `S6`, `S7` e `O18` em `METRICAS_ORIGEM_REAL`; `MOTIVO_ORIGEM_MOCK` sem S5, S6, S7 e O18; `MOTIVO_FLUXOS_PROC_NAO_CARREGADOS`, `AJUSTE_PRIORIDADE_COM_FONTE = true` e o enum `NOTA_MOTIVOS_IDS` do D2 presentes; regra de ambos intacta.
+- `packages/metricas/src/core/criterios.ts`: as duas versões do D2 e `criterio-2026-11-15-o18-vinculos`, as três em `VERSOES_DA_BIBLIOTECA`.
+- `server/tests/qa-f6-painel.test.ts`: lista de reais com O18 e S5, S6 e S7; fictícias FL1 só O14 e O15.
+- `schemas.ts` e `painel-real-f6.pg.test.ts` (D2) iguais ao lado do D2; `CHANGELOG.md` mantém a linha do D2 e a do O18. `forge-check parecer delta`: o que cai no domínio é isso, mais os arquivos que vieram da base (iguais à develop).
+- Local (--maxWorkers=2, em 55bc6ff6): server qa-f6-painel e painel-real-f6 52 de 52; contratos origem.test 24 de 24; metricas src/core 94 de 94; web coleta/origem.test 18 de 18.
+- CI do código: run 43744602998 (push) e 43744608161 (pull_request) do sha 3054dbbb, ambos success. O run 43747101900 do 55bc6ff6 (só docs) estava em andamento na consulta.
+- Sem achados novos; parecer mantido, aprovado.
 
 ## Revalidação 8c494dcb → bc27eae6 (E6.13, merge da develop)
 

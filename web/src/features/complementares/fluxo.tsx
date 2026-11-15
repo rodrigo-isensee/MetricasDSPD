@@ -130,6 +130,9 @@ export function CartaoO8({ filtros }: P) {
   )
   const faltam = (d?.tipos ?? []).filter((t) => t.estatistica.status === 'insuficiente')
   const primeiro = ok[0]
+  const divide = d?.motivoPorTamanho == null
+  const comTamanho = divide ? ok.filter((t) => t.porTamanho != null) : []
+  const semTamanho = divide ? ok.filter((t) => t.porTamanho == null) : []
   return (
     <CartaoComplementar
       id="O8"
@@ -186,12 +189,15 @@ export function CartaoO8({ filtros }: P) {
               <EstadoSemDadoReal codigo="O8-por-tamanho" motivo={d.motivoPorTamanho} />
             </>
           )}
-          {ok.length > 0 && d?.motivoPorTamanho == null && (
+          {ok.length > 0 && divide && (
+            <h4 className="text-sm font-semibold text-texto">Por tamanho declarado</h4>
+          )}
+          {ok.length > 0 && divide && (
             <Barras
               descricao="Mediana do tempo em execução por tipo e tamanho declarado"
               unidade="dias úteis"
               formatar={(v) => fmtNumero(v, 1)}
-              categorias={ok.map((t) => ({
+              categorias={(comTamanho.length > 0 ? comTamanho : ok).map((t) => ({
                 rotulo: t.tipo,
                 valores: Object.fromEntries(
                   (t.porTamanho ?? []).map((p) => [p.tamanho, p.mediana]),
@@ -203,6 +209,14 @@ export function CartaoO8({ filtros }: P) {
                 cor: ([1, 2, 3, 4] as const)[i] as 1,
               }))}
             />
+          )}
+          {divide && comTamanho.length > 0 && semTamanho.length > 0 && (
+            <p className="text-sm text-texto" data-testid="nota-O8-sem-tamanho">
+              Sem divisão por tamanho: {semTamanho.map((t) => t.tipo).join(', ')}. Nenhum card
+              concluído {semTamanho.length === 1 ? 'desse tipo' : 'desses tipos'}, no período, tem
+              tamanho declarado no quadro. A mediana e o P85{' '}
+              {semTamanho.length === 1 ? 'dele estão' : 'deles estão'} na tabela acima.
+            </p>
           )}
           <Leia>Nunca a média isolada: leia ao lado do tempo de ciclo (O3) e da vazão (O4).</Leia>
         </div>
