@@ -86,7 +86,7 @@ export function CartaoMotivos({
             />
             <TabelaDados
               codigo={`${sufixo}-detalhe`}
-              legenda={`Motivos (${sufixo}): contagem e percentual; o percentual some com menos de 20 chamados`}
+              legenda={`Motivos (${sufixo}): contagem e percentual; o percentual some com menos de 20 chamados e nunca é publicado para "Não informado"`}
               colunas={[
                 { chave: 'm', titulo: 'Motivo' },
                 { chave: 'n', titulo: 'Chamados', alinhar: 'direita' },

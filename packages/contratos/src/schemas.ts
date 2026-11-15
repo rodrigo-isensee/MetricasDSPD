@@ -34,6 +34,7 @@ import {
   taxaSchema,
 } from './comum'
 import {
+  NOTA_SUSTENTACAO_IDS,
   notaCartaoIdSchema,
   notaMotivosIdSchema,
   notaS12IdSchema,
@@ -673,7 +674,8 @@ export const resultadoS3 = z.object({
       ajustesManuais: z.number().nullable(),
     }),
   ),
-  notas: z.array(notaSustentacaoIdSchema).optional(),
+  /** Pedido 105 (D2, A2): o S3 real também traz a nota `s7-nao-igual-vazio` (texto neutro do ajuste, comum ao S7). */
+  notas: z.array(z.enum([...NOTA_SUSTENTACAO_IDS, 's7-nao-igual-vazio'])).optional(),
   /**
    * Janela inteira do período filtrado (chamados abertos entre `periodo.inicio` e `periodo.fim`), não a soma de
    * meses: o volume e a proporção de P1+P2 já calculados pela biblioteca (a tela não soma nem divide).

@@ -206,14 +206,14 @@ export const NOTA_S1_IDS = [
 ] as const satisfies readonly NotaS1Id[]
 export const notaS1IdSchema = z.enum(NOTA_S1_IDS)
 /**
- * Pedido 105 (D2): notas só do S5 e do S7, em enum à parte (o enum da sustentação não cresce). O S5 não tem fonte para "Risco de estouro de SLA"
+ * Pedido 105 (D2): notas do S5, do S7 e (a de ajuste) do S3, em enum à parte (o enum da sustentação não cresce). O S5 não tem fonte para "Risco de estouro de SLA"
  * (o campo do Acelerato não traz esse valor): a faixa sai com n = 0. O S7 não separa "Não" de campo vazio no ajuste de prioridade.
  */
 export const TEXTO_NOTA_MOTIVOS = {
   's5-risco-sla-sem-fonte':
     'Risco de estouro de SLA: sem fonte (o campo "Motivo da escalação" do Acelerato não traz este valor); a faixa aparece com zero.',
   's7-nao-igual-vazio':
-    'Ajuste de prioridade: a coleta não separa "Não" de campo vazio; só "Sim" conta como ajuste.',
+    'Ajustes manuais de prioridade: a coleta não separa "Não" de campo vazio; só "Sim" conta como ajuste.',
 } as const
 export type NotaMotivosId = keyof typeof TEXTO_NOTA_MOTIVOS
 export const NOTA_MOTIVOS_IDS = [

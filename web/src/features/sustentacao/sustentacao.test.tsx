@@ -312,14 +312,15 @@ describe('faixa "Pede atenção" nos três estados (K-047)', () => {
 })
 
 describe('nota de fora do fluxo (pedido 105, D2)', () => {
-  it('mostra quantos chamados de outros fluxos ficaram fora, no singular e no plural, e some com zero', () => {
+  it('mostra quantos chamados ficaram fora da métrica, no singular e no plural, e some com zero', () => {
     const { rerender } = render(<NotaForaDoFluxo n={1} testid="nota" />)
-    expect(screen.getByTestId('nota')).toHaveTextContent('1 chamado de outro fluxo ficou fora')
+    expect(screen.getByTestId('nota')).toHaveTextContent(
+      '1 chamado ficou fora desta métrica: é de outro fluxo, não tem fluxo ou tem mais de um. Ela vale só para os cinco fluxos do PROC.',
+    )
     rerender(<NotaForaDoFluxo n={1234} testid="nota" />)
     expect(screen.getByTestId('nota')).toHaveTextContent(
-      /1\.234 chamados de outros fluxos ficaram fora/,
+      '1.234 chamados ficaram fora desta métrica: são de outro fluxo, não têm fluxo ou têm mais de um. Ela vale só para os cinco fluxos do PROC.',
     )
-    expect(screen.getByTestId('nota')).toHaveTextContent('cinco fluxos do PROC')
     rerender(<NotaForaDoFluxo n={0} testid="nota" />)
     expect(screen.queryByTestId('nota')).toBeNull()
   })

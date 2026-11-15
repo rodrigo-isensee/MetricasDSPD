@@ -539,22 +539,26 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
   }, 60_000);
 
   it('D2: as notas de S5 e S7 não se repetem quando o resultado já as traz', async () => {
-    const { comNotaS5SemRisco, comNotaS7NaoIgualVazio } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const { comNotaS5SemRisco, comNotaAjusteNaoIgualVazio } = await import('../src/modulos/metricas/parte-sem-dado.js');
     const uma = comNotaS5SemRisco('S5', { motivos: [] }) as { notas: string[] };
     expect(uma.notas).toEqual(['s5-risco-sla-sem-fonte']);
     expect((comNotaS5SemRisco('S5', uma) as { notas: string[] }).notas).toEqual(['s5-risco-sla-sem-fonte']);
-    const sete = comNotaS7NaoIgualVazio('S7', uma) as { notas: string[] };
+    const sete = comNotaAjusteNaoIgualVazio('S7', uma) as { notas: string[] };
     expect(sete.notas).toEqual(['s5-risco-sla-sem-fonte', 's7-nao-igual-vazio']);
-    expect((comNotaS7NaoIgualVazio('S7', sete) as { notas: string[] }).notas).toEqual(sete.notas);
+    expect((comNotaAjusteNaoIgualVazio('S7', sete) as { notas: string[] }).notas).toEqual(sete.notas);
     const outro = { motivos: [] };
     expect(comNotaS5SemRisco('S6', outro)).toBe(outro);
-    expect(comNotaS7NaoIgualVazio('S6', outro)).toBe(outro);
+    expect(comNotaAjusteNaoIgualVazio('S6', outro)).toBe(outro);
+    expect((comNotaAjusteNaoIgualVazio('S3', { meses: [] }) as { notas: string[] }).notas).toEqual(['s7-nao-igual-vazio']);
+    const semDado = { notas: ['ajuste-prioridade-sem-dado-real'] };
+    expect(comNotaAjusteNaoIgualVazio('S3', semDado)).toBe(semDado);
   });
 
   it('L1 (pedido 105, D2): com o campo na fonte, o S3 real publica o número de ajustes manuais, sem a nota de sem dado real, e valida no contrato', async () => {
     const { app } = await montar({ chamados: [chamado('1', { prioridade_ajustada_manualmente: true }), chamado('2')] });
     const r = (await app.inject('/api/v1/metricas/S3')).json() as { notas?: string[]; meses: { ajustesManuais: number | null; total: number }[] };
     expect(r.notas ?? []).not.toContain(NOTA_S3);
+    expect(r.notas).toEqual(['s7-nao-igual-vazio']);
     expect(r.meses.length).toBeGreaterThan(0);
     for (const m of r.meses) expect(typeof m.ajustesManuais).toBe('number');
     expect(r.meses.reduce((a, m) => a + (m.ajustesManuais ?? 0), 0)).toBe(1);
@@ -659,18 +663,18 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
   }, 60_000);
 
   it('L4: a função pura só troca ajustesManuais e anexa a nota, sem repetir nem apagar outra', async () => {
-    const { semParteDeAjusteDePrioridade } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const { semParteDeAjusteDePrioridade, comNotaExcecaoSlaSemFonte } = await import('../src/modulos/metricas/parte-sem-dado.js');
     const a = semParteDeAjusteDePrioridade('S3', { meses: [{ mes: '2026-09', total: 7, ajustesManuais: 0 }], janela: { total: 7 } }) as { meses: Record<string, unknown>[]; janela: unknown; notas: string[] };
     expect(a.meses).toEqual([{ mes: '2026-09', total: 7, ajustesManuais: null }]);
     expect(a.janela).toEqual({ total: 7 });
     expect(a.notas).toEqual([NOTA_S3]);
     expect((semParteDeAjusteDePrioridade('S3', a) as { notas: string[] }).notas).toEqual([NOTA_S3]);
-    expect((semParteDeAjusteDePrioridade('S2', { prioridades: [] }) as { notas: string[] }).notas).toEqual([NOTA_S2]);
+    expect((comNotaExcecaoSlaSemFonte('S2', { prioridades: [] }) as { notas: string[] }).notas).toEqual([NOTA_S2]);
     // Pedido 077, L6a: a tendência de SLA traz a mesma nota e o resto do resultado fica igual; sem repetir.
-    const t = semParteDeAjusteDePrioridade('TENDENCIA_SUST', { meses: [{ mes: '2026-09', volume: 3 }] }) as { meses: unknown[]; notas: string[] };
+    const t = comNotaExcecaoSlaSemFonte('TENDENCIA_SUST', { meses: [{ mes: '2026-09', volume: 3 }] }) as { meses: unknown[]; notas: string[] };
     expect(t.notas).toEqual([NOTA_S2]);
     expect(t.meses).toEqual([{ mes: '2026-09', volume: 3 }]);
-    expect((semParteDeAjusteDePrioridade('TENDENCIA_SUST', t) as { notas: string[] }).notas).toEqual([NOTA_S2]);
+    expect((comNotaExcecaoSlaSemFonte('TENDENCIA_SUST', t) as { notas: string[] }).notas).toEqual([NOTA_S2]);
     const fora = { a: 1 };
     expect(semParteDeAjusteDePrioridade('S4', fora)).toBe(fora);
     expect(semParteDeAjusteDePrioridade('TENDENCIA_FLUXO', fora)).toBe(fora);

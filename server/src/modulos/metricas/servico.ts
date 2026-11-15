@@ -13,7 +13,7 @@ import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSetoresBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
 import {
-  comCorteDaSerieO1, comNotaExcecaoSlaSemFonte, comNotaS12SemFonte, comNotaS1PrimeiroAtendimento, comNotaS5SemRisco, comNotaS7NaoIgualVazio, semParteDeAjusteDePrioridade, semParteDeBloqueio,
+  comCorteDaSerieO1, comNotaExcecaoSlaSemFonte, comNotaS12SemFonte, comNotaS1PrimeiroAtendimento, comNotaS5SemRisco, comNotaAjusteNaoIgualVazio, semParteDeAjusteDePrioridade, semParteDeBloqueio,
 } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
@@ -344,8 +344,8 @@ export class ServicoMetricas {
     if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
     // Pedido 069 (L9-a) e 077 (L6a): a exceção de SLA por registro posterior segue sem fonte; a nota do S2 e da tendência não depende do ajuste de prioridade.
     if (real) resultado = comNotaExcecaoSlaSemFonte(id, resultado);
-    // Pedido 105 (D2): notas só de publicação do S5 (Risco de estouro de SLA sem fonte) e do S7 ("Não" e campo vazio não se separam).
-    if (real) resultado = comNotaS7NaoIgualVazio(id, comNotaS5SemRisco(id, resultado));
+    // Pedido 105 (D2): notas só de publicação do S5 (Risco de estouro de SLA sem fonte) e do S3 e S7 ("Não" e campo vazio não se separam).
+    if (real) resultado = comNotaAjusteNaoIgualVazio(id, comNotaS5SemRisco(id, resultado));
     // Pedido 099 (D9): o S12 real sem a fonte da exceção de SLA sai `excecaoSla: null` da biblioteca; aqui só a nota. Só publicação.
     if (real) resultado = comNotaS12SemFonte(id, resultado);
     // Pedido 099 (D4, Q-099-5b = A): o S1 real traz a nota de que o primeiro atendimento inclui resposta automática. Só publicação.
