@@ -36,6 +36,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
         ...['O17'], // pedido 099 (E3.20)
+        ...['O16'], // pedido 099 (lote C8)
       ].sort(),
     )
   })
@@ -66,8 +67,8 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O8, O12, O14, O15, O16 e O18', () => {
-    for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O18'] as const) {
+  it('é sem dado, com o motivo, para O8, O12, O14, O15 e O18', () => {
+    for (const id of ['O8', 'O12', 'O14', 'O15', 'O18'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }

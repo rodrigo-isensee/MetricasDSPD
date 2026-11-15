@@ -24,6 +24,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O19',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
+  // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
+  'O16',
   'EI_FL1',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
@@ -79,7 +81,6 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O12: MOTIVO_AGUARDANDO_CAMPO,
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
-  O16: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
   S1: MOTIVO_AGUARDANDO_PRAZOS_SLA,
   S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
