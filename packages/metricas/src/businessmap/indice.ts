@@ -23,6 +23,8 @@ export interface MarcosCard {
   card: DimCard
   slugEquipe: string
   slugSistema: string
+  /** Slug do setor do quadro atual do card; `''` quando o quadro não tem setor (097, L10b). */
+  slugSetor: string
   /**
    * Dentro dos cálculos: não excluído, não subtarefa e não descartado (descarte = `motivo_descarte`
    * preenchido, 4.2/4.5). Arquivado NÃO tira o card (7.3): entregue e arquivado é o fim normal.
@@ -63,6 +65,8 @@ export interface IndiceBM {
   transicoesPorCard: Map<string, FatoTransicao[]>
   bloqueiosPorCard: Map<string, FatoBloqueio[]>
   filhos: Map<string, string[]>
+  /** Quadro -> slug do setor (só quadros com setor). */
+  setorDoQuadro: Map<string, string>
   papelDe: (quadro: string, coluna: string) => DimColuna | undefined
 }
 
@@ -106,6 +110,7 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       else filhos.set(c.card_pai, [c.card_id])
     }
   }
+  const setorDoQuadro = new Map((base.setores ?? []).map((x) => [x.quadro_id, slug(x.nome)]))
   const colMap = new Map(base.colunas.map((c) => [`${c.quadro_id}|${c.coluna}`, c]))
   const papelDe = (q: string, c: string) => colMap.get(`${q}|${c}`)
 
@@ -163,6 +168,7 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       card,
       slugEquipe: slug(card.equipe),
       slugSistema: slug(card.sistema),
+      slugSetor: setorDoQuadro.get(card.quadro_id) ?? '',
       ativo,
       descartado: foiDescartado,
       excluido,
@@ -191,6 +197,7 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
     transicoesPorCard,
     bloqueiosPorCard,
     filhos,
+    setorDoQuadro,
     papelDe,
   }
 }

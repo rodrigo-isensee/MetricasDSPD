@@ -17,6 +17,7 @@ import {
   criterios,
   dentro,
   du,
+  equipesDoRecorte,
   janelaPercentis,
   periodoDe,
   r2,
@@ -48,7 +49,7 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
 
   let etapas: string[] = ['Fila', 'Execução']
   if (umaEquipe) {
-    const eq = ctx.idx.base.config.equipes.find((e) => slug(e.nome) === f.equipe[0])
+    const eq = equipesDoRecorte(ctx, f).find((e) => slug(e.nome) === f.equipe[0])
     if (eq) {
       etapas = colunasDaEquipe(ctx, eq.nome).map((c) => c.coluna)
     }

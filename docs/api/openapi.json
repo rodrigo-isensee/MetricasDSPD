@@ -1801,6 +1801,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -2418,6 +2426,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -3271,6 +3287,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -3719,6 +3743,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -4440,6 +4472,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -5042,6 +5082,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -5535,6 +5583,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -6536,6 +6592,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -7378,6 +7442,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -8003,6 +8075,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -8719,6 +8799,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -9762,6 +9850,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -10343,6 +10439,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -10932,6 +11036,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -11559,6 +11671,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -12013,6 +12133,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -12499,6 +12627,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -13133,6 +13269,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -14080,6 +14224,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -14717,6 +14869,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -15221,6 +15381,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -16042,6 +16210,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -16636,6 +16812,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -17328,6 +17512,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -18165,6 +18357,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -18812,6 +19012,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -19426,6 +19634,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -20018,6 +20234,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -20509,6 +20733,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -21178,6 +21410,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -22004,6 +22244,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -22808,6 +23056,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -23249,6 +23505,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -24066,6 +24330,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -24783,6 +25055,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -25332,6 +25612,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -25803,6 +26091,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -26343,6 +26639,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -27139,6 +27443,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -27778,6 +28090,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -28457,6 +28777,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -29051,6 +29379,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -29555,6 +29891,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -30000,6 +30344,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -30623,6 +30975,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -31258,6 +31618,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -31835,6 +32203,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -32262,6 +32638,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -41064,6 +41448,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -41740,6 +42132,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -42409,6 +42809,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -44446,6 +44854,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           }
         ],

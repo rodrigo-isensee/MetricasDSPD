@@ -5,7 +5,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z, type ZodType } from 'zod';
 import { AppError, erroSchema } from '../../plataforma/erros.js';
 import {
-  paramsIdSchema, queryFluxoSchema, queryPesquisaSchema, queryTendenciaSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
+  paramsIdSchema, queryFluxoSchema, queryPesquisaSchema, queryTendenciaFluxoSchema, queryTendenciaSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
   type ConsultaCalculo,
 } from './schemas.js';
 import type { FiltrosMetrica, ServicoMetricas } from './servico.js';
@@ -17,8 +17,8 @@ export const PAGINA_PADRAO = 50;
 export const PAGINA_MAXIMA = 200;
 
 const QUERY_POR_FONTE = { ambos: queryVisaoGeralSchema, pesquisa: queryPesquisaSchema, acelerato: querySustentacaoSchema, businessmap: queryFluxoSchema } as const;
-/** As tendências têm fonte própria (uma por métrica), mas não aceitam filtro: só `dataReferencia`. */
-const queryDe = (id: MetricaId): ZodType => (METRICAS_TENDENCIA.includes(id) ? queryTendenciaSchema : QUERY_POR_FONTE[fonteDaMetrica(id)]);
+/** As tendências têm fonte própria (uma por métrica) e só aceitam `dataReferencia` e `equipe`; a do fluxo aceita também `setor` (097, L10b). */
+const queryDe = (id: MetricaId): ZodType => (id === 'TENDENCIA_FLUXO' ? queryTendenciaFluxoSchema : METRICAS_TENDENCIA.includes(id) ? queryTendenciaSchema : QUERY_POR_FONTE[fonteDaMetrica(id)]);
 
 /** Filtros que a rota monta para uma consulta sem parâmetros (usados no aquecimento: mesma chave de cache da consulta real). */
 export const filtrosPadraoDe = (id: MetricaId): FiltrosMetrica => (queryDe(id).parse({}) as ConsultaCalculo<FiltrosMetrica>).filtros;
