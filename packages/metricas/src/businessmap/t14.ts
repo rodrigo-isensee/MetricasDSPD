@@ -3,7 +3,7 @@ import { diaDeIso, diaLocal } from '../core/calendario'
 import { taxa } from '../core/estatistica'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
-import { baseAmostral, criterios, periodoDe } from './comum'
+import { baseAmostral, criterios, periodoDe, setoresDe } from './comum'
 import { chaveOutrosPublicavel, type ExtensaoTambemBM } from './extensao'
 import type { ContextoBM, MarcosCard } from './indice'
 
@@ -63,10 +63,12 @@ export function calcularT14(
       diaLocal(m.inicio, ctx.cal) <= diaFim &&
       (m.entrega === null || diaLocal(m.entrega, ctx.cal) >= diaIni),
   )
+  const st = setoresDe(f)
   const cardsPorProjeto = (g: Granularidade): Map<string, MarcosCard[]> => {
     const mapa = new Map<string, MarcosCard[]>()
     for (const m of ctx.idx.marcos) {
       if (m.card.granularidade !== g || !m.ativo || m.projetoId === null) continue
+      if (st.length > 0 && !st.includes(m.slugSetor)) continue
       const l = mapa.get(m.projetoId)
       if (l) l.push(m)
       else mapa.set(m.projetoId, [m])

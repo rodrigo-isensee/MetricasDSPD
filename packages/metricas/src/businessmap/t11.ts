@@ -2,7 +2,7 @@ import type { FiltrosFluxo, ResultadoT11, TipoCard } from '@metricas-dspd/contra
 import { diaLocal, isoDeDia, mesDeDia, primeiroDiaDoMes, somarMeses } from '../core/calendario'
 import { mesesEntre } from '../core/series'
 import { slug } from '../slug'
-import { baseAmostral, criterios, r2 } from './comum'
+import { baseAmostral, criterios, r2, setoresDe } from './comum'
 import type { ExtensaoTambemBM } from './extensao'
 import type { ContextoBM } from './indice'
 
@@ -50,7 +50,9 @@ export function calcularT11(
     if (v === undefined) slugs.set(t, (v = slug(t)))
     return v
   }
+  const st = setoresDe(f)
   const passa = (e: (typeof entradas)[number]): boolean =>
+    (st.length === 0 || st.includes(ctx.idx.setorDoQuadro.get(e.quadro_id ?? '') ?? '')) &&
     (f.equipe.length === 0 || f.equipe.includes(sl(e.equipe))) &&
     (f.sistema.length === 0 || f.sistema.includes(sl(e.sistema))) &&
     (f.tipo.length === 0 || (f.tipo as readonly TipoCard[]).includes(e.tipo))
