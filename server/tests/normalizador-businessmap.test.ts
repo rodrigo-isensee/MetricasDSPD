@@ -320,6 +320,12 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
   });
 
+  it('105: fase_deteccao deixou de ser coluna de lista; campo mapeado a ela é ignorado e o dim traz nulo (a fase vem da projeção pela coluna do pai)', () => {
+    const p = proj(cf({ field_id: '501', valor: 'Produção' }), [], {}, { ...REF, camposLista: new Map([['501', 'fase_deteccao']]) });
+    expect(p.dim.fase_deteccao).toBeNull();
+    expect(p.notas).not.toContain('campo_fora_do_dominio');
+  });
+
   it('coluna fora do enum no mapa é recusada (nada é gravado nem entra no dim)', () => {
     const ruim: Referencia = { ...REF, camposLista: new Map([['501', 'titulo'], ['502', 'responsaveis'], ['503', '__proto__']]) };
     const p = proj(cf({ field_id: '501', valor: 'x' }, { field_id: '502', valor: 'y' }, { field_id: '503', valor: 'z' }), [], {}, ruim);

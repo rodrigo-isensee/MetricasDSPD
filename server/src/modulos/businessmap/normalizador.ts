@@ -2,7 +2,7 @@ import {
   CALENDARIO_PADRAO, dataIso, instanteDeIso, ordenarNeutro,
 } from '@metricas-dspd/metricas/core';
 import { derivarMarcos, direcaoDaTransicao, type ColunaDoPasso, type Passo } from '@metricas-dspd/metricas/businessmap';
-import { TIPO_DA_CATEGORIA, type CategoriaTipoCard } from '@metricas-dspd/contratos';
+import { TIPO_DA_CATEGORIA, type CategoriaTipoCard, type FaseDeteccao } from '@metricas-dspd/contratos';
 import { COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
 import { vigenteEm } from './referencia.js';
 
@@ -57,6 +57,8 @@ export interface Referencia {
   camposLista: ReadonlyMap<string, string>;
   /** `priority` do card -> severidade (C8a, `ref_dominio campo = 'prioridade_severidade'`); ausente ou vazio = nenhuma severidade é projetada. */
   prioridades?: ReadonlyMap<string, string>;
+  /** `coluna_id` -> fase de detecção do bug (105, `ref_dominio campo = 'fase_deteccao_coluna'`); vazio ou ausente = nenhum bug tem fase. Usado pela projeção da fase, depois dos cards. */
+  fasesDeteccao?: ReadonlyMap<string, FaseDeteccao>;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -284,6 +286,8 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
       excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), ...colunasDeLista(e.card, ref.camposLista, notas),
+      // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
+      fase_deteccao: null,
       ...(severidade === undefined ? {} : { severidade }),
     },
     transicoes, eventos, notas,

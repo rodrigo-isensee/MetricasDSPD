@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, type MotivoBloqueio } from '@metricas-dspd/contratos';
+import { FASES_DETECCAO, METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, type FaseDeteccao, type MotivoBloqueio } from '@metricas-dspd/contratos';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, ErroDominio, planejarDominio, rotuloDeSetorSeguro, textoSeguro, type LinhaVigente } from '../referencia/index.js';
@@ -28,6 +28,11 @@ export const CAMPO_MOTIVO_BLOQUEIO = 'motivo_bloqueio';
  * Q-099-33, recomendação A (o valor não foi gravado; reversível trocando o arquivo, que é nova versão de critério).
  */
 export const CAMPO_PRIORIDADE_SEVERIDADE = 'prioridade_severidade';
+/**
+ * Valor de `ref_dominio.campo` da tabela coluna -> fase de detecção do bug (pedido 105, E7.5): `codigo` = `coluna_id` (a folha, nunca o nome, que os quadros repetem e
+ * renomeiam), `rotulo` = uma das cinco fases de `FASES_DETECCAO`. Coluna fora da tabela não tem fase. A primeira carga e cada troca de linha são versão de critério (`afeta = ['O15']`).
+ */
+export const CAMPO_FASE_DETECCAO_COLUNA = 'fase_deteccao_coluna';
 
 /**
  * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Vazia até o diagnóstico (P-L2-1) mostrar os
@@ -56,6 +61,9 @@ const valorPrioridade = z.object({ codigo: z.string().regex(/^[1-9]\d{0,2}$/), r
 // Só os 7 do briefing: nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
 const valorMotivo = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(MOTIVOS_BLOQUEIO) }).strict();
 
+// Pedido 105 (E7.5): `coluna_id` (só dígitos) -> uma das 5 fases do briefing 4.4; nunca texto livre.
+const valorFaseColuna = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(FASES_DETECCAO) }).strict();
+
 // L10a do 097 (E7): quadro (codigo, só dígitos) -> setor (rotulo, sem sobrenome do responsável). Rótulo com o padrão de sobrenome é recusado.
 const valorSetor = z
   .object({ codigo: z.string().regex(CODIGO_QUADRO), rotulo: textoSeguro(80).refine(rotuloDeSetorSeguro, 'rótulo com sobrenome') })
@@ -73,11 +81,12 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
       .strict(),
     schema: z.literal('dspd_bm'),
     tabela: z.literal('ref_dominio'),
-    regra: textoSeguro(2000),
+    regra: textoSeguro(3000),
     campos: z.array(criarCampo(tipos)).max(40),
     motivo_bloqueio: z.array(valorMotivo).max(500).default([]),
     setores: z.array(valorSetor).max(50).default([]),
     prioridade_severidade: z.array(valorPrioridade).max(20).default([]),
+    fase_deteccao_coluna: z.array(valorFaseColuna).max(2000).default([]),
   })
   .strict()
   .superRefine((d, ctx) => {
@@ -85,6 +94,11 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
     for (const [i, p] of d.prioridade_severidade.entries()) {
       if (prioridades.has(p.codigo)) ctx.addIssue({ code: 'custom', path: ['prioridade_severidade', i, 'codigo'], message: 'priority repetido' });
       prioridades.add(p.codigo);
+    }
+    const colunasDaFase = new Set<string>();
+    for (const [i, c] of d.fase_deteccao_coluna.entries()) {
+      if (colunasDaFase.has(String(Number(c.codigo)))) ctx.addIssue({ code: 'custom', path: ['fase_deteccao_coluna', i, 'codigo'], message: 'coluna repetida' });
+      colunasDaFase.add(String(Number(c.codigo)));
     }
     const reasons = new Set<string>();
     for (const [i, m] of d.motivo_bloqueio.entries()) {
@@ -156,6 +170,7 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
   listas[CAMPO_MOTIVO_BLOQUEIO] = a.motivo_bloqueio;
   listas[CAMPO_SETOR_QUADRO] = a.setores;
   listas[CAMPO_PRIORIDADE_SEVERIDADE] = a.prioridade_severidade;
+  listas[CAMPO_FASE_DETECCAO_COLUNA] = a.fase_deteccao_coluna;
   return listas;
 }
 
@@ -278,5 +293,22 @@ export function prioridadesDeLinhas(linhas: readonly LinhaRefDominio[]): Map<str
   }
   const mapa = new Map<string, string>();
   for (const [codigo, rotulo] of por) if (rotulo !== null) mapa.set(codigo, rotulo);
+  return mapa;
+}
+
+/**
+ * Leitura da tabela coluna -> fase para o projetor (pedido 105, E7.5), com a desconfiança do banco: só `coluna_id` numérico e rótulo entre as 5 fases; `coluna_id`
+ * ligado a duas fases é ignorado (sem fase, nunca uma das duas). Sem entrada, nenhum bug tem fase. Nenhuma tradução no código: a tabela só vem do arquivo.
+ */
+export function fasesDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, FaseDeteccao> {
+  const validos = FASES_DETECCAO as readonly string[];
+  const por = new Map<string, FaseDeteccao | null>();
+  for (const l of linhas) {
+    if (l.campo !== CAMPO_FASE_DETECCAO_COLUNA || !ID_CAMPO.test(l.codigo) || !validos.includes(l.rotulo)) continue;
+    const id = String(Number(l.codigo));
+    por.set(id, por.has(id) && por.get(id) !== l.rotulo ? null : (l.rotulo as FaseDeteccao));
+  }
+  const mapa = new Map<string, FaseDeteccao>();
+  for (const [id, f] of por) if (f !== null) mapa.set(id, f);
   return mapa;
 }

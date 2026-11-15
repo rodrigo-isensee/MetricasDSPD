@@ -312,9 +312,15 @@ export const resultadoO15 = z.object({
     z.object({
       fase: z.enum(FASES_DETECCAO),
       grupo: z.enum(['contido', 'negocio', 'producao']),
-      contagem: z.number(),
+      /** Bugs da fase; `null` abaixo do mínimo de 20 (a fase não publica contagem, só entra no total de `base.n`). */
+      contagem: z.number().int().nullable(),
     }),
   ),
+  /**
+   * Bugs do período sem fase de detecção (sem pai na base, pai sem coluna conhecida ou coluna sem fase na tabela aprovada): ficam
+   * fora da conta e a nota do cartão diz quantos (pedido 105, E7.5). `base.n` conta só os que têm fase.
+   */
+  bugsSemFase: z.number().int().min(0),
   contencao: taxaSchema,
   escape: taxaSchema,
   serieMensal: z.array(

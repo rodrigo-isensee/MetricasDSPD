@@ -95,12 +95,12 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
   const itens = (...ids: string[]) =>
     itensDoNivel('operacional', []).filter((i) => ids.includes(i.metrica))
 
-  it('O3 (real, em calibração) sai com a situação e O15 sai como "sem dado real" com o motivo, sem número', async () => {
+  it('O3 (real, em calibração) sai com a situação e O18 sai como "sem dado real" com o motivo, sem número', async () => {
     const r = await gerarArquivo({
       ...base(),
       fonte: fonteApi(),
       base: 'personalizada',
-      itens: itens('O3', 'O15'),
+      itens: itens('O3', 'O18'),
     })
     const t = await r.blob.text()
     expect(t.match(/Em calibra\S+o: sim \S Dados fict\S+cios: n\S+o/g)).toHaveLength(1)

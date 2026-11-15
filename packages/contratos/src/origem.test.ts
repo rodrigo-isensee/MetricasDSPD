@@ -56,6 +56,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O8'], // pedido 099 (A4, Q-099-4): tempo real; divisão por tamanho sem dado real
         ...['O16'], // pedido 099 (lote C8)
         ...['O12'], // pedido 099 (E3.223)
+        ...['O15'], // pedido 105 (E7.5)
       ].sort(),
     )
   })
@@ -86,8 +87,14 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O14, O15 e O18', () => {
-    for (const id of ['O14', 'O15', 'O18'] as const) {
+  it('O15 é real pela fase de detecção (pedido 105, E7.5), sem motivo de mock', () => {
+    expect(METRICAS_ORIGEM_REAL.has('O15')).toBe(true)
+    expect(origemDaMetrica('O15')).toBe('real')
+    expect(motivoDaOrigemSemDado('O15')).toBeNull()
+  })
+
+  it('é sem dado, com o motivo, para O14 e O18', () => {
+    for (const id of ['O14', 'O18'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }

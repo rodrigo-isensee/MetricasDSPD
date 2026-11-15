@@ -78,10 +78,16 @@ function ocultarTudo(painel: 'operacional') {
 
 describe('origem do cartão (pedido 060)', () => {
   it('com a API real, cartão cuja métrica é mock no contrato está sem dado real, com o motivo, e nunca é fictício', () => {
-    expect(origemDoCartao('O15', 'api')).toEqual({
+    expect(origemDoCartao('O18', 'api')).toEqual({
       ficticio: false,
       semDadoReal: true,
       motivo: 'aguardando campo no quadro',
+    })
+    // Pedido 105 (E7.5): o O15 é real pela fase de detecção.
+    expect(origemDoCartao('O15', 'api')).toEqual({
+      ficticio: false,
+      semDadoReal: false,
+      motivo: null,
     })
     // Pedido 099 (E3.223): o O12 é real pelo prazo do card; a parte de responsabilidade é dita dentro do cartão.
     expect(origemDoCartao('O12', 'api')).toEqual({
@@ -164,21 +170,21 @@ describe('origem do cartão (pedido 060)', () => {
 })
 
 describe('painel com API real: estado "Sem dado real" por cartão e nota do cabeçalho', () => {
-  it('O15 mostra Sem dado real e o motivo, sem número nem selo fictício; O2 segue com dado; o cabeçalho conta', async () => {
+  it('O18 mostra Sem dado real e o motivo, sem número nem selo fictício; O2 segue com dado; o cabeçalho conta', async () => {
     renderizarApp('/operacional?cadencia=semanal', fonteApi())
     const nota = await screen.findByTestId('nota-sem-dado-real-operacional')
     const n = contarSemDadoReal('operacional', 'api')
     expect(nota).toHaveTextContent(`${n} cartões sem dado real`)
-    const o12 = await screen.findByTestId('metrica-O15')
-    const estado = await within(o12).findByTestId('estado-sem-dado-real-O15')
+    const o12 = await screen.findByTestId('metrica-O18')
+    const estado = await within(o12).findByTestId('estado-sem-dado-real-O18')
     expect(estado).toHaveTextContent('Sem dado real')
-    expect(within(o12).getByTestId('motivo-sem-dado-real-O15')).toHaveTextContent(
+    expect(within(o12).getByTestId('motivo-sem-dado-real-O18')).toHaveTextContent(
       'Motivo: aguardando campo no quadro',
     )
     expect(o12).toHaveAttribute('data-estado', 'sem-dado-real')
     expect(within(o12).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
-    expect(within(o12).queryByTestId('leitura-O15')).not.toBeInTheDocument()
-    expect(within(o12).queryByTestId('base-O15')).not.toBeInTheDocument()
+    expect(within(o12).queryByTestId('leitura-O18')).not.toBeInTheDocument()
+    expect(within(o12).queryByTestId('base-O18')).not.toBeInTheDocument()
     const o3 = await screen.findByTestId('metrica-O3')
     expect(within(o3).queryByTestId('estado-sem-dado-real-O3')).not.toBeInTheDocument()
   })

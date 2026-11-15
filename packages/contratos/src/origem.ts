@@ -52,6 +52,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S12',
   // Pedido 099 (O12, E3.223): acordos e vencidos pelo prazo nativo do card; a parte de responsabilidade do atraso sai nula com o motivo (`RESPONSABILIDADE_ATRASO_COM_FONTE`).
   'O12',
+  // Pedido 105 (E7.5): O15 real pela coluna do card da demanda na abertura do bug (`dim_card.fase_deteccao`, tabela `fase_deteccao_coluna` aprovada pelo dono); só entram os bugs com pai na base, com a nota de quantos ficaram fora.
+  'O15',
   // Pedido 099 (D5a): S9 real pelas esperas decididas (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; Pendente como não classificado); a previsão de retorno segue sem data na base (n = 0, insuficiente).
   'S9',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
@@ -109,7 +111,6 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
-  O15: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
   S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S6: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
