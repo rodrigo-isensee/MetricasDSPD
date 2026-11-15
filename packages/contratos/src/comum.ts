@@ -140,6 +140,14 @@ export const MOTIVOS_ENCERRAMENTO = [
 ] as const
 export type MotivoEncerramento = (typeof MOTIVOS_ENCERRAMENTO)[number]
 
+/**
+ * Pedido 105 (D2, P3 = A do dono): faixa própria do motivo preenchido que não tem par no domínio fechado (S5 e S6). Separada de
+ * "Não informado" (campo vazio): vazio nunca vira Outro, e Outro nunca é inferido de vazio.
+ */
+export const MOTIVO_OUTRO = 'Outro'
+export const MOTIVOS_ESCALACAO_PUBLICADOS = [...MOTIVOS_ESCALACAO, MOTIVO_OUTRO] as const
+export const MOTIVOS_ENCERRAMENTO_PUBLICADOS = [...MOTIVOS_ENCERRAMENTO, MOTIVO_OUTRO] as const
+
 /** Causa raiz de bug (O17). Valores PROVISÓRIOS do mock: lista fechada final é decisão do usuário (pendente). */
 export const CAUSAS_RAIZ = [
   'Requisito',

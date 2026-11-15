@@ -56,6 +56,10 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O12',
   // Pedido 099 (D5a): S9 real pelas esperas decididas (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; Pendente como não classificado); a previsão de retorno segue sem data na base (n = 0, insuficiente).
   'S9',
+  // Pedido 105 (D2, P1 a P3 do dono): S5, S6 e S7 reais só para os cinco fluxos do PROC (chamados fora deles ficam de fora, com a contagem); motivo sem par vira "Outro".
+  'S5',
+  'S6',
+  'S7',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -95,14 +99,21 @@ export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
 /** Pedido 099 (L18, E3.298): motivo do S1 sem `ref_alvo_prioridade` carregada; nenhum prazo é presumido. */
 export const MOTIVO_ALVOS_NAO_CARREGADOS =
   'alvos de prazo por prioridade não carregados (ref_alvo_prioridade); o dono roda o ac:ref-sync'
+/**
+ * Pedido 105 (D2, P1 = B): S5, S6 e S7 valem só para os cinco fluxos do PROC, lista versionada em `acelerato-dominio.json` (campo `fluxo_proc`) e
+ * carregada pelo `ac:ref-sync`. Sem a lista na base nada é presumido: o estado é "sem dado real" com este motivo.
+ */
+export const MOTIVO_FLUXOS_PROC_NAO_CARREGADOS =
+  'fluxos do PROC não carregados (ref_dominio, campo fluxo_proc); o dono roda o ac:ref-sync'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
 export const BLOQUEIOS_COM_DADO_REAL = true
 /**
- * Pedido 069, L9-a (K-220): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['S3', 'S7']`, quando
- * `prioridade_ajustada_manualmente` vier da fonte (L9-c) e o dono vir a contagem. Falso: o S3 publica `ajustesManuais: null`.
+ * Pedido 069, L9-a (K-220): interruptor que vira `true`, com versão de critério `afeta = ['S3', 'S7']`, quando
+ * `prioridade_ajustada_manualmente` vier da fonte (L9-c). Falso: o S3 publica `ajustesManuais: null`. Ligado no pedido 105 (D2): o campo
+ * "Prioridade ajustada manualmente?" já está projetado em `dim_chamado`; só "Sim" conta (a coleta não separa "Não" de campo vazio: nota do S7).
  */
-export const AJUSTE_PRIORIDADE_COM_FONTE = false
+export const AJUSTE_PRIORIDADE_COM_FONTE = true
 
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 e O26 seguem mock até a F6b, sem motivo próprio.
@@ -112,9 +123,6 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
-  S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
-  S6: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
-  S7: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
@@ -211,14 +219,31 @@ export const NOTA_S1_IDS = [
   'primeiro-atendimento-inclui-automatica',
 ] as const satisfies readonly NotaS1Id[]
 export const notaS1IdSchema = z.enum(NOTA_S1_IDS)
-/** Texto de qualquer nota que o cartão mostra (os dos quatro enums). */
+/**
+ * Pedido 105 (D2): notas do S5, do S7 e (a de ajuste) do S3, em enum à parte (o enum da sustentação não cresce). O S5 não tem fonte para "Risco de estouro de SLA"
+ * (o campo do Acelerato não traz esse valor): a faixa sai com n = 0. O S7 não separa "Não" de campo vazio no ajuste de prioridade.
+ */
+export const TEXTO_NOTA_MOTIVOS = {
+  's5-risco-sla-sem-fonte':
+    'Risco de estouro de SLA: sem fonte (o campo "Motivo da escalação" do Acelerato não traz este valor); a faixa aparece com zero.',
+  's7-nao-igual-vazio':
+    'Ajustes manuais de prioridade: a coleta não separa "Não" de campo vazio; só "Sim" conta como ajuste.',
+} as const
+export type NotaMotivosId = keyof typeof TEXTO_NOTA_MOTIVOS
+export const NOTA_MOTIVOS_IDS = [
+  's5-risco-sla-sem-fonte',
+  's7-nao-igual-vazio',
+] as const satisfies readonly NotaMotivosId[]
+export const notaMotivosIdSchema = z.enum(NOTA_MOTIVOS_IDS)
+/** Texto de qualquer nota que o cartão mostra (os dos cinco enums). */
 export const TEXTO_NOTA_QUALQUER: Readonly<
-  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id | NotaS1Id, string>
+  Record<NotaCartaoId | NotaSustentacaoId | NotaS12Id | NotaS1Id | NotaMotivosId, string>
 > = {
   ...TEXTO_NOTA_CARTAO,
   ...TEXTO_NOTA_SUSTENTACAO,
   ...TEXTO_NOTA_S12,
   ...TEXTO_NOTA_S1,
+  ...TEXTO_NOTA_MOTIVOS,
 }
 
 /** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */

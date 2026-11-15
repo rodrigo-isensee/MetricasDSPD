@@ -14,7 +14,7 @@ export const ARQUIVO_DOMINIO = new URL('../../../../docs/architecture/fontes/ace
 
 /** Campos de `ref_dominio` que o arquivo pode trazer (conjunto fechado). */
 export const CAMPOS_DOMINIO = [
-  'tipo_recorte', 'organizacao_recorte', 'equipe', 'etapa', 'prioridade', 'categoria', 'descricao_workflow', 'natureza_prefixo', 'campo_personalizado', 'etapa_fluxo',
+  'tipo_recorte', 'organizacao_recorte', 'equipe', 'etapa', 'prioridade', 'categoria', 'descricao_workflow', 'natureza_prefixo', 'campo_personalizado', 'etapa_fluxo', 'fluxo_proc',
   // Valores permitidos dos campos de etapa de tratamento `lista` (`campoDominioEtapa`); só valores, nunca texto livre nem dado de pessoa.
   'cpe_motivo_escalacao', 'cpe_motivo_encerramento', 'cpe_tipo_prioridade', 'cpe_motivo_pendencia', 'cpe_avaliacao_problema', 'cpe_prioridade_ajustada',
 ] as const;

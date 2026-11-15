@@ -123,6 +123,19 @@
       ],
       "additionalProperties": false
     },
+    "foraDoFluxo": {
+      "type": "number"
+    },
+    "notas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "s5-risco-sla-sem-fonte",
+          "s7-nao-igual-vazio"
+        ]
+      }
+    },
     "ajusteDePrioridade": {
       "type": "object",
       "properties": {
@@ -370,6 +383,7 @@
   "required": [
     "base",
     "criterios",
+    "foraDoFluxo",
     "ajusteDePrioridade",
     "reclassificacaoDeTipo"
   ],

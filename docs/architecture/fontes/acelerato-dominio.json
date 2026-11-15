@@ -3,12 +3,12 @@
   "versao_criterio": {
     "dominio": "acelerato",
     "descricao": "Listas fechadas do recorte DSPD - SSSC: tipo, organização, equipes, etapa e status, prioridade, natureza pelo prefixo, categoria e descrição do workflow (acelerato-listas.md §4 a §12); valores dos campos de etapa (cpe_*) e posição das etapas no fluxo (etapa_fluxo)",
-    "motivo": "2026-11-14 (pedido 099, E3.251, D1 1b e 1c): domínios cpe_* com os valores literais da consulta B6-d em UTF-8, cada grafia como entrada própria, sem de-para nem vigência; cpe_tipo_prioridade fica sem valores até decisão do dono; etapa_fluxo com as chaves da B5-a na ordem aprovada (AP-099-1, decisão 20). Anterior: carga real de 2026-11-01 (E4.42, K-190)",
+    "motivo": "2026-11-14 (pedido 099, E3.251, D1 1b e 1c): domínios cpe_* com os valores literais da consulta B6-d em UTF-8, cada grafia como entrada própria, sem de-para nem vigência; cpe_tipo_prioridade fica sem valores até decisão do dono; fluxo_proc = os cinco fluxos do PROC que valem para S5, S6 e S7 (pedido 105, D2, P1 = B do dono, 2026-11-15); etapa_fluxo com as chaves da B5-a na ordem aprovada (AP-099-1, decisão 20). Anterior: carga real de 2026-11-01 (E4.42, K-190)",
     "referencia": "pedido 099, E3.251; AP-099-1 (decisão 20 do dono, 2026-11-12); B6-d em UTF-8 e B5-a; docs/analises/099-revisao-campos.md §4 e 099-saidas-consultas.md §3 item 5"
   },
   "schema": "dspd_ac",
   "tabela": "ref_dominio",
-  "regra": "codigo e rotulo conferidos os dois contra o valor (server/src/modulos/acelerato/referencia.ts); ordem = posição na lista; categoria: codigo = categoria_key em texto decimal, rotulo = nome exato; descricao_workflow: o próprio texto em codigo e rotulo; tipo_recorte, organizacao_recorte e equipe: codigo = chave numérica (tipo_ticket_key, organizacao_key, equipe_key) em texto decimal, rotulo = nome de domínio exato; etapa: codigo e rotulo = o nome exato, que vale para a etapa e para o status (mesmo vocabulário); prioridade: codigo e rotulo = o nome exato (o mapa para P1 a P5 é do normalizador, D-12); natureza_prefixo: codigo = prefixo da categoria (com hífen ou com espaço, como veio), rotulo = incidente ou requisicao; cpe_*: codigo e rotulo = o valor literal do campo de etapa (cada grafia é uma entrada; juntar grafias é de-para e não entra aqui); etapa_fluxo: codigo = kanbanStatusKey em texto decimal, rotulo = nome da etapa, posição = índice no arquivo (etapas de mesmo nome em workflows diferentes ficam juntas)",
+  "regra": "codigo e rotulo conferidos os dois contra o valor (server/src/modulos/acelerato/referencia.ts); ordem = posição na lista; categoria: codigo = categoria_key em texto decimal, rotulo = nome exato; descricao_workflow: o próprio texto em codigo e rotulo; tipo_recorte, organizacao_recorte e equipe: codigo = chave numérica (tipo_ticket_key, organizacao_key, equipe_key) em texto decimal, rotulo = nome de domínio exato; etapa: codigo e rotulo = o nome exato, que vale para a etapa e para o status (mesmo vocabulário); prioridade: codigo e rotulo = o nome exato (o mapa para P1 a P5 é do normalizador, D-12); natureza_prefixo: codigo = prefixo da categoria (com hífen ou com espaço, como veio), rotulo = incidente ou requisicao; cpe_*: codigo e rotulo = o valor literal do campo de etapa (cada grafia é uma entrada; juntar grafias é de-para e não entra aqui); fluxo_proc: codigo e rotulo = o nome exato do workflow (descricao_workflow), um dos cinco do PROC (S5, S6 e S7 só contam chamados deles); etapa_fluxo: codigo = kanbanStatusKey em texto decimal, rotulo = nome da etapa, posição = índice no arquivo (etapas de mesmo nome em workflows diferentes ficam juntas)",
   "dominios": {
     "tipo_recorte": [
       { "codigo": "23", "rotulo": "DSPD - SSSC" }
@@ -287,6 +287,13 @@
     "cpe_prioridade_ajustada": [
       { "codigo": "Sim", "rotulo": "Sim" },
       { "codigo": "Não", "rotulo": "Não" }
+    ],
+    "fluxo_proc": [
+      { "codigo": "INCIDENTES -DSPD SSVO SUSTENTAÇÃO VENDAS/OPERAÇÕES / SISTEMAS CORPORATIVOS", "rotulo": "INCIDENTES -DSPD SSVO SUSTENTAÇÃO VENDAS/OPERAÇÕES / SISTEMAS CORPORATIVOS" },
+      { "codigo": "PROBLEMAS - DSPD SSVO SUSTENTAÇÃO VENDAS/OPERAÇÕES / SISTEMAS CORPORATIVOS", "rotulo": "PROBLEMAS - DSPD SSVO SUSTENTAÇÃO VENDAS/OPERAÇÕES / SISTEMAS CORPORATIVOS" },
+      { "codigo": "PEQUENAS MELHORIAS - DSPD - SSSC - SUSTENTAÇÃO SISTEMAS CORPORATIVOS", "rotulo": "PEQUENAS MELHORIAS - DSPD - SSSC - SUSTENTAÇÃO SISTEMAS CORPORATIVOS" },
+      { "codigo": "SSVO - INCIDENTE", "rotulo": "SSVO - INCIDENTE" },
+      { "codigo": "DSPD SSVO MELHORIAS/PROJETOS", "rotulo": "DSPD SSVO MELHORIAS/PROJETOS" }
     ],
     "etapa_fluxo": [
       { "codigo": "11", "rotulo": "Novo Atendimento" },
