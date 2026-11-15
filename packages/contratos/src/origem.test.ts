@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { METRICA_IDS } from './comum'
 import {
   AJUSTE_PRIORIDADE_COM_FONTE,
+  MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
+  RESPONSABILIDADE_ATRASO_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
   NOTA_S12_IDS,
   NOTA_S1_IDS,
@@ -29,6 +31,7 @@ import {
   resultadoO1,
   resultadoO2,
   resultadoO3,
+  resultadoO12,
   resultadoO5,
   resultadoS1,
   resultadoS12,
@@ -52,6 +55,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['S1'], // pedido 099 (D4, Q-099-5b = A)
         ...['O8'], // pedido 099 (A4, Q-099-4): tempo real; divisão por tamanho sem dado real
         ...['O16'], // pedido 099 (lote C8)
+        ...['O12'], // pedido 099 (E3.223)
       ].sort(),
     )
   })
@@ -82,11 +86,16 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é sem dado, com o motivo, para O12, O14, O15 e O18', () => {
-    for (const id of ['O12', 'O14', 'O15', 'O18'] as const) {
+  it('é sem dado, com o motivo, para O14, O15 e O18', () => {
+    for (const id of ['O14', 'O15', 'O18'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
+  })
+
+  it('O12 é real pelo prazo do card (pedido 099, E3.223); a parte de responsabilidade tem motivo próprio no DTO', () => {
+    expect(origemDaMetrica('O12')).toBe('real')
+    expect(motivoDaOrigemSemDado('O12')).toBeNull()
   })
 
   it('O8 é real no tempo em execução (pedido 099, A4, Q-099-4) e a divisão por tamanho tem motivo próprio', () => {
@@ -138,7 +147,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
       expect(motivoSemDadoReal(id).length, id).toBeGreaterThan(0)
       expect(semDadoRealSchema.safeParse(corpoSemDadoReal(id)).success, id).toBe(true)
     }
-    expect(motivoSemDadoReal('O12')).toBe('aguardando campo no quadro')
+    expect(motivoSemDadoReal('O14')).toBe('aguardando campo no quadro')
     expect(motivoSemDadoReal('VISAO_GERAL')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
     expect(motivoSemDadoReal('T1')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
   })
@@ -234,5 +243,19 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
       resultadoS1.shape.notas.safeParse(['primeiro-atendimento-inclui-automatica']).success,
     ).toBe(true)
     expect(resultadoS1.shape.notas.safeParse(['excecao-sla-sem-fonte']).success).toBe(false)
+  })
+})
+
+describe('pedido 099 (O12): responsabilidade do atraso sem fonte', () => {
+  it('o interruptor nasce desligado e o motivo diz que o prazo não diz de quem foi o atraso', () => {
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
+    expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).toContain('não de quem foi o atraso')
+  })
+
+  it('motivoResponsabilidade recusa texto vazio e aceita texto ou nulo', () => {
+    const shape = resultadoO12.shape.motivoResponsabilidade
+    expect(shape.safeParse('').success).toBe(false)
+    expect(shape.safeParse(null).success).toBe(true)
+    expect(shape.safeParse(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).success).toBe(true)
   })
 })

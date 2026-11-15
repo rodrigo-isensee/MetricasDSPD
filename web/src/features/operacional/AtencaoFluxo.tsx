@@ -1,7 +1,7 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { FaixaAtencao, estadoFaixa } from '@/components/ui'
 import { useMetrica } from '@/data'
-import { itensDiaria, itensSemanal } from './atencao'
+import { itensDiaria, itensSemanal, lacunasSemanal } from './atencao'
 
 export const FONTE_FLUXO = 'Fluxo de projeto (BusinessMap)'
 
@@ -34,6 +34,7 @@ export function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
       momento="semana"
       fonte={FONTE_FLUXO}
       itens={itensSemanal(qO3.dados, qO10.dados, qO12.dados)}
+      lacunas={lacunasSemanal(qO12.dados)}
       estado={estado}
       onTentarDeNovo={recarregar}
     />
