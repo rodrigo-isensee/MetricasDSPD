@@ -437,6 +437,49 @@ describe('Dispersao', () => {
     expect(within(t).getByRole('row', { name: /A-1/ })).toHaveTextContent('círculo')
   })
 
+  it('bloqueado põe o anel por cima da forma da situação, sem esconder o triângulo', () => {
+    const { container } = render(
+      <Dispersao
+        pontos={[
+          { id: 'A-1', x: 0, y: 9, forma: 'triangulo', bloqueado: true },
+          { id: 'A-2', x: 1, y: 3, forma: 'triangulo' },
+        ]}
+        eixoX={{ tipo: 'categorias', categorias: ['Análise', 'Teste'] }}
+        rotuloY="Idade"
+        descricao="Idade por etapa"
+      />,
+    )
+    const grupos = container.querySelectorAll('.recharts-scatter g g')
+    const comAnel = [...grupos].find((g) => g.querySelector('circle[r="11"]')) as Element
+    expect(comAnel.querySelector('path')).not.toBeNull()
+    expect(container.querySelectorAll('circle[r="11"]')).toHaveLength(1)
+  })
+
+  it('a tabela diz "com anel (bloqueado)" para forma e anel, e não repete no anel puro', () => {
+    tabela(
+      <Dispersao
+        pontos={[
+          { id: 'A-1', x: 0, y: 9, forma: 'triangulo', bloqueado: true },
+          { id: 'A-2', x: 1, y: 3, bloqueado: true },
+          { id: 'A-3', x: 1, y: 4, forma: 'anel', bloqueado: true },
+        ]}
+        eixoX={{ tipo: 'categorias', categorias: ['Análise', 'Teste'] }}
+        rotuloY="Idade"
+        descricao="Idade por etapa"
+      />,
+    )
+    const t = screen.getByRole('table')
+    expect(within(t).getByRole('row', { name: /A-1/ })).toHaveTextContent(
+      'triângulo com anel (bloqueado)',
+    )
+    expect(within(t).getByRole('row', { name: /A-2/ })).toHaveTextContent(
+      'círculo com anel (bloqueado)',
+    )
+    const puro = within(t).getByRole('row', { name: /A-3/ })
+    expect(puro).toHaveTextContent('anel (bloqueado)')
+    expect(puro).not.toHaveTextContent('com anel')
+  })
+
   it('eixo por categorias desenha os rótulos no gráfico', () => {
     const { container } = render(
       <Dispersao

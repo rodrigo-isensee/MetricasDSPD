@@ -806,6 +806,67 @@ describe('achados gerados por regra (limiares provisórios)', () => {
     for (const x of a) expect(achadoApontamentoSchema.safeParse(x).success).toBe(true)
   })
 
+  describe('concentração e a linha sem projeto (decisão 1a do dono, K-324)', () => {
+    const comLinhas = (linhas: ReturnType<typeof linhaDist>[]) =>
+      base({
+        distribuicao: {
+          base: { n: 40, unidade: 'apontamentos' },
+          porProjeto: linhas,
+          porTipo: [],
+          porSubgrupo: [],
+        },
+      })
+    const conc = (b: ReturnType<typeof base>) =>
+      gerarAchados(b).find((a) => a.codigo === 'concentracao-em-projeto')
+
+    it('a linha sem projeto, maior que todas, nunca vira o topo; as horas dela saem à parte', () => {
+      const a = conc(
+        comLinhas([
+          linhaDist('sem-projeto', 'Sem iniciativa', 300, ok(40, 70)),
+          linhaDist('1', 'Projeto X', 100, ok(40, 55)),
+          linhaDist('2', 'Projeto menor', 10, ok(40, 5)),
+        ]),
+      )
+      expect(a).toEqual({
+        codigo: 'concentracao-em-projeto',
+        valores: { pct: 55, horasSemProjeto: 300 / 3600 },
+        rotuloRef: 'Projeto X',
+      })
+      expect(achadoApontamentoSchema.safeParse(a).success).toBe(true)
+    })
+
+    it('só a linha sem projeto: nenhum achado de concentração', () => {
+      expect(
+        conc(comLinhas([linhaDist('sem-projeto', 'Sem iniciativa', 300, ok(40, 100))])),
+      ).toBeUndefined()
+    })
+
+    it('com projetos e sem a linha sem projeto: achado igual ao de hoje, sem `horasSemProjeto`', () => {
+      const a = conc(
+        comLinhas([
+          linhaDist('2', 'Projeto menor', 10, ok(40, 25)),
+          linhaDist('1', 'Projeto X', 100, ok(40, 50)),
+        ]),
+      )
+      expect(a).toEqual({
+        codigo: 'concentracao-em-projeto',
+        valores: { pct: 50 },
+        rotuloRef: 'Projeto X',
+      })
+      expect(a && 'horasSemProjeto' in a.valores).toBe(false)
+    })
+
+    it('a linha sem projeto pequena também leva as horas à parte, e o topo segue o maior projeto', () => {
+      const a = conc(
+        comLinhas([
+          linhaDist('sem-projeto', 'Sem iniciativa', 7200, ok(40, 5)),
+          linhaDist('1', 'Projeto X', 100, ok(40, 60)),
+        ]),
+      )
+      expect(a?.valores).toEqual({ pct: 60, horasSemProjeto: 2 })
+    })
+  })
+
   it('achado com percentual não sai sem a base de 20 (piso)', () => {
     const b = base({
       distribuicao: {

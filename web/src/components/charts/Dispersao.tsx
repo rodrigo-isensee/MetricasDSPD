@@ -21,6 +21,8 @@ export interface PontoDispersao {
   x: number
   y: number
   forma?: FormaPonto
+  /** Anel por cima da forma (a forma da situação continua visível por baixo). */
+  bloqueado?: boolean
   rotulo?: string
 }
 
@@ -51,11 +53,23 @@ const DASH = { solido: undefined, tracejado: '7 4', pontilhado: '2 4' } as const
 interface ShapeProps {
   cx?: number
   cy?: number
-  payload?: { forma?: FormaPonto }
+  payload?: { forma?: FormaPonto; bloqueado?: boolean }
 }
 
 /** Marca por forma: círculo, losango, triângulo e anel duplo (a forma carrega o significado, não a cor). */
-function Marca({ cx = 0, cy = 0, payload }: ShapeProps) {
+function Marca(props: ShapeProps) {
+  const { cx = 0, cy = 0, payload } = props
+  const forma = <Forma {...props} />
+  if (!payload?.bloqueado) return forma
+  return (
+    <g>
+      {forma}
+      <circle cx={cx} cy={cy} r={11} fill="none" stroke="var(--texto)" strokeWidth={1.5} />
+    </g>
+  )
+}
+
+function Forma({ cx = 0, cy = 0, payload }: ShapeProps) {
   const cor = 'var(--serie-1)'
   switch (payload?.forma) {
     case 'losango':
@@ -134,7 +148,10 @@ export function Dispersao({
           item: p.rotulo ?? p.id,
           x: rotuloX(p.x),
           y: fmtNumero(p.y, 1),
-          marca: ROTULO_FORMA[p.forma ?? 'circulo'],
+          marca:
+            p.bloqueado && p.forma !== 'anel'
+              ? `${ROTULO_FORMA[p.forma ?? 'circulo']} com anel (bloqueado)`
+              : ROTULO_FORMA[p.forma ?? 'circulo'],
         })),
       }}
       legenda={
