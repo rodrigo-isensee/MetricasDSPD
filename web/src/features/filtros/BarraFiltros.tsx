@@ -8,7 +8,7 @@ import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
 import { FiltroMulti, escLimpaBuscaFocada } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
-import { rotuloDoFiltro } from './paineis'
+import { ROTULO_FILTRO, rotuloDoFiltro } from './paineis'
 import type { UseFiltros } from './useFiltros'
 
 type Uso = UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
@@ -35,7 +35,7 @@ const semOpcoes = (
   if (erro) return `Não foi possível carregar ${plural}.`
   return carregando
     ? `Carregando ${plural}...`
-    : `${genero === 'm' ? 'Nenhum' : 'Nenhuma'} ${plural.replace(/s$/, '')} disponível neste recorte.`
+    : `${genero === 'm' ? 'Nenhum' : 'Nenhuma'} ${plural.replace(/(?<=r)es$|s$/, '')} disponível neste recorte.`
 }
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
@@ -52,6 +52,21 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
   const tiposOpc: OpcaoFiltro[] = (bm?.tipos ?? []).filter((t) => TIPO_POR_ID.has(t.id))
   return (
     <>
+      {config.filtros.includes('setor') && (
+        <FiltroMulti
+          id="setor"
+          rotulo={ROTULO_FILTRO.setor}
+          genero="m"
+          opcoes={bm?.setores ?? []}
+          vazio={sem('setores')}
+          aoTentar={aoTentar}
+          tentando={tentando}
+          tentarDe="setores"
+          selecionados={f.setor ?? []}
+          variante={variante}
+          onChange={(ids, replace) => definir({ setor: ids }, { replace })}
+        />
+      )}
       {config.filtros.includes('equipe') && (
         <FiltroMulti
           id="equipe"
@@ -163,6 +178,8 @@ export function BarraFiltros({
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
+  // Setores somados: só a seleção (sem seleção é "Todos", sem aviso); nunca números por setor (CA-45, CA-46).
+  const setores = uso.config.filtros.includes('setor') ? (f.setor ?? []).length : 0
   // Equipes somadas no resultado: seleção, ou todas (padrão) quando o painel tem filtro de equipe.
   const reservaAviso = uso.config.filtros.includes('equipe') && f.equipe.length === 0 && !uso.opcoes
   const equipes = uso.config.filtros.includes('equipe')
@@ -285,6 +302,11 @@ export function BarraFiltros({
         // Reserva a altura do aviso enquanto as opções não chegam: evita salto de layout (ADR 0003 F2).
         <p aria-hidden="true" className="invisible text-sm">
           &nbsp;
+        </p>
+      )}
+      {setores >= 2 && (
+        <p className="text-sm text-texto-2" data-testid="aviso-consolidado-setor">
+          Resultado consolidado de {setores} setores. O sistema não compara setores.
         </p>
       )}
       {equipes >= 2 && (

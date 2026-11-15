@@ -11475,36 +11475,43 @@
                                 ]
                               },
                               "porTamanho": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "tamanho": {
-                                      "type": "string",
-                                      "enum": [
-                                        "P",
-                                        "M",
-                                        "G",
-                                        "Sem tamanho"
-                                      ]
-                                    },
-                                    "n": {
-                                      "type": "number"
-                                    },
-                                    "mediana": {
-                                      "type": [
-                                        "number",
-                                        "null"
-                                      ]
+                                "anyOf": [
+                                  {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "tamanho": {
+                                          "type": "string",
+                                          "enum": [
+                                            "P",
+                                            "M",
+                                            "G",
+                                            "Sem tamanho"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "number"
+                                        },
+                                        "mediana": {
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "tamanho",
+                                        "n",
+                                        "mediana"
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   },
-                                  "required": [
-                                    "tamanho",
-                                    "n",
-                                    "mediana"
-                                  ],
-                                  "additionalProperties": false
-                                }
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               }
                             },
                             "required": [
@@ -11515,13 +11522,25 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "motivoPorTamanho": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "base",
                         "criterios",
                         "janelaPercentis",
-                        "tipos"
+                        "tipos",
+                        "motivoPorTamanho"
                       ],
                       "additionalProperties": false
                     },

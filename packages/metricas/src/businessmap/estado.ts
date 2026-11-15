@@ -245,15 +245,26 @@ export function varrerVidaPorColuna(
   const ate = instantes[n - 1] as number // vazio: `x <= undefined` é falso, nada conta
   const cols = new Map<string, number[]>()
   let transicoesNoPeriodo = 0
+  // Papel de entrega por coluna, resolvido uma vez por quadro (evita a chave de texto por transição).
+  const entregaPorQuadro = new Map<string, Map<string, boolean>>()
   for (const m of cards) {
     const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []
     const fimVida = fimDeVidaAberta(m.card)
+    let entrega = entregaPorQuadro.get(m.card.quadro_id)
+    if (!entrega) {
+      entrega = new Map()
+      entregaPorQuadro.set(m.card.quadro_id, entrega)
+    }
     for (let i = 0; i < trs.length; i++) {
       const x = trs[i] as FatoTransicao
       if (x.timestamp >= desde && x.timestamp <= ate) transicoesNoPeriodo++
       const a = Math.max(x.timestamp, m.card.criado_em)
       // Entregue e arquivado depois continua entregue (P1): só o que está aberto termina no arquivamento.
-      const naEntrega = ctx.idx.papelDe(m.card.quadro_id, x.coluna_destino)?.papel === 'entrega'
+      let naEntrega = entrega.get(x.coluna_destino)
+      if (naEntrega === undefined) {
+        naEntrega = ctx.idx.papelDe(m.card.quadro_id, x.coluna_destino)?.papel === 'entrega'
+        entrega.set(x.coluna_destino, naEntrega)
+      }
       const b = Math.min(trs[i + 1]?.timestamp ?? Infinity, naEntrega ? Infinity : fimVida)
       if (a >= b) continue
       const lo = primeiroNaoMenor(instantes, a)

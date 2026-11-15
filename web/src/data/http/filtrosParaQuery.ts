@@ -10,6 +10,7 @@ export function filtrosParaQuery(filtros: object, extra: Record<string, string> 
   const lista = (chave: string, valores: unknown, mapa: (v: string) => string = (v) => v) => {
     if (Array.isArray(valores) && valores.length > 0) q.set(chave, valores.map(mapa).join(','))
   }
+  lista('setor', f.setor)
   lista('equipe', f.equipe)
   lista('tipo', f.tipo, (t) => TIPO_ID[t as TipoFiltro])
   lista('sistema', f.sistema)

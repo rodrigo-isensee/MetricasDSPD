@@ -17,13 +17,19 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O5',
   'O6',
   'O7',
+  // Pedido 099 (A4, Q-099-4): o O8 publica o tempo em execução real (o mesmo do O3); a divisão por tamanho segue sem dado real até o campo do WS1.
+  'O8',
   'O9',
   'O10',
   'O11',
   'O13',
   'O19',
+  // Pedido 099 (lote A2, E3.222): o O20 Fluxo cumulativo lê a varredura da vida dos cards da base real (Q-RO-1: avanço 24289, retorno 602); a frio custa ~110 a 140 ms em processo na escala 3 do mock (A1 do ADR 0003).
+  'O20',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
+  // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
+  'O16',
   // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
   'O21',
   'EI_FL1',
@@ -72,6 +78,12 @@ export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
  * `null` com o motivo, e `statusMeta = 'sem-referencia'`; nunca 0.
  */
 export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
+/**
+ * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
+ * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ */
+export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
+  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
 
 export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
@@ -91,10 +103,8 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = false
  * prioridade (`ref_alvo_prioridade`, sem fonte na base real); a EI_SUST não consta do plano 056, então não se calcula por inferência.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
-  O8: MOTIVO_AGUARDANDO_CAMPO,
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
-  O16: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
   S1: MOTIVO_AGUARDANDO_PRAZOS_SLA,
   S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,

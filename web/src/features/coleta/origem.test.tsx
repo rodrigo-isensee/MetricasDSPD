@@ -94,9 +94,10 @@ describe('origem do cartão (pedido 060)', () => {
       semDadoReal: false,
       motivo: null,
     })
+    // pedido 099 (lote A2): o O20 Fluxo cumulativo tem dado real
     expect(origemDoCartao('O20', 'api')).toEqual({
       ficticio: false,
-      semDadoReal: true,
+      semDadoReal: false,
       motivo: null,
     })
     // pedido 075 (lote 6b): BLOQUEADOS, O5 e O19 voltaram ao mapa real

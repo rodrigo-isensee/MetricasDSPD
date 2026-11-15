@@ -108,7 +108,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
   it('(d) FL2, FL3, S1 e Visão geral respondem "sem dado real" na base real, nunca o número do seed (que só o modo mock explícito lê)', async () => {
     const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const real = await app();
-    for (const id of ['T1', 'T7', 'E1', 'E2', 'S1', 'VISAO_GERAL', 'O8', 'O26']) {
+    for (const id of ['T1', 'T7', 'E1', 'E2', 'S1', 'VISAO_GERAL', 'O26']) {
       const a = await mock.inject(`/api/v1/metricas/${id}`);
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(a.statusCode, id).toBe(200);
@@ -117,6 +117,22 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
       expect(b.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });
       expect(b.body, id).not.toBe(a.body);
     }
+  }, 60_000);
+
+  it('(d2) O8 (A4, Q-099-4): o tempo em execução é o da base real (não o do seed) e a divisão por tamanho é nula com o motivo quando a base não traz tamanho', async () => {
+    const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
+    const a = await mock.inject('/api/v1/metricas/O8');
+    const b = await (await app()).inject('/api/v1/metricas/O8');
+    expect(a.statusCode).toBe(200);
+    expect(b.statusCode).toBe(200);
+    expect(b.json()).not.toHaveProperty('estado');
+    expect(b.body).not.toBe(a.body);
+    const o8 = b.json() as { tipos: { porTamanho: unknown[] | null }[]; motivoPorTamanho: string | null };
+    expect(o8.tipos.length).toBeGreaterThan(0);
+    // A divisão por tamanho só é publicada se algum card da base real traz tamanho; sem nenhum, vem nula com o motivo (nunca lista vazia).
+    const algumTamanho = o8.tipos.some((t) => t.porTamanho !== null);
+    expect(o8.motivoPorTamanho === null).toBe(algumTamanho);
+    for (const t of o8.tipos) expect(t.porTamanho === null || t.porTamanho.length > 0).toBe(true);
   }, 60_000);
 
   it('(e) Sustentação (E2.115): S3, S9 e S12 leem a base real do Acelerato; S1, S5 e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
