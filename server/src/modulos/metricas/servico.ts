@@ -5,7 +5,7 @@ import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
 import type { BaseAC, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
-import { EXTENSAO_BM_VAZIA, type ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
+import { EXTENSAO_BM_VAZIA, EXTENSAO_TAMBEM_BM_VAZIA, entradasSazonaisDeCards, type ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { AppError } from '../../plataforma/erros.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
@@ -322,16 +322,19 @@ export class ServicoMetricas {
     const baseAC = ac === null ? BASE_AC_VAZIA : METRICAS_SEM_AGENTE.includes(id) && extras !== undefined ? extras.semAgenteFora : ac.base;
     // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com o modo mock explícito e extensões mockadas vale o mock.
     const extReal: ExtensaoAC | undefined = id === 'S8' && (real || this.deps.extensoes === undefined) ? extras?.extensao : undefined;
+    const ctxBM = {
+      ...businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
+      // Pedido 077 (L3a): só a fonte do BusinessMap entrega o início do histórico (só a TENDENCIA_FLUXO o lê; o contexto do Acelerato nunca o recebe).
+      ...(bm?.historicoDesde !== undefined ? { historicoDesde: bm.historicoDesde } : {}),
+    };
     const ctx: ContextosMetricas = {
-      bm: {
-        ...businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
-        // Pedido 077 (L3a): só a fonte do BusinessMap entrega o início do histórico (só a TENDENCIA_FLUXO o lê; o contexto do Acelerato nunca o recebe).
-        ...(bm?.historicoDesde !== undefined ? { historicoDesde: bm.historicoDesde } : {}),
-      },
+      bm: ctxBM,
       ac: acelerato.criarContextoAC(baseAC, corte, ac?.cal ?? CALENDARIO_PADRAO),
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),
       ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem && !real ? { tambem: this.deps.extensaoTambem() } : {}),
+      // Pedido 105 (E7.64): na base real o T11 lê `dim_card` (a regra de chegada é da biblioteca); as outras da extensão seguem sem dado real.
+      ...(id === 'T11' && real ? { tambem: { ...EXTENSAO_TAMBEM_BM_VAZIA, entradasSazonais: entradasSazonaisDeCards(ctxBM), dadoReal: true } } : {}),
     };
     let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".

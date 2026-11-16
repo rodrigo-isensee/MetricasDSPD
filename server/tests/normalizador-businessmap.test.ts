@@ -332,7 +332,7 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
 describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id -> coluna', () => {
   const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'origem_demanda'], ['502', 'sistema'], ['503', 'severidade']]) };
   const LISTA = ['sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
-    'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade'] as const;
+    'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade', 'causa_raiz'] as const;
   const cf = (...c: { field_id: unknown; valor: unknown }[]) => card({ custom_fields: c });
 
   it('campo mapeado preenche a coluna; o que não está no mapa fica nulo e não gera nota', () => {
@@ -348,6 +348,16 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     expect(p.dim.severidade).toBeNull();
     expect(p.notas.filter((n) => n === 'campo_fora_do_dominio')).toHaveLength(3);
     expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
+  });
+
+  it('E7.86: o field 48 preenche dim.causa_raiz; valor fora da lista fica nulo com a nota contada, sem o valor', () => {
+    const ref: Referencia = { ...REF, camposLista: new Map([['48', 'causa_raiz']]) };
+    expect(proj(cf({ field_id: '48', valor: 'falha_integracao' }), [], {}, ref).dim.causa_raiz).toBe('falha_integracao');
+    const fora = proj(cf({ field_id: '48', valor: 'desconhecido' }), [], {}, ref);
+    expect(fora.dim.causa_raiz).toBeNull();
+    expect(fora.notas).toContain('campo_fora_do_dominio');
+    expect(JSON.stringify(fora.notas)).not.toContain('desconhecido');
+    expect(proj(card(), [], {}, ref).dim.causa_raiz).toBeNull();
   });
 
   it('105: fase_deteccao deixou de ser coluna de lista; campo mapeado a ela é ignorado e o dim traz nulo (a fase vem da projeção pela coluna do pai)', () => {
