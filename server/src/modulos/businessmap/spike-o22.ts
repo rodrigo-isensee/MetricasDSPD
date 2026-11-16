@@ -1,4 +1,5 @@
 import { lstatSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { ErroBusinessMap, CAMPOS_USERS, type ClienteHttp } from '../../plataforma/http.js';
 import { instanteDoBm } from './normalizador.js';
@@ -13,6 +14,7 @@ import { foraDoRepositorio } from './spike.js';
 // Privacidade: o texto do comentário nunca é extraído (só `card_id`, `created_at`, `type` e o autor como número); `user_id` e nome só existem em
 // memória e no ARQUIVO DE SAÍDA, que o script recusa gravar dentro do repositório. O texto que vai à tela (`saida`) tem só contagens.
 
+const MARCA_GIT = ['', 'git'].join('.');
 export const QUANTIDADE_PADRAO = 60;
 export const QUANTIDADE_MAXIMA = 60;
 const MAX_QUADROS_VISITADOS = 60;
@@ -399,6 +401,18 @@ export interface DepsSpikeO22 {
 export function validarSaida(caminho: string, raiz: string): string {
   if (!caminho.startsWith('/')) throw new Error('caminho de saída precisa ser absoluto');
   const real = foraDoRepositorio(caminho, raiz);
+  // A2: outro clone ou worktree (pasta ou arquivo de controle do git em algum diretório acima) também recusa; o arquivo com nomes não pode cair num repositório.
+  for (let d = dirname(real); ; d = dirname(d)) {
+    let achou = true;
+    try {
+      lstatSync(join(d, MARCA_GIT));
+    } catch (e) {
+      if (Object(e).code !== 'ENOENT' && Object(e).code !== 'ENOTDIR') throw new Error('caminho de saída inacessível');
+      achou = false;
+    }
+    if (achou) throw new Error('caminho de saída dentro de outro repositório git: recusado');
+    if (dirname(d) === d) break;
+  }
   try {
     lstatSync(real);
   } catch (e) {
@@ -426,6 +440,32 @@ async function listarQuadros(cliente: Pick<ClienteHttp, 'get'>, configurados: re
   return desembrulhar(corpo).itens.map((b) => (ehObjeto(b) ? idDe(b.board_id) : null)).filter((id): id is string => id !== null).slice(0, MAX_QUADROS_VISITADOS);
 }
 
+type Etapa = 'quadros' | 'listagem de cards' | 'revisões' | 'comentários' | 'usuários';
+
+/**
+ * Texto do erro que vai à tela quando uma chamada falha por HTTP: etapa, código HTTP e caminho SEM consulta (`/cards/12/revisions`; a consulta pode
+ * levar ids de lote) e sem credencial; nunca o corpo da resposta (o cliente não o guarda). Outros tipos de erro seguem só com o código fechado.
+ */
+export function descreverErro(e: unknown, etapa: Etapa, caminho: string): string {
+  if (!(e instanceof ErroBusinessMap)) return 'erro-interno';
+  if (e.tipo !== 'http') return `${e.tipo} (etapa: ${etapa}, GET ${caminho})`;
+  return `http (etapa: ${etapa}, HTTP ${e.status ?? '?'}, GET ${caminho})`;
+}
+
+/** Marca a etapa corrente para o erro dizer onde falhou. */
+class EtapaFalhou extends Error {
+  constructor(readonly causa: unknown, readonly etapa: Etapa, readonly caminho: string) {
+    super('etapa falhou');
+  }
+}
+async function naEtapa<T>(etapa: Etapa, caminho: string, f: () => Promise<T>): Promise<T> {
+  try {
+    return await f();
+  } catch (e) {
+    throw new EtapaFalhou(e, etapa, caminho);
+  }
+}
+
 /** Roda o spike: só GET; devolve o texto da tela, o código de saída e o arquivo gravado. Erro vira código fechado, sem mensagem de valor. */
 export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: string; erro: string | null }> {
   let caminho: string;
@@ -439,13 +479,14 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
   const n = Math.min(Math.max(deps.quantidade ?? QUANTIDADE_PADRAO, 1), QUANTIDADE_MAXIMA);
   const cliente = deps.cliente;
   try {
-    const quadros = await listarQuadros(cliente, deps.quadros);
+    const quadros = await naEtapa('quadros', '/boards', () => listarQuadros(cliente, deps.quadros));
     const agoraMs = (deps.agora ?? Date.now)();
-    const desde = new Date(agoraMs - 12 * 7 * 86_400_000).toISOString().slice(0, 10);
+    // A API recusa filtro de data pura (400, E2.83): `last_modified_from` leva dia e hora em UTC, como a coleta.
+    const desde = `${new Date(agoraMs - 12 * 7 * 86_400_000).toISOString().slice(0, 10)}T00:00:00Z`;
     const candidatos: CardAmostra[] = [];
     for (const q of quadros) {
       for (let pagina = 1, total = 1; pagina <= Math.min(total, MAX_PAGINAS_LISTAGEM); pagina += 1) {
-        const corpo = await cliente.get('/cards', { consulta: { board_ids: q, state: 'active', last_modified_from: desde, fields: CAMPOS_AMOSTRA, per_page: CARDS_POR_PAGINA, page: pagina } });
+        const corpo = await naEtapa('listagem de cards', '/cards', () => cliente.get('/cards', { consulta: { board_ids: q, state: 'active', last_modified_from: desde, fields: CAMPOS_AMOSTRA, per_page: CARDS_POR_PAGINA, page: pagina } }));
         total = desembrulhar(corpo).paginas ?? 1;
         candidatos.push(...cardsDaListagem(corpo).filter((c) => criadoNaJanela(c, agoraMs)));
       }
@@ -455,7 +496,7 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
     const revisoes = novoAcumuloRevisoes();
     const temposRevisoes: Tempos = { chamadas: 0, totalMs: 0, maxMs: 0 };
     for (const card of amostra) {
-      const corpo = await cronometrar(temposRevisoes, relogio, () => cliente.get(`/cards/${card.id}/revisions`));
+      const corpo = await naEtapa('revisões', `/cards/${card.id}/revisions`, () => cronometrar(temposRevisoes, relogio, () => cliente.get(`/cards/${card.id}/revisions`)));
       analisarRevisoes(card, corpo, revisoes);
     }
 
@@ -465,7 +506,7 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
     if (amostra.length > 0) {
       const ids = amostra.map((c) => c.id).join(',');
       for (let pagina = 1, total = 1; pagina <= Math.min(total, MAX_PAGINAS_COMENTARIOS); pagina += 1) {
-        const corpo = await cronometrar(temposComentarios, relogio, () => cliente.get('/cards/comments', { consulta: { card_ids: ids, page: pagina } }));
+        const corpo = await naEtapa('comentários', '/cards/comments', () => cronometrar(temposComentarios, relogio, () => cliente.get('/cards/comments', { consulta: { card_ids: ids, page: pagina } })));
         total = desembrulhar(corpo).paginas ?? 1;
         comentarios.paginasLidas += 1;
         analisarComentarios(porId, corpo, comentarios);
@@ -480,7 +521,7 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
       try {
         for (let i = 0; i < contas.length; i += 200) {
           const lote = contas.slice(i, i + 200).map((x) => x.conta).join(',');
-          const corpo = await cliente.get('/users', { consulta: { fields: CAMPOS_USERS, user_ids: lote } });
+          const corpo = await naEtapa('usuários', '/users', () => cliente.get('/users', { consulta: { fields: CAMPOS_USERS, user_ids: lote } }));
           for (const u of desembrulhar(corpo).itens) {
             const id = ehObjeto(u) ? inteiroPositivo(u.user_id) : null;
             if (id !== null && ehObjeto(u) && typeof u.realname === 'string') nomes.set(id, u.realname.replace(/[|\r\n]/g, ' '));
@@ -488,7 +529,8 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
         }
         nomesLidos = true;
       } catch (e) {
-        if (e instanceof ErroBusinessMap && ['autenticacao', 'limite-requisicoes', 'configuracao'].includes(e.tipo)) throw e;
+        const causa = e instanceof EtapaFalhou ? e.causa : e;
+        if (causa instanceof ErroBusinessMap && ['autenticacao', 'limite-requisicoes', 'configuracao'].includes(causa.tipo)) throw e;
       }
     }
     const dados: DadosSpikeO22 = { quadrosVisitados: quadros.length, amostra, candidatos: candidatos.length, revisoes, comentarios, contas, nomes, nomesLidos, temposRevisoes, temposComentarios };
@@ -499,6 +541,7 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
     }
     return { saida: `${resumoDaTela(dados, caminho)}\n`, erro: null };
   } catch (e) {
+    if (e instanceof EtapaFalhou) return { saida: '', erro: descreverErro(e.causa, e.etapa, e.caminho) };
     return { saida: '', erro: e instanceof ErroBusinessMap ? e.tipo : 'erro-interno' };
   }
 }

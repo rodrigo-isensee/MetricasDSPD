@@ -20,7 +20,7 @@ export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
   /^\/cards\/\d+\/(revisions|comments)$/,
-  // Pedido 105 (E7.104, spike B5 do O22): comentários em lote (`card_ids`, até 200), só GET e só no spike; texto e autor ficam em memória.
+  // Pedido 105 (E7.104, spike B5 do O22): comentários em lote (`card_ids` obrigatório, até 200, consulta própria CONSULTA_COMENTARIOS), só GET; texto e autor ficam em memória.
   /^\/cards\/comments$/,
   // Pedido 059 (K-193, ADR 0025 item 1): do worklog, SÓ `/loggedTime`, com consulta própria (CONSULTA_WORKLOG). `/loggedTime/history`
   // (403 para a chave do dono no spike), `/loggedTimeCategories` (`category_id` nulo) e `/loggedTime/{id}` ficam fora da lista.
@@ -88,6 +88,12 @@ export const CONSULTA_WORKLOG: Readonly<Record<string, RegExp>> = {
   to_date: DIA_CIVIL,
   logged_from: DATA,
   logged_to: DATA,
+};
+
+/** `/cards/comments` (lote): só `card_ids` (até 200) e `page`; `card_ids` é obrigatório (A1 do parecer de segurança do spike B5b do O22). */
+export const CONSULTA_COMENTARIOS: Readonly<Record<string, RegExp>> = {
+  card_ids: LISTA_IDS,
+  page: /^\d{1,5}$/,
 };
 
 /** Tamanho máximo de `user_ids` por chamada (o mesmo limite de `LISTA_IDS`). */
@@ -242,7 +248,9 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
         ? CONSULTA_WORKLOG
         : caminho === '/cards'
           ? { ...CONSULTA_PERMITIDA, ...CONSULTA_CARDS }
-          : CONSULTA_PERMITIDA;
+          : caminho === '/cards/comments'
+            ? CONSULTA_COMENTARIOS
+            : CONSULTA_PERMITIDA;
     const params = new URLSearchParams();
     for (const [nome, bruto] of Object.entries(consulta)) {
       const valor = String(bruto);
@@ -257,6 +265,10 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     // `/loggedTime` sem `card_ids` devolveria o worklog da conta inteira (minimização, ADR 0025 item 2); sem `fields`, campos fora da lista.
     if (caminho === '/loggedTime' && !(params.has('card_ids') && params.has('fields'))) {
       throw new ErroBusinessMap('consulta', '/loggedTime exige card_ids e fields fixo');
+    }
+    // `/cards/comments` sem `card_ids` devolveria os comentários da conta inteira (minimização, como o `/loggedTime`).
+    if (caminho === '/cards/comments' && !params.has('card_ids')) {
+      throw new ErroBusinessMap('consulta', '/cards/comments exige card_ids');
     }
     const q = params.toString();
     return `${base.origin}${prefixo}${caminho}${q === '' ? '' : `?${q}`}`;

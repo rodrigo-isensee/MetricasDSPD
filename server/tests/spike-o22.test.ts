@@ -1,12 +1,12 @@
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
-  analisarComentarios, analisarRevisoes, autorDoComentario, criadoNaJanela, executarSpikeO22, sortearAmostra, levantarContas, novoAcumuloComentarios, novoAcumuloRevisoes,
+  analisarComentarios, analisarRevisoes, autorDoComentario, criadoNaJanela, descreverErro, executarSpikeO22, sortearAmostra, levantarContas, novoAcumuloComentarios, novoAcumuloRevisoes,
   validarSaida, type CardAmostra, type Evento,
 } from '../src/modulos/businessmap/spike-o22.js';
-import { CAMINHOS_PERMITIDOS, criarClienteHttp } from '../src/plataforma/http.js';
+import { CAMINHOS_PERMITIDOS, criarClienteHttp, ErroBusinessMap } from '../src/plataforma/http.js';
 
 // Pedido 105, E7.104 (B5 do O22): spike só de leitura. Dados FICTÍCIOS; nenhuma chamada real. Marcadores de texto e nome provam que nada
 // disso chega à tela; o nome só pode ir ao arquivo de saída, fora do repositório.
@@ -35,12 +35,37 @@ describe('validarSaida', () => {
   });
 });
 
+describe('validarSaida: A2', () => {
+  it('recusa caminho com marca de repositório git (pasta ou arquivo) em diretório acima', () => {
+    const raiz = pasta();
+    const outro = pasta();
+    const marca = ['', 'git'].join('.');
+    mkdirSync(join(outro, 'clone', marca), { recursive: true });
+    expect(() => validarSaida(join(outro, 'clone', 'sub', 'saida.md'), raiz)).toThrow(/outro repositório git/);
+    const wt = join(outro, 'worktree');
+    mkdirSync(wt);
+    writeFileSync(join(wt, marca), 'gitdir: /x');
+    expect(() => validarSaida(join(wt, 'saida.md'), raiz)).toThrow(/outro repositório git/);
+  });
+});
+
 describe('cliente: lista fechada do spike', () => {
   it('aceita só /cards/comments (lote) além do que já havia; subcaminhos e variações continuam recusados', () => {
     const ok = (c: string): boolean => CAMINHOS_PERMITIDOS.some((p) => p.test(c));
     expect(ok('/cards/comments')).toBe(true);
     expect(ok('/cards/12/comments')).toBe(true);
     for (const c of ['/cards/comments/', '/cards/comments/12', '/cards/comments/../users', '/cards/commentsx', '//cards/comments']) expect(ok(c), c).toBe(false);
+  });
+  it('A1: /cards/comments exige card_ids e aceita só card_ids e page; recusa {}, {page} e {board_ids} antes da rede', async () => {
+    let chamadas = 0;
+    const fetchImpl = (async () => { chamadas += 1; return new Response(JSON.stringify({ data: [] }), { status: 200 }); }) as unknown as typeof fetch;
+    const c = criarClienteHttp({ urlBase: 'https://exemplo.invalido/api/v2', apikey: 'chave-do-teste-0123456789', limitePorMinuto: 1000, timeoutMs: 2000 }, { fetchImpl, dormir: () => Promise.resolve() });
+    for (const consulta of <Record<string, string | number>[]>[{}, { page: 1 }, { board_ids: '1' }, { card_ids: '1', board_ids: '1' }, { card_ids: '1', last_modified_from: '2026-01-01' }, { card_ids: Array.from({ length: 201 }, (_, i) => i + 1).join(',') }]) {
+      await expect(c.get('/cards/comments', { consulta }), JSON.stringify(consulta).slice(0, 40)).rejects.toMatchObject({ tipo: 'consulta' });
+    }
+    expect(chamadas).toBe(0);
+    await c.get('/cards/comments', { consulta: { card_ids: Array.from({ length: 200 }, (_, i) => i + 1).join(','), page: 2 } });
+    expect(chamadas).toBe(1);
   });
   it('o cliente real manda só GET em /cards/comments com card_ids (sem rede)', async () => {
     const pedidos: string[] = [];
@@ -236,7 +261,7 @@ describe('executarSpikeO22 (cliente falso)', () => {
     expect(r.saida).not.toMatch(/\b(7|9)\b.*conta/);
     expect(chamadas.map((c) => c.split('?')[0]).sort()).toEqual(['/boards', '/cards', '/cards', '/cards/10/revisions', '/cards/20/revisions', '/cards/comments', '/users'].sort());
     expect(chamadas.filter((c) => c.startsWith('/cards/comments')).every((c) => Object.keys(JSON.parse(c.split('?')[1]!)).sort().join() === 'card_ids,page')).toBe(true);
-    expect(chamadas.filter((c) => c.startsWith('/cards?')).every((c) => c.includes('"last_modified_from":"2026-08-24"'))).toBe(true);
+    expect(chamadas.filter((c) => c.startsWith('/cards?')).every((c) => c.includes('"last_modified_from":"2026-08-24T00:00:00Z"'))).toBe(true);
     expect(JSON.stringify(chamadas)).not.toContain('description');
     const conteudo = readFileSync(arq, 'utf8');
     expect(conteudo).toContain(NOME);
@@ -253,5 +278,38 @@ describe('executarSpikeO22 (cliente falso)', () => {
     const r = await executarSpikeO22({ cliente, quadros: [], caminhoSaida: join(fora, 'o22.md'), raizRepositorio: raiz });
     expect(r).toEqual({ saida: '', erro: 'erro-interno' });
     expect(() => statSync(join(fora, 'o22.md'))).toThrow();
+  });
+});
+
+describe('executarSpikeO22: erro de http diz a etapa', () => {
+  const falhando = (etapa: (c: string) => boolean, status = 400) => ({
+    get: (caminho: string) => {
+      if (etapa(caminho)) return Promise.reject(new ErroBusinessMap('http', `GET ${caminho} respondeu ${status}`, status));
+      if (caminho === '/cards') return Promise.resolve({ data: { data: [{ card_id: 10, board_id: 1, revision: 2, created_at: '2026-11-01T10:00:00Z', last_modified: '2026-11-02T10:00:00Z' }], pagination: { all_pages: 1 } } });
+      if (caminho.endsWith('/revisions')) return Promise.resolve({ data: [{ revision: 1, user_id: 7, replaced_at: null }] });
+      if (caminho === '/cards/comments') return Promise.resolve({ data: { data: [], pagination: { all_pages: 1 } } });
+      return Promise.reject(new Error('inesperado'));
+    },
+  }) as never as Parameters<typeof executarSpikeO22>[0]['cliente'];
+  const rodar = async (cliente: Parameters<typeof executarSpikeO22>[0]['cliente']) => {
+    const raiz = pasta();
+    return executarSpikeO22({ cliente, quadros: [1], caminhoSaida: join(pasta(), 'o.md'), raizRepositorio: raiz, agora: () => Date.parse('2026-11-16T12:00:00Z') });
+  };
+  it.each([
+    ['listagem de cards', (c: string) => c === '/cards', '/cards'],
+    ['revisões', (c: string) => c.endsWith('/revisions'), '/cards/10/revisions'],
+    ['comentários', (c: string) => c === '/cards/comments', '/cards/comments'],
+  ])('etapa %s: código HTTP e caminho sem consulta, nunca corpo nem credencial', async (etapa, quando, caminho) => {
+    const r = await rodar(falhando(quando));
+    expect(r.erro).toBe(`http (etapa: ${etapa}, HTTP 400, GET ${caminho})`);
+    expect(r.erro).not.toMatch(/\?|apikey|card_ids/);
+  });
+  it('falha de http em usuários não derruba a rodada', async () => {
+    const r = await rodar(falhando((c) => c === '/users'));
+    expect(r.erro).toBeNull();
+  });
+  it('outro tipo de erro segue com o tipo e a etapa', () => {
+    expect(descreverErro(new ErroBusinessMap('formato', 'x'), 'revisões', '/cards/1/revisions')).toBe('formato (etapa: revisões, GET /cards/1/revisions)');
+    expect(descreverErro(new Error('x'), 'revisões', '/x')).toBe('erro-interno');
   });
 });
