@@ -424,7 +424,8 @@ export const resultadoT3 = z.object({
   naturezas: z.array(
     z.object({
       natureza,
-      acordadoPct: z.number(),
+      /** Nulo = sem referência vigente (nunca 0): statusMeta sai sem-referencia. */
+      acordadoPct: z.number().nullable(),
       itens: medidaAlocacao,
       tempo: medidaAlocacao,
     }),
@@ -504,8 +505,10 @@ export const resultadoT7 = z.object({
   kpis: z.object({
     frentesEmAndamento: z.number(),
     projetosComFrentes: z.number(),
-    limiteFrentes: z.number(),
-    acimaDoLimite: z.boolean(),
+    /** Nulo = sem limite vigente (nunca 0). */
+    limiteFrentes: z.number().nullable(),
+    /** Nulo quando não há limite para comparar. */
+    acimaDoLimite: z.boolean().nullable(),
   }),
   porProjeto: z.array(
     z.object({ projetoId: z.string(), projeto: z.string(), abertas: z.number() }),
