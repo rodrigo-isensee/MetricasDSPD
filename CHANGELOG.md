@@ -5,10 +5,12 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Corrigido
+
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 
 ### Adicionado
+
 - S1 e S2: o texto do "registro posterior" vira linguagem simples (chamado registrado depois que o atendimento já aconteceu; pela regra fica de fora, mas hoje o Acelerato não traz essa marca e nenhum chamado é excluído por esse motivo) e o MTTR diz "pendente ou em validação", como o cálculo já faz; sem mudar cálculo (pedido 105, E3.48).
 - O15 (cartão): nota `o15-fora` com os bugs fora da conta, leitura por caso (percentuais indisponíveis, fases sem contagem), fase de contagem nula sem barra e com traço na tabela, gráfico omitido quando todas as fases são nulas, linha das fases sem contagem e nota metodológica com a fase de detecção; sem mudar contrato (pedido 105, E7.12, `docs/ux/105-o15-cartao.md`).
 - S11 (Avaliação de Problema) com dado real pela Decisão 18b do dono (pedido 099): no fluxo do PROC conta o campo nativo "Avaliação de Problema" preenchido, nos fluxos antigo e intermediário a passagem pela etapa "Causa Raiz", valendo o fluxo do chamado; o contorno passa pelo de-para do motivo de encerramento (antes "Contorno Aplicado" real não entrava); chamado sem fluxo ou com fluxo múltiplo fica fora e é contado em `semFluxo` (P-S11-1 aberta ao dono); a conversão em Registro de Problema sai nula com `motivoConversao`, nunca 0 de 0; contrato muda sem convivência (`conversao` anulável, `semFluxo` e `motivoConversao` obrigatórios); versão de critério `105:S11-avaliacao-18b`, gravada pelo `ac:ref-sync`; S11 no mapa de origem real; abaixo de 20 segue insuficiente (pedido 105, D6a, E6.28).
@@ -92,9 +94,11 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Testes da tela: T2 cobre a fronteira de 20 itens (20 já não é amostra insuficiente, 19 é) e o texto do S1 sobre prazos corridos e úteis é ligado às unidades de `ALVOS_PADRAO`; sem mudar comportamento (pedido 105, E3.60).
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 - Coleta do BusinessMap (pedido 105, O24, E7.52): a coleta grava em `ctl_coleta_contagem`, só números, `tags_classe_no_mapa` (etiquetas do catálogo que viraram classe) e `cards_com_etiqueta` (leituras de card com ao menos uma etiqueta, não cards distintos); mapa de classes vazio registra o aviso `aviso_mapa_classe_vazio` e a coleta segue com sucesso (a regra de classe e o teto não mudam).
+- T11 (Sazonalidade da chegada) com dado real: lê `dim_card` (`criado_em`), com a demanda criada = story que não é Bug interno (a chegada do T4 e do O7, regra única `ehDemandaCard`, lida do índice como o O7: arquivados entram; excluídos e subtarefas ficam fora), sem pessoa nem equipe responsável; abaixo de 20 demandas não publica; versão de critério `criterio-2026-11-16-t11-dado-real`; T11 no mapa de origem real (pedido 105, E7.64, D-T11 "A").
 - O26 (passagens de mão): segue sem dado real, agora com motivo próprio que diz a data: a base guarda a troca de responsável desde 09/11/2026 e a métrica precisa de 12 semanas de histórico, passando a ter dado real a partir de 01/02/2027; o cálculo não muda (pedido 105, decisão 2 do dono de 16/11, E7.55).
 
 ### Corrigido
+
 - Aba Apontamento (pedido 097, K-341, decisão do dono de 2026-11-14): no cartão Horas por projeto, a linha sem projeto ("Sem iniciativa") sai do gráfico e das dez vagas dos maiores e aparece como linha própria depois de "Demais" e do botão "Ver todos", com as horas dela, fora de "de N", "Mostrando todos os N projetos", "Ver todos os N" e "Demais N" e fora da região rolável; a frase de leitura não a escolhe e o achado de concentração diz à parte quantas horas ficaram sem projeto (`horasSemProjeto`). CA-33 e CA-34 atualizados na especificação de UX.
 - Painéis: no cartão recolhido em erro, o foco volta ao Expandir depois do Tentar de novo, e cada Tentar de novo leva o título do cartão no nome acessível (pedido 097, K-344, B-2 e B-3).
 - Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
@@ -175,6 +179,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Migração 0038 (pedido 105): `dim_chamado.fluxo` (fluxo do PROC do chamado), nulo até a reprojeção; roda no `db:migrate` (#469). Veja "Ações do dono na base real depois da release 105".
 
 ### Mudanças de critério de cálculo
+
 - Classe de serviço pelas etiquetas do card (`105:classe-por-etiqueta`, `afeta` O6, O24, T1, T2, T4 e T6): Intangível deixa de ser classe e a classe vem da etiqueta, sem etiqueta = sem classe. O dono registra a versão com `bm:criterios-classe-servico <data da primeira coleta com etiquetas>`; a carga das etiquetas nos cards já coletados exige uma releitura (`bm:coleta carga-inicial --projetar`), porque a coleta incremental não relê card parado (pedido 105, E7.3).
 - 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
 - 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
@@ -191,6 +196,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Pedido 099, D9: versão `criterio-2026-11-12-s12-volume-real` (2026-11-12), marca o S12 (#370).
 - Pedido 099, K-275: versão `criterio-2026-11-12-o17-por-sistema-dado-real` (2026-11-12), marca o O17 (#406).
 - Pedido 099, K-308: a versão `099:D-7-528` (intervalos por etapa com o dia útil de 8 h 48) é gravada pelo `ac:reprojetar-etapas`, com a data em que o dono roda o comando, e marca S1, S4, S9, S10 e EI; o K-314 (unidade de exibição) não muda cálculo e não grava versão (#389, #408).
+- Pedido 105, E7.64 (D-T11 "A"): versão `criterio-2026-11-16-t11-dado-real` (2026-11-16), marca o T11: demandas criadas = story que não é Bug interno; arquivadas entram, excluídas e subtarefas ficam fora (a chegada do O7 e do T4).
 
 ### Dependências e Forge
 
@@ -202,6 +208,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Grupo `producao` do Dependabot (#411): `mariadb` 3.5.4 para 3.5.5 (driver do MySQL do Acelerato; correções de escape sob big5, gbk, sjis e cp932 e no `Pool.escape()`, e conexão com charset não suportado passa a ser recusada; o coletor não define charset e fica no utf8mb4 padrão) e `@tanstack/react-query` 5.105.3 para 5.107.1 (só a correção de laço de renderização com erro de seletor). No lockfile, `@babel/runtime` 7.29.13, `lilconfig` 3.1.5 e `ws` 8.22.2 (via `puppeteer-core`). Sem quebra de comportamento nas notas de versão e sem ação do dono.
 
 ### Alterado
+
 - Classes de serviço (mudança de contrato em "Mudanças que quebram"): o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
 ### Ações do dono na base real depois da release 103
