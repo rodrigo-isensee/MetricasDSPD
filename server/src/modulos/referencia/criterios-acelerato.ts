@@ -45,6 +45,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão 18b do dono (pedido 099), aplicada pelo fluxo do chamado (pedido 105, D6a). Chamado sem fluxo ou com fluxo múltiplo fica fora e é contado; a conversão em Registro de Problema segue sem dado real. Afeta S11.',
     metricas: ['S11'],
   },
+  {
+    referencia: '105:S11-conversao-avaliacao',
+    descricao: 'Conversão do S11 pelo campo "Avaliação de Problema": "Aberto" ÷ avaliações registradas, só nos fluxos do PROC; abaixo de 20 avaliações não publica',
+    motivo: 'Decisão do dono (pedido 105, E7.101, 16/11): conversão pela decisão registrada no chamado, não pelo vínculo com o Registro de Problema. "Não aplicável e com justificativa" fica só no denominador; fluxos antigos ficam fora e são contados. Antes a conversão saía nula. Afeta S11.',
+    metricas: ['S11'],
+  },
 ];
 
 /**

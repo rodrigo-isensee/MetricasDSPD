@@ -70,7 +70,11 @@ export function BlocoNota({ id, aberta, nota, nestaTela, testid }: BlocoProps) {
       {SECOES.map((s) => (
         <section key={s.chave} className="mb-2 last:mb-0">
           <h4 className="font-semibold">{s.titulo}</h4>
-          <p className="text-texto-2">{nota[s.chave]}</p>
+          {nota[s.chave].split('\n\n').map((par) => (
+            <p key={par} className="text-texto-2">
+              {par}
+            </p>
+          ))}
         </section>
       ))}
       <section className="mt-3 border-t border-borda pt-2">

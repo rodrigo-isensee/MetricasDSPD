@@ -33,16 +33,30 @@ const recusa = (texto: string, tipos: readonly string[] = TIPOS_DO_TESTE): strin
 };
 
 describe('bm:ref-sync: o arquivo versionado', () => {
-  it('nasce vazio de campos, valido, e a lista positiva de tipos nasce vazia', () => {
+  it('E7.86: o arquivo traz só o campo 48 (Causa Raiz, dropdown) com as 12 opções do dono, e a lista positiva de tipos é só dropdown', () => {
     const lido = lerDominioBm();
-    expect(lido.arquivo.campos).toEqual([]);
+    // Escrito AQUI, não importado do código (B-1 da ADR 0020): rótulos exatamente como o dono passou, na ordem dele.
+    const ROTULOS = ['Requisito mal definido', 'Requisito alterado', 'Erro de lógica / codificação', 'Falha de integração', 'Dados / massa de teste',
+      'Configuração de ambiente', 'Efeito colateral', 'Dependência externa', 'Teste insuficiente', 'Layout / interface', 'Não é bug', 'Outros'];
+    expect(lido.arquivo.campos).toHaveLength(1);
+    expect(lido.arquivo.campos[0]).toMatchObject({ field_id: '48', type: 'dropdown', coluna: 'causa_raiz' });
+    expect(lido.arquivo.campos[0]!.valores.map((v) => v.rotulo)).toEqual(ROTULOS);
+    expect(new Set(lido.arquivo.campos[0]!.valores.map((v) => v.codigo)).size).toBe(12);
+    expect(listasDoArquivo(lido.arquivo)['campo_customizado']).toEqual([{ codigo: '48', rotulo: 'causa_raiz' }]);
+    expect(lido.arquivo.versao_criterio.descricao).toContain('2026-11-16');
     // C8a: escrito AQUI, não importado do código (B-1 da ADR 0020); fato da OpenAPI v2 do BusinessMap, escala decrescente
     expect(lido.arquivo.prioridade_severidade).toEqual([
       { codigo: '1', rotulo: 'Crítica' }, { codigo: '2', rotulo: 'Alta' }, { codigo: '3', rotulo: 'Média' }, { codigo: '4', rotulo: 'Baixa' },
     ]);
-    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O15']);
+    expect(lido.arquivo.versao_criterio.afeta).toEqual([]);
     expect(lido.sha256).toBe(createHash('sha256').update(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')).digest('hex'));
-    expect(TIPOS_SELECAO_UNICA).toEqual([]);
+    expect(TIPOS_SELECAO_UNICA).toEqual(['dropdown']);
+  });
+
+  it('E7.86: o field 48 com tipo de texto livre é recusado pela lista positiva do código', () => {
+    const ruim = JSON.parse(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')) as { campos: { type: string }[] };
+    ruim.campos[0]!.type = 'single_line_text';
+    expect(() => analisarDominioBm(JSON.stringify(ruim))).toThrow(ErroDominio);
   });
 
   it('com a lista positiva vazia (a do código), toda carga com campo é recusada inteira', () => {
@@ -89,7 +103,7 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     recusa(arquivo([campo({ field_id: id })]));
   });
 
-  it.each(['owner_user_id', 'inexistente', 'campo_customizado', 'causa_raiz', '__proto__'])('CA-069-2: coluna %s fora do enum fechado recusa', (coluna) => {
+  it.each(['owner_user_id', 'inexistente', 'campo_customizado', 'fase_deteccao', '__proto__'])('CA-069-2: coluna %s fora do enum fechado recusa', (coluna) => {
     recusa(arquivo([campo({ coluna })]));
   });
 

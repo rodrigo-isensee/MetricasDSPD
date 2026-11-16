@@ -44,6 +44,7 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
           }
         : {})}
       {...(leitura ? { leitura } : {})}
+      {...(d && d.kpis.acimaDoLimite === null ? { textoStatus: 'Limite não definido' } : {})}
       statusMeta={
         d
           ? d.kpis.acimaDoLimite === null

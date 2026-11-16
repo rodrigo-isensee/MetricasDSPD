@@ -79,7 +79,7 @@ describe('T2: fronteira de 20 itens', () => {
 })
 
 describe('T3: alocação sem desvio calculado', () => {
-  it('percentual publicado sem desvio: mostra 0,0 p.p. sem sinal e não cita no resumo', async () => {
+  it('percentual publicado sem desvio: não mostra desvio 0 nem a leitura de menos de 20 itens', async () => {
     renderizarCartao(<CartaoT3 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
         T3: (r: {
@@ -95,8 +95,10 @@ describe('T3: alocação sem desvio calculado', () => {
       }),
     })
     const el = await pronto('T3')
-    expect(within(el).getAllByText(/desvio 0 p\.p\./).length).toBeGreaterThan(0)
-    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('Percentuais indisponíveis')
+    expect(within(el).getAllByText(/realizado 10/).length).toBeGreaterThan(0)
+    expect(within(el).queryByText(/desvio [+\d-]/)).not.toBeInTheDocument()
+    expect(within(el).queryByText(/menos de 20 itens entregues/)).not.toBeInTheDocument()
+    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('como a capacidade foi dividida')
   })
 })
 
