@@ -84,26 +84,24 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     // "Como ler" abre e traz o texto da métrica.
     const t10 = page.getByTestId('metrica-T10');
     await t10.getByRole('button', { name: 'Como ler e como é calculado' }).click();
-    await expect(page.getByTestId('nota-T10')).toContainText('maiúsculas, minúsculas e espaços não separam o mesmo nome');
+    await expect(page.getByTestId('nota-T10')).toContainText('sem separar por fornecedor');
   });
 
-  test('TT-03 CA-11, CA-24, CA-36 e CA-50: T10 em ordem alfabética, prazo contratado não informado, sem coluna de contrato nem "dentro/acima"', async ({ page, painel }) => {
+  test('TT-03 CA-24, CA-36 e CA-50 (pedido 105, E7.82): T10 com o total esperando fornecedores, prazo contratado não informado, sem coluna de contrato nem "dentro/acima"', async ({ page, painel }) => {
     await abrir(page, painel, '/tatico');
     const t10 = page.getByTestId('metrica-T10');
     const tabela = t10.getByTestId('tabela-T10');
-    const nomes = (await tabela.getByRole('rowheader').allInnerTexts()).map((n) => n.trim());
-    expect(nomes.length, 'o mock tem fornecedores').toBeGreaterThanOrEqual(3);
-    expect(nomes, 'ordem alfabética, nunca por desempenho').toEqual([...nomes].sort((a, b) => a.localeCompare(b, 'pt-BR')));
-    await expect(tabela.getByRole('columnheader')).toHaveText(['Fornecedor', 'Bloqueios', 'Dias úteis somados', 'Duração (P50 e P85)']);
+    await expect(tabela.getByRole('columnheader')).toHaveText(['Espera', 'Bloqueios', 'Dias úteis somados', 'Duração (P50, P85 e P95)']);
+    await expect(tabela.getByRole('row'), 'cabeçalho e uma só linha de total').toHaveCount(2);
+    await expect(tabela.getByRole('rowheader')).toHaveText(['Esperando fornecedores']);
     await expect(t10).toContainText('Prazo contratado não informado');
+    await expect(t10.getByTestId('t10-motivo')).toContainText('nome do fornecedor não é guardado');
     expect(await t10.innerText()).not.toMatch(/dentro do (prazo )?contratado|acima do (prazo )?contratado|SLA contratado/i);
-    // Fornecedor com 17 bloqueios (< 20): sem P50/P85, com a contagem e a soma. Fornecedor com 20 ou mais: P50 e P85.
-    const alfa = tabela.getByRole('row').filter({ hasText: 'Fornecedor Alfa' });
-    await expect(alfa).toContainText('— amostra insuficiente');
-    await expect(alfa).not.toContainText(/P50|P85/);
-    await expect(alfa).toContainText('17');
-    const beta = tabela.getByRole('row').filter({ hasText: 'Fornecedor Beta' });
-    await expect(beta).toContainText(/P50 [\d,.]+ · P85 [\d,.]+ dias úteis/);
+    // Com menos de 20 bloqueios: contagem e soma, sem percentis. Com 20 ou mais: P50, P85 e P95 (CA-50).
+    const celulas = await tabela.getByRole('row').nth(1).getByRole('cell').allInnerTexts();
+    const bloqueios = Number(celulas[0]!.replace(/\D/g, ''));
+    if (bloqueios >= 20) await expect(tabela).toContainText(/P50 [\d,.]+ · P85 [\d,.]+ · P95 [\d,.]+ dias úteis/);
+    else await expect(tabela).toContainText('— amostra insuficiente');
     // Sem pessoa: nenhum e-mail nem @.
     expect(await t10.innerText()).not.toMatch(/@/);
   });
@@ -112,7 +110,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     await page.route(/\/metricas\/T10(\?|$)/, async (rota) => {
       const resp = await rota.fetch();
       const json = await resp.json();
-      await rota.fulfill({ response: resp, json: { ...json, fornecedores: [], totalDiasUteis: 0 } });
+      await rota.fulfill({ response: resp, json: { ...json, fornecedores: [], totalDiasUteis: 0, esperaFornecedores: undefined, motivoSemFornecedores: undefined } });
     });
     await abrir(page, painel, '/tatico');
     const t10 = page.getByTestId('metrica-T10');

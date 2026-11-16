@@ -160,7 +160,12 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(n).toBe(esperado)
     expect(n).toBeGreaterThan(0)
-    expect(contarSemDadoReal('tatico', 'api')).toBe(cartoesDoPainel('tatico').length)
+    // Tático: o T10 ganhou dado real (pedido 105, E7.77), então o cartão dele sai da contagem; os demais seguem sem dado.
+    const semDadoTatico = cartoesDoPainel('tatico').filter((c) =>
+      c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
+    ).length
+    expect(contarSemDadoReal('tatico', 'api')).toBe(semDadoTatico)
+    expect(semDadoTatico).toBeLessThan(cartoesDoPainel('tatico').length)
   })
 })
 
