@@ -24,6 +24,7 @@
     "ac:reprojetar-fluxo": "tsx src/entradas/reprojetar-fluxo-ac.ts",
     "ref:sync-calendario": "tsx src/entradas/ref-sync-calendario.ts",
     "bm:spike": "tsx src/entradas/spike-businessmap.ts",
+    "bm:spike-campos": "tsx src/entradas/spike-campos-businessmap.ts",
     "bm:coleta": "tsx src/entradas/coleta-businessmap.ts",
     "bm:projetar": "tsx src/entradas/projetor-businessmap.ts",
     "bm:d1-comment": "tsx src/entradas/d1-comentario-businessmap.ts",

@@ -57,7 +57,7 @@ export function foraDoRepositorio(dir: string, raiz: string): string {
 }
 
 /** Cria a pasta da saída (0700); se já existe, só aceita vazia e a deixa em 0700. Erro de sistema vira mensagem limpa. */
-async function prepararSaida(dir: string): Promise<void> {
+export async function prepararSaida(dir: string): Promise<void> {
   const st = await lstat(dir).catch(() => undefined);
   if (st !== undefined && !st.isDirectory()) throw new Error('diretório da saída bruta existe e não é pasta: recusado');
   try {
