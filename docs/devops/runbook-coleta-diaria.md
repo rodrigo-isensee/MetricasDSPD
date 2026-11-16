@@ -2,6 +2,8 @@
 
 Decisões do dono e riscos aceitos: ADR 0022 item 6 e ADR 0023 §8. Desenho: `docs/devops/061-coleta-diaria.md` (opção B1). Nada neste documento foi executado no servidor; é o roteiro para quem instala.
 
+> Produção na VM da empresa (banco e HTTPS da empresa): use `docker-compose.prod.yml` e siga `docs/devops/105-implantacao-vm.md`; as senhas padrão `_dev` citadas no item 3.4 só existem no Compose de desenvolvimento. Na VM, sem `PESSOA_ELIMINADA_SAL` no `coleta.env`, o Apontamento para sem dado (a coleta passa a avisar, K-382).
+
 ## 1. O que roda e quando
 
 Horários em America/Sao_Paulo (o fuso está na própria unidade, o relógio do host pode ficar em UTC).
