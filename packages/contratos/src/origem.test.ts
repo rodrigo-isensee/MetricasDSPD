@@ -299,9 +299,11 @@ describe('notas só da sustentação (pedido 069, L9-a)', () => {
 })
 
 describe('pedido 099 (O12): responsabilidade do atraso sem fonte', () => {
-  it('o interruptor nasce desligado e o motivo diz que o prazo não diz de quem foi o atraso', () => {
-    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
-    expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).toContain('não de quem foi o atraso')
+  it('E7.214: o interruptor está ligado e o motivo diz a data em que a contagem começa, em minúsculas e sem ponto final', () => {
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(true)
+    expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).toContain('16/11/2026')
+    expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).toMatch(/^[a-z]/)
+    expect(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL).not.toMatch(/\.$/)
   })
 
   it('motivoResponsabilidade recusa texto vazio e aceita texto ou nulo', () => {

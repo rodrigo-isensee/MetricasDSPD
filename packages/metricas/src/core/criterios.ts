@@ -302,6 +302,19 @@ export const VERSAO_CRITERIO_T11_DADO_REAL: VersaoCriterio = {
   afeta: ['T11'],
 }
 
+/**
+ * Pedido 105 (E7.214): o O12 passa a dividir os vencidos pela responsabilidade do atraso lida do campo 51 do BusinessMap ("Responsabilidade do Atraso",
+ * casado pelo value_id); a parte só é publicada quando algum card vencido vem classificado, e a contagem começa em 16/11/2026. A Visão geral entra porque o
+ * alerta de vencidos por causa interna volta a poder ser gerado. Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-16-o12-responsabilidade-dado-real',
+  data: '2026-11-16',
+  descricao:
+    'O12 passou a dividir os vencidos pela responsabilidade do atraso (campo Responsabilidade do Atraso do BusinessMap: Interno, Solicitante, Terceiro); a divisão só é publicada quando algum card vencido vem classificado, e a contagem começa em 16/11/2026',
+  afeta: ['O12', 'VISAO_GERAL'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -328,6 +341,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O18_VINCULOS,
   VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
   VERSAO_CRITERIO_T11_DADO_REAL,
+  VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
 ]
 
 /**
