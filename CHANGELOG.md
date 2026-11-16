@@ -10,6 +10,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Corrigido
 
+- `bm:ref-sync` grava por campo: campo igual ao vigente fica como está (sem nova vigência, sem erro); campo novo ou mudado grava; campo mudado que já tem vigência aberta na data é recusado sozinho, com a mesma mensagem, e listado em `recusados` na saída, e os outros gravam. Antes uma recusa derrubava a carga toda (os motivos de bloqueio não entravam depois da Causa Raiz do mesmo dia). Histórico só cresce (append-only); a versão de critério segue uma vez por texto (pedido 105, K-383, E7.269).
+- S8 (taxa de reabertura) só com incidentes com o campo de reincidência respondido, decisão A do dono (pedido 105, E7.237): "sem resposta" sai do denominador e o cartão diz "N incidentes sem resposta no campo"; abaixo de 20 respondidos, amostra insuficiente pela biblioteca (testes nas bordas 19 e 20); campo novo e opcional `semResposta` no contrato (compatível); versão de critério `105:S8-so-respondidos` (afeta S8), gravada pelo `ac:ref-sync`. Substitui a D-10.
 - Bloqueios (O2, O19, BLOQUEADOS, T10, T12): os motivos passam a ser os 11 habilitados no BusinessMap (ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; id sem mapa ou nulo segue "não classificado"; os motivos de fornecedor do T10 são "Aguardando fornecedor" e "Dependência Externa". Versão de critério `criterio-2026-11-16-motivos-bloqueio-bm` (pedido 105, decisão B do dono, E7.184).
 - Coleta (`bm:coleta incremental --projetar`): quando `PESSOA_ELIMINADA_SAL` falta, a etapa do Apontamento deixa de sumir calada; a coleta imprime um aviso (log e stderr, sem valor de segredo) e grava `avisos: ["apontamento-sem-sal"]` no resumo; o código de saída não muda (pedido 105, K-382, E7.262).
 - Coleta do BusinessMap: os campos 48 (Causa Raiz) e 49 (Origem da Demanda) casam pelo `value_id`, que é o que a API manda nos cards (sem rótulo); antes o 48 casava pelo rótulo e a carga viraria tudo desconhecido. O arquivo de domínio guarda o `value_id` de cada opção (12 no 48, 6 no 49), `value_id` fora do catálogo vira desconhecido e é contado, e `origem_demanda` passa a ser coletada para o O14 ("Demanda nova" é demanda de valor, não falha). Versão de critério de 2026-11-16 marca O14 e O17 (pedido 105, E7.203).
@@ -21,6 +23,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - O8 por tamanho (pedido 105, volta do review, QA, segurança e UX): `size` 0 conta como sem valor (nota `size_sem_valor`); o `bm:ref-sync` informa quantas linhas da régua são de time inexistente em `ref_time` (`reguaTimesDesconhecidos`, só a contagem); a nota "Sem divisão por tamanho" não diz mais que falta tamanho no quadro (diz que não há tamanho na régua do time), a nota da régua explica "Sem tamanho" e a legenda do gráfico só traz "Sem tamanho" quando há card nessa faixa; documentação de arquitetura com as seis faixas pela régua do time.
 - O17 (sustentação): o motivo da causa raiz é definitivo, por decisão do dono (16/11): o campo "Causa raiz" do Acelerato é texto livre, nunca entra na base (ADR 0020), e a causa raiz de incidente não é contada; sai o "aguardando o Registro de Problemas" (pedido 105, K-372).
 - Base de fallback do BusinessMap sem limite de frentes (`null`, não 0), com teste de que o T7 sai sem limite; o contrato não muda (pedido 105, K-375).
+
+### Alterado
+
+- S9 (sustentação): o cartão avisa que o motivo da pendência não está sendo preenchido no Acelerato e por isso aparece como Não classificado; cálculo e contrato não mudam (pedido 105, E7.254).
 
 ### Adicionado
 
