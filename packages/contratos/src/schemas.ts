@@ -12,6 +12,7 @@ import {
   SEVERIDADES,
   METRICA_IDS,
   FASES_DETECCAO,
+  TAMANHOS_REGUA,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
   MOTIVOS_ENCERRAMENTO_PUBLICADOS,
   MOTIVOS_ESCALACAO_PUBLICADOS,
@@ -887,7 +888,7 @@ export const resultadoVisaoGeral = z.object({
 })
 
 /* ---------- Métricas complementares (dados mockados; ver docs/architecture/features/metricas-complementares.md) ---------- */
-const tamanho = z.enum(['P', 'M', 'G', 'Sem tamanho'])
+const tamanho = z.enum([...TAMANHOS_REGUA, 'Sem tamanho'])
 
 /** O5: eficiência de fluxo por tipo. Percentuais 0 a 100. Horas úteis. */
 export const resultadoO5 = z.object({
@@ -948,7 +949,11 @@ export const resultadoO8 = z
             acimaP85AnteriorPct: z.number().nullable(),
           }),
         ),
-        /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+        /**
+         * null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`.
+         * Com dado (105, E7.102): as seis faixas da régua (PP, P, M, G, GG, XG) sempre, nessa ordem; faixa sem entregas vem com `n` 0 e `mediana` nula ("sem entregas neste tamanho"; nunca 0);
+         * faixa com `n` de 1 a 19 também vem com `mediana` nula (insuficiente). "Sem tamanho" vem por último, só com `n` maior que 0.
+         */
         porTamanho: z
           .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
           .nullable(),

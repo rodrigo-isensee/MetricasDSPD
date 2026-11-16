@@ -26,7 +26,7 @@ Regra: o termo canônico é o da primeira coluna (confirmação do idioma penden
 | Tipo de card | [`card-type`](../../especificacao/domain/flow/card-type.md) | `dim_card.tipo` | Taxonomia de sete tipos; um tipo só por card | briefing 4.3 |
 | Classe de serviço | [`service-class`](../../especificacao/domain/flow/service-class.md) | `dim_card.classe_servico` | Urgente, Prazo fixo, Padrão, Intangível | briefing 4.5 |
 | Granularidade | [`granularity`](../../especificacao/domain/flow/granularity.md) | `dim_card.granularidade` | Story, frente ou projeto; nunca no mesmo histograma | briefing 02, 4.2 |
-| Tamanho declarado | [`declared-size`](../../especificacao/domain/flow/declared-size.md) | `dim_card.tamanho_declarado` | P, M ou G | briefing 4.4 |
+| Tamanho declarado | [`declared-size`](../../especificacao/domain/flow/declared-size.md) | `dim_card.tamanho_declarado` | PP, P, M, G, GG ou XG, pela régua do time; sem tamanho quando o `size` falta ou não está na régua | briefing 4.4 |
 | Responsabilidade do atraso | [`delay-responsibility`](../../especificacao/domain/flow/delay-responsibility.md) | `dim_card.responsabilidade_atraso` | Interno, Solicitante ou Terceiro, no vencimento | briefing 4.4 |
 | Severidade | [`severity`](../../especificacao/domain/flow/severity.md) | `dim_card.severidade` | Crítica, Alta, Média, Baixa (bug) | briefing 4.4 |
 | Fase de detecção | [`detection-phase`](../../especificacao/domain/flow/detection-phase.md) | `dim_card.fase_deteccao` | Onde o bug foi encontrado | briefing 4.4 |
