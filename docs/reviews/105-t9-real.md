@@ -3,13 +3,13 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-t9-real
-commit: f71645077b0bb66abcf3ae212d26598b0a4fed0c
+commit: 9fd6b8c2fc4667afa2e29becb32b9d2df37da69e
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: T9 avanço real e escopo com dado real (105, E7.90; revalidação E7.126)
+# Code review: T9 avanço real e escopo com dado real (105, E7.90; revalidações E7.126 e E7.152)
 
 Primeira passada: de `ffc59d8a` (Base-sha) até `6b772b00`: `af2c1270` (métrica, contrato, critério e tela), `883747de` (testes de origem e faixa do Tático) e `6b772b00` (nota no singular e no plural). 16 arquivos, +299/-18.
 
@@ -23,8 +23,20 @@ Delta lido com `forge-check parecer delta docs/reviews/105-t9-real.md`: interval
 - **Regras invioláveis.** Só texto de tela e teste; cálculo intacto, sem pessoa, sem mistura de fontes nem de granularidades.
 - **Tamanho (M14).** O corpo do PR 483 traz `teto: excedido, 296 linhas (o excesso é de teste)`: A3 resolvido.
 
+## Revalidação do merge da develop (E7.152)
+Delta lido com `forge-check parecer delta docs/reviews/105-t9-real.md`: intervalo `f7164507..9fd6b8c2`, sem o que veio da base. No domínio: `CHANGELOG.md`, `docs/api/openapi.json`, `packages/contratos/src/origem.test.ts`, `packages/contratos/src/origem.ts`, `packages/contratos/src/schemas.ts`, `packages/metricas/src/core/criterios.ts`, `server/tests/painel-real-f6.test.ts`, `server/tests/qa-f6-painel.test.ts` e `web/src/features/coleta/origem.test.tsx`. O que é do T11 (E7.64), do O26 (E7.55) e do T3/T7 nulos (E7.62) chegou da develop com os pareceres deles; aqui conferi só a resolução, pelo `git show --cc 9fd6b8c2` (o que difere dos dois pais).
+
+- **Código de produção do T9 intacto.** `origem.ts` e `criterios.ts`: T9 e T11 lado a lado em `METRICAS_ORIGEM_REAL` e em `VERSOES_DA_BIBLIOTECA`, cada um com o seu comentário e a sua versão de critério (`criterio-2026-11-16-t9-escopo-criado-em` e `criterio-2026-11-16-t11-dado-real`, ids distintos). Nada do `t9.ts`, do `CartaoT9` nem do contrato do T9 mudou.
+- **`origem.test.ts`.** A lista esperada das reais tem `T9` e `T11`, cada um com a sua origem no comentário.
+- **`server/tests/qa-f6-painel.test.ts`.** Asserção reescrita: a lista das reais traz `T9` e `T11`, e o laço do FL2 exclui as duas (`m !== 'T9' && m !== 'T11'`); as demais T e E seguem `sem-dado`. É a união exata das duas versões; nenhum lado afrouxou.
+- **`web/src/features/coleta/origem.test.tsx`.** Tático conta `cartoesDoPainel('tatico').length - 2` e confere `semDadoReal` falso para T9 e para T11; `contarSemDadoReal` segue igual à lista filtrada. União das duas versões, sem perder asserção.
+- **CHANGELOG.** As duas entradas do T9 (E7.68 e E7.119) seguem em `### Adicionado`, ao lado das do T11 e do O26; nenhum item perdido. As linhas em branco depois dos títulos de seção vieram da develop.
+- **Rodei os três testes reescritos no head `9fd6b8c2`:** `web/src/features/coleta/origem.test.tsx` 18 de 18, `server/tests/qa-f6-painel.test.ts` 6 de 6, `packages/contratos/src/origem.test.ts` 26 de 26, todos verdes. Suíte inteira: CI do head (abaixo).
+
 ## CI do head
-`f7164507`: run do PR 43847934403 `completed:success` e run de push 43847926313 `success`. No job `testes` do run do PR, cobertura do web: `Statements 100% (5892/5892)`, `Branches 100% (5734/5734)`, `Functions 100% (2143/2143)`, `Lines 100% (5038/5038)`; 114 arquivos e 1843 testes verdes. `e6694be3` muda só o parecer do QA.
+`9fd6b8c2`: run de push 43852723503 `completed:success` (jobs `filtro`, `rapida`, `seguranca`, `openapi`, `build`, `testes`, `banco` e `imagem` verdes; `perf` e `e2e` pulados pelo filtro). O run do PR 43852730813 saiu `cancelled` pela concorrência: o push de `2d2ef978` (só o parecer do QA, `docs/qa/105-t9-real.md`) o substituiu.
+
+Anterior, `f7164507`: run do PR 43847934403 `completed:success` e run de push 43847926313 `success`. No job `testes` do run do PR, cobertura do web: `Statements 100% (5892/5892)`, `Branches 100% (5734/5734)`, `Functions 100% (2143/2143)`, `Lines 100% (5038/5038)`; 114 arquivos e 1843 testes verdes. `e6694be3` muda só o parecer do QA.
 
 ## O que foi conferido na primeira passada
 - **Regra do dono (D-T9 "T9 A") em `t9.ts`:** frente adicionada = `criado_em` da frente estritamente depois do `iniciado_em` do projeto; a criada antes conta como original. Derivada na leitura, sem coluna nova nem migração; `adicionado_apos_inicio_pai` deixa de ser lida pelo T9. A limitação (instante do vínculo não guardado) vira nota no cartão, não inferência no código.
