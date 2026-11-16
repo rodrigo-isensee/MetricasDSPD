@@ -17,7 +17,8 @@ data: 2026-11-16
 Revalidação do delta `8ec2598e..0b4afd15` (`forge-check parecer delta`, sem o que veio da `develop`). Obrigações: as decisões do dono de 16/11 (campo de urgência do BM, leitura 2, D-T2, nula, P-1, P-3, P-4, P-5, P-7) e o plano `plano-prioridade.md` (fora do repositório). Cabeça de código `d3795d73` (volta 1 do autor, hash regravado e e2e atualizado por mim); cabeça do CI `0b4afd15`, que só soma pareceres de review sobre ela.
 
 ## Achados
-Nenhum aberto. Os da rodada anterior:
+
+## Achados da rodada anterior (resolvidos)
 - A1 (resolvido) server/tests/painel-real-f6.pg.test.ts:124 · `.pg` agora afirma T1 real com `semPrioridade.total = base.n + semPrioridade.n` (d1); check `banco` verde.
 - A2 (resolvido) docs/qa/evidencias/hash-base-fase-a.json:1 · regravado por mim pelo gate do e2e (hashBase b6a3c384 para ef67b23e; hashBusinessMap 8d47d431 para 1f3e6fd7; Acelerato intacto), com a razão em `.nota.md`, commit `fcd3a117`; check `build` verde.
 - A3 (resolvido) packages/mock · cobertura de branches em 744/744 (100%) local e check `testes` verde.
