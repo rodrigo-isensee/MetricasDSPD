@@ -3,41 +3,40 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-test-pg-ambiente
-commit: 944aa74c86daea77411965377cc82f9c528f13b9
-parecer: reprovado
+commit: 0c44ef9448ecde1aba1f2ba2a2f2ba5f6816b0c6
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: test:pg com Postgres descartável por execução (105, K-392, E7.333)
+# Code review: test:pg com Postgres descartável por execução (105, K-392, E7.353)
 
-Intervalo: `655029ad` (Base-sha) até `944aa74c`, um commit (`fix(test-pg): Postgres descartável por execução, senhas de um só lugar (K-392)`). 2 arquivos, +32/-6 (código: `scripts/test-pg.sh` +28/-6, dentro da orientação M14).
+## Revalidação (volta 1, head `0c44ef94`)
+Delta lido: `forge-check parecer delta docs/reviews/105-test-pg-ambiente.md`, intervalo `944aa74c..0c44ef94` (commit `7b6a826d` e o merge da própria branch). No domínio: `.env.example`, `README.md`, `docs/engineering/carga-da-pesquisa-de-percepcao.md`, `docs/engineering/operacao-banco.md`, `scripts/test-pg.sh`.
 
-## O que foi conferido
-- **Mecânica do descartável.** Projeto Compose `metricasdspd-teste-<8 hex>` (o `name:` do `docker-compose.yml` lê `COMPOSE_PROJECT_NAME`), então volume (`<projeto>_dspd-pg-data`) e contêiner são próprios; porta livre pedida ao SO; `POSTGRES_PASSWORD` aleatória por instância; `trap limpar EXIT` com `down -v --remove-orphans`. Sondas locais: o `trap` de EXIT não troca o código de saída (`exit 7` com `limpar` falhando sai 7) e o `TERM` passa por `exit 130` e roda a limpeza.
-- **Senhas.** O script fixa os `DSPD_PWD_*` com padrão e exporta todos; o Compose (init `01-databases-papeis.sh`) e os testes (`process.env.DSPD_PWD_* ?? '<x>_dev'`) leem as mesmas variáveis, então não há mais divergência entre papel e teste dentro da execução. Os padrões literais seguem repetidos no `docker-compose.yml:12-19` e nos testes, mas como o script sempre exporta, no `test:pg` eles não entram.
-- **CI.** Os jobs `banco` (`ci.yml:145`) e de `homolog.yml:123` chamam `pnpm --filter @metricas-dspd/server run test:pg` direto, sem o script: nada muda na CI.
-- **Regras invioláveis.** Sem efeito em cálculo, fonte ou dado pessoal; nenhuma credencial real no código (valores `_dev` de desenvolvimento, já públicos no Compose e no `.env.example`).
-- **shellcheck** em `scripts/test-pg.sh`: SC2164 na linha 8 (`cd` sem `|| exit`) e SC1091 informativo na 9; as duas linhas são anteriores ao diff.
+- **A1 resolvido.** `scripts/test-pg.sh:12-14` guarda a `PG_TESTE_URL` do ambiente antes de carregar o `.env` e decide só por ela (valor vindo só do `.env` é descartado com `unset`). `.env.example:21-23` deixa a variável comentada e explica o uso. Sondas S3 a S5 abaixo: com `.env` copiado do exemplo, e até com a variável descomentada no `.env`, o descartável sobe; só a variável no ambiente o pula.
+- **A3 resolvido.** `README.md:18` descreve o descartável, a exceção por `PG_TESTE_URL` no ambiente e a limpeza após `kill -9`; `carga-da-pesquisa-de-percepcao.md:10` situa o K-095 como caso só de `PG_TESTE_URL` apontando para banco antigo.
+- **A4 resolvido.** `operacao-banco.md:104` diz que a CI não passa pelo script, que o `.env` é ignorado para essa variável, como limpar resto após `kill -9` e que HUP, INT e TERM são tratados. `trap 'exit 129' HUP` (`test-pg.sh:34`) conferido pela S6.
+- **A2 segue aberto (recomendado).** O ADR 0014 não está no delta; a nota continua devida antes do merge na `develop` (ver abaixo).
+- **shellcheck** em `scripts/test-pg.sh` no head: só SC1091 informativo na linha 13 (`. ./.env`); o SC2164 da linha 8 sumiu com o `|| exit 1`.
 
 ## Suíte
-Sem PR para a branch: a suíte inteira fica para o CI do PR, e este parecer não afirma CI verde. Cito o PQ do autor: `test:pg` completo sem `.env`, 342 de 342. Não rerrodei o SHA; rodei as sondas abaixo com `docker` e `pnpm` falsos.
+Sem PR para a branch: a suíte inteira fica para o CI do PR, e este parecer não afirma CI verde. Cito o PQ do autor: dois caminhos provados e `test:pg` 342 de 342. Não rerrodei o SHA; rodei as sondas com `docker` e `pnpm` falsos, `env -i`, numa cópia do script.
 
 ## Achados
-- A1 (bloqueante) scripts/test-pg.sh:9 · o `.env` carrega antes da guarda da linha 17 e o `.env.example:22` traz `PG_TESTE_URL`; com o `cp .env.example .env` do README, o script pula o descartável e volta ao `metricas_test` compartilhado na 5432 (S1).
-- A2 (recomendado) docs/architecture/adr/0014-stack-tecnica-do-back-end.md:88 · nota de revisão datada: `test:pg` local em instância descartável por execução; prefixo e "sem Testcontainers" mantidos; CI no service container.
-- A3 (recomendado) README.md:18 · ainda diz "no mesmo Postgres"; `docs/engineering/carga-da-pesquisa-de-percepcao.md:10` ensina reparar o `metricas_test` compartilhado (K-095), que o K-392 elimina.
-- A4 (recomendado) docs/engineering/operacao-banco.md:104 · a CI não passa pelo script; reescrever o caso `PG_TESTE_URL` depois do A1 e dizer como limpar resto `metricasdspd-teste-*` após `SIGKILL`.
-
-## Detalhe dos achados
-- **A1.** O primeiro uso documentado (`README.md:18`, `docs/architecture/server.md:156`) é `cp .env.example .env`, e esse `.env` define `PG_TESTE_URL=postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test`: exatamente o ambiente que o K-392 quer eliminar. O autor provou só o caminho sem `.env` (S2). Sugestão: guardar `PG_TESTE_URL` do ambiente antes de carregar o `.env` e decidir por ela (só a CI ou quem a exporta explicitamente usa banco externo), ou um interruptor explícito; e tirar `PG_TESTE_URL` do `.env.example` (arquivo `.env*`, edição do tech-lead no retorno). Teste do ramo de falha: `.env` com `PG_TESTE_URL` e o `docker` falso tem de ser chamado.
-- **A2.** As linhas 30, 77, 89-91 e 95 do ADR descrevem o "mesmo `postgres` do compose", o `metricas_test` compartilhado, senhas do `.env` e `db:limpar-testes` para restos. A decisão central não cai: o prefixo continua (o `globalSetup` o aplica, a CI depende dele, `DSPD_TESTE_MANTER` segue valendo) e Testcontainers segue fora (um contêiner por execução da suíte, não por teste). Nota curta do `software-architect` com o tech-lead, na mesma entrega, com critério de reversão: voltar ao compartilhado se subir o Postgres por execução passar a pesar no `pronto`.
-- **A3.** Definição de pronto: documentação afetada atualizada na mesma entrega.
-- **A4.** O `trap` não roda em `SIGKILL`; o resto sai com `docker compose -p <projeto> down -v`.
+- A1 (bloqueante) scripts/test-pg.sh:9 · resolvido em `7b6a826d`: decisão pela `PG_TESTE_URL` do ambiente antes do `.env` (S3, S4, S5).
+- A2 (recomendado) docs/architecture/adr/0014-stack-tecnica-do-back-end.md:88 · nota de revisão datada pendente: `test:pg` local em instância descartável por execução; prefixo e "sem Testcontainers" mantidos; CI no service container; critério de reversão.
+- A3 (recomendado) README.md:18 · resolvido em `7b6a826d`.
+- A4 (recomendado) docs/engineering/operacao-banco.md:104 · resolvido em `7b6a826d`.
+- A5 (recomendado) scripts/test-pg.sh:14 · a guarda nova não tem teste automatizado do ramo de falha; as sondas S3 a S5 servem de roteiro (`.env` com `PG_TESTE_URL` e o `docker` falso tem de ser chamado).
 
 ## Sondas
-- S1 · cópia de `scripts/test-pg.sh` com `.env` = `.env.example`, `docker` e `pnpm` falsos, `env -i` · espera: `docker compose up` chamado e porta própria · obtido: `docker` não chamado; `pnpm PG_TESTE_URL=postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test COMPOSE_PROJECT_NAME=<vazio>`
-- S2 · mesma cópia, sem `.env` · espera: descartável · obtido: `DOCKER CHAMADO: compose up -d --wait postgres`; `PG_TESTE_URL=...@127.0.0.1:33169/metricas_test COMPOSE_PROJECT_NAME=metricasdspd-teste-a01bbd55`
+- S1 · (rodada 1) cópia de `scripts/test-pg.sh` com `.env` = `.env.example` no head `944aa74c` · espera: `docker compose up` chamado · obtido: `docker` não chamado, URL da 5432 compartilhada
+- S2 · (rodada 1) mesma cópia, sem `.env` · espera: descartável · obtido: `DOCKER CHAMADO: compose up -d --wait postgres`, porta própria
+- S3 · head `0c44ef94`, `.env` = `.env.example`, sem variável no ambiente · espera: descartável · obtido: `DOCKER CHAMADO: compose up -d --wait postgres`; `PG_TESTE_URL=...@127.0.0.1:38653/metricas_test COMPOSE_PROJECT_NAME=metricasdspd-teste-78c60d30`; rc=0
+- S4 · head `0c44ef94`, `.env` com `PG_TESTE_URL` descomentada · espera: descartável (valor do `.env` ignorado) · obtido: `DOCKER CHAMADO: compose up -d --wait postgres`; porta 43763, projeto `metricasdspd-teste-b51efb82`; rc=0
+- S5 · head `0c44ef94`, `PG_TESTE_URL=postgres://x@h:1/ci` no ambiente · espera: usa a URL, não sobe nada · obtido: `pnpm PG_TESTE_URL=postgres://x@h:1/ci COMPOSE_PROJECT_NAME=<vazio>`, `docker` não chamado; rc=0
+- S6 · head `0c44ef94`, `kill -HUP` durante o `pnpm` · espera: sai 129 com limpeza · obtido: rc=129
 
 ## ADR 0014
-Precisa de nota (A2), não de ADR nova: a decisão (Compose, prefixo por execução, sem Testcontainers) se mantém e só o ambiente local passa a ser descartável. A nota é do arquiteto; não bloqueia este código, mas deve entrar antes do merge.
+Precisa de nota (A2), não de ADR nova: a decisão (Compose, prefixo por execução, sem Testcontainers) se mantém e só o ambiente local passa a ser descartável; a CI segue no banco do job, sem o script. A nota é do `software-architect` com o tech-lead, com critério de reversão (voltar ao compartilhado se subir o Postgres por execução passar a pesar no `pronto`). Não bloqueia este código, mas deve entrar antes do merge na `develop`.
