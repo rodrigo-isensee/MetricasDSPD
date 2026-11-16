@@ -177,7 +177,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'Se os chamados que pedem análise de causa (P1, P2 e encerrados por contorno) receberam avaliação de Problema.',
     comoSeCalcula:
-      '% com avaliação registrada. Conta como avaliação: no fluxo do PROC, o campo próprio de avaliação de Problema; nos fluxos antigos, a passagem do chamado pela etapa Causa Raiz. Encerrado por contorno é o chamado encerrado com o motivo Contorno Aplicado. A conversão (avaliações que viraram Registro de Problema ÷ avaliações) aparece como "sem dado real" enquanto a base não ligar a avaliação ao Registro de Problema; chamados sem fluxo definido ficam fora e são contados à parte.',
+      '% com avaliação registrada. Conta como avaliação: no fluxo do PROC, o campo próprio de avaliação de Problema; nos fluxos antigos, a passagem do chamado pela etapa Causa Raiz. Encerrado por contorno é o chamado encerrado com o motivo Contorno Aplicado. Chamados sem fluxo definido ficam fora e são contados à parte.\n\nConversão: das avaliações, quantas terminaram em Registro de Problema aberto. Vale a decisão registrada no chamado, não o vínculo: "Aberto" no campo de avaliação conta como Registro de Problema aberto; "Não aplicável e com justificativa" só entra no total. Vale só para os fluxos do PROC e, com menos de 20 avaliações, não é publicada.',
     comoLer: 'Baixa avaliação deixa causas sem tratamento.',
     meta: SEM_ALVO,
     cuidados: 'Os grupos se sobrepõem: um P1 pode ter contorno.',

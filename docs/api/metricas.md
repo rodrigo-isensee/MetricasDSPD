@@ -516,6 +516,13 @@ Depois da prova do dono (`fato_bloqueio` com 172 linhas e `evt_bloqueio` `fim` c
 - Versão de critério (T2.6): `105:S11-avaliacao-18b` em `CRITERIOS_ACELERATO` (`metricas: ['S11']`), gravada pelo `ac:ref-sync` depois do merge.
 - Limite conhecido: a passagem pela "Causa Raiz" vem das etapas sintéticas D-7, que só existem para chamado fechado com tempo maior que zero na etapa.
 
+## Pedido 105, E7.101: S11 conversão pela decisão registrada no chamado
+- Decisão do dono (16/11): `conversao` = chamados com "Aberto" no campo "Avaliação de Problema" (Registro de Problema aberto) dividido pelas avaliações registradas, só nos fluxos do PROC. "Não aplicável e com justificativa" fica só no divisor. Só Acelerato; nada de BusinessMap na conta.
+- Abaixo de 20 avaliações a `conversao` vem `insuficiente` (sem `pct`), nunca um percentual. `motivoConversao` vem `null` (a conversão deixa de sair nula); `MOTIVO_S11_CONVERSAO_SEM_DADO_REAL` resta só para resultado antigo.
+- **Contrato (compatível):** campo opcional novo `foraDaConversao: number` (avaliações dos fluxos antigo e intermediário, regra pela etapa, sem valor "Aberto": ficam fora da conversão e são contadas). `conversao` segue `Taxa | null`. `openapi.json`, docs de contrato e fotografia regenerados.
+- Versão de critério (T2.6): `105:S11-conversao-avaliacao` em `CRITERIOS_ACELERATO` (`metricas: ['S11']`); a data vem do `ac:ref-sync`/comando de critérios ao ser gravada pelo dono.
+- Web: nota no cartão "Conversão pela decisão registrada no chamado, não pelo vínculo" (texto simples, a UX revisa).
+
 ## Pedido 105, E7.4: O18 Entregas com e sem bug com dado real pelos vínculos
 - `O18` entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK`: a base real devolve o resultado calculado, sem o corpo `sem-dado-real`. O contrato (formato do resultado) não muda.
 - **Regra do dono (O18 = c, 2026-11-15):** o bug é da entrega quando está ligado a ela no BusinessMap por vínculo pai e filho (a entrega é o pai do bug) ou relacionado (`relative`). Vínculo de bug com bug não liga a uma entrega; vínculo `child` e card ligado que não é item (Sprint) também não. Vários vínculos válidos: vale a entrega de menor id (nota de projeção `varias_entregas_bug`); bug sem entrega ligada fica sem origem (nota `bug_sem_entrega`) e não entra em nenhuma entrega.
