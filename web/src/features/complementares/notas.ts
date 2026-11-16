@@ -163,7 +163,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Horas úteis na etapa Pendente (P50, P85 e P95 por motivo) e retornos até a previsão ÷ pendências com previsão.',
     comoLer: 'Mostra onde o chamado espera por alguém de fora da sustentação.',
     meta: SEM_ALVO,
-    cuidados: 'Motivos com menos de 20 pendências não publicam percentis.',
+    cuidados:
+      'Motivos com menos de 20 pendências não publicam percentis. O motivo da pendência não está sendo preenchido no Acelerato; por isso aparece como Não classificado.',
   },
   S10: {
     oQueE: 'Quanto o chamado espera entre a escalação e o aceite por alguém.',
@@ -261,11 +262,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   },
   T10: {
     oQueE:
-      'Quanto tempo o trabalho fica bloqueado esperando cada fornecedor e quantas vezes isso aconteceu.',
+      'Quanto tempo o trabalho fica bloqueado esperando fornecedores e quantas vezes isso aconteceu.',
     comoSeCalcula:
-      'Bloqueios encerrados com fornecedor informado, de qualquer motivo, por fornecedor (maiúsculas, minúsculas e espaços não separam o mesmo nome). Contagem e dias úteis somados pelo período do painel; P50 e P85 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais no fornecedor. Bloqueio sem fornecedor fica de fora.',
+      'Bloqueios encerrados com o motivo "Aguardando fornecedor", somados sem separar por fornecedor: o nome do fornecedor fica em texto livre, que não entra na base. Contagem e dias úteis somados pelo período do painel; P50, P85 e P95 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais.',
     comoLer:
-      'A barra vai até o P85 e a marca indica o P50. Os fornecedores aparecem em ordem alfabética, sem ordem de melhor ou pior. Leia junto com os bloqueados agora e os acordos e vencidos (O12).',
+      'Uma linha só, com o total esperando fornecedores. Leia junto com os bloqueados agora e os acordos e vencidos (O12).',
     meta: 'Sem meta numérica.',
     cuidados:
       'Nesta fase não há prazo contratado: o cartão não compara com contrato nem diz "dentro" ou "acima". Não vale como nota do fornecedor nem de pessoa.',

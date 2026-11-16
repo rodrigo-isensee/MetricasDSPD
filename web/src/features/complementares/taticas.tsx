@@ -22,7 +22,7 @@ interface P {
 
 const num = (n: number) => fmtNumero(n, n % 1 === 0 ? 0 : 1)
 const dias = (n: number) => `${num(n)} ${plural(n, 'dia útil', 'dias úteis')}`
-const SEM_AMOSTRA = '— amostra insuficiente'
+const SEM_AMOSTRA = '— menos de 20 bloqueios na janela de 12 semanas'
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 /** Estado "sem itens" com texto próprio do cartão: o cartão segue em `ok` e o corpo diz o que falta. */
@@ -44,16 +44,16 @@ function AvisoInfo({ children, testid }: { children: React.ReactNode; testid: st
 /* ---------------------------------------------------------------- T10 */
 
 function leituraT10(d: ResultadoT10): string | undefined {
-  if (d.fornecedores.length === 0) return undefined
-  const f = d.fornecedores.find((x) => x.duracao.status === 'ok')
+  const e = d.esperaFornecedores
+  if (!e) return undefined
   const resposta =
-    f && f.duracao.status === 'ok'
-      ? ` ${f.fornecedor} respondeu em até ${dias(f.duracao.valor.p85)} em 85% dos casos.`
-      : ''
-  return `Os bloqueios por fornecedor somaram ${dias(d.totalDiasUteis)} no período.${resposta} Prazo contratado não informado.`
+    e.duracao.status === 'ok'
+      ? ` Nas últimas 12 semanas, em 85% dos casos a espera durou até ${dias(e.duracao.valor.p85)}.`
+      : ' Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas.'
+  return `Os bloqueios encerrados com o motivo Aguardando fornecedor somaram ${dias(e.diasUteis)} no período, em ${fmtInteiro(e.bloqueios)} ${plural(e.bloqueios, 'bloqueio', 'bloqueios')}.${resposta} Prazo contratado não informado.`
 }
 
-/** T10: uma linha por fornecedor, como vem da API (nome já normalizado e em ordem alfabética, B11-001 e CA-11). */
+/** T10: tempo total esperando fornecedores (bloqueios com motivo "Aguardando fornecedor"), sem separar por fornecedor (pedido 105, E7.82). */
 export function CartaoT10({ filtros }: P) {
   const q0 = useMetrica('T10', filtros)
   const q = comoOk(q0, true)
@@ -69,17 +69,19 @@ export function CartaoT10({ filtros }: P) {
       leitura={d ? leituraT10(d) : undefined}
     >
       {(r) => {
-        // Escala das barras: o maior P85 (piso 1 para nunca dividir por zero).
-        const maior = r.fornecedores.reduce(
-          (m, f) => (f.duracao.status === 'ok' ? Math.max(m, f.duracao.valor.p85) : m),
-          1,
-        )
-        if (r.fornecedores.length === 0)
+        const e = r.esperaFornecedores
+        if (!e)
           return (
             <div className="flex flex-col gap-3">
               <AvisoInfo testid="t10-sem-fornecedor">
-                Nenhum bloqueio por fornecedor no período.
+                Nenhum bloqueio com o motivo &quot;Aguardando fornecedor&quot; foi encerrado no
+                período.
               </AvisoInfo>
+              {r.motivoSemFornecedores && (
+                <p className="text-sm text-texto-2" data-testid="t10-motivo">
+                  {r.motivoSemFornecedores}
+                </p>
+              )}
               <Leia>Prazo contratado não informado.</Leia>
             </div>
           )
@@ -87,52 +89,32 @@ export function CartaoT10({ filtros }: P) {
           <div className="flex flex-col gap-3">
             <TabelaDados
               codigo="T10"
-              legenda="Bloqueios por fornecedor, em ordem alfabética: contagem, dias úteis somados e duração P50 e P85"
+              legenda="Tempo total esperando fornecedores: contagem, dias úteis somados e duração P50, P85 e P95"
               colunas={[
-                { chave: 'f', titulo: 'Fornecedor' },
+                { chave: 'f', titulo: 'Tipo de espera' },
                 { chave: 'b', titulo: 'Bloqueios', alinhar: 'direita' },
                 { chave: 'd', titulo: 'Dias úteis somados', alinhar: 'direita' },
-                { chave: 'p', titulo: 'Duração (P50 e P85)' },
+                { chave: 'p', titulo: 'Duração (P50, P85 e P95)' },
               ]}
-              linhas={r.fornecedores.map((f) => ({
-                f: f.fornecedor,
-                b: fmtInteiro(f.bloqueios),
-                d: fmtNumero(f.diasUteis, f.diasUteis % 1 === 0 ? 0 : 1),
-                p:
-                  f.duracao.status === 'ok' ? (
-                    <div className="flex items-center gap-2">
-                      <span
-                        aria-hidden="true"
-                        className="relative block h-3 w-40 rounded bg-superficie-2"
-                      >
-                        <span
-                          className="absolute inset-y-0 left-0 rounded"
-                          style={{
-                            width: `${(f.duracao.valor.p85 / maior) * 100}%`,
-                            background: 'var(--serie-1)',
-                          }}
-                        />
-                        <span
-                          className="absolute inset-y-[-2px] w-0.5 bg-texto"
-                          style={{
-                            left: `${(f.duracao.valor.p50 / maior) * 100}%`,
-                          }}
-                        />
-                      </span>
-                      <span>
-                        P50 {fmtNumero(f.duracao.valor.p50)} · P85 {fmtNumero(f.duracao.valor.p85)}{' '}
-                        dias úteis
-                      </span>
-                    </div>
-                  ) : (
-                    SEM_AMOSTRA
-                  ),
-              }))}
+              linhas={[
+                {
+                  f: 'Esperando fornecedores',
+                  b: fmtInteiro(e.bloqueios),
+                  d: fmtNumero(e.diasUteis, e.diasUteis % 1 === 0 ? 0 : 1),
+                  p:
+                    e.duracao.status === 'ok'
+                      ? `P50 ${fmtNumero(e.duracao.valor.p50)} · P85 ${fmtNumero(e.duracao.valor.p85)} · P95 ${fmtNumero(e.duracao.valor.p95)} dias úteis`
+                      : SEM_AMOSTRA,
+                },
+              ]}
             />
+            {r.motivoSemFornecedores && (
+              <p className="text-sm text-texto-2" data-testid="t10-motivo">
+                {r.motivoSemFornecedores}
+              </p>
+            )}
             <Leia>
-              Prazo contratado não informado. P50 e P85 só com 20 bloqueios ou mais no fornecedor,
-              na janela de 12 semanas; a contagem e a soma seguem o período do painel. A barra vai
-              até o P85 e a marca indica o P50. Leia junto com os bloqueados agora e os acordos e
+              Prazo contratado não informado. Leia junto com os bloqueados agora e os acordos e
               vencidos (O12).
             </Leia>
           </div>

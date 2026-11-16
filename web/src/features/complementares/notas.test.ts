@@ -8,4 +8,10 @@ describe('notas complementares', () => {
     )
     expect(textos.filter(({ t }) => t.trimEnd().endsWith('..'))).toEqual([])
   })
+
+  it('S9 avisa que o motivo da pendência não é preenchido no Acelerato', () => {
+    expect(NOTAS_COMPLEMENTARES.S9.cuidados).toContain(
+      'O motivo da pendência não está sendo preenchido no Acelerato; por isso aparece como Não classificado.',
+    )
+  })
 })
