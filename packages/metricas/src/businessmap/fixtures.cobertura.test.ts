@@ -271,7 +271,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
         ],
       })),
     )
-    const padrao = calcularT1(ctxDe(base), F).classes.find((c) => c.classe === 'Padrão')
+    const padrao = calcularT1(ctxDe(base), F).classes.find((c) => c.classe === 'Média')
     expect(padrao?.n).toBe(22)
     expect(padrao?.estatistica.status).toBe('ok')
     if (padrao?.estatistica.status === 'ok') expect(padrao.estatistica.valor.fracaoFilaPct).toBe(0)
@@ -289,7 +289,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
         ],
       })),
     )
-    const padrao = calcularT2(ctxDe(base), F).classes.find((c) => c.classe === 'Padrão')
+    const padrao = calcularT2(ctxDe(base), F).classes.find((c) => c.classe === 'Média')
     expect(padrao?.estouros.total).toBe(20)
     expect(padrao?.estouros.porEtapa.every((e) => e.contagem === 0)).toBe(true)
     expect(padrao?.statusMeta).toBe('fora')
@@ -317,7 +317,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
       })),
     )
     const r = calcularT4(ctxDe(base), { ...F, periodo: { tipo: '12s' } })
-    const padrao = r.classes.find((c) => c.classe === 'Padrão')
+    const padrao = r.classes.find((c) => c.classe === 'Média')
     expect(padrao?.estatistica.status).toBe('ok')
     if (padrao?.estatistica.status === 'ok') expect(padrao.estatistica.valor.razao).toBeNull()
     const curto = calcularT4(ctxDe(base), {

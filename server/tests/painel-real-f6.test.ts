@@ -54,7 +54,7 @@ const ALVOS = [
   ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
 ].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[] };
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[]; entregues?: boolean };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -67,7 +67,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
     if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
     if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
-    if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z')]);
+    if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z'), ...(o.entregues === true ? [tr(k.card_id, '3', '4', '2026-09-08T12:00:00Z')] : [])]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
     if (x.includes('FROM r_dspd_bm.ref_coluna')) return VERSOES;
     if (x.includes('FROM r_dspd_bm.ref_time')) return [{ nome: 'Time A' }];
@@ -75,7 +75,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
     if (x.includes('.ctl_coleta')) return [{ coleta_id: '9', finalizado_em: new Date(o.coleta ?? '2026-10-09T12:00:00Z') }];
     if (x.includes('FROM r_dspd_core.ref_versao_criterio v')) return [];
     if (x.includes('FROM r_dspd_core.ref_versao_criterio')) return [{ versao_id: '1' }];
-    if (x.includes('ref_sle')) return o.sle === true ? [{ classe: 'Padrão', valor: '5', desde: '2026-01-01' }] : [];
+    if (x.includes('ref_sle')) return o.sle === true ? [{ classe: 'Média', valor: '5', desde: '2026-01-01' }] : [];
     return [];
   };
 }
@@ -121,7 +121,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['T10', 'T12', 'O14', 'O26', 'T1', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['T10', 'T12', 'O14', 'O26', 'T3', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -155,14 +155,14 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
 
   it('o estado "sem dado real" leva cache e ETag como as demais, a data pedida vale e data futura segue 400 (nada é lido)', async () => {
     const { app, d } = await montar();
-    const r = await app.inject('/api/v1/metricas/T1?dataReferencia=2026-10-01');
+    const r = await app.inject('/api/v1/metricas/T3?dataReferencia=2026-10-01');
     expect(r.statusCode).toBe(200);
     expect(r.headers['cache-control']).toBe('private, max-age=60');
     expect(r.headers['x-data-referencia']).toBe('2026-10-01');
     expect(r.headers['x-versao-criterio']).toBe('0');
     const etag = String(r.headers.etag);
-    expect((await app.inject({ url: '/api/v1/metricas/T1?dataReferencia=2026-10-01', headers: { 'if-none-match': etag } })).statusCode).toBe(304);
-    expect((await app.inject('/api/v1/metricas/T1?dataReferencia=2026-10-11')).statusCode).toBe(400);
+    expect((await app.inject({ url: '/api/v1/metricas/T3?dataReferencia=2026-10-01', headers: { 'if-none-match': etag } })).statusCode).toBe(304);
+    expect((await app.inject('/api/v1/metricas/T3?dataReferencia=2026-10-11')).statusCode).toBe(400);
     expect(d.chamadas).toHaveLength(0);
   });
 
@@ -711,3 +711,53 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(semParteDeAjusteDePrioridade('TENDENCIA_FLUXO', fora)).toBe(fora);
   });
 });
+
+// Pedido 105 (E7.100): T1, T2, T4, T6, O6 e O24 separam pela prioridade nativa do BusinessMap (a coluna `severidade` já projetada de `dim_card`), na base real.
+describe('pedido 105 (E7.100): classe pela prioridade nativa na base real', () => {
+  const GRUPOS: [string | null, number][] = [['Crítica', 19], ['Alta', 20], ['Média', 20], ['Baixa', 19], [null, 7], ['Urgente', 2]];
+  const cards = GRUPOS.flatMap(([sev, n], g) => Array.from({ length: n }, (_, i) => card(`P${g}-${i}`, 'Trabalho de produto', { severidade: sev })));
+  const porNivel = (j: { classes: { classe: string; n: number; estatistica?: { status: string } }[] }) => Object.fromEntries(j.classes.map((c) => [c.classe, c]));
+
+  it('T1, T2, T6 e O6: fronteira 19 e 20 por nível; sem prioridade (nula e fora dos quatro níveis) fora e contada, nunca Média', async () => {
+    const { app, d } = await montar({ cards, entregues: true, sle: true });
+    for (const id of ['T1', 'T2', 'T6', 'O6'] as const) {
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      const j = r.json() as { classes: { classe: string; n: number; estatistica?: { status: string } }[]; semPrioridade: { n: number }; base: { n: number } };
+      expect(SCHEMAS_RESULTADO[id].safeParse(j).success, id).toBe(true);
+      const c = porNivel(j);
+      expect([c.Crítica!.n, c.Alta!.n, c.Média!.n, c.Baixa!.n], id).toEqual([19, 20, 20, 19]);
+      expect(j.semPrioridade, id).toEqual({ n: 9 });
+      expect(j.base.n, id).toBe(78);
+      if (id !== 'T2' && id !== 'T6') {
+        expect([c.Crítica!, c.Alta!, c.Média!, c.Baixa!].map((x) => x.estatistica!.status), id).toEqual(['insuficiente', 'ok', 'ok', 'insuficiente']);
+      }
+    }
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+  }, 60_000);
+
+  it('T2 lê o SLE do nível (Média publicado, 20 entregas: publica); os outros níveis seguem sem SLE', async () => {
+    const { app } = await montar({ cards, entregues: true, sle: true });
+    const j = (await app.inject('/api/v1/metricas/T2')).json() as { classes: { classe: string; sle: { diasUteis: number } | null }[] };
+    expect(porNivel(j as never).Média).toMatchObject({ sle: { diasUteis: 5 } });
+    expect(porNivel(j as never).Alta).toMatchObject({ sle: null });
+    expect(porNivel(j as never).Crítica).toMatchObject({ sle: null });
+  }, 60_000);
+
+  it('T4: uma linha por nível, sem total agregado, com a prioridade nula contada à parte', async () => {
+    const { app } = await montar({ cards, entregues: true });
+    const j = (await app.inject('/api/v1/metricas/T4')).json() as { classes: { classe: string; n: number }[]; semPrioridade: { n: number } } & Record<string, unknown>;
+    expect(j.classes.map((c) => c.classe)).toEqual(['Crítica', 'Alta', 'Média', 'Baixa']);
+    expect(j.semPrioridade.n).toBeGreaterThan(0);
+    expect(Object.keys(j).sort()).toEqual(['base', 'classes', 'criterios', 'semPrioridade']);
+  }, 60_000);
+
+  it('O24: só a fila da prioridade Média; a nula fica fora e contada', async () => {
+    const { app } = await montar({ cards });
+    const j = (await app.inject('/api/v1/metricas/O24')).json() as { base: { n: number; unidade: string }; semPrioridade: { n: number } };
+    expect(j.base.unidade).toBe('inícios da prioridade Média');
+    expect(j.base.n).toBe(20);
+    expect(j.semPrioridade).toEqual({ n: 9 });
+  }, 60_000);
+});
+

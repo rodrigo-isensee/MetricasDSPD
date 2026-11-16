@@ -331,7 +331,8 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), origem_bug: origemBug, ...colunasDeLista(e.card, ref.camposLista, notas), classe_servico: classeDeServicoDasTags(e.card, notas),
       // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
       fase_deteccao: null,
-      ...(severidade === undefined ? {} : { severidade }),
+      // 105 (E7.100): a prioridade do painel; sem mapa, nula (nunca Média por omissão)
+      severidade: severidade ?? null,
     },
     transicoes, eventos, notas,
   };

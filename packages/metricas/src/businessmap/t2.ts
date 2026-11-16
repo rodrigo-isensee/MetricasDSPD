@@ -1,5 +1,5 @@
 import type { ResultadoT2 } from '@metricas-dspd/contratos'
-import { CLASSES_SERVICO, META_ADERENCIA_SLE_PCT } from '@metricas-dspd/contratos'
+import { NIVEIS_PRIORIDADE_BM, META_ADERENCIA_SLE_PCT } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { publicavel, taxa } from '../core/estatistica'
 import { maximo } from '../core/extremos'
@@ -12,13 +12,14 @@ import {
   janelaPercentis,
   periodoDe,
   selecionar,
+  semPrioridadeDe,
 } from './comum'
 import { blocosDe } from './blocos'
 import type { ContextoBM } from './indice'
 
 const ETAPAS = ['Fila', 'Espera', 'Execução', 'Homologação'] as const
 
-/** T2: aderência ao SLE publicado por classe e etapa onde o tempo foi perdido (maior bloco). */
+/** T2: aderência ao SLE publicado por prioridade nativa do BusinessMap (E7.100) e etapa onde o tempo foi perdido (maior bloco). */
 export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, 'story')
@@ -26,8 +27,8 @@ export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
     .filter(ehDemanda)
     .filter((m) => m.cicloHU !== null && dentro(ctx, m.entrega, janela))
   let total = 0
-  const classes = CLASSES_SERVICO.map((classe) => {
-    const xs = cards.filter((m) => m.card.classe_servico === classe)
+  const classes = NIVEIS_PRIORIDADE_BM.map((classe) => {
+    const xs = cards.filter((m) => m.card.prioridade === classe)
     total += xs.length
     const cfg = ctx.idx.base.config.sle.find((s) => s.classe === classe)
     const sleDias = cfg?.dias_uteis ?? null
@@ -73,6 +74,7 @@ export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
     base: baseAmostral(total, 'demandas entregues', janela),
     criterios: criterios('T2', periodo, janela, ctx),
     janelaPercentis: janela,
+    semPrioridade: { n: semPrioridadeDe(cards).length },
     classes,
   }
 }

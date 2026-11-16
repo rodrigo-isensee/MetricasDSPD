@@ -65,10 +65,12 @@ export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
  * Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração).
  * Pedido 105 (E7.3): `classe_servico` saiu daqui; a classe vem só das etiquetas do card (ADR 0020 4i), uma fonte por coluna.
  * `fase_deteccao` saiu em 105 (E7.5): vem só da projeção pela coluna do pai do bug, para não haver duas fontes.
+ * `severidade` saiu em 105 (E7.100): vem só do `priority` nativo do card pelo mapa `prioridade_severidade` (`severidadeDaPrioridade`); é a prioridade do painel
+ * (T1, T2, T4, T6, O6 e O24) e o eixo não pode mudar de fonte em silêncio por um campo customizado.
  */
 export const COLUNAS_LISTA = [
   'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
-  'responsabilidade_atraso', 'origem_demanda', 'severidade',
+  'responsabilidade_atraso', 'origem_demanda',
 ] as const;
 
 /**

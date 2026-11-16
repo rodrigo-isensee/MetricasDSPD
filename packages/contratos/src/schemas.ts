@@ -6,7 +6,7 @@
 import { z } from 'zod'
 import {
   CAUSAS_RAIZ,
-  CLASSES_SERVICO,
+  NIVEIS_PRIORIDADE_BM,
   MINIMOS_PESQUISA,
   NATUREZAS_PROJETO,
   SEVERIDADES,
@@ -47,7 +47,10 @@ import { paradosSchema } from './tambem'
 const iso = z.string() // AAAA-MM-DD
 const mes = z.string() // AAAA-MM
 const tipo = z.enum(TIPOS_CARD)
-const classe = z.enum(CLASSES_SERVICO)
+/** Nível da prioridade nativa do BusinessMap (a chave `classe` dos resultados guarda o nível; um só ponto troca o domínio). */
+const classe = z.enum(NIVEIS_PRIORIDADE_BM)
+/** Cards sem prioridade (priority nula no BusinessMap): ficam fora da separação por nível e são contados aqui, nunca somados a um nível. */
+const semPrioridade = z.object({ n: z.number() })
 const prioridade = z.enum(PRIORIDADES)
 
 /** Campos presentes em todo resultado. */
@@ -368,6 +371,7 @@ export const resultadoO18 = z.object({
 export const resultadoT1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   classes: z.array(
     z.object({
       classe,
@@ -394,6 +398,7 @@ const etapaT1 = z.enum(['Fila', 'Espera', 'Execução', 'Homologação'])
 export const resultadoT2 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   classes: z.array(
     z.object({
       classe,
@@ -440,6 +445,7 @@ const faixaSemanal = z.object({
 })
 export const resultadoT4 = z.object({
   ...comum,
+  semPrioridade,
   classes: z.array(
     z.object({
       classe,
@@ -906,10 +912,11 @@ export const resultadoO5 = z.object({
   ),
 })
 
-/** O6: previsibilidade (P85 ÷ P50 do cycle time) por classe de serviço. */
+/** O6: previsibilidade (P85 ÷ P50 do cycle time) por prioridade nativa do BusinessMap. */
 export const resultadoO6 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   /** Alvo exibido: razão abaixo deste valor. */
   alvoMax: z.number(),
   classes: z.array(
@@ -1071,10 +1078,11 @@ const previsaoItens = estatisticaSchema(
     simulacoes: z.number(),
   }),
 )
-/** T6: previsão probabilística (Monte Carlo) por classe de serviço de stories. */
+/** T6: previsão probabilística (Monte Carlo) por prioridade nativa do BusinessMap, só de stories. */
 export const resultadoT6 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   /** Entradas fixas desta resposta (itens a terminar; semanas disponíveis). */
   entradas: z.object({ itens: z.array(z.number()), semanas: z.array(z.number()) }),
   classes: z.array(

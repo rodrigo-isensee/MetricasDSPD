@@ -126,9 +126,14 @@ export const resultadoO21 = fechado({
   ),
 })
 
-/** O24 Ordem de chegada. O grupo é literal único (D-6' = A). */
+/**
+ * O24 Ordem de chegada. O grupo é literal único (D-6' = A); `equipe-tipo-padrao` guarda o nome histórico: desde o pedido 105 (E7.100)
+ * a fila é a da prioridade Média do BusinessMap (P-1 do dono), não mais a da classe de serviço Padrão.
+ */
 export const resultadoO24 = fechado({
   ...comum,
+  /** Inícios do período de cards sem prioridade: ficam fora da fila (nunca Média por omissão) e são contados aqui. */
+  semPrioridade: fechado({ n: z.number() }),
   inicios: taxaSchema,
   meses: z.array(
     fechado({

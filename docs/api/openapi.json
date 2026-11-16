@@ -10736,6 +10736,18 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n"
+                          ],
+                          "additionalProperties": false
+                        },
                         "alvoMax": {
                           "type": "number"
                         },
@@ -10747,10 +10759,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -10907,6 +10919,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "alvoMax",
                         "classes"
                       ],
@@ -17100,6 +17113,18 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n"
+                          ],
+                          "additionalProperties": false
+                        },
                         "inicios": {
                           "oneOf": [
                             {
@@ -17399,6 +17424,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "inicios",
                         "meses",
                         "marcacoes",
@@ -19321,6 +19347,18 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19329,10 +19367,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -19518,6 +19556,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -19943,6 +19982,18 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19951,10 +20002,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "sle": {
@@ -20118,6 +20169,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -21024,6 +21076,18 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -21032,10 +21096,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -21304,6 +21368,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -23830,6 +23895,18 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n"
+                          ],
+                          "additionalProperties": false
+                        },
                         "entradas": {
                           "type": "object",
                           "properties": {
@@ -23860,10 +23937,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -24222,6 +24299,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "entradas",
                         "classes"
                       ],
