@@ -167,7 +167,12 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(n).toBe(esperado)
     expect(n).toBeGreaterThan(0)
-    expect(contarSemDadoReal('tatico', 'api')).toBe(cartoesDoPainel('tatico').length)
+    // Pedido 105 (E7.64): o tático também conta pela lista de origem; o T11 (cartão só dele) já é real e sai da contagem.
+    const taticoSemDado = cartoesDoPainel('tatico').filter((c) =>
+      c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
+    ).length
+    expect(contarSemDadoReal('tatico', 'api')).toBe(taticoSemDado)
+    expect(taticoSemDado).toBe(cartoesDoPainel('tatico').length - 1)
   })
 })
 

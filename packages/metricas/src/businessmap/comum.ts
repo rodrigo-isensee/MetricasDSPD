@@ -13,6 +13,7 @@ import { criteriosDe } from '../core/criterios'
 import { JANELA_POR_GRANULARIDADE, janelaMovel } from '../core/janela'
 import { resolverPeriodo } from '../core/series'
 import type { ContextoBM, MarcosCard } from './indice'
+import type { DimCard } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
 
@@ -81,8 +82,10 @@ export function selecionar(
 }
 
 /** Demanda entregável ao solicitante: story que não é bug interno (4.2). */
-export const ehDemanda = (m: MarcosCard): boolean =>
-  m.card.granularidade === 'story' && m.card.tipo !== 'Bug interno'
+export const ehDemandaCard = (c: Pick<DimCard, 'granularidade' | 'tipo'>): boolean =>
+  c.granularidade === 'story' && c.tipo !== 'Bug interno'
+
+export const ehDemanda = (m: MarcosCard): boolean => ehDemandaCard(m.card)
 
 export const dentro = (ctx: ContextoBM, ms: number | null, j: Intervalo): boolean => {
   if (ms === null) return false

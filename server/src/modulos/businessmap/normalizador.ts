@@ -108,6 +108,8 @@ export interface LinhaDimCard {
   coluna_atual_id: string | null; excluido_em: Date | null;
   classe_servico: string | null; sistema: string | null; area_solicitante: string | null; fornecedor: string | null; objetivo_estrategico: string | null;
   tamanho_declarado: string | null; responsabilidade_atraso: string | null; origem_demanda: string | null; fase_deteccao: string | null; severidade: string | null;
+  /** Causa raiz do bug do fluxo (campo 48 do BusinessMap, dropdown; código do `ref_dominio`); nula sem o campo ou com valor fora da lista (pedido 105, E7.86). */
+  causa_raiz: string | null;
   /** Prazo nativo do card (`deadline`), dia civil `AAAA-MM-DD`; nulo se ausente ou fora da forma (099-o12-deadline §2). */
   data_acordada: string | null;
   /** Entrega a que o bug pertence pelo vínculo do BusinessMap (pai e filho ou relacionado); nulo fora de bug ou sem vínculo com entrega (pedido 105, O18). */
