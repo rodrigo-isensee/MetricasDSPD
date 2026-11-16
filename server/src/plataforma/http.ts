@@ -20,6 +20,8 @@ export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
   /^\/cards\/\d+\/(revisions|comments)$/,
+  // Pedido 105 (E7.104, spike B5 do O22): comentários em lote (`card_ids`, até 200), só GET e só no spike; texto e autor ficam em memória.
+  /^\/cards\/comments$/,
   // Pedido 059 (K-193, ADR 0025 item 1): do worklog, SÓ `/loggedTime`, com consulta própria (CONSULTA_WORKLOG). `/loggedTime/history`
   // (403 para a chave do dono no spike), `/loggedTimeCategories` (`category_id` nulo) e `/loggedTime/{id}` ficam fora da lista.
   /^\/loggedTime$/,
