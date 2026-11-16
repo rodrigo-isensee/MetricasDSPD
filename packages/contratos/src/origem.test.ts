@@ -22,6 +22,7 @@ import {
   MOTIVO_O26_HISTORICO_RESPONSAVEIS,
   MOTIVO_ORIGEM_MOCK,
   MOTIVO_FLUXOS_PROC_NAO_CARREGADOS,
+  MOTIVO_ESCALA_NAO_PROJETADA,
   MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
   motivoDaOrigemSemDado,
   motivoSemDadoReal,
@@ -257,6 +258,7 @@ describe('notas do S5 e do S7 (pedido 105, D2)', () => {
       expect(notaCartaoIdSchema.safeParse(id).success).toBe(false)
     }
     expect(MOTIVO_FLUXOS_PROC_NAO_CARREGADOS.length).toBeGreaterThan(0)
+    expect(MOTIVO_ESCALA_NAO_PROJETADA.length).toBeGreaterThan(0)
   })
 })
 

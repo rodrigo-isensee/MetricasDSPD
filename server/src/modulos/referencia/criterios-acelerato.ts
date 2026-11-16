@@ -51,6 +51,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão do dono (pedido 105, E7.101, 16/11): conversão pela decisão registrada no chamado, não pelo vínculo com o Registro de Problema. "Não aplicável e com justificativa" fica só no denominador; fluxos antigos ficam fora e são contados. Antes a conversão saía nula. Afeta S11.',
     metricas: ['S11'],
   },
+  {
+    referencia: '105:S1-escala-p',
+    descricao: 'S1 mede só os chamados da escala P1 a P5 da matriz; chamados de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prazo ficam fora e são contados',
+    motivo: 'Decisão B do dono (pedido 105, E7.238, 16/11): a escala P1 a P5 cobre só 174 chamados; mais de 4.600 usam escalas com prazos próprios. Antes o S1 media todos contra os alvos da matriz. Afeta S1.',
+    metricas: ['S1'],
+  },
 ];
 
 /**

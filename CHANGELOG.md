@@ -4,6 +4,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ## [Não publicado]
 
+### Alterado
+
+- S1 (MTTA e MTTR): mede só os chamados da escala P1 a P5 da matriz (decisão B do dono, pedido 105, E7.238); chamados de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prazo saem da conta e são contados em `foraDaMatriz` (campo opcional novo no resultado), e o cartão e a nota dizem quantos são. Nova coluna `dim_chamado.escala_p` (migração 0040, nula até a reprojeção), nova versão de critério `105:S1-escala-p` e novo comando `ac:reprojetar-escala`, do dono: preenche a coluna a partir do staging, só onde é nula, sem chamar o Acelerato. Enquanto a coluna não é preenchida, o S1 real responde "sem dado real" com o motivo. Passo para o dono: migrar, rodar `pnpm --filter @metricas-dspd/server run ac:reprojetar-escala` com a coleta parada e registrar o critério com `criterios-ac`.
+
 ### Corrigido
 
 - Coleta do BusinessMap: os campos 48 (Causa Raiz) e 49 (Origem da Demanda) casam pelo `value_id`, que é o que a API manda nos cards (sem rótulo); antes o 48 casava pelo rótulo e a carga viraria tudo desconhecido. O arquivo de domínio guarda o `value_id` de cada opção (12 no 48, 6 no 49), `value_id` fora do catálogo vira desconhecido e é contado, e `origem_demanda` passa a ser coletada para o O14 ("Demanda nova" é demanda de valor, não falha). Versão de critério de 2026-11-16 marca O14 e O17 (pedido 105, E7.203).

@@ -116,6 +116,32 @@ describe('S1 com a nota da Q-099-5b (pedido 099)', () => {
   })
 })
 
+describe('S1 sem a contagem de fora da matriz (pedido 105, E7.238)', () => {
+  it('resultado sem foraDaMatriz mostra só o aviso da escala P1 a P5, sem número', async () => {
+    const fonte = Object.create(fonteDeTeste, {
+      obter: {
+        value: async (id: string, ...resto: unknown[]) => {
+          const r = await (
+            fonteDeTeste.obter as (...a: unknown[]) => Promise<Record<string, unknown>>
+          )(id, ...resto)
+          const c = structuredClone(r)
+          if (id === 'S1') delete c.foraDaMatriz
+          return c
+        },
+      },
+    }) as typeof fonteDeTeste
+    renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    await waitFor(
+      () =>
+        expect(within(s1).getByTestId('s1-fora-da-matriz')).toHaveTextContent(
+          /^Mede só os chamados da escala P1 a P5 da matriz\.$/,
+        ),
+      { timeout: 8000 },
+    )
+  })
+})
+
 describe('painel Sustentação', () => {
   it('mostra "Pede atenção no período" com link para S2 (SUS-01)', async () => {
     renderizarApp('/sustentacao?mock=sem-calibracao')
@@ -157,6 +183,9 @@ describe('painel Sustentação', () => {
     )
     expect(within(el).getByTestId('s1-excecoes')).toHaveTextContent(
       /\d+ chamados abertos depois do atendimento \(de fora do cálculo\)/,
+    )
+    expect(within(el).getByTestId('s1-fora-da-matriz')).toHaveTextContent(
+      /Mede só os chamados da escala P1 a P5 da matriz\. Fora da conta: \d+ de outras escalas \(DSPD-\*, SSSC-\*, com prazos próprios\) e \d+ sem prazo\./,
     )
     const tabela = within(mttr).getByTestId('tabela-S1-MTTR-detalhe')
     expect(within(tabela).getByRole('row', { name: /^P2/ })).toHaveTextContent(

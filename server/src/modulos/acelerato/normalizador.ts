@@ -59,6 +59,16 @@ export function prioridadeDaEscala(prioridade: string | null): PrioridadeEscala 
   return PRIORIDADE_D12.get(prioridade) ?? null;
 }
 
+/**
+ * Escala em que a prioridade foi escrita (pedido 105, E7.238; S1 B do dono): verdadeiro = escala P1 a P5 da matriz (`P<n> - ...`); falso = outra
+ * escala que a D-12 mapeia (famílias DSPD-* e SSSC-*, prazos próprios); nulo = sem prioridade na escala P nem no mapa. Só o booleano sai, nunca o texto.
+ */
+export function escalaPDaPrioridade(prioridade: string | null): boolean | null {
+  if (prioridade === null) return null;
+  if (ESCALA_P.test(prioridade)) return true;
+  return PRIORIDADE_D12.has(prioridade) ? false : null;
+}
+
 /** Nomes de etapa da biblioteca (`EtapaAcelerato`), por comparação sem diferença de caixa. Etapa fora desta lista fica com o nome da origem. */
 export const ETAPAS_DA_BIBLIOTECA = [
   'Novo', 'Em triagem', 'Em diagnóstico', 'Em atendimento N1', 'Aguardando atribuição', 'Em atendimento N2', 'Em atendimento N3',
@@ -119,6 +129,8 @@ export type LinhaProjecao = {
   previsao_retorno: boolean | null;
   /** Pedido 099, D1 (1a): o único workflow das etapas; nulo sem etapa com workflow e nulo com a contagem `fluxo_multiplo` (por chamado distinto) se houver mais de um. */
   fluxo: string | null;
+  /** Pedido 105 (E7.238): a prioridade veio da escala P1 a P5 (verdadeiro) ou de outra escala mapeada pela D-12 (falso); nulo = sem prioridade. Só `dim_chamado` guarda. */
+  escala_p: boolean | null;
 };
 
 export type MarcasSaida = { ausente: boolean; fora: boolean };
@@ -202,5 +214,6 @@ export function normalizarChamado(
     motivo_pendencia_atual: texto(campos?.motivo_pendencia),
     previsao_retorno: logico(campos?.previsao_retorno_informada),
     fluxo: fluxoDoChamado(idOrigem, etapas, c),
+    escala_p: escalaPDaPrioridade(prioridade),
   };
 }

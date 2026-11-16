@@ -6,7 +6,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
     oQueE:
       'Tempo até o primeiro atendimento (MTTA) e até a restauração validada (MTTR), em cada prioridade.',
     comoSeCalcula:
-      'P1 (primeiro atendimento e restauração) e o primeiro atendimento de P2 contam em horas corridas, 24 h por dia. Os demais prazos contam em horas úteis do expediente da Sustentação (1 dia útil = 8 h 48 min). Na restauração (MTTR), o tempo em que o chamado ficou pendente ou em validação não entra na conta. Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
+      'Mede só os chamados da escala P1 a P5 da matriz; os de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e os sem prazo ficam de fora e o cartão diz quantos são. P1 (primeiro atendimento e restauração) e o primeiro atendimento de P2 contam em horas corridas, 24 h por dia. Os demais prazos contam em horas úteis do expediente da Sustentação (1 dia útil = 8 h 48 min). Na restauração (MTTR), o tempo em que o chamado ficou pendente ou em validação não entra na conta. Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
     comoLer: 'Cada barra é comparada ao alvo da sua prioridade (100% = alvo).',
     meta: 'Os prazos da matriz Impacto × Urgência.',
     cuidados:

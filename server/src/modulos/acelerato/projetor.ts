@@ -26,8 +26,8 @@ const ATRIBUTOS = [
   'primeiro_atendimento_em', 'restaurado_em', 'data_finalizado', 'status_sla_r', 'status_sla_pa', 'nivel_resolucao', 'arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte',
   'justificativa_informada', 'prioridade_ajustada_manualmente', 'motivo_escalacao', 'motivo_encerramento', 'avaliacao_problema', 'motivo_pendencia_atual', 'previsao_retorno',
 ] as const;
-/** `dim_chamado` ganha o `fluxo` (0038); `dim_chamado_versao` não: a versão fica como o staging a deu. */
-const ATRIBUTOS_DIM = [...ATRIBUTOS, 'fluxo'] as const;
+/** `dim_chamado` ganha o `fluxo` (0038) e a `escala_p` (0040); `dim_chamado_versao` não: a versão fica como o staging a deu. */
+const ATRIBUTOS_DIM = [...ATRIBUTOS, 'fluxo', 'escala_p'] as const;
 type Atributo = (typeof ATRIBUTOS_DIM)[number];
 const valorDe = (l: LinhaProjecao, a: Atributo): string | number | boolean | null => {
   const v = l[a];
