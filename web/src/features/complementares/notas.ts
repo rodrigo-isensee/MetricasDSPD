@@ -284,7 +284,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   T12: {
     oQueE: 'Quanto das demandas de cada área precisou de ida e volta antes de começar.',
     comoSeCalcula:
-      '"Ida e volta" é o bloqueio com motivo "Falta de informação no chamado" antes do início, ou o retorno do card da coluna de compromisso para o backlog. Por área solicitante, em ordem de volume. Percentual só com 20 demandas ou mais na área; abaixo, "k de n".',
+      '"Ida e volta" é o bloqueio com o motivo de ida e volta antes do início, ou o retorno do card da coluna de compromisso para o backlog. Por área solicitante, em ordem de volume. Percentual só com 20 demandas ou mais na área; abaixo, "k de n".',
     comoLer:
       'Mede a clareza do pedido que chega, para combinar com a área o que um pedido precisa trazer. Não é nota da área.',
     meta: 'Sem meta numérica.',

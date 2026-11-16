@@ -34,7 +34,7 @@ function vencido(ctx: ContextoBM, m: MarcosCard): boolean {
 
 /**
  * O12: acordos x vencidos pelo prazo nativo do card (decisão B, Q-099-10). A divisão por responsabilidade do atraso sai `null` com o motivo
- * enquanto o campo não existir no quadro (`RESPONSABILIDADE_ATRASO_COM_FONTE`, Q-099-4 = A): nunca 0 nem meta avaliada.
+ * enquanto nenhum vencido vier com o campo 51 preenchido (`RESPONSABILIDADE_ATRASO_COM_FONTE`, E7.214): nunca 0 nem meta avaliada.
  */
 export function calcularO12(
   ctx: ContextoBM,
@@ -68,22 +68,27 @@ export function calcularO12(
       emAndamento: b.emAndamento,
       acordos: doMes.length,
       vencidos: v.length,
-      porResponsabilidade: comResponsabilidade ? por : null,
+      porResponsabilidade: por,
       pctVencidos: taxa(v.length, doMes.length),
     }
   })
+  // Ligado, mas sem nenhum vencido classificado (campo 51 ainda vazio): não publica, para não passar 0 de causa interna por dado.
+  const publica = comResponsabilidade && tot.Interno + tot.Solicitante + tot.Terceiro > 0
   return {
     base: baseAmostral(acordos, 'acordos', periodo, { n: vencidos, unidade: 'vencidos' }),
     criterios: criterios('O12', periodo, periodo, ctx),
-    meses: linhas,
+    meses: linhas.map((l) => ({
+      ...l,
+      porResponsabilidade: publica ? l.porResponsabilidade : null,
+    })),
     totais: {
       acordos,
       vencidos,
-      porResponsabilidade: comResponsabilidade ? tot : null,
+      porResponsabilidade: publica ? tot : null,
       pctVencidos: taxa(vencidos, acordos),
     },
-    vencidosCausaInterna: comResponsabilidade ? tot.Interno : null,
-    motivoResponsabilidade: comResponsabilidade ? null : MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
-    statusMeta: !comResponsabilidade ? 'sem-referencia' : tot.Interno === 0 ? 'dentro' : 'fora',
+    vencidosCausaInterna: publica ? tot.Interno : null,
+    motivoResponsabilidade: publica ? null : MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL,
+    statusMeta: !publica ? 'sem-referencia' : tot.Interno === 0 ? 'dentro' : 'fora',
   }
 }

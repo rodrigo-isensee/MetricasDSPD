@@ -108,4 +108,36 @@ describe('executarColeta: etapa do worklog (059)', () => {
     expect(r.usuarios).toMatchObject({ pedidos: 1, resolvidos: 1 });
     expect(servidor.pedidos.filter((p) => p.caminho === '/users').map((p) => p.consulta.get('user_ids'))).toEqual(['6']);
   });
+
+  describe('K-382: aviso quando o sal falta', () => {
+    async function semSal(modo: 'incremental' | 'carga-inicial', extra: Partial<ArgsColeta>, sal?: string) {
+      const servidor = await subirServidorBm(cenario());
+      abertos.push(servidor);
+      const coletor = bancoFalso({ marca: new Date('2026-11-01T00:00:00Z') });
+      const cliente = criarClienteHttp({ urlBase: servidor.url, apikey: 'chave-f3-de-teste-0123456789', limitePorMinuto: 1000, timeoutMs: 2000 }, { dormir: () => Promise.resolve() });
+      const ouvidos: string[] = [];
+      const deps: DepsComando = {
+        cliente, poolColetor: coletor.pool, poolRef: bancoRef().pool, conf: lerConferencia(), quadros: [35], hostBase: 'bm.exemplo.test', agora: () => AGORA, S,
+        avisar: (m) => ouvidos.push(m), ...(sal === undefined ? {} : { sal, etapaApontamento: () => Promise.resolve(RESULTADO) }),
+      };
+      const r = await executarColeta(deps, { modo, ...extra });
+      return { r, ouvidos };
+    }
+    it('incremental com --projetar sem sal: registra o aviso no resumo e o imprime, sem valor de segredo', async () => {
+      const { r, ouvidos } = await semSal('incremental', { projetar: true });
+      expect(r.apontamento).toBeNull();
+      expect(r.avisos).toEqual(['apontamento-sem-sal']);
+      expect(ouvidos).toHaveLength(1);
+      expect(ouvidos[0]).toContain('PESSOA_ELIMINADA_SAL');
+    });
+    it('com sal: sem aviso', async () => {
+      const { r, ouvidos } = await semSal('incremental', { projetar: true }, 'sal-ficticio-de-teste-com-32-bytes-ou-mais');
+      expect(r.avisos).toEqual([]);
+      expect(ouvidos).toEqual([]);
+    });
+    it('sem --projetar ou na carga inicial a etapa não era esperada: sem aviso', async () => {
+      expect((await semSal('incremental', {})).r.avisos).toEqual([]);
+      expect((await semSal('carga-inicial', { projetar: true })).r.avisos).toEqual([]);
+    });
+  });
 });
