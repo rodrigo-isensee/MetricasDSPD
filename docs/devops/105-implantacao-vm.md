@@ -170,7 +170,7 @@ Decisão do dono: **a empresa fornece o banco e o HTTPS**; o time pede tudo o qu
 | 13 | **E-mail de saída (relay SMTP) ou outro canal** para o aviso de falha da coleta (`AVISO_EMAIL`), com o endereço de quem recebe. | `deploy/systemd/aviso-falha.sh`, runbook item 3 | Não (recomendado) |
 | 14 | **Monitoramento e logs**: logs da VM e dos contêineres retidos (sugestão: 30 dias) e visíveis a quem opera; alerta de disco cheio, contêiner parado e coleta que falhou; relógio sincronizado (NTP). | `GET /health` da API; `journalctl -u 'metricas-coleta-*'` | Não (recomendado) |
 | 15 | **Acesso administrativo**: SSH por chave e `sudo` para instalar e ligar os timers, só para a lista nominal que o dono enviar; sem acesso direto ao banco para quem não é do DBA. | `R-CONFORMIDADE`: acessos e segredos são do dono | Sim |
-| 16 | **Saída para os repositórios de pacotes** (npm e imagens `postgres`, `node`, `nginx`) ou espelho interno, só para instalar e atualizar. Sem isso, a empresa leva as imagens e o cache do `pnpm` prontos. | `pnpm install --frozen-lockfile`, `docker compose build` | Sim |
+| 16 | **Saída para os repositórios de pacotes** (npm e imagens `postgres`, `node`, `nginx`) ou espelho interno, só para instalar e atualizar. Sem isso, a empresa leva as imagens e o cache do `pnpm` prontos. | `pnpm install --frozen-lockfile`, `docker compose -f docker-compose.prod.yml build` | Sim |
 
 ## 6. Migrações do banco para o DBA (E7.246)
 
@@ -215,37 +215,37 @@ Subir, como root na VM:
 
 ```
 cd /opt/metricas-dspd
-export COMPOSE_FILE=docker-compose.prod.yml
 export COMPOSE_ENV_FILES=/etc/metricas-dspd/compose.env
-docker compose config -q
-docker compose build
-docker compose up -d
-docker compose ps
+docker compose -f docker-compose.prod.yml config -q
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml ps
 curl -fsS http://127.0.0.1:3000/health/ready
 ```
 
 As unidades de `deploy/systemd/` já fixam `COMPOSE_FILE` e `COMPOSE_ENV_FILES` e exigem o `/etc/metricas-dspd/host.env` (sem `-`): sem ele a unidade falha em vez de cair no Compose de desenvolvimento. O `host.env` traz o `AVISO_EMAIL`.
 
 - **Reinício da VM:** `api`, `worker` e `web` têm `restart: unless-stopped` e voltam sozinhos com o Docker; `migrate` e `coleta` são pontuais (`restart: "no"`; a coleta é do systemd).
-- **Log dos contêineres:** driver `json-file` com teto de 5 arquivos de 10 MB por serviço (`x-log` no compose), para não encher o disco. Ler: `docker compose logs --tail 200 api` (ou `worker`, `web`). A retenção de 30 dias pedida é do log da VM (`journalctl`), não dos contêineres.
+- **Log dos contêineres:** driver `json-file` com teto de 5 arquivos de 10 MB por serviço (`x-log` no compose), para não encher o disco. Ler: `docker compose -f docker-compose.prod.yml logs --tail 200 api` (ou `worker`, `web`). A retenção de 30 dias pedida é do log da VM (`journalctl`), não dos contêineres.
 
 **Pós-deploy** (antes de ligar ou religar os timers):
 
 ```
-docker compose ps
+docker compose -f docker-compose.prod.yml ps
 curl -fsS http://127.0.0.1:3000/health/ready
 curl -fsS -o /dev/null http://127.0.0.1:8080/
 systemctl start metricas-coleta-businessmap.service
 journalctl -u metricas-coleta-businessmap.service -n 50 --no-pager
 ```
 
-API pronta, painel respondendo e uma coleta de teste sem erro; só então `systemctl enable --now` dos timers (seção 2.1, item 6).
+API pronta, painel respondendo e uma coleta de teste sem erro; só então `systemctl enable --now` dos timers (seção 2.1, item 6). Os dois últimos comandos valem só na primeira implantação (timers ainda desligados). **Redeploy** (timers já ligados): não rode o `systemctl start` manual, que colidiria com a rodada agendada; veja a próxima em `systemctl list-timers 'metricas-*'` e leia o `journalctl` depois que ela passar.
 
 **Rollback, nesta ordem** (a migração vem antes do código; senão o `migrate` do código antigo roda sobre um banco já migrado):
-1. `docker compose down` (API e worker param; o banco é da empresa e fica).
+0. Pare os timers de coleta, para nenhuma rodada escrever no banco durante a restauração: `systemctl stop metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer metricas-referencias.timer` (e espere terminar a coleta em curso: `systemctl list-units 'metricas-*' --state=running`).
+1. `docker compose -f docker-compose.prod.yml down` (API e worker param; o banco é da empresa e fica).
 2. Banco: **restaurar o backup anterior à migração** (volta segura, seção 6) ou, se a migração tem `down` testado, `DSPD_PERMITIR_DOWN=1 pnpm run db:migrate down` com o backup do dia confirmado (mesmos `PG_MIGRADOR_URL` com `verify-full` e `NODE_EXTRA_CA_CERTS` do item 3 da seção 2.1).
-3. `git checkout <tag anterior>`, `docker compose build` e `docker compose up -d`.
-4. Conferir como no pós-deploy (`/health/ready` e o painel em `127.0.0.1:8080`).
+3. `git checkout <tag anterior>`, `docker compose -f docker-compose.prod.yml build` e `docker compose -f docker-compose.prod.yml up -d`.
+4. Conferir como no pós-deploy (`/health/ready` e o painel em `127.0.0.1:8080`); depois religue os quatro timers do passo 0 (`systemctl start` de cada `.timer`).
 
 Release sem migração: pule o passo 2. A migração tem volta, escrita pelo dev da stack e conferida antes do deploy (seção 6, "Volta").
 
