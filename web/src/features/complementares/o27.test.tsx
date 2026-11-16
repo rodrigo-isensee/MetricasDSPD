@@ -7,6 +7,11 @@ import { CartaoO27 } from './CartaoO27'
 
 vi.setConfig({ testTimeout: 45000 })
 
+interface Criterios {
+  serie: { id: string; data: string; descricao: string }[]
+  janela: { id: string; data: string; descricao: string }[]
+}
+
 type Tipo = 'Bug interno' | 'Defeito em produção'
 
 /** Coluna com `ns` na ordem do campo (12 valores); `pct` sobre `comCausa`, como a biblioteca. */
@@ -30,7 +35,7 @@ function coluna(tipo: Tipo, ns: number[], naoInformada: number) {
   }
 }
 
-const dto = (porTipo: unknown[], criterios = COMUM.criterios) => ({
+const dto = (porTipo: unknown[], criterios: Criterios = COMUM.criterios) => ({
   ...COMUM,
   criterios,
   porTipo,
@@ -38,7 +43,7 @@ const dto = (porTipo: unknown[], criterios = COMUM.criterios) => ({
   motivoPorSistema: 'aguardando o campo Sistema afetado no BusinessMap',
 })
 
-async function abrir(porTipo: unknown[], criterios?: typeof COMUM.criterios) {
+async function abrir(porTipo: unknown[], criterios?: Criterios) {
   renderizarCartao(<CartaoO27 filtros={FILTROS_FLUXO} />, {
     fonte: new FonteFixa({ O27: dto(porTipo, criterios) }),
   })
