@@ -54,7 +54,7 @@ const ALVOS = [
   ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
 ].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[] };
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[]; entregues?: string[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -67,7 +67,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
     if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
     if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
-    if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z')]);
+    if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z'), ...((o.entregues ?? []).includes(k.card_id) ? [tr(k.card_id, '3', '4', '2026-09-20T12:00:00Z')] : [])]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
     if (x.includes('FROM r_dspd_bm.ref_coluna')) return VERSOES;
     if (x.includes('FROM r_dspd_bm.ref_time')) return [{ nome: 'Time A' }];
@@ -773,5 +773,45 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     const fora = { a: 1 };
     expect(semParteDeAjusteDePrioridade('S4', fora)).toBe(fora);
     expect(semParteDeAjusteDePrioridade('TENDENCIA_FLUXO', fora)).toBe(fora);
+  });
+});
+
+// Pedido 105 (E7.68, D-T9 "T9 A"): o T9 é real. Frente adicionada = criada depois do início do projeto (derivada na leitura; a coluna
+// `adicionado_apos_inicio_pai` nunca é gravada e vem false); projeto sem início fica fora, contado; avanço pelas frentes filhas.
+describe('pedido 105 (E7.68): T9 com dado real', () => {
+  const projeto = (id: string, extra: Partial<LinhaCard> = {}) => card(id, 'Melhoria', { granularidade: 'projeto', ...extra });
+  const frente = (id: string, pai: string, criado: string, extra: Partial<LinhaCard> = {}) =>
+    card(id, 'Melhoria', { granularidade: 'frente', card_pai: pai, criado_em: new Date(criado), ...extra });
+
+  it('o T9 está no mapa real e a resposta traz o escopo pela regra do criado_em, sem ler o seed', async () => {
+    expect(origemDaMetrica('T9')).toBe('real');
+    const { app, d } = await montar({
+      cards: [
+        projeto('P1'), // iniciado em 2026-09-03
+        frente('F1', 'P1', '2026-09-01T12:00:00Z', { concluido_em: new Date('2026-09-20T12:00:00Z') }), // criada antes: original (mesmo ligada depois)
+        frente('F2', 'P1', '2026-09-10T12:00:00Z'), // criada depois: adicionada
+        projeto('P2', { iniciado_em: null, comprometido_em: null }), // sem início: fora, contado
+        frente('F3', 'P2', '2026-09-05T12:00:00Z'),
+      ],
+      entregues: ['F1'],
+    });
+    const r = await app.inject('/api/v1/metricas/T9');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T9.safeParse(r.json()).success).toBe(true);
+    const j = r.json();
+    expect(j.projetos).toHaveLength(1);
+    expect(j.projetos[0]).toMatchObject({ projetoId: 'P1', totalFrentes: 2, originais: 1, adicionadas: 1, concluidas: 1, avancoPct: 50, crescimentoEscopoPct: 100 });
+    expect(j.projetosSemInicio).toBe(1);
+    expect(j.projetosComEscopoCrescido).toBe(1);
+    expect(r.headers['x-versao-criterio']).not.toBe('0');
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+  });
+
+  it('sem nenhum projeto com frente a base é vazia e nunca inventa adicionadas', async () => {
+    const { app } = await montar({ cards: [card('A', 'Bug interno')] });
+    const j = (await app.inject('/api/v1/metricas/T9')).json();
+    expect(j.projetos).toEqual([]);
+    expect(j.projetosSemInicio).toBe(0);
   });
 });

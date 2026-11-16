@@ -167,12 +167,14 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(n).toBe(esperado)
     expect(n).toBeGreaterThan(0)
-    // Pedido 105 (E7.64): o tático também conta pela lista de origem; o T11 (cartão só dele) já é real e sai da contagem.
+    // Tático: só o T9 (pedido 105, E7.68) e o T11 (E7.64) têm dado real; cada um tem cartão só dele e sai da contagem.
     const taticoSemDado = cartoesDoPainel('tatico').filter((c) =>
       c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
-    ).length
-    expect(contarSemDadoReal('tatico', 'api')).toBe(taticoSemDado)
-    expect(taticoSemDado).toBe(cartoesDoPainel('tatico').length - 1)
+    )
+    expect(contarSemDadoReal('tatico', 'api')).toBe(taticoSemDado.length)
+    expect(taticoSemDado.length).toBe(cartoesDoPainel('tatico').length - 2)
+    expect(origemDoCartao('T9', 'api').semDadoReal).toBe(false)
+    expect(origemDoCartao('T11', 'api').semDadoReal).toBe(false)
   })
 })
 
@@ -196,17 +198,19 @@ describe('painel com API real: estado "Sem dado real" por cartão e nota do cabe
     expect(within(o3).queryByTestId('estado-sem-dado-real-O3')).not.toBeInTheDocument()
   })
 
-  it('no Tático todos os cartões estão sem dado real e a nota conta todos', async () => {
+  it('no Tático os cartões sem dado real são todos menos o T9 e a nota conta esses', async () => {
     renderizarApp('/tatico', fonteApi())
     const nota = await screen.findByTestId('nota-sem-dado-real-tatico')
     expect(nota).toHaveTextContent(`${contarSemDadoReal('tatico', 'api')} cartões sem dado real`)
     const t2 = await screen.findByTestId('metrica-T2')
     expect(await within(t2).findByTestId('estado-sem-dado-real-T2')).toBeInTheDocument()
     expect(within(t2).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
-    // Faixa de atenção: nunca afirma que nada pede atenção sem dado.
-    expect(await screen.findByTestId('faixa-atencao-sem-dado-real')).toHaveTextContent(
-      'Sem dado real',
-    )
+    // Faixa de atenção: com o T9 real e as demais sem dado, a faixa não é mais "sem dado real" inteira e nunca afirma que nada pede atenção.
+    expect(
+      await within(await screen.findByTestId('metrica-T9')).findByTestId('tabela-T9'),
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('faixa-atencao-sem-dado-real')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Nada pede atenção/i)).not.toBeInTheDocument()
   })
 
   it('com a fonte mock não há nota nem estado de sem dado real (o aviso global cobre)', async () => {

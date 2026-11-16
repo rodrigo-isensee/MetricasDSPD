@@ -57,7 +57,7 @@ export const NOTAS_TATICO = {
   T9: {
     oQueE: 'Percentual de frentes concluídas e quanto o escopo cresceu.',
     comoSeCalcula:
-      'Concluídas ÷ total (originais + adicionadas); adicionadas = frentes marcadas como criadas após o início.',
+      'Concluídas ÷ total (originais + adicionadas); adicionadas = frentes criadas depois do início do projeto.',
     comoLer:
       'Um projeto pode entregar frentes e ainda estar mais longe do fim do que no mês anterior.',
     meta: 'Avanço calculado, nunca declarado.',

@@ -37,6 +37,11 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 105 (E7.4, O18 = c): entregas com e sem bug pelos vínculos do BusinessMap (pai e filho ou relacionado) projetados em `dim_card.origem_bug`.
   'O18',
   'EI_FL1',
+  // Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 lê o avanço pelas frentes filhas (concluídas ÷ total) e as adicionadas pela regra
+  // do `criado_em` da frente depois do `iniciado_em` do projeto, derivada na leitura (a base não guarda o instante do vínculo: a frente criada antes e
+  // ligada depois conta como original, e a nota do cartão diz isso); projeto sem início fica fora, contado. Só 13 projetos ativos têm frente filha:
+  // o T9 não publica estatística agregada (só "k de n"), e o por projeto segue a regra do briefing (censo).
+  'T9',
   // Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 lê `dim_card` (criado_em; story que não é Bug interno, a chegada do T4 e do O7; arquivados entram;
   // excluídos e subtarefas ficam fora; sem pessoa nem `equipeResponsavel`); a base real tem 25 meses sem buraco (consulta tat-i). Abaixo de 20 demandas não publica.
   'T11',
