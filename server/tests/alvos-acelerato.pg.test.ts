@@ -5,6 +5,7 @@ import { ErroAlvos, analisarAlvos, lerArquivoAlvos, referenciaDaVersaoAlvos, sin
 import { lerCalendario, sincronizarCalendario } from '../src/modulos/referencia/calendario.js';
 import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
 import { migrar } from '../src/plataforma/db/migrar.js';
+import { quantasDesde } from './pg/migracoes-por-numero.js';
 import { poolDe, url } from './pg/ctx.js';
 
 // Pedido 099, D3 e K-314: migrações 0036 (relógio por prazo de ref_alvo_prioridade) e 0037 (unidade de exibição) e carregador dos alvos contra o PostgreSQL. Conjunto de schemas próprio.
@@ -71,7 +72,7 @@ d('0036, 0037 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () =>
   it('0037: o down tira as duas colunas e as restrições sem tocar nos prazos; o up seguinte devolve as colunas nulas', async () => {
     await ins('X4', 'util', 'util', 'h', 'dia');
     try {
-      await migrar(url!, { prefixo: P, direcao: 'down', quantas: 1 });
+      await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(37) });
       expect(await colunas()).toEqual(COLUNAS.slice(0, 7));
       expect((await dono.query(`SELECT prazo_pa_horas AS pa, unidade_pa AS u FROM ${T}`)).rows).toEqual([{ pa: '1.00', u: 'util' }]);
       await migrar(url!, { prefixo: P });
@@ -85,7 +86,7 @@ d('0036, 0037 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () =>
   it('down sem linha em tempo corrido: devolve os nomes e mantém as linhas e os valores; o up seguinte marca as existentes como util', async () => {
     await dono.query(`INSERT INTO ${T} (prioridade, vigente_de, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r) VALUES ('X1', '2031-01-01', 1.5, 'util', 2, 'util')`);
     try {
-      await migrar(url!, { prefixo: P, direcao: 'down', quantas: 2 }); // 0037 e 0036
+      await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(36) }); // 0037 e 0036
       expect(await colunas()).toEqual(ANTIGAS);
       expect((await dono.query(`SELECT prazo_pa_horas_uteis AS pa, prazo_r_horas_uteis AS r FROM ${T}`)).rows).toEqual([{ pa: '1.50', r: '2.00' }]);
       await migrar(url!, { prefixo: P });
@@ -100,12 +101,12 @@ d('0036, 0037 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () =>
     for (const [upa, ur] of [['corrido', 'util'], ['util', 'corrido']] as const) {
       await dono.query(`INSERT INTO ${T} (prioridade, vigente_de, prazo_pa_horas, unidade_pa, prazo_r_horas, unidade_r) VALUES ('X2', '2031-01-01', 1, $1, 2, $2)`, [upa, ur]);
       const antes = await linhas();
-      await expect(migrar(url!, { prefixo: P, direcao: 'down', quantas: 2 })).rejects.toThrow(/tem prazo em tempo corrido/);
+      await expect(migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(36) })).rejects.toThrow(/tem prazo em tempo corrido/);
       expect(await colunas()).toEqual(COLUNAS); // o lote é uma transação só: a 0037 também não foi desfeita
       expect(await linhas()).toEqual(antes);
       await limpar();
     }
-    await migrar(url!, { prefixo: P, direcao: 'down', quantas: 2 });
+    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(36) });
     expect(await colunas()).toEqual(ANTIGAS);
     await migrar(url!, { prefixo: P });
     expect(await colunas()).toContain('unidade_r');

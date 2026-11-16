@@ -13,7 +13,7 @@ import { concluidosDeDemanda } from './o4'
 import { classesNaJanela, entreguesPorTipo } from './o3'
 import type { ContextoBM } from './indice'
 
-/** Filtros padrão do fluxo (sem `equipe`): todos os recortes, janela móvel de 12 semanas. */
+/** Filtros padrão do fluxo (sem `equipe` nem `setor`): todos os recortes, janela móvel de 12 semanas. */
 const PADRAO: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
 
 /**
@@ -26,8 +26,9 @@ const PADRAO: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tip
 export function calcularTendenciaFluxo(
   ctx: ContextoBM,
   equipe: readonly string[] = [],
+  setor: readonly string[] = [],
 ): ResultadoTendenciaFluxo {
-  const filtros: FiltrosFluxo = { ...PADRAO, equipe: [...equipe] }
+  const filtros: FiltrosFluxo = { ...PADRAO, equipe: [...equipe], setor: [...setor] }
   const concluidos = concluidosDeDemanda(ctx, filtros)
   const porTipo = entreguesPorTipo(ctx, filtros)
   const baldes = mesesFechados(ctx.hojeDia, MESES_TENDENCIA)

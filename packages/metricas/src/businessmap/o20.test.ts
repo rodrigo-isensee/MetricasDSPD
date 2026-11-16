@@ -3,12 +3,13 @@ import { describe, expect, it } from 'vitest'
 import type { FiltrosFluxo, ResultadoO20 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
-import { CALENDARIO_PADRAO } from '../core/calendario'
+import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { slug } from '../slug'
 import { marcacoesNoPeriodo } from '../core/criterios'
 import { calcularO1, calcularO20 } from './index'
+import { varrerVidaPorColuna } from './estado'
 import { criarContextoBM, type ContextoBM } from './indice'
-import type { BaseBM } from './modelo'
+import type { BaseBM, DimColuna } from './modelo'
 import { HOJE_TESTE, umaBase, type EspecCard } from './testing'
 
 const F: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
@@ -33,6 +34,8 @@ const naEquipe = (base: BaseBM, slug: string, nomeDaColuna?: Record<string, stri
     })),
   }
 }
+const somar = (a: readonly number[] | undefined, b: readonly number[] | undefined): number[] =>
+  (a ?? b ?? []).map((_, i) => (a?.[i] ?? 0) + (b?.[i] ?? 0))
 const ctxDe = (base: BaseBM): ContextoBM => criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO)
 
 /** Em desenvolvimento desde antes do período e sem sair: não cresce. */
@@ -104,6 +107,165 @@ describe('O20: fluxo cumulativo', () => {
     expect(ultimo.contagens[i]).toBe(3)
     expect(r.destaque).toEqual({ faixa: 'Aguardando homologação', de: 0, para: 3 })
     expect(r.base).toMatchObject({ n: 4, unidade: 'itens no fluxo no pico do período' })
+    expect(SCHEMAS_RESULTADO.O20.safeParse(r).success).toBe(true)
+  })
+
+  it('base real: o quadro da equipe é o do workflow dela (id do quadro não é `quadro-<slug>`), e a faixa é a coluna', () => {
+    const semeada = naEquipe(
+      umaBase([constante('k1'), acumula('a1', '2026-09-29'), acumula('a2', '2026-09-30')]),
+      'equipe-a',
+    )
+    const real: BaseBM = {
+      ...semeada,
+      colunas: semeada.colunas.map((c) => ({ ...c, quadro_id: '35', equipe: 'Equipe A' })),
+      cards: semeada.cards.map((c) => ({ ...c, quadro_id: '35' })),
+      transicoes: semeada.transicoes,
+    }
+    const esperado = calcularO20(ctxDe(semeada), { ...F, equipe: ['equipe-a'] })
+    const r = calcularO20(ctxDe(real), { ...F, equipe: ['equipe-a'] })
+    expect(r.agrupamento).toBe('coluna')
+    expect(r.faixas.length).toBeGreaterThan(0)
+    expect(r.faixas).toEqual(esperado.faixas)
+    expect(r.dias).toEqual(esperado.dias)
+    expect(r.destaque).toEqual({ faixa: 'Aguardando homologação', de: 0, para: 2 })
+  })
+
+  it('base real: equipe com dois quadros soma a mesma coluna quadro a quadro e mantém a menor ordem', () => {
+    const semeada = naEquipe(umaBase([acumula('a1', '2026-09-29')]), 'equipe-a')
+    const noQuadro = (b: BaseBM, quadro: string, pref: string): BaseBM => ({
+      ...b,
+      colunas: b.colunas.map((c) => ({ ...c, quadro_id: quadro, equipe: 'Equipe A' })),
+      cards: b.cards.map((c) => ({ ...c, card_id: pref + c.card_id, quadro_id: quadro })),
+      transicoes: b.transicoes.map((t) => ({ ...t, card_id: pref + t.card_id })),
+    })
+    const um = noQuadro(semeada, '35', '')
+    const outro = noQuadro(semeada, '36', 'x-')
+    const dois: BaseBM = {
+      ...um,
+      colunas: [...um.colunas, ...outro.colunas],
+      cards: [...um.cards, ...outro.cards],
+      transicoes: [...um.transicoes, ...outro.transicoes],
+    }
+    const filtro = { ...F, equipe: ['equipe-a'] }
+    const r1 = calcularO20(ctxDe(um), filtro)
+    const r2 = calcularO20(ctxDe(dois), filtro)
+    expect(r2.faixas.map((x) => x.chave)).toEqual(r1.faixas.map((x) => x.chave))
+    expect(r2.faixas.map((x) => x.ordem)).toEqual(r1.faixas.map((x) => x.ordem))
+    expect(r2.dias.map((d) => d.contagens)).toEqual(
+      r1.dias.map((d) => d.contagens.map((v) => v * 2)),
+    )
+  })
+
+  describe('quadros da mesma equipe com a mesma coluna (mutantes A1, A2, A3 do O20)', () => {
+    /** Copia a base semeada para um quadro; `ordemMais` desloca a ordem das colunas; `papeis` troca o papel de colunas. */
+    const noQuadro = (
+      b: BaseBM,
+      quadro: string,
+      pref: string,
+      ajuste: { ordemMais?: number; papeis?: Record<string, DimColuna['papel']> } = {},
+    ): BaseBM => ({
+      ...b,
+      colunas: b.colunas.map((c) => ({
+        ...c,
+        quadro_id: quadro,
+        equipe: 'Equipe A',
+        ordem: c.ordem + (ajuste.ordemMais ?? 0),
+        papel: ajuste.papeis?.[c.coluna] ?? c.papel,
+        tipo_coluna: ajuste.papeis?.[c.coluna] ? 'execucao' : c.tipo_coluna,
+      })),
+      cards: b.cards.map((c) => ({ ...c, card_id: pref + c.card_id, quadro_id: quadro })),
+      transicoes: b.transicoes.map((t) => ({ ...t, card_id: pref + t.card_id })),
+    })
+    const juntar = (a: BaseBM, b: BaseBM): BaseBM => ({
+      ...a,
+      colunas: [...a.colunas, ...b.colunas],
+      cards: [...a.cards, ...b.cards],
+      transicoes: [...a.transicoes, ...b.transicoes],
+    })
+    const filtro = { ...F, equipe: ['equipe-a'] }
+
+    it('A1: a ordem da faixa é a menor entre os quadros, em qualquer ordem dos quadros', () => {
+      const semeada = naEquipe(umaBase([acumula('a1', '2026-09-29')]), 'equipe-a')
+      const so = ctxDe(noQuadro(semeada, '35', ''))
+      const esperado = calcularO20(so, filtro).faixas.map((x) => x.ordem)
+      for (const [deslocado, normal] of [
+        ['35', '36'],
+        ['36', '35'],
+      ] as const) {
+        const base = juntar(
+          noQuadro(semeada, deslocado, deslocado + '-', { ordemMais: 100 }),
+          noQuadro(semeada, normal, normal + '-'),
+        )
+        const r = calcularO20(ctxDe(base), filtro)
+        expect(r.faixas.map((x) => x.ordem)).toEqual(esperado)
+      }
+    })
+
+    it('A2: transição no período em qualquer quadro basta (o último quadro sem transição não zera a conta)', () => {
+      const semeada = naEquipe(umaBase([acumula('a1', '2026-09-29')]), 'equipe-a')
+      const antigo = naEquipe(umaBase([constante('k1')]), 'equipe-a')
+      const base = juntar(noQuadro(semeada, '35', 'a-'), noQuadro(antigo, '36', 'b-'))
+      const porEquipe = calcularO20(ctxDe(base), filtro)
+      expect(porEquipe.agrupamento).toBe('coluna')
+      expect(porEquipe.faixas.length).toBeGreaterThan(0)
+      const todas = calcularO20(ctxDe(base), F)
+      expect(todas.agrupamento).toBe('papel')
+      expect(todas.faixas.length).toBeGreaterThan(0)
+    })
+
+    it('A3: o papel de entrega é por quadro: a mesma coluna entrega num quadro e não noutro (varredura com cards de dois quadros)', () => {
+      const entregue: EspecCard = {
+        id: 'e1',
+        criado: '2026-08-03T08:00:00-03:00',
+        trilha: [
+          ['Aguardando priorização', '2026-08-03T08:00:00-03:00'],
+          ['Em desenvolvimento', '2026-08-10T09:00:00-03:00'],
+          ['Entregue', '2026-09-01T10:00:00-03:00'],
+        ],
+        descarte: '2026-09-20T10:00:00-03:00',
+      }
+      const semeada = naEquipe(umaBase([entregue]), 'equipe-a')
+      const instantes = ['2026-09-10T18:00:00-03:00', '2026-09-30T18:00:00-03:00', HOJE_TESTE].map(
+        (iso) => instanteDeIso(iso, CALENDARIO_PADRAO),
+      )
+      const desde = instantes[0]!
+      for (const [entrega, outro] of [
+        ['35', '36'],
+        ['36', '35'],
+      ] as const) {
+        const base = juntar(
+          noQuadro(semeada, entrega, 'e-'),
+          noQuadro(semeada, outro, 'o-', { papeis: { Entregue: 'trabalho' } }),
+        )
+        const ctx = ctxDe(base)
+        const marcos = (quadro: string) => ctx.idx.marcos.filter((m) => m.card.quadro_id === quadro)
+        const juntas = varrerVidaPorColuna(
+          ctx,
+          [...marcos(entrega), ...marcos(outro)],
+          instantes,
+          desde,
+        )
+        const soEntrega = varrerVidaPorColuna(ctx, marcos(entrega), instantes, desde)
+        const soOutro = varrerVidaPorColuna(ctx, marcos(outro), instantes, desde)
+        for (const [coluna, serie] of juntas.porColuna) {
+          expect(serie).toEqual(
+            somar(soEntrega.porColuna.get(coluna), soOutro.porColuna.get(coluna)),
+          )
+        }
+        // O card do quadro onde "Entregue" é entrega nunca sai; o outro sai no arquivamento.
+        expect(soEntrega.porColuna.get('Entregue')).not.toEqual(soOutro.porColuna.get('Entregue'))
+      }
+    })
+  })
+
+  it('período custom de um só dia não útil (domingo): estado vazio, sem erro', () => {
+    const base = umaBase([constante('k1'), entraNoPeriodo('k2')])
+    const r = calcularO20(ctxDe(base), {
+      ...F,
+      periodo: { tipo: 'custom', de: '2026-10-04', ate: '2026-10-04' },
+    })
+    expect(r.faixas).toEqual([])
+    expect(r.dias).toEqual([])
     expect(SCHEMAS_RESULTADO.O20.safeParse(r).success).toBe(true)
   })
 

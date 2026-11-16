@@ -6,7 +6,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
     oQueE:
       'Tempo até o primeiro atendimento (MTTA) e até a restauração validada (MTTR), em cada prioridade.',
     comoSeCalcula:
-      'Tempo útil pelo calendário de expediente da Sustentação (1 dia útil = 8 h 48 min); no MTTR, as pendências são descontadas do relógio; exceções de registro posterior saem desta apuração.',
+      'P1 (primeiro atendimento e restauração) e o primeiro atendimento de P2 contam em horas corridas, 24 h por dia. Os demais prazos contam em horas úteis do expediente da Sustentação (1 dia útil = 8 h 48 min). Na restauração (MTTR), o tempo em que o chamado ficou pendente ou em validação não entra na conta. Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
     comoLer: 'Cada barra é comparada ao alvo da sua prioridade (100% = alvo).',
     meta: 'Os prazos da matriz Impacto × Urgência.',
     cuidados:
@@ -15,7 +15,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
   S2: {
     oQueE: 'Percentual de chamados dentro do prazo, por prioridade e tipo de prazo.',
     comoSeCalcula:
-      'Chamados fechados com REALIZADO_NO_PRAZO ÷ fechados; primeiro atendimento e restauração separados; exceções de registro posterior ficam de fora.',
+      'Chamados fechados dentro do prazo ÷ chamados fechados; primeiro atendimento e restauração separados. Chamados abertos no sistema depois do atendimento ficam de fora do cálculo. Hoje essa marca não vem do Acelerato, então nenhum chamado sai do cálculo por esse motivo.',
     comoLer:
       'Falhar no primeiro atendimento é problema de triagem e fila; falhar na restauração é diagnóstico, escalação ou dependência.',
     meta: 'Acima de 90%.',
@@ -42,21 +42,22 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
   },
   S5: {
     oQueE: 'A distribuição dos motivos de escalação.',
-    comoSeCalcula: 'Campo "Motivo da escalação", obrigatório na saída de "Em diagnóstico".',
+    comoSeCalcula:
+      'Campo "Motivo da escalação" dos chamados dos cinco fluxos do PROC. Motivo preenchido que não está na lista vira "Outro"; campo vazio vira "Não informado". "Não informado" aparece só na tabela.',
     comoLer:
-      'Cada motivo aponta para uma ação diferente; o último, ainda que pequeno, merece leitura própria.',
+      'Cada motivo aponta para uma ação diferente; um motivo pequeno também merece leitura própria.',
     meta: 'Reduzir a escalação por falta de conhecimento técnico no N1 (texto).',
     cuidados: 'Distingue escalação legítima de escalação por comodidade.',
   },
   S6: {
     oQueE: 'A distribuição do motivo de encerramento.',
     comoSeCalcula:
-      'Campo "Motivo de encerramento" no encerramento (domínio fechado de cinco valores).',
+      'Campo "Motivo de encerramento" dos chamados dos cinco fluxos do PROC. Motivo preenchido que não está na lista vira "Outro"; campo vazio vira "Não informado". "Não informado" aparece só na tabela.',
     comoLer:
       'Contorno é o insumo da Gestão de Problemas; reclassificado mede qualidade da entrada; sem retorno e duplicado medem higiene.',
     meta: 'Acompanhamento contínuo da taxa de contorno (texto).',
     cuidados:
-      'Um quinto a um terço por contorno significa causa raiz viva. Motivo vazio aparece como "Não informado".',
+      'Um quinto a um terço por contorno significa causa raiz viva. "Outro" e "Não informado" aparecem separados.',
   },
   S7: {
     oQueE:

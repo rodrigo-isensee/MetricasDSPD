@@ -1801,6 +1801,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -2418,6 +2426,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -3271,6 +3287,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -3719,6 +3743,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -4440,6 +4472,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -5042,6 +5082,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -5535,6 +5583,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -6536,6 +6592,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -7378,6 +7442,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -7606,28 +7678,35 @@
                                 "type": "number"
                               },
                               "porResponsabilidade": {
-                                "type": "object",
-                                "properties": {
-                                  "Interno": {
-                                    "type": "number"
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "Interno": {
+                                        "type": "number"
+                                      },
+                                      "Solicitante": {
+                                        "type": "number"
+                                      },
+                                      "Terceiro": {
+                                        "type": "number"
+                                      },
+                                      "naoClassificado": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "Interno",
+                                      "Solicitante",
+                                      "Terceiro",
+                                      "naoClassificado"
+                                    ],
+                                    "additionalProperties": false
                                   },
-                                  "Solicitante": {
-                                    "type": "number"
-                                  },
-                                  "Terceiro": {
-                                    "type": "number"
-                                  },
-                                  "naoClassificado": {
-                                    "type": "number"
+                                  {
+                                    "type": "null"
                                   }
-                                },
-                                "required": [
-                                  "Interno",
-                                  "Solicitante",
-                                  "Terceiro",
-                                  "naoClassificado"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               "pctVencidos": {
                                 "oneOf": [
@@ -7716,28 +7795,35 @@
                               "type": "number"
                             },
                             "porResponsabilidade": {
-                              "type": "object",
-                              "properties": {
-                                "Interno": {
-                                  "type": "number"
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "Interno": {
+                                      "type": "number"
+                                    },
+                                    "Solicitante": {
+                                      "type": "number"
+                                    },
+                                    "Terceiro": {
+                                      "type": "number"
+                                    },
+                                    "naoClassificado": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "Interno",
+                                    "Solicitante",
+                                    "Terceiro",
+                                    "naoClassificado"
+                                  ],
+                                  "additionalProperties": false
                                 },
-                                "Solicitante": {
-                                  "type": "number"
-                                },
-                                "Terceiro": {
-                                  "type": "number"
-                                },
-                                "naoClassificado": {
-                                  "type": "number"
+                                {
+                                  "type": "null"
                                 }
-                              },
-                              "required": [
-                                "Interno",
-                                "Solicitante",
-                                "Terceiro",
-                                "naoClassificado"
-                              ],
-                              "additionalProperties": false
+                              ]
                             },
                             "pctVencidos": {
                               "oneOf": [
@@ -7814,7 +7900,21 @@
                           "additionalProperties": false
                         },
                         "vencidosCausaInterna": {
-                          "type": "number"
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "motivoResponsabilidade": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "statusMeta": {
                           "type": "string",
@@ -7831,6 +7931,7 @@
                         "meses",
                         "totais",
                         "vencidosCausaInterna",
+                        "motivoResponsabilidade",
                         "statusMeta"
                       ],
                       "additionalProperties": false
@@ -8003,6 +8104,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -8244,7 +8353,16 @@
                                 ]
                               },
                               "contagem": {
-                                "type": "number"
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               }
                             },
                             "required": [
@@ -8254,6 +8372,11 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "bugsSemFase": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         },
                         "contencao": {
                           "oneOf": [
@@ -8545,6 +8668,7 @@
                         "base",
                         "criterios",
                         "fases",
+                        "bugsSemFase",
                         "contencao",
                         "escape",
                         "serieMensal"
@@ -8719,6 +8843,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -9762,6 +9894,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -10350,6 +10490,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -10600,9 +10748,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -10932,6 +11080,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -11334,36 +11490,43 @@
                                 ]
                               },
                               "porTamanho": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "tamanho": {
-                                      "type": "string",
-                                      "enum": [
-                                        "P",
-                                        "M",
-                                        "G",
-                                        "Sem tamanho"
-                                      ]
-                                    },
-                                    "n": {
-                                      "type": "number"
-                                    },
-                                    "mediana": {
-                                      "type": [
-                                        "number",
-                                        "null"
-                                      ]
+                                "anyOf": [
+                                  {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "tamanho": {
+                                          "type": "string",
+                                          "enum": [
+                                            "P",
+                                            "M",
+                                            "G",
+                                            "Sem tamanho"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "number"
+                                        },
+                                        "mediana": {
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "tamanho",
+                                        "n",
+                                        "mediana"
+                                      ],
+                                      "additionalProperties": false
                                     }
                                   },
-                                  "required": [
-                                    "tamanho",
-                                    "n",
-                                    "mediana"
-                                  ],
-                                  "additionalProperties": false
-                                }
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               }
                             },
                             "required": [
@@ -11374,13 +11537,25 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "motivoPorTamanho": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "base",
                         "criterios",
                         "janelaPercentis",
-                        "tipos"
+                        "tipos",
+                        "motivoPorTamanho"
                       ],
                       "additionalProperties": false
                     },
@@ -11552,6 +11727,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -12013,6 +12196,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -12499,6 +12690,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -13133,6 +13332,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -14080,6 +14287,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -14717,6 +14932,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -15221,6 +15444,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -16042,6 +16273,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -16636,6 +16875,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -17328,6 +17575,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -18165,6 +18420,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -18812,6 +19075,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -19059,9 +19330,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -19426,6 +19697,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -19673,9 +19952,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "sle": {
@@ -20011,6 +20290,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -20516,6 +20803,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -20735,9 +21030,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -21178,6 +21473,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -22004,6 +22307,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -22808,6 +23119,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -23256,6 +23575,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -23525,9 +23852,9 @@
                                 "type": "string",
                                 "enum": [
                                   "Urgente",
+                                  "Prioritário",
                                   "Prazo fixo",
-                                  "Padrão",
-                                  "Intangível"
+                                  "Padrão"
                                 ]
                               },
                               "n": {
@@ -24059,6 +24386,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -24783,6 +25118,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -25332,6 +25675,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -25803,6 +26154,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -26343,6 +26702,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -27139,6 +27506,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -27778,6 +28153,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -28457,6 +28840,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -29051,6 +29442,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -29555,6 +29954,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -30000,6 +30407,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -30623,6 +31038,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -31258,6 +31681,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -31835,6 +32266,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -32262,6 +32701,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -33490,6 +33937,15 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "notas": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "primeiro-atendimento-inclui-automatica"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -34501,7 +34957,8 @@
                             "type": "string",
                             "enum": [
                               "ajuste-prioridade-sem-dado-real",
-                              "excecao-sla-sem-fonte"
+                              "excecao-sla-sem-fonte",
+                              "s7-nao-igual-vazio"
                             ]
                           }
                         },
@@ -35521,7 +35978,8 @@
                                   "Sem solução ou contorno conhecido",
                                   "Risco de estouro de SLA",
                                   "Múltiplos sistemas ou dependências",
-                                  "Necessidade de atuação especializada"
+                                  "Necessidade de atuação especializada",
+                                  "Outro"
                                 ]
                               },
                               "n": {
@@ -35568,7 +36026,8 @@
                                         "Sem solução ou contorno conhecido",
                                         "Risco de estouro de SLA",
                                         "Múltiplos sistemas ou dependências",
-                                        "Necessidade de atuação especializada"
+                                        "Necessidade de atuação especializada",
+                                        "Outro"
                                       ]
                                     },
                                     "n": {
@@ -35601,6 +36060,19 @@
                         },
                         "naoInformado": {
                           "type": "number"
+                        },
+                        "foraDoFluxo": {
+                          "type": "number"
+                        },
+                        "notas": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "s5-risco-sla-sem-fonte",
+                              "s7-nao-igual-vazio"
+                            ]
+                          }
                         }
                       },
                       "required": [
@@ -35608,7 +36080,8 @@
                         "criterios",
                         "motivos",
                         "evolucao",
-                        "naoInformado"
+                        "naoInformado",
+                        "foraDoFluxo"
                       ],
                       "additionalProperties": false
                     },
@@ -35981,7 +36454,8 @@
                                   "Contorno aplicado",
                                   "Reclassificado, não é incidente",
                                   "Encerrado sem retorno",
-                                  "Duplicado"
+                                  "Duplicado",
+                                  "Outro"
                                 ]
                               },
                               "n": {
@@ -36028,7 +36502,8 @@
                                         "Contorno aplicado",
                                         "Reclassificado, não é incidente",
                                         "Encerrado sem retorno",
-                                        "Duplicado"
+                                        "Duplicado",
+                                        "Outro"
                                       ]
                                     },
                                     "n": {
@@ -36126,6 +36601,9 @@
                               "additionalProperties": false
                             }
                           ]
+                        },
+                        "foraDoFluxo": {
+                          "type": "number"
                         }
                       },
                       "required": [
@@ -36134,7 +36612,8 @@
                         "motivos",
                         "evolucao",
                         "naoInformado",
-                        "taxaContorno"
+                        "taxaContorno",
+                        "foraDoFluxo"
                       ],
                       "additionalProperties": false
                     },
@@ -36495,6 +36974,19 @@
                           ],
                           "additionalProperties": false
                         },
+                        "foraDoFluxo": {
+                          "type": "number"
+                        },
+                        "notas": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "s5-risco-sla-sem-fonte",
+                              "s7-nao-igual-vazio"
+                            ]
+                          }
+                        },
                         "ajusteDePrioridade": {
                           "type": "object",
                           "properties": {
@@ -36754,6 +37246,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "foraDoFluxo",
                         "ajusteDePrioridade",
                         "reclassificacaoDeTipo"
                       ],
@@ -41055,6 +41548,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -41731,6 +42232,14 @@
               "type": "string"
             },
             "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
             "name": "tipo",
             "required": false
           },
@@ -42400,6 +42909,14 @@
             },
             "in": "query",
             "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
             "required": false
           },
           {
@@ -44438,6 +44955,14 @@
             "in": "query",
             "name": "equipe",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
+            "required": false
           }
         ],
         "responses": {
@@ -45715,6 +46240,19 @@
               "type": "array",
               "items": {
                 "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,59}$"
+              }
+            },
+            "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
                 "maxLength": 40,
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
               }
@@ -45987,6 +46525,26 @@
                           }
                         },
                         "equipes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "setores": {
                           "type": "array",
                           "items": {
                             "type": "object",
@@ -47488,6 +48046,10 @@
                                 "type": "object",
                                 "properties": {
                                   "pct": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "horasSemProjeto": {
                                     "type": "number",
                                     "minimum": 0
                                   }

@@ -2,7 +2,7 @@ import {
   CALENDARIO_PADRAO, dataIso, instanteDeIso, ordenarNeutro,
 } from '@metricas-dspd/metricas/core';
 import { derivarMarcos, direcaoDaTransicao, type ColunaDoPasso, type Passo } from '@metricas-dspd/metricas/businessmap';
-import { TIPO_DA_CATEGORIA, type CategoriaTipoCard } from '@metricas-dspd/contratos';
+import { CLASSES_SERVICO, TIPO_DA_CATEGORIA, type CategoriaTipoCard, type FaseDeteccao } from '@metricas-dspd/contratos';
 import { COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
 import { vigenteEm } from './referencia.js';
 
@@ -57,6 +57,8 @@ export interface Referencia {
   camposLista: ReadonlyMap<string, string>;
   /** `priority` do card -> severidade (C8a, `ref_dominio campo = 'prioridade_severidade'`); ausente ou vazio = nenhuma severidade é projetada. */
   prioridades?: ReadonlyMap<string, string>;
+  /** `coluna_id` -> fase de detecção do bug (105, `ref_dominio campo = 'fase_deteccao_coluna'`); vazio ou ausente = nenhum bug tem fase. Usado pela projeção da fase, depois dos cards. */
+  fasesDeteccao?: ReadonlyMap<string, FaseDeteccao>;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -108,6 +110,22 @@ export interface LinhaDimCard {
   tamanho_declarado: string | null; responsabilidade_atraso: string | null; origem_demanda: string | null; fase_deteccao: string | null; severidade: string | null;
   /** Prazo nativo do card (`deadline`), dia civil `AAAA-MM-DD`; nulo se ausente ou fora da forma (099-o12-deadline §2). */
   data_acordada: string | null;
+  /** Entrega a que o bug pertence pelo vínculo do BusinessMap (pai e filho ou relacionado); nulo fora de bug ou sem vínculo com entrega (pedido 105, O18). */
+  origem_bug: string | null;
+}
+
+/**
+ * Pedido 105 (E7.3, ADR 0020 4i): classe de serviço pela chave `classes_tag` do staging (classes das etiquetas do card, já reduzidas na fronteira).
+ * Sem a chave: nula (`classe_nao_lida`); lista vazia: nula (`classe_sem_tag`, nunca Padrão por omissão, Q-099-9); uma classe: ela; duas ou mais
+ * classes diferentes: nula (`classe_tag_empate`), o sistema não escolhe. Nota = contagem, nunca o valor.
+ */
+export function classeDeServicoDasTags(card: Record<string, unknown>, notas: string[]): string | null {
+  const v = card.classes_tag;
+  if (!Array.isArray(v)) { notas.push('classe_nao_lida'); return null; }
+  const classes = [...new Set(v.filter((c): c is string => typeof c === 'string' && (CLASSES_SERVICO as readonly string[]).includes(c)))];
+  if (classes.length === 0) { notas.push('classe_sem_tag'); return null; }
+  if (classes.length > 1) { notas.push('classe_tag_empate'); return null; }
+  return classes[0]!;
 }
 
 const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null])) as Record<(typeof COLUNAS_LISTA)[number], null>;
@@ -141,15 +159,39 @@ export interface CardProjetado { dim: LinhaDimCard; transicoes: FatoTransicaoPro
 const NIVEL_PARA_GRANULARIDADE: Record<string, string> = { projeto: 'projeto', feature: 'frente', story: 'story' };
 const texto = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
 /**
- * Parse estrito do `deadline` (099-o12-deadline §2): só `AAAA-MM-DD` com ano >= 0001 (o PostgreSQL não tem ano 0), mês e dia válidos; o dia é gravado como está (data civil, sem fuso).
- * Data e hora, texto ou número viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela). Nada se converte.
+ * Fuso em que o instante do `deadline` vira dia civil. A Q-RO-6c mostrou que as 1639 stories com prazo trazem data e hora, e em qual dia
+ * uma hora cai é regra. Decisão do dono de 2026-11-15 (L13, opção c): prazo com data e hora vira o dia de Brasília neste fuso, EXCETO
+ * meia-noite UTC em ponto (`00:00:00Z`), que fica no dia gravado (o BusinessMap grava o prazo só-data como meia-noite UTC; converter
+ * o recuaria um dia). Mudar o critério muda esta constante ou a exceção e vira versão de critério (T2.6).
+ */
+export const FUSO_DO_PRAZO = 'America/Sao_Paulo';
+const diaCivilNoFuso = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO_DO_PRAZO, year: 'numeric', month: '2-digit', day: '2-digit' });
+const SO_DATA = /^\d{4}-\d{2}-\d{2}$/;
+// Data e hora ISO 8601 com deslocamento explícito (Z ou ±HH:MM). Sem deslocamento o instante é ambíguo e não se supõe um.
+const DATA_E_HORA = /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+/**
+ * Parse estrito do `deadline` (099-o12-deadline §2): `AAAA-MM-DD` (o dia é gravado como está, data civil) ou data e hora ISO com
+ * deslocamento explícito (o instante vira o dia civil em `FUSO_DO_PRAZO`, exceto `00:00:00Z` em ponto, que fica no dia gravado). Ano >= 0001 (o PostgreSQL não tem ano 0), mês e dia válidos.
+ * Texto, número, data e hora sem deslocamento ou data impossível viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela).
  */
 export function dataAcordada(valor: unknown, notas: string[]): string | null {
   if (valor === undefined || valor === null) return null;
-  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    const d = new Date(`${valor}T00:00:00Z`);
+  if (typeof valor === 'string') {
+    const dia = SO_DATA.test(valor) ? valor : (DATA_E_HORA.exec(valor)?.[1] ?? null);
     // Ano 0000: o Date do JS aceita, o `date` do PostgreSQL não (abortaria o INSERT do lote inteiro); exige ano >= 1.
-    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor && !valor.startsWith('0000')) return valor;
+    const base = dia === null ? null : new Date(`${dia}T00:00:00Z`);
+    const valido = dia !== null && base !== null && !Number.isNaN(base.getTime()) && !dia.startsWith('0000') && base.toISOString().slice(0, 10) === dia;
+    if (valido && dia === valor) return valor;
+    if (valido) {
+      const instante = new Date(valor);
+      // L13 (c): meia-noite UTC em ponto (sufixo Z, hora zero, fração zero) é prazo só-data gravado como instante; fica no dia gravado.
+      if (valor.endsWith('Z') && instante.getTime() % 86_400_000 === 0) return dia;
+      // O regex e a data civil já garantem um instante válido (ano 0001 a 9999, deslocamento até 23:59), então `format` não lança.
+      // Ano 0001 com deslocamento negativo cairia no ano 0 e o limite superior no ano 10000: o Intl os escreve sem os quatro dígitos
+      // ("1-12-31", "10000-01-01"), e o `date` do PostgreSQL não os guarda; a forma AAAA-MM-DD de quatro dígitos é a guarda.
+      const civil = diaCivilNoFuso.format(instante);
+      if (SO_DATA.test(civil)) return civil;
+    }
   }
   notas.push('deadline_fora_da_forma');
   return null;
@@ -180,6 +222,32 @@ function colunaDoPasso(ref: Referencia, quadro: string | null, coluna: string, d
       workflow: c.workflow_id,
     },
   };
+}
+
+/** Vínculos que ligam um bug à entrega (decisão do dono, O18 = c): pai e filho (a entrega é o pai do bug) e relacionado (`relative`). */
+const VINCULOS_BUG_ENTREGA: readonly string[] = ['parent', 'relative'];
+const CATEGORIAS_DE_BUG: readonly string[] = ['bug_interno', 'defeito_producao'];
+
+/**
+ * Pedido 105 (O18): entrega do bug pelos vínculos do próprio bug. Só card de tipo bug tem origem; vale vínculo `parent` ou `relative` com um card
+ * item que não seja bug (vínculo de bug com bug não liga a entrega; card ligado fora do staging ou de tipo sem referência não vale, sem palpite).
+ * Várias entregas: a de menor id, contada em `varias_entregas_bug`; bug sem entrega ligada: nulo, contado em `bug_sem_entrega`. Só o id do card, nunca texto.
+ */
+function origemDoBug(e: EntradaCard, tipoRef: LinhaTipo | undefined, ref: Referencia, criado: number, notas: string[]): string | null {
+  if (tipoRef?.eh_item !== true || !CATEGORIAS_DE_BUG.includes(tipoRef.categoria ?? '')) return null;
+  const candidatas = Array.isArray(e.card.linked_cards)
+    ? [...new Set((e.card.linked_cards as unknown[]).flatMap((l) => {
+      const v = l as { card_id?: unknown; link_type?: unknown } | null;
+      const id = v !== null && typeof v === 'object' && typeof v.link_type === 'string' && VINCULOS_BUG_ENTREGA.includes(v.link_type) ? texto(v.card_id) : null;
+      if (id === null || id === e.id) return [];
+      const tipo = e.tipoDoPai(id);
+      const t = tipo === undefined ? undefined : noDia(ref.tipos.get(tipo), diaDe(criado), notas);
+      return t?.eh_item === true && !CATEGORIAS_DE_BUG.includes(t.categoria ?? '') ? [id] : [];
+    }))].sort((a, b) => Number(a) - Number(b))
+    : [];
+  if (candidatas.length > 1) notas.push('varias_entregas_bug');
+  if (candidatas.length === 0) notas.push('bug_sem_entrega');
+  return candidatas[0] ?? null;
 }
 
 /**
@@ -247,6 +315,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   const pai = pais[0] === undefined || (paiTipo !== undefined && !paiTipo.eh_item) ? null : pais[0];
   if (pais[0] !== undefined && pai === null) notas.push('pai_sprint');
 
+  const origemBug = origemDoBug(e, tipoRef, ref, criado, notas);
   const severidade = severidadeDaPrioridade(e.card.priority, ref.prioridades, notas);
   const titulo = texto(e.card.title);
   const eventos: EventoCard[] = [{ card_id: e.id, tipo: 'criado', ocorrido_em: new Date(criado) }];
@@ -259,7 +328,9 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
-      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), ...colunasDeLista(e.card, ref.camposLista, notas),
+      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), origem_bug: origemBug, ...colunasDeLista(e.card, ref.camposLista, notas), classe_servico: classeDeServicoDasTags(e.card, notas),
+      // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
+      fase_deteccao: null,
       ...(severidade === undefined ? {} : { severidade }),
     },
     transicoes, eventos, notas,

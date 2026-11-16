@@ -14,6 +14,7 @@ import {
 import { textoSeloFrescor, type FonteDoCartao, type TextoNota } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { ROTULO_FILTRO, ROTULO_PERIODO } from '@/features/filtros/paineis'
+import { aplicaveisDe } from '@/features/painel/propsCartao'
 import { fmtData, fmtDataHora, fmtInteiro, fmtNumero, textoJanela } from '@/lib/formatar'
 
 /**
@@ -194,6 +195,12 @@ export function textoFiltros(
     const aplicaveis = APLICABILIDADE_FLUXO[id] as readonly FiltroFluxoChave[]
     const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
     if (!aplicaveis.includes('equipe')) partes.pop()
+    // Setor (097 L11): só com seleção, para o arquivo dizer o recorte sem mudar o texto de quem não filtra por setor.
+    const setores = f.setor ?? []
+    if (setores.length > 0 && aplicaveisDe(id).includes('setor'))
+      partes.unshift(
+        `${ROTULO_FILTRO.setor}: ${lista(setores.map((x) => nomeDe(opcoes?.dominio === 'businessmap' ? opcoes.setores : undefined, x)))}`,
+      )
     if (aplicaveis.includes('tipo')) partes.push(`${ROTULO_FILTRO.tipo}: ${lista(f.tipo)}`)
     if (aplicaveis.includes('sistema'))
       partes.push(`${ROTULO_FILTRO.sistema}: ${lista(f.sistema.map((s) => nomeDe(sistemas, s)))}`)
@@ -403,11 +410,20 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     janela: textoJanelaBloco(d),
     base: textoBase(d.base, e.id === 'E3' ? (e.dto as ResultadoE3).comFicha.k : undefined),
     amostraInsuficiente: textoInsuficiente(e.dto),
-    nota: resumoDaNota(e.nota),
+    nota: [resumoDaNota(e.nota), notaDeParteSemDado(e.dto)].filter(Boolean).join(' '),
     criterios: textoCriterios([...d.criterios.serie, ...d.criterios.janela]),
     tabela: tabelaDoDto(e.dto),
   }
 }
+
+/** O12 (099, CA-O12-8): parte sem dado real (responsabilidade do atraso nula) é dita na nota do arquivo; a célula nula sai como "-", nunca 0. */
+const notaDeParteSemDado = (dto: unknown): string =>
+  typeof dto === 'object' &&
+  dto !== null &&
+  'motivoResponsabilidade' in dto &&
+  typeof dto.motivoResponsabilidade === 'string'
+    ? 'Responsabilidade do atraso: sem dado real (aguardando o campo no quadro do BusinessMap).'
+    : ''
 
 /** Bloco de uma métrica sem fonte real: só o contexto e o motivo; nenhum número, percentil, base nem tabela (pedido 060, P4). */
 export function construirBlocoSemDadoReal(e: {

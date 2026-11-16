@@ -7,6 +7,7 @@ import {
   FILTROS_SUSTENTACAO,
   FonteAjustada,
 } from '@/features/painel/testes/fonteFixa'
+import { fmtDiasUteis } from '@/lib/formatar'
 import { fonteDeTeste, renderizarApp, renderizarCartao } from '@/test/helpers'
 import { MemoryRouter } from 'react-router'
 import { PREFERENCIAS_PADRAO } from '@metricas-dspd/contratos'
@@ -16,11 +17,23 @@ import { ProvedorPreferencias } from '@/features/preferencias/ProvedorPreferenci
 import { LeiaJunto } from './LeiaJunto'
 import { MaisMetricas } from './MaisMetricas'
 import { ListaInsuficientes } from './comuns'
-import { CartaoO14, CartaoO5 } from './fluxo'
+import { CartaoO14, CartaoO5, CartaoO8 } from './fluxo'
 import { CartaoE4, CartaoE5, CartaoT6 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
 vi.setConfig({ testTimeout: 45000 })
+
+const categoriasDaBarras = vi.hoisted(() => ({ chamadas: [] as string[][] }))
+vi.mock('@/components/charts/Barras', async (original) => {
+  const m = await original<typeof import('@/components/charts/Barras')>()
+  return {
+    ...m,
+    Barras: (p: Parameters<typeof m.Barras>[0]) => {
+      categoriasDaBarras.chamadas.push(p.categorias.map((c) => c.rotulo))
+      return m.Barras(p)
+    },
+  }
+})
 
 type Qualquer = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -247,7 +260,7 @@ describe('ramos dos componentes complementares', () => {
     expect(within(el).queryByTestId('cobertura-S12')).not.toBeInTheDocument()
     expect(within(el).queryByRole('table', { name: /Reincidência por sistema/ })).toBeNull()
     expect(el).toHaveTextContent('é o sistema com mais chamados no período')
-    expect(el).toHaveTextContent('Exceção de SLA por registro posterior')
+    expect(el).toHaveTextContent('Chamados abertos no sistema depois do atendimento')
   })
 
   it('S12 sem meses e com exceção de SLA nula: a nota fixa aparece e o texto da reincidência não diz que nada é publicado', async () => {
@@ -262,7 +275,7 @@ describe('ramos dos componentes complementares', () => {
     renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     const el = await screen.findByTestId('metrica-S12')
     expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
-      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+      'Chamados abertos no sistema depois do atendimento: sem dado (hoje essa marca não vem do Acelerato).',
     )
     const aviso = within(el).getByTestId('campo-sem-fonte-S12')
     expect(aviso).toHaveTextContent('O volume por sistema acima é dado real')
@@ -279,7 +292,7 @@ describe('ramos dos componentes complementares', () => {
     renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     const el = await screen.findByTestId('metrica-S12')
     expect(await within(el).findByTestId('nota-S12-excecao-sla')).toHaveTextContent(
-      'Exceção de SLA por registro posterior: campo sem fonte (a coleta ainda não traz o registro).',
+      'Chamados abertos no sistema depois do atendimento: sem dado (hoje essa marca não vem do Acelerato).',
     )
   })
 
@@ -289,6 +302,100 @@ describe('ramos dos componentes complementares', () => {
     })
     const el = await screen.findByTestId('metrica-S12')
     expect(within(el).queryByTestId('nota-S12-excecao-sla')).not.toBeInTheDocument()
+  })
+
+  it('O8 sem tamanho declarado mostra o tempo real e Sem dado real com o motivo só na divisão por tamanho', async () => {
+    const semTamanho = new FonteAjustada({
+      O8: (r: Qualquer) => {
+        for (const t of r.tipos) t.porTamanho = null
+        r.motivoPorTamanho = 'aguardando o campo de tamanho no quadro (WS1)'
+      },
+    })
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: semTamanho })
+    const el = await screen.findByTestId('metrica-O8')
+    const aviso = await within(el).findByTestId('estado-sem-dado-real-O8-por-tamanho')
+    expect(aviso).toHaveTextContent('Sem dado real')
+    expect(within(el).getByTestId('motivo-sem-dado-real-O8-por-tamanho')).toHaveTextContent(
+      'campo de tamanho',
+    )
+    expect(el).toHaveTextContent('Por tamanho declarado')
+    expect(el).toHaveTextContent('Mediana')
+    expect(el).toHaveTextContent('P85')
+    expect(within(el).queryByTestId('nota-O8-sem-tamanho')).not.toBeInTheDocument()
+  })
+
+  it('O8 com porTamanho nulo e sem motivo (contrato permite) não quebra: o gráfico por tamanho sai sem barras, sem aviso', async () => {
+    const incoerente = new FonteAjustada({
+      O8: (r: Qualquer) => {
+        for (const t of r.tipos) t.porTamanho = null
+        r.motivoPorTamanho = null
+        r.tipos[0].estatistica = {
+          status: 'ok',
+          n: 30,
+          valor: { mediana: 4, media: 5, p85: 9, acimaP85AnteriorPct: null },
+          janela: r.base.janela,
+        }
+      },
+    })
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: incoerente })
+    const el = await screen.findByTestId('metrica-O8')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    expect(el).toHaveTextContent('Mediana')
+    expect(within(el).queryByTestId('estado-sem-dado-real-O8-por-tamanho')).not.toBeInTheDocument()
+    expect(within(el).getByRole('heading', { name: 'Por tamanho declarado' })).toBeInTheDocument()
+  })
+
+  const NOTA_O8 = 'nota-O8-sem-tamanho'
+  const comTamanhoExceto = (nulos: number[]) =>
+    new FonteAjustada({
+      O8: (r: Qualquer) => {
+        r.motivoPorTamanho = null
+        r.tipos.forEach((t: Qualquer, i: number) => {
+          t.estatistica = {
+            status: 'ok',
+            n: 30,
+            valor: { mediana: 4, media: 5, p85: 9, acimaP85AnteriorPct: null },
+            janela: r.base.janela,
+          }
+          t.porTamanho = nulos.includes(i) ? null : [{ tamanho: 'P', mediana: 2 }]
+        })
+      },
+    })
+
+  it('O8 com um tipo sem tamanho: ele sai do gráfico, fica na tabela e entra na nota em parágrafo (CA-1 a CA-4, CA-7)', async () => {
+    categoriasDaBarras.chamadas.length = 0
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([0]) })
+    const el = await screen.findByTestId('metrica-O8')
+    const nota = await within(el).findByTestId(NOTA_O8)
+    expect(nota.tagName).toBe('P')
+    expect(nota.closest('svg')).toBeNull()
+    expect(nota).toHaveTextContent(
+      /^Sem divisão por tamanho: .+\. Nenhum card concluído desse tipo, no período, tem tamanho declarado no quadro\. A mediana e o P85 dele estão na tabela acima\.$/,
+    )
+    expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+    const tipo = nota.textContent.match(/tamanho: (.+?)\./)![1]!
+    const tabela = el.querySelector('table')!
+    const linha = within(tabela).getByText(tipo).closest('tr')!
+    expect(linha).toHaveTextContent(`${fmtDiasUteis(4)}${fmtDiasUteis(9)}`)
+    const ultimas = categoriasDaBarras.chamadas.at(-1)!
+    expect(ultimas.length).toBeGreaterThan(0)
+    expect(ultimas).not.toContain(tipo)
+  })
+
+  it('O8 com dois tipos sem tamanho lista os nomes no plural, na ordem da tabela (CA-2)', async () => {
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([0, 1]) })
+    const nota = await screen.findByTestId(NOTA_O8)
+    expect(nota.textContent).toMatch(
+      /^Sem divisão por tamanho: [^,]+, [^,]+?\. Nenhum card concluído desses tipos/,
+    )
+    expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+  })
+
+  it('O8 com todos os tipos com tamanho não mostra a nota (CA-6)', async () => {
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([]) })
+    const el = await screen.findByTestId('metrica-O8')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    expect(within(el).queryByTestId(NOTA_O8)).not.toBeInTheDocument()
   })
 
   it('O17 não diz "mais frequente" quando todas as causas têm 0 incidentes', async () => {
@@ -305,6 +412,14 @@ describe('ramos dos componentes complementares', () => {
     a.unmount()
     renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: fonteDeTeste })
     expect(await screen.findByText(/A causa raiz mais frequente é/)).toBeInTheDocument()
+  })
+
+  it('O17 mostra os subtítulos Por causa raiz e Por sistema como títulos do cartão', async () => {
+    renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: fonteDeTeste })
+    const el = await screen.findByTestId('metrica-O17')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
+    expect(within(el).getByRole('heading', { name: 'Por causa raiz' })).toBeInTheDocument()
+    expect(within(el).getByRole('heading', { name: 'Por sistema' })).toBeInTheDocument()
   })
 
   it('O17 sem causa raiz mostra Sem dado real com o motivo e mantém o por sistema', async () => {

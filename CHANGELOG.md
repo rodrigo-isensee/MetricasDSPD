@@ -4,8 +4,42 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ## [Não publicado]
 
+### Corrigido
+- Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
+
 ### Adicionado
+- S1 e S2: o texto do "registro posterior" vira linguagem simples (chamado registrado depois que o atendimento já aconteceu; pela regra fica de fora, mas hoje o Acelerato não traz essa marca e nenhum chamado é excluído por esse motivo) e o MTTR diz "pendente ou em validação", como o cálculo já faz; sem mudar cálculo (pedido 105, E3.48).
+- O15 (cartão): nota `o15-fora` com os bugs fora da conta, leitura por caso (percentuais indisponíveis, fases sem contagem), fase de contagem nula sem barra e com traço na tabela, gráfico omitido quando todas as fases são nulas, linha das fases sem contagem e nota metodológica com a fase de detecção; sem mudar contrato (pedido 105, E7.12, `docs/ux/105-o15-cartao.md`).
+- Acelerato: novo comando `ac:reprojetar-fluxo` preenche `dim_chamado.fluxo` (D2) dos chamados já projetados que ficaram com fluxo nulo, reaplicando a regra existente às etapas do staging, em lotes e numa transação só, com a credencial do migrador; só preenche coluna nula (nunca troca valor existente), fluxo múltiplo e chamado sem etapa seguem nulos, repetir não muda nada e a execução fica em `ctl_coleta`; sem isso S5, S6 e S7 seguiam sem dado real nos chamados antigos (pedido 105, E6.16).
+- O15 (cartão): com nenhum bug com fase e ao menos um fora da conta (`base.n` = 0 e `bugsSemFase` > 0) o cartão deixa de cair no estado vazio e mostra a nota `o15-fora` e a leitura "Nenhum bug com fase de detecção no período"; as demais métricas seguem como estão (pedido 105, K-365, E7.30).
+- O15 (Onde os bugs são encontrados) com dado real: a fase de detecção do bug é a coluna do card da demanda (pai do bug) quando o bug foi criado, pela tabela coluna para fase aprovada pelo dono (347 colunas, `fase_deteccao_coluna` em `businessmap-dominio.json`, projetada em `dim_card.fase_deteccao` sem sobrescrever a história); só os bugs com pai na base entram, com `bugsSemFase` para a nota de quantos ficaram fora, e cada fase só publica a contagem com 20 bugs ou mais (`fases[].contagem` nulo abaixo disso); versão de critério `criterio-2026-11-15-o15-fase-dado-real`; O15 no mapa de origem real. O dono roda `bm:ref-sync` e `bm:projetar` depois do merge (pedido 105, E7.5).
+- O8: o tipo sem tamanho declarado sai do gráfico por tamanho e entra numa nota de texto abaixo dele ("Sem divisão por tamanho: ..."), sem número novo; a tabela, o cálculo e o contrato não mudam (pedido 105, K-361, E3.9).
+- Recomendados do O21, O16 e O8 resolvidos: comentário de origem e linha da API sem "mock" para o O21, testes `.pg` do O16 e do O8 sem laço vazio e com o ramo conferido, contrato do O8 exige o motivo só quando nenhum tipo publica `porTamanho`; o cálculo não muda (pedido 105, K-348, K-352, K-353).
+- Acelerato: domínios `cpe_*` (valores literais da B6-d em UTF-8, cada grafia como entrada, sem de-para nem vigência; `cpe_tipo_prioridade` sem valores) e `etapa_fluxo` (114 chaves da B5-a na ordem aprovada, AP-099-1) em `acelerato-dominio.json`, com nova versão de critério; o dono roda `ac:ref-sync` e `--reconhecer-mudanca` depois do merge (pedido 099, D1 1b e 1c).
+- Recomendados do D1a e do D1b: comentário do `acelerato-l9c.pg` atualizado, `pesquisa.pg` confere o down contra o `checksums.json` (falha com migração faltando no diretório), rótulos de `etapa_fluxo` conferidos contra a B5-a por amostra e título do teste de `cpe_tipo_prioridade` sem parecer uma decisão do dono; `fluxo_multiplo` e `sem_agente` passam a contar cada chamado uma vez só (chamados distintos na projeção, não uma vez por versão do staging; decisão do dono "A", pedido 105, K-354).
+- Teste do destino do item O12 da faixa de atenção: código `O12` e `#o12` quando há vencidos por causa interna (pedido 105, K-362, E3.1).
+- Teste e2e B3-002 (O12): com o O12 sem dado real a faixa "Pede atenção" mostra a lacuna e não o link "Ver O12"; o teste deixa de supor o mock antigo e segue provando que `#o12` abre a Semanal com o O12 (pedido 105, E5.1).
+- O12 (Acordos e vencidos) pelo prazo nativo do card: o prazo com data e hora vira o dia civil de Brasília, exceto meia-noite UTC em ponto, que fica no dia gravado (decisão do dono de 2026-11-15, L13 opção c), só conta o card que passou pelo compromisso, descartado antes do prazo sai da conta e depois conta como vencido; a divisão por responsabilidade do atraso e "vencidos por causa interna" saem sem dado real com o motivo (nunca 0, meta não avaliada), com os textos do UX no cartão, no Resumo, no "Pede atenção" e na exportação; versão de critério `criterio-2026-11-14-o12-prazo-do-card`; O12 no mapa de origem real (pedido 099, C2b e C3).
+- Texto do S1 (Sustentação) diz o que o cálculo faz: P1 e o primeiro atendimento de P2 em horas corridas, os demais prazos em horas úteis; só o texto muda (pedido 105, K-351, E3.31).
+- O8: a divisão por tamanho de cada tipo olha só os entregues da janela medida, e não todos os cards da base; tipo com tamanho só fora da janela fica nulo, sem pôr tudo em "Sem tamanho" (pedido 099, K-359, A2, E3.319).
+- O8: a divisão por tamanho é decidida por tipo de demanda; o tipo sem tamanho declarado fica com `porTamanho` nulo, nunca inteiro em "Sem tamanho" (pedido 099, L24 a, K-359).
+- Testes do O20: três mutantes vivos mortos (menor ordem da faixa entre quadros, soma das transições do período e papel de entrega por quadro), predicado único `colunaDaEquipe` para as colunas da equipe e a herança de papel e tipo do primeiro quadro documentada em `docs/api/metricas.md`; o cálculo não muda (pedido 099, K-349, E3.306).
+- Filtro Setor na barra do Fluxo (FL1, FL2 e FL3, antes de Equipe, com busca e estados) e no bloco Fluxo do Resumo, nunca na Sustentação: setor na URL, aviso "Resultado consolidado de N setores. O sistema não compara setores.", Setor por cartão em "Filtros aplicados" e "Não afetado por"; o efeito nos cálculos vem com o L10b (pedido 097, L11, K-336).
+- Acelerato: `dim_chamado.fluxo` guarda o workflow em que cada chamado correu (o único `descricao_workflow` das etapas; nulo sem etapa e nulo com a contagem `fluxo_multiplo` se houver mais de um, sem escolher), base para os motivos da Sustentação; migração 0038, sem reescrever histórico, preenchida só pela reprojeção do dono (pedido 099, D1 1a).
+- Aba Apontamento (web): filtro Setor na barra, antes da Equipe, com as opções de `opcoes.setores` (inclui "Sem setor"); some quando a resposta não traz o campo; vai na URL e na consulta como lista de slugs, só recorte, sem bloco nem comparação por setor (pedido 097, K-337).
+- Aba Apontamento: filtro Setor (parâmetro `setor` e `opcoes.setores`, pelo quadro do card e pelo dicionário de setores sem sobrenome; "Sem setor" para card fora dos quadros mapeados), só recorte, sem bloco por setor; o papel da aba ganha `SELECT` em `dim_card.quadro_id` e no mapa do `ref_dominio`, e o dono roda `db:migrate` para reaplicar os GRANTs (pedido 097, K-337, parte do servidor).
+- Métricas do fluxo: o filtro Setor recorta os números pelo quadro atual do card (O1, O2, O20, O21, T11, T14, varredura, EI e as demais por story e frente; projeto fora do recorte); parâmetro `setor` no fluxo e na `TENDENCIA_FLUXO`, com a sustentação recusando (pedido 097, K-335, L10b).
+- Métricas: O21 Fluxo reverso com dado real do BusinessMap (direção das transições e ciclo do O3), sem mudar contrato nem cálculo (pedido 099, lote A1, E3.219).
+- O18 (Entregas com e sem bug) com dado real do BusinessMap pelos vínculos: o bug é da entrega quando ligado a ela por vínculo pai e filho ou relacionado (decisão do dono de 2026-11-15, O18 = c); vínculo de bug com bug não liga a uma entrega; a projeção grava a entrega em `dim_card.origem_bug` (só o id, sem pessoa nem texto) e o bug conta pelo tipo, sem exigir fase de detecção; janela de 30 dias da entrega mantida; versão de critério `criterio-2026-11-15-o18-vinculos`; O18 no mapa de origem real; o dono reprojeta a base para preencher os bugs já coletados (pedido 105, E7.4).
+- Sustentação: S9 e o desconto da S1 leem as esperas reais (Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança; `Pendente` sem motivo é "Não classificado"), com a versão de critério `criterio-2026-11-14-s1-s9-esperas-pendencia` (`afeta` S1 e S9); Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono (pedido 099, D5a).
+- Sustentação (pedido 099, D4): o cartão do S1 mostra a nota "inclui respostas automáticas" que a API publica (Q-099-5b = A).
+- Sustentação (pedido 099, D4): o primeiro atendimento do S1 passa a ser o primeiro comentário do chamado (`primeiro_atendimento_em` projetado de `data_primeiro_comentario`, só o instante) e o S1 entra no mapa real, com a nota de que o primeiro atendimento inclui respostas automáticas e a versão de critério `criterio-2026-11-15-s1-dado-real`; sem os alvos do `ac:ref-sync` a API responde 503 (Q-099-5b = A).
+- Sustentação (pedido 099, L18, E3.298): sem os alvos de prazo por prioridade o S1 responde "sem dado real" com o motivo (alvos não carregados) no lugar do 503 `REFERENCIA_AUSENTE` (o 503 fica só no modo mock explícito).
+- Painel: O20 Fluxo cumulativo com dado real da base do BusinessMap, sem mudar o cálculo nem o contrato, e O20 na medição de custo do `perf-api` (pedido 099, lote A2).
+- Desempenho: a consulta do papel da coluna no índice do BusinessMap passa a usar dois níveis de mapa (quadro, coluna) e a varredura da vida resolve o papel de entrega uma vez por quadro e coluna; o resultado não muda. O O20 a frio na escala 3 do mock (15744 cards, 128012 transições) caiu de 203 a 329 ms para cerca de 110 a 140 ms em processo, abaixo dos 150 ms que liberam a entrada de origem real (ADR 0003, A1; ADR 0026, P3).
+- BusinessMap: dicionário de setores preenchido com os 6 quadros que o dono nomeou (23, 24, 25, 27, 31 e 79; o 35 fica fora até a P-097-10), para o filtro Setor; o dono roda `bm:ref-sync` depois do merge (pedido 097, K-332).
 - Acelerato: cada prazo do S1 grava e devolve a unidade do PROC (min, h ou dia), derivada do texto do prazo pelo `ac:ref-sync`; contrato do S1 com `exibirEm` (nulo na vigência anterior), sem mudar nenhum número calculado (pedido 099, K-314, B1; migração 0037) (#408).
+- Sustentação: o S1 mostra cada prazo na unidade e no relógio do PROC (15 min corridos, 4 h corridas, 2 dias úteis…), com alvo, mediana, P85, P95 e média da célula na mesma unidade e o dia pelo dia útil do resultado; célula sem unidade registrada sai em horas com o rótulo do relógio (pedido 099, K-314, F1).
 - Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).
 - Aba Apontamento: dia atípico acima de 10 h (pedido 067) (#215) e aviso de coleta parcial (pedido 069, lote M1-a) (#219).
 - Sustentação: S8 conta só incidentes com resposta (pedido 066) (#216).
@@ -19,6 +53,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Documentação: ADR 0028 e desenho do 070 passam a vigente (#234).
 - Acelerato: projeção das colunas da F3 na `dim_chamado` (campo de etapa repetido vale o último valor preenchido, vazio nunca apaga) e comando `ac:apoio-l9c` (pedido 069, lote L9-c) (#238); `ac:ref-sync` registra versão a cada mudança de vigência (E10 L1) (#252); a coleta recusa lista fechada sobrescrita (E10 L2) (#258); listas de `ref_dominio` no CA-8 do coletor (#244); categoria do erro nas entradas de referência (pedido 081) (#264).
 - BusinessMap: domínio `motivo_bloqueio` no `bm:ref-sync` (pedido 075, lote 3) (#246); derivador puro de bloqueio por comparação de versões (lotes 2a e 2b, marcos de saída e fornecedor) (#248, #257); projetor grava `evt_bloqueio` idempotente (lote 4a) (#260) e monta `fato_bloqueio` dos eventos (lote 4b) (#266); versão de critério e corte do O1, com data pendente (lote 6a) (#267).
+- Sustentação (pedido 105, D2): S5, S6 e S7 com dado real do Acelerato, só dos cinco fluxos do PROC (lista `fluxo_proc` em `acelerato-dominio.json`, carregada pelo `ac:ref-sync`; sem ela, "sem dado real" com o motivo); chamados de outros fluxos ficam fora e o contrato traz `foraDoFluxo`. De-para dos motivos só nos pares óbvios (caixa e vírgula); o preenchido sem par vira a faixa `Outro`, separada de `Não informado` (contrato muda sem convivência). S5 com `Risco de estouro de SLA` em zero e nota; S7 sem separar "Não" de campo vazio, com nota. O ajuste manual de prioridade passa a vir do campo da coleta no S3 e no S7, com as versões de critério `criterio-2026-11-15-ajuste-prioridade-dado-real` (`afeta` S3 e S7) e `criterio-2026-11-15-motivos-proc-dado-real` (`afeta` S5, S6 e S7).
 - Bloqueios: BLOQUEADOS, O2 e O19 aceitam e leem o motivo "não classificado", com 8 motivos no O19 (pedido 075, lotes 1a e 1b) (#245, #247); a tela mostra o motivo não classificado (lote 5a) (#253). O interruptor `AJUSTE_PRIORIDADE_COM_FONTE` segue desligado.
 - Tendências (pedido 077): janela incompleta nos contratos, nas tendências e nas telas do fluxo e da sustentação (#249, #254, #261, #269); herdam as marcações de critério (#251); `historicoDesde` do BusinessMap (#259); ressalva do S2 na tendência de SLA, contrato e tela (#262, #276); contagem parcial do mês anterior ao histórico, no servidor e na tela (#272, #278); tendência do fluxo com dado real do BusinessMap (lote 5) (#279) e tendência da sustentação com dado real do Acelerato (lote 7, `TENDENCIA_SUST` no mapa real, fora da simulação) (#285).
 - Demonstração: comando único `pnpm run demo:dado-real` (pedido 087), que confere só os nomes do `.env`, sobe o banco, migra, faz a carga inicial do BusinessMap, do Acelerato e do apontamento, projeta, sobe API e web e imprime a consulta de prova do 075 (só contagens); para no primeiro erro, com etapa e categoria. Só roda com o `.env` do dono (#284).
@@ -40,6 +75,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Sustentação (pedido 099, D3b): o dia útil da Sustentação passa a 8 h 48 (528 min, turnos 08:00-12:00 e 13:00-17:48 no calendário do Acelerato); alvos em dias do PROC viram dias x 8,8 h; o S9 sai em horas úteis e a tela do S1 explica o dia útil. O fluxo (BusinessMap) segue com 8 h (#371).
 - Fluxo (pedido 099, C8a): a severidade do card vem do campo de prioridade nativo do BusinessMap (1 Crítica, 2 Alta, 3 Média, 4 Baixa), por de-para versionado carregado pelo `bm:ref-sync`; card sem prioridade fica sem severidade e valor fora do mapa é recusado e contado, nunca vira Baixa (#369).
 - Fluxo (pedido 099, C2a): o prazo combinado do card (`data_acordada`) vem do deadline nativo do BusinessMap, com leitura estrita da data (#366).
+- O24 com dado real pelas etiquetas de classe de serviço: a coleta do BusinessMap lê o catálogo `GET /tags` e `expand=tag_ids` (só GET), reduz na fronteira para a classe (`classes_tag`; nome e id de etiqueta nunca chegam ao staging) e a projeção preenche `dim_card.classe_servico` (card sem etiqueta de classe fica sem classe, nunca Padrão; duas classes diferentes: sem classe, com a nota `classe_tag_empate`); o O24 entra no mapa real; versão de critério `105:classe-por-etiqueta` (`bm:criterios-classe-servico`, `afeta` O6, O24, T1, T2, T4 e T6); `classe_servico` deixa de aceitar campo customizado como fonte (pedido 105, E7.3).
+- Fluxo (pedido 099, lote C8, E3.237): O16 Estoque e idade de bugs com dado real do BusinessMap (bugs por tipo de card e transições); o bug sem severidade aparece como "Sem severidade" e nunca some do estoque. O número de severidade espera o `bm:ref-sync` com a reprojeção do C8a, que o dono roda.
 - Métricas com dado real (pedido 099): O25 Descarte (lote A3) (#367) e S12 só com o volume por sistema; a exceção de SLA por registro posterior e a reincidência aparecem sem fonte, com nota, nunca como 0% (D9) (#370).
 - Aba Apontamento (pedido 097, K-286): o mapa diário passa a ser recortado também pelo filtro Equipe (time do card), além de Pessoa; várias equipes valem como um só recorte, nunca comparação, e o dia atípico segue decidido sobre o dia inteiro da pessoa. Sem piso de pessoas por recorte, por decisão do dono (1c, confirmada na Decisão 28); a forma da resposta não muda (#377).
 - Painéis (pedido 097, L8a e L8b): botão Recolher/Expandir em cada cartão, com texto visível, `aria-expanded` e a escolha lembrada por painel no navegador (chave `metricas-dspd:recolhidos:v1`, validada; memória fora do formato é descartada sem erro) e Restaurar recolhidos (#383, #405).
@@ -47,12 +84,25 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Filtros (pedido 097, L10a): filtro Setor do fluxo pelo dicionário `setores` do arquivo de domínio do BusinessMap, gravado pelo `bm:ref-sync` em `ref_dominio` (`setor_quadro`); o nome nunca vem do nome do quadro (que traz o sobrenome do responsável) e a lista nasce vazia até a resposta do dono (P-097-9) (#388).
 - Acelerato (pedido 099, K-308): os intervalos por etapa (D-7) passam a ser montados com o dia útil de 8 h 48 da Sustentação, por uma regra só no projetor e no novo comando `ac:reprojetar-etapas`, que refaz numa transação só o `fato_etapa_chamado` dos chamados fechados e grava a versão `099:D-7-528`; até o comando rodar, a projeção segue com 8 h, sem misturar os dois na mesma tabela; nada coletado é tocado (#389); a entrada do comando tem teste de código de saída e de saída só com contagens (K-321) (#403).
 - Sustentação (pedido 099, K-275, B' da Q-099-7): O17 com dado real por sistema (`categoria_sistema`); a causa raiz segue "Sem dado real" com o motivo (o Registro de Problemas não tem vínculo ao incidente), nunca lista vazia nem causa aparente (#406).
+- Painel operacional (pedido 099, A4, Q-099-4): O8 com o tempo em execução real (o mesmo do O3) e a divisão por tamanho "sem dado real" com o motivo até o campo de tamanho existir no quadro (WS1); `porTamanho` passa a anulável e entra `motivoPorTamanho` no contrato `resultados/O8` (mudança incompatível; único consumidor é a web deste repositório); versão de critério `criterio-2026-11-14-o8-tempo-real` (afeta O8).
 - Documentação: forma de três documentos antigos para o `forge-check docs` (#387); retrospectiva da release 101 (#397); texto do Catálogo e unidade dos prazos do S1 pela Q-099-11 (K-297, K-314) (#399); plano do K-314 (#400).
 
 ### Corrigido
+- Aba Apontamento (pedido 097, K-341, decisão do dono de 2026-11-14): no cartão Horas por projeto, a linha sem projeto ("Sem iniciativa") sai do gráfico e das dez vagas dos maiores e aparece como linha própria depois de "Demais" e do botão "Ver todos", com as horas dela, fora de "de N", "Mostrando todos os N projetos", "Ver todos os N" e "Demais N" e fora da região rolável; a frase de leitura não a escolhe e o achado de concentração diz à parte quantas horas ficaram sem projeto (`horasSemProjeto`). CA-33 e CA-34 atualizados na especificação de UX.
+- Painéis: no cartão recolhido em erro, o foco volta ao Expandir depois do Tentar de novo, e cada Tentar de novo leva o título do cartão no nome acessível (pedido 097, K-344, B-2 e B-3).
+- Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
+- Testes: o P5 da propriedade de ordem (`regras.property.test.ts`) embaralha e reindexa só a fonte que a métrica lê, em vez de reconstruir os três contextos a cada rodada; mesma propriedade e fronteiras, sem subir o `testTimeout` (pedido 099, K-356, E3.293).
+- Barras: série sem nenhum valor (no O8, "Sem tamanho") deixa de aparecer na legenda e na tabela alternativa; e2e CA-19 espera o rádio marcado antes de conferir o título (pedido 105, K-364 e K-363, E3.22).
+- Testes da aba Apontamento (web): os auxiliares `pronto`/`esperar` passam a esperar todos os cartões saírem do esqueleto, não só o KPI, e o teste que lia o mapa diário logo depois do KPI deixa de falhar sob carga; sem mudança de código de produção (pedido 037, K-355).
+- Painéis: Worker do mock rejeita o pedido quando o `postMessage` lança e recusa com erro claro o pedido feito antes do `iniciar`, sem travar a tela (pedido 037, K-126, A1 e A2).
+- API: todo erro 5xx e a resposta fora do schema passam a logar só tipo e código, em todas as rotas e sem exceção por caminho, nunca a mensagem crua do banco, que pode trazer valor de linha (ADR 0020, item 6; K-347); a constante `ROTA_WEBHOOK_BM` some.
+- Webhook do BusinessMap: erro 5xx do receptor passa a logar só tipo e código, nunca a mensagem crua do banco, que pode trazer valor do payload (ADR 0020, item 6, B-4; K-086); testes de não vazamento por marcador no coletor e no webhook.
+- Aba Apontamento: o resumo do gráfico de horas por projeto recolhido deixa de contar a linha sem projeto como projeto, mantendo as horas dela no total (pedido 097, K-324, parte B).
+- Ambiente local e homologação: o healthcheck do postgres checa o banco `metricas` por TCP (`-h 127.0.0.1`), então só passa depois do init e da reinicialização do servidor, e o 1º `db:migrate` após o `db:up` deixa de falhar por socket (K-143, pedido 102).
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 - Suíte: trava em `/tmp/claude-uid` (pedido 079) (#263); teste da trava não pendura dentro do `pronto` (pedido 085) (#280); E2E L3-01 espera a altura da página estabilizar antes do axe (pedido 080) (#265).
 - Testes: regra de fronteira do eslint cobre todo `src` fora de `modulos` (pedido 073, E4) (#240); sustentação sem início de histórico do Acelerato (077, lote 3b) (#273); colunas e GRANT de `fato_bloqueio` e `evt_bloqueio` (075, lote 4c) (#274).
+- CI: a rodada de restauração espera o banco pronto por TCP em `127.0.0.1` no `metricas`, o banco que a migração usa, antes de migrar; antes checava por socket com o init ainda rodando (K-343, mesma corrida do K-143).
 - Entradas: `ref-sync-apontamento` imprime só a categoria do erro, como `ref-sync-ac` e `ref-sync-businessmap` (K-244) (#283).
 - Testes: o caso sem configuração do `ref-sync-apontamento` não lê mais o `.env` da máquina (K-261) (#297).
 - Ferramentas: pre-push com lint e typecheck só nos arquivos e pacotes alterados (pedido 083) (#268, #270).
@@ -91,9 +141,11 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Ferramentas (pre-push): lint do servidor nos alterados, árvore suja e bit de execução (K-317) (#386); nomes de arquivo não ASCII e o ramo sem merge-base (K-319) (#398); nomes com traço inicial, quebra de linha, aspas e barra (K-322) (#409).
 
 ### Desempenho
+
 - Métricas: `ehDiaUtil` consulta os feriados como número de dia, sem gerar texto por dia; nenhum resultado muda (teste de equivalência com o código antigo) (K-174, lote 1) (#316).
 
 ### Mudanças que quebram
+
 - Contrato (pedido 075, lote 9b): o valor `bloqueio-sem-dado-real` sai do enum de `notas` de O1, O2 e O3 e de `TEXTO_NOTA_CARTAO`; aceite de uso único em `aceitas.json`, fotografado e removido no mesmo PR, sem `/api/v2`. A API não emite a nota desde o 6b e a web não a lê desde o 9a (#323).
 - Migração 0035 (pedido 069, L9-c, decisão do dono D-L9-1): `previsao_retorno` de `dim_chamado` e `dim_chamado_versao` passa de `timestamptz` a booleano "tem previsão de retorno"; a coluna nunca foi projetada e está nula, a migração recusa a troca sem alterar nada se achar valor, e recria as três views que a leem (#238). `down` volta o tipo só com a coluna toda nula.
 - A primeira coleta do Acelerato depois do L9-c recusa com `parametros-mudaram` até o reconhecimento: rode `pnpm coleta ac --reconhecer-mudanca` uma vez (o hash `fluxo_sha256` entrou nos parâmetros comparados) (#238).
@@ -107,8 +159,15 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Sustentação (097 K-287): fim do ciclo de apelido anunciado na release 103; os ids antigos `totvs`, `senior` e `fluig` deixam de valer na URL e na API (o filtro aceita só o slug, como `sssc-totvs`), e link antigo com eles mostra a equipe como inválida e ignorada (#401).
 - Contrato (pedido 099, K-275): no O17, `porCausa` passa a anulável (nulo = causa raiz sem dado real) e entra `motivoCausaRaiz`; único consumidor é a web deste repositório (#406).
 - Migração 0037 (pedido 099, K-314 B1): `ref_alvo_prioridade` ganha `exibir_pa` e `exibir_r` (`min`, `h` ou `dia`), nulos nas linhas existentes ("vigência anterior ao K-314"), com CHECK de par preenchido e de "dia" só em tempo útil; `down` tira as restrições e as colunas. O contrato do S1 ganha `exibirEm` (aditivo, nulo na vigência anterior) (#408).
+- Contrato (pedido 105, E7.3, decisão do dono de 2026-11-15): `Intangível` sai do enum de classes de serviço (`CLASSES_SERVICO` passa a Urgente, Prioritário, Prazo fixo e Padrão) em T1, T2, T4, T6 e O6, sem convivência; o único consumidor é a web deste repositório.
+- Contrato (pedido 099, lote C3): no O12, `vencidosCausaInterna` e `porResponsabilidade` (no total e por linha) passam a anuláveis (nulo = quadro sem o campo de responsabilidade, nunca 0) e entra `motivoResponsabilidade` (#451).
+- Contrato (pedido 105, K-365): no O15, `contagem` de cada fase passa a anulável (nulo abaixo de 20 bugs) e entra `bugsSemFase` (#465).
+- Contrato (pedido 099, A4, K-359): O8 reescrito, com `porTamanho` anulável por tipo e `motivoPorTamanho` na resposta (obrigatório só quando nenhum tipo publica `porTamanho`; nenhum card tem tamanho declarado) (#442, #450).
+- Contrato (pedido 099, D2): S5 e S6 reescritos (#462): a faixa `Outro` entra em `motivos` (motivo preenchido sem par no domínio, separada de `naoInformado`) e entram `foraDoFluxo` e `notas`; o S3 real também traz a nota `s7-nao-igual-vazio`.
+- Migração 0038 (pedido 105): `dim_chamado.fluxo` (fluxo do PROC do chamado), nulo até a reprojeção; roda no `db:migrate` (#469). Veja "Ações do dono na base real depois da release 105".
 
 ### Mudanças de critério de cálculo
+- Classe de serviço pelas etiquetas do card (`105:classe-por-etiqueta`, `afeta` O6, O24, T1, T2, T4 e T6): Intangível deixa de ser classe e a classe vem da etiqueta, sem etiqueta = sem classe. O dono registra a versão com `bm:criterios-classe-servico <data da primeira coleta com etiquetas>`; a carga das etiquetas nos cards já coletados exige uma releitura (`bm:coleta carga-inicial --projetar`), porque a coleta incremental não relê card parado (pedido 105, E7.3).
 - 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
 - 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
 - Pedido 065: versão de critério registrada em `core/criterios.ts` para BLOQUEADOS e O5 (#214).
@@ -117,6 +176,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Pedido 075: versão de critério e corte da série do O1 com data pendente; sem dado real de bloqueio, BLOQUEADOS, O2, O19 e O5 seguem sem a parte de bloqueio (`BLOQUEIOS_COM_DADO_REAL` desligado) (#267). Lote 6b: a versão de critério do bloqueio com dado real ganha a data 2026-11-01 (primeira coleta real do BusinessMap), que também corta a série do O1; o interruptor liga e BLOQUEADOS, O1, O2, O5 e O19 passam a calcular a parte de bloqueio; T10 e T12 seguem fora (#298).
 - Pedido 077: janela incompleta, contagem parcial e ressalva do S2 marcadas nas tendências; as marcações herdam a versão de critério (#251, #262, #272, #276). Lotes 5 e 7: versões de critério de `TENDENCIA_FLUXO` e `TENDENCIA_SUST` com data 2026-11-10, ao passarem para dado real (#279, #285).
 - Pedido 089, aba Apontamento: o bit `sem-vinculo` só liga para apontamento sem comentário e sem regra por tipo; comentário não reconhecido deixa de contar como falha de qualidade. Versão `089:sem-vinculo-so-sem-comentario`, com a data da primeira varredura completa, gravada por `pnpm --filter @metricas-dspd/server run bm:criterios-apontamento <data>` (INSERT idempotente, sem editar as versões 059 e 067); a releitura gera versão nova na staging e não sobrescreve histórico (#293). Ordem de implantação, no mesmo dia: 1) `ref:sync` do dicionário v3; 2) `pnpm --filter @metricas-dspd/server run bm:criterios-apontamento <data da primeira varredura completa>`; 3) coleta com janela de 12 meses. Rodar 1 e 2 em dias diferentes gera duas marcas T2.6 para a mesma mudança.
+- Aba Apontamento (pedido 097, K-324, decisão do dono de 2026-11-14): o achado `concentracao-em-projeto` não escolhe mais a linha sem projeto como o projeto que concentra mais horas (pode apontar outro projeto) e leva `horasSemProjeto` à parte. Versão `097:concentracao-sem-linha-sem-projeto`, com a data da implantação, gravada por `pnpm --filter @metricas-dspd/server run bm:criterios-apontamento <data>` (INSERT idempotente).
 - Pedido 099, D3: a versão de critério dos alvos do Acelerato é gravada pelo `ac:ref-sync` ao carregar o arquivo, com data da carga, e marca o S1 e a Visão geral (#363).
 - Pedido 099, D3b: o dia útil de 528 min do Acelerato vale a partir da vigência gravada pelo `ref:sync-calendario`, que registra a versão de critério do domínio Acelerato (ADR 0027) (#371).
 - Pedido 099, C8a: a versão de critério do de-para de severidade é gravada pelo `bm:ref-sync` e marca o O16 (#369).
@@ -125,6 +185,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Pedido 099, K-308: a versão `099:D-7-528` (intervalos por etapa com o dia útil de 8 h 48) é gravada pelo `ac:reprojetar-etapas`, com a data em que o dono roda o comando, e marca S1, S4, S9, S10 e EI; o K-314 (unidade de exibição) não muda cálculo e não grava versão (#389, #408).
 
 ### Dependências e Forge
+
 - `zod` 4 e `ws` 8.22.0 para 8.22.1 (#218).
 - Forge 0.32.0 (#223). Sem dependência nova; `server/package.json` ganha só o script `ref:sync-calendario` (#222).
 - Forge 0.33.0, 0.34.0, 0.42.0, 0.44.2, 0.45.2 e 0.45.5 (#239, #250, #271, #275, #281, #296).
@@ -132,8 +193,13 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Forge 0.46.0 (pedido 102) (#374). Sem dependência nova.
 - Grupo `producao` do Dependabot (#411): `mariadb` 3.5.4 para 3.5.5 (driver do MySQL do Acelerato; correções de escape sob big5, gbk, sjis e cp932 e no `Pool.escape()`, e conexão com charset não suportado passa a ser recusada; o coletor não define charset e fica no utf8mb4 padrão) e `@tanstack/react-query` 5.105.3 para 5.107.1 (só a correção de laço de renderização com erro de seletor). No lockfile, `@babel/runtime` 7.29.13, `lilconfig` 3.1.5 e `ws` 8.22.2 (via `puppeteer-core`). Sem quebra de comportamento nas notas de versão e sem ação do dono.
 
+### Alterado
+- Classes de serviço (mudança de contrato em "Mudanças que quebram"): o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
+
 ### Ações do dono na base real depois da release 103
+
 Na base real, depois do merge na `main`, nesta ordem (cada carga grava a própria versão de critério com a data em que roda):
+
 1. `pnpm run db:migrate`: aplica a migração 0036 e reaplica os GRANTs.
 2. `pnpm --filter @metricas-dspd/server run ref:sync-calendario`: grava os turnos do dia útil de 8 h 48 da Sustentação (D3b).
 3. `pnpm --filter @metricas-dspd/server run ac:ref-sync`: carrega os alvos de prioridade do PROC com a unidade de cada prazo (D3).
@@ -142,7 +208,9 @@ Na base real, depois do merge na `main`, nesta ordem (cada carga grava a própri
 6. Coleta do BusinessMap e do Acelerato como de costume, para o projetor gravar a severidade e o prazo combinado dos cards.
 
 ### Ações do dono na base real depois da release 104
+
 Na base real, depois do merge na `main`, nesta ordem (se as ações da release 103 ainda não rodaram, esta lista as cobre):
+
 1. `pnpm run db:migrate`: aplica a migração 0037 (e a 0036, se ainda faltar) e reaplica os GRANTs.
 2. `pnpm --filter @metricas-dspd/server run ref:sync-calendario`: garante os turnos de 8 h 48 da Sustentação na referência; o `ac:reprojetar-etapas` recusa (código 4) se o calendário da referência diferir do da montagem.
 3. `pnpm --filter @metricas-dspd/server run ac:ref-sync`, num dia diferente do último `ac:ref-sync`: grava a unidade de exibição de cada prazo (K-314 B1); mudar só a unidade fecha e abre vigência, sem versão de critério.
@@ -151,9 +219,22 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 6. Com a coleta parada, `pnpm --filter @metricas-dspd/server run ac:reprojetar-etapas`: refaz os intervalos por etapa com o dia de 8 h 48 e grava a versão `099:D-7-528` com a data do dia (K-308). Imprime só contagens; repetir é seguro.
 7. Coleta do BusinessMap e do Acelerato como de costume.
 
+### Ações do dono na base real depois da release 105
+
+**Siga o roteiro `docs/devops/105-roteiro-dono.md`**: cada comando vem com o `.env` carregado, o que conferir e o que fazer se der erro. Abaixo vai só o resumo da ordem, depois do merge na `main` (as ações das releases 103 e 104 que ainda não rodaram estão em `docs/devops/104-roteiro-dono.md`):
+
+1. `pnpm run db:migrate`: aplica a migração 0038 (`dim_chamado.fluxo`) e reaplica os GRANTs.
+2. Com a coleta parada, `pnpm --filter @metricas-dspd/server run ac:reprojetar-fluxo`, uma vez (#469): preenche `dim_chamado.fluxo` dos chamados já na base, só onde é nulo, sem chamar o Acelerato; imprime só contagens, e repetir não muda nada. Atenção: o "última carga" da tela fica com a hora da reprojeção até a próxima coleta.
+3. `pnpm --filter @metricas-dspd/server run ac:ref-sync`, num dia diferente do último: listas do PROC (`fluxo_proc`, `cpe_*`, `etapa_fluxo`) e alvos, para S5, S6 e S7.
+4. `pnpm --filter @metricas-dspd/server run bm:ref-sync`: dicionário do BusinessMap com a tabela coluna para fase do O15 (347 colunas).
+5. `pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial --projetar`: releitura completa com projeção (etiquetas do O24, vínculos do O18, fase do O15). Anote a data em que terminar com sucesso.
+6. `pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico <data do passo 5>`: registra a versão `105:classe-por-etiqueta` (grava uma vez só).
+7. `pnpm run coleta ac`, como de costume, e depois a coleta incremental do BusinessMap.
+
 ## [0.2.0] - 2026-10-29
 
 ### Adicionado
+
 - Painel Operacional: métricas operacionais do lote 3 (O19 a O26) (#152).
 - Cadastro simulado de membros no mock, com ids opacos e sem dado de pessoa, e T14 sem agregado dedutível (K-112, K-130) (#161).
 - Trava de suíte única, comum a todas as worktrees (#156).
@@ -162,19 +243,24 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 - Documentação: textos do lote 3 das métricas também disponíveis (K-154) (#155); política do Dependabot (K-169) (#160); leitura de "enviada" como PR para a `develop` (K-162) (#157).
 
 ### Corrigido
+
 - Web: `develop` voltou ao verde após o Dependabot (`no-deprecated` do `matchMedia`, aquecimento do teste da PV1) (K-151) (#149).
 - Teste do servidor `SELECT *` que estourava 30 s (K-150) (#158).
 - Testes E2E do 041 estabilizados (F4, helper único, Monte Carlo, CLS) (#150).
 
 ### Desempenho
+
 - Nenhuma mudança nesta versão.
 
 ### Mudanças que quebram
+
 - Contrato do resultado da T14 (`resultadoT14`): união discriminada por `oculto`; o bloco oculto traz só `meuTime.k` e o visível traz `outrosTimes` inteiro. Aceito pelo dono (T14-M1 = B e Q-T14-12 = B), sem consumidor publicado (#161).
 
 ### Mudanças de critério de cálculo
+
 - 2026-10-28, T14: `total` do bloco, `base.n` e `base.complemento.n` passam a somar só os times visíveis; time oculto não entra em soma. Visíveis ordenados por total decrescente e código; ocultos depois, só por código (T14-M1 = B, Q-T14-12 = B, K-130) (#161).
 
 ### Dependências e Forge
+
 - `react-router` 7.18.4 para 8.5.0 (#147); `@tanstack/react-query` 5.104.2 para 5.104.5 (#146); `typescript-eslint` 8.71.2 para 8.72.0 (#145).
 - Forge atualizado para 0.30.3 (#151) e registrado em 0.30.5 (#162).

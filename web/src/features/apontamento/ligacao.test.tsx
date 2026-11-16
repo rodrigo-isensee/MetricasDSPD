@@ -19,7 +19,14 @@ function abrir(url: string = URL_ABA, opcoes: OpcoesFetchFalso = {}) {
 
 async function pronto() {
   const kpis = await screen.findByTestId('metrica-AP-KPIS')
-  await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  // todos os cartões saem do esqueleto cada um no seu tempo (K-355): ler outro cartão logo após o KPI é corrida
+  await waitFor(
+    () => {
+      for (const c of screen.getAllByTestId(/^metrica-/))
+        expect(c).toHaveAttribute('data-estado', 'ok')
+    },
+    { timeout: 8000 },
+  )
   return kpis
 }
 

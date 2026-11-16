@@ -10,6 +10,7 @@ import { criarPool, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { semear } from '../src/plataforma/db/seed.js';
 import { CONFIG, LISTAS_BANCO, TLS, criarMysqlFalso, linha } from './acelerato-duble.js';
 import { novaColeta, poolDe, url } from './pg/ctx.js';
+import { quantasDesde } from './pg/migracoes-por-numero.js';
 
 const d = describe.skipIf(!url);
 const F3 = ['motivo_escalacao', 'motivo_encerramento', 'avaliacao_problema', 'motivo_pendencia', 'prioridade_ajustada'] as const;
@@ -20,7 +21,8 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
   let dono: pg.Pool, coletor: pg.Pool;
   const tipoDe = async (t: string): Promise<string> => (await dono.query<{ t: string }>(
     `SELECT format_type(a.atttypid, a.atttypmod) AS t FROM pg_attribute a WHERE a.attrelid = '${E.ac}.${t}'::regclass AND a.attname = 'previsao_retorno'`)).rows[0]!.t;
-  const linhas = async (): Promise<string> => JSON.stringify((await dono.query(`SELECT * FROM ${E.ac}.dim_chamado ORDER BY chamado_id`)).rows);
+  // 'fluxo' (0038) nasce na subida depois do down até a 0035; a 0038 não é o objeto desta comparação, então a coluna fica de fora e todas as demais seguem comparadas
+  const linhas = async (): Promise<string> => JSON.stringify((await dono.query(`SELECT to_jsonb(d) - 'fluxo' AS linha FROM ${E.ac}.dim_chamado d ORDER BY chamado_id`)).rows);
   const insere = async (id: string, previsao: string): Promise<void> => {
     await dono.query(`INSERT INTO ${E.ac}.dim_chamado (chamado_id, motivo_escalacao, previsao_retorno, coletado_em, atualizado_por_coleta_id)
       VALUES ($1, 'X', ${previsao}, now(), $2)`, [id, await novaColeta(dono, E.ac)]);
@@ -46,7 +48,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
   });
 
   it('migração: linhas nulas seguem nulas, só o tipo muda nas duas dimensões, as views seguem lidas pela API; com valor, falha sem mudar nada', async () => {
-    await migrar(url!, { prefixo: P, direcao: 'down', quantas: 3 }); // desfaz a 0037, a 0036 e a 0035
+    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) }); // desfaz da última migração até a 0035 (inclui a 0038)
     expect(await tipoDe('dim_chamado')).toMatch(/timestamp\(3\) with time zone/);
     await insere('n1', 'NULL'); await insere('n2', 'NULL');
     const antes = await linhas();
@@ -59,7 +61,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     for (const v of ['vw_abertos', 'vw_fechados_sla', 'vw_populacao_sssc']) await expect(api.query(`SELECT previsao_retorno FROM ${E.ac}.${v} LIMIT 1`), v).resolves.toBeDefined();
     await api.end();
 
-    await migrar(url!, { prefixo: P, direcao: 'down', quantas: 3 });
+    await migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) });
     await insere('v1', 'now()');
     const comValor = await linhas();
     await expect(migrar(url!, { prefixo: P })).rejects.toThrow(/previsao_retorno tem valor/);
@@ -68,7 +70,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     await dono.query(`DELETE FROM ${E.ac}.dim_chamado WHERE chamado_id = 'v1'`);
     await migrar(url!, { prefixo: P });
     await insere('b1', 'true'); // booleano gravado: a volta recusa sem mudar nada
-    await expect(migrar(url!, { prefixo: P, direcao: 'down', quantas: 3 })).rejects.toThrow(/volta para timestamptz foi recusada/);
+    await expect(migrar(url!, { prefixo: P, direcao: 'down', quantas: quantasDesde(35) })).rejects.toThrow(/volta para timestamptz foi recusada/);
     expect(await tipoDe('dim_chamado')).toBe('boolean');
     await dono.query(`DELETE FROM ${E.ac}.dim_chamado`);
   }, 120_000);
@@ -135,7 +137,7 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     expect(depois[antes.length - 1]!.motivo_encerramento).toBe('Beta');
   }, 60_000);
 
-  it('paridade: S2, S3, S4, S8 e S10 reais não mudam quando as colunas da F3 mudam (constante de ajuste de prioridade falsa)', async () => {
+  it('paridade: S2, S4, S8 e S10 reais não mudam quando as colunas da F3 mudam; o S3 muda com o ajuste de prioridade (constante de ajuste verdadeira)', async () => {
     const base = gerarBaseMock({ escala: 0.05 });
     const PR = prefixoDeTeste();
     const R = montarEsquemas(PR);
@@ -149,7 +151,10 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     const antes = await ler();
     await dono.query(`UPDATE ${R.ac}.dim_chamado SET motivo_escalacao = 'Z', motivo_encerramento = 'Z', avaliacao_problema = 'Z', motivo_pendencia_atual = 'Z',
       previsao_retorno = NOT coalesce(previsao_retorno, false), prioridade_ajustada_manualmente = NOT prioridade_ajustada_manualmente`);
-    expect(await ler()).toEqual(antes);
+    const depois = await ler();
+    // ids na ordem de ler(): S2, S3, S4, S8, S10. O S3 depende da coluna de ajuste de propósito (AJUSTE_PRIORIDADE_COM_FONTE); os demais seguem iguais.
+    expect(depois[1]).not.toEqual(antes[1]);
+    expect(depois.filter((_, i) => i !== 1)).toEqual(antes.filter((_, i) => i !== 1));
     await api.end();
     for (const s of [R.bm, R.ac, R.core]) await dono.query(`DROP SCHEMA IF EXISTS ${s} CASCADE`);
   }, 180_000);

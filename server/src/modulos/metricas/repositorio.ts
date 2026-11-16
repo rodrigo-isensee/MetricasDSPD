@@ -45,6 +45,8 @@ export type LinhaChamado = {
   nivel_resolucao: Texto;
   /** F2 do Acelerato (ADR 0023): só o booleano (D-9) e o campo dos 90 dias (D-10); opcionais para a base semeada e os dublês antigos. */
   com_agente?: boolean; reincidente_90d?: Texto;
+  /** Workflow único do chamado (D1, 1a); nulo = sem fluxo ou mais de um. Opcional para a base semeada e os dublês antigos. */
+  fluxo?: Texto;
 };
 /** Instantes das tabelas grandes vêm como epoch ms (float8): o parser de `timestamptz` do driver custa mais que a consulta. */
 export type LinhaEtapa = { chamado_id: string; etapa: string; entrada: number; saida: number | null; motivo_pendencia: Texto };
@@ -109,7 +111,7 @@ export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbie
             prioridade, prioridade_ajustada_manualmente, justificativa_informada, aberto_em, primeiro_atendimento_em, restaurado_em,
             data_finalizado, status_sla_r, status_sla_pa, motivo_escalacao, motivo_pendencia_atual, previsao_retorno,
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
-            nivel_resolucao, com_agente, reincidente_90d
+            nivel_resolucao, com_agente, reincidente_90d, fluxo
        FROM ${S.ac}.dim_chamado
       WHERE ${CORTE_CHAMADOS}
       ORDER BY chamado_id`)).rows;
@@ -134,6 +136,14 @@ export const EQUIPE_GLOBAL = '*';
 export const lerDominio = async (db: Consultavel, campo: string, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaDominio[]> =>
   (await db.query<LinhaDominio>(
     `SELECT codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL ORDER BY ordem, codigo`, [campo])).rows;
+
+/**
+ * Os cinco fluxos do PROC (D2, P1 = B do dono): `ref_dominio` do Acelerato, campo `fluxo_proc`, vigente. Lista vazia = ainda não carregada
+ * (o `ac:ref-sync` do dono); nada é presumido.
+ */
+export const lerFluxosProc = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> =>
+  (await db.query<{ codigo: string }>(
+    `SELECT codigo FROM ${S.ac}.ref_dominio WHERE campo = 'fluxo_proc' AND vigente_ate IS NULL ORDER BY ordem, codigo`)).rows.map((r) => r.codigo);
 
 export const lerLimitesWip = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<{ equipe: string; limite: number }[]> =>
   (await db.query<{ equipe: string; limite: number }>(

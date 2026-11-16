@@ -193,12 +193,13 @@ test.describe('K-023 Operacional semanal', () => {
     await expect(o10.raiz).toContainText(/cliente/i);
   });
 
-  test('OP-17 O12: vencidos por causa interna com meta zero; % só com >= 20 acordos', async ({ painel }) => {
+  test('OP-17 O12: vencidos por causa interna sem dado real (099), meta não avaliada; % só com >= 20 acordos', async ({ painel }) => {
     await painel.ir(SEM);
     const o12 = painel.cartao('O12');
     await o12.esperarPronto();
     await expect(o12.raiz).toContainText('Meta: Zero vencidos por causa interna');
-    await expect(o12.raiz).toContainText(/Vencidos por causa interna: \d+/);
+    await expect(o12.raiz).toContainText(/Vencidos por causa interna: sem dado real/);
+    await expect(o12.raiz).not.toContainText(/Vencidos por causa interna: \d+/);
     await expect(o12.raiz).toContainText(/Em andamento \(fora das estatísticas\)/);
   });
 
@@ -231,7 +232,10 @@ test.describe('K-023 Operacional semanal', () => {
     await painel.ir(SEM);
     await painel.esperarPronto();
     await expect(page.locator('#o12')).toHaveCount(1);
-    await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveAttribute('href', /cadencia=semanal.*#o12|#o12/);
+    // O12 sem dado real (099, CA-O12-4): sem número de vencidos por causa interna a faixa não tem o link "Ver O12"
+    // e diz a lacuna no lugar dele; com número real o item aparece (atencao.test.ts cobre o link para #o12).
+    await expect(painel.faixaAtencao).toContainText(/O12: vencidos por causa interna sem dado real/);
+    await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveCount(0);
     // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12');
     await painel.esperarPronto();
@@ -254,11 +258,10 @@ test.describe('K-007 Tático', () => {
     await expect(painel.faixaAtencao).toBeVisible();
   });
 
-  test('TAT-02/03 T1 por classe, Intangível sem SLE/insuficiente, links cruzados T1/T4', async ({ painel, page }) => {
+  test('TAT-02/03 T1 por classe, links cruzados T1/T4', async ({ painel, page }) => {
     await painel.ir('/tatico');
     await painel.esperarPronto();
-    await expect(painel.cartao('T2').raiz).toContainText('Sem SLE');
-    await expect(painel.cartao('T1').raiz).toContainText(/Intangível: Amostra insuficiente \(\d+ de 20 itens mínimos\), sem barra\./);
+    await expect(painel.cartao('T1').raiz).toContainText('Prioritário');
     await painel.cartao('T1').raiz.getByRole('link', { name: /Demanda × capacidade \(T4\)/ }).click();
     await expect(page).toHaveURL(/#t4/);
     await painel.cartao('T4').raiz.getByRole('link', { name: /lead time \(T1\)/ }).click();

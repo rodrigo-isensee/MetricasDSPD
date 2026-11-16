@@ -6,10 +6,16 @@ import { estatistica, taxa } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, ehDemanda, periodoDe, r2, selecionar } from './comum'
 import type { ContextoBM, MarcosCard } from './indice'
-import { ehBug } from './o15'
 
 /** Janela de atribuição de bug (4.2): bug vinculado até 30 dias após a entrega conta para o mês da entrega. */
 export const JANELA_ATRIBUICAO_BUG_DIAS = 30
+
+/**
+ * Bug do O18: pelo tipo, sem exigir fase de detecção (essa é do O15). A entrega do bug vem de `origem_bug`, projetada dos vínculos do
+ * BusinessMap (pai e filho ou relacionado; pedido 105, decisão do dono O18 = c).
+ */
+const ehBugVinculado = (m: MarcosCard): boolean =>
+  m.card.tipo === 'Bug interno' || m.card.tipo === 'Defeito em produção'
 
 /** O18: entregas com e sem bug, densidade geral e entre os afetados. */
 export function calcularO18(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO18 {
@@ -18,7 +24,7 @@ export function calcularO18(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO18 {
   const entregues = selecionar(ctx, f, 'story', { semTipo: true })
     .filter(ehDemanda)
     .filter((m) => m.entrega !== null && m.card.tipo !== 'Defeito em produção')
-  const bugs = ctx.idx.marcos.filter(ehBug)
+  const bugs = ctx.idx.marcos.filter(ehBugVinculado)
   const bugsPorOrigem = new Map<string, MarcosCard[]>()
   for (const b of bugs) {
     const o = b.card.origem_bug

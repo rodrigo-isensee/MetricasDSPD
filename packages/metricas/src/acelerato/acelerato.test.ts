@@ -7,6 +7,7 @@ import {
   calcularS2,
   calcularS4,
   calcularS5,
+  calcularS9,
   calcularS7,
   criarContextoAC,
   ALVOS_PADRAO,
@@ -18,7 +19,7 @@ import {
 } from './index'
 import { justificativaInformada } from './modelo'
 import { noIntervalo } from './comum'
-import { totalizadorDaEtapa } from './totalizadores'
+import { motivoDaPendencia, pausaOSla, totalizadorDaEtapa } from './totalizadores'
 
 const HOJE = '2026-10-09T18:00:00-03:00'
 const t = instanteDeIso
@@ -411,6 +412,77 @@ describe('Acelerato', () => {
     // restauração de 9 h úteis contra o alvo de 4 h do P1
     expect(r.prioridades[0]?.restauracao.statusMeta).toBe('fora')
     expect(r.prioridades[0]?.primeiroAtendimento.statusMeta).toBe('fora')
+  })
+
+  it('D5a: de-para das esperas decididas; Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora', () => {
+    expect(motivoDaPendencia('Aguardando Solicitante', null)).toBe('Aguardando solicitante')
+    expect(motivoDaPendencia('Aguardando Suporte Terceiros', null)).toBe('Aguardando fornecedor')
+    expect(motivoDaPendencia('Aguardando Fornecedor', null)).toBe('Aguardando fornecedor')
+    expect(motivoDaPendencia(' aguardando janela de mudança (Deploy Produção) ', null)).toBe(
+      'Aguardando janela de mudança',
+    )
+    expect(motivoDaPendencia('Aguardando Janela de Mudança', null)).toBe(
+      'Aguardando janela de mudança',
+    )
+    expect(motivoDaPendencia('Pendente', null)).toBe('Não classificado')
+    expect(motivoDaPendencia('Pendente', 'Aguardando área vinculada')).toBe(
+      'Aguardando área vinculada',
+    )
+    for (const fora of [
+      'Aguardando Equipe Interna',
+      'Aguardando Aprovação',
+      'Aguardando Mudança',
+      'Data Acordada',
+      'Aguardando validação',
+      'Em atendimento N1',
+    ]) {
+      expect(motivoDaPendencia(fora, null)).toBeNull()
+    }
+    expect(pausaOSla('Aguardando Suporte Terceiros')).toBe(true)
+    expect(pausaOSla('Pendente')).toBe(true)
+    expect(pausaOSla('pendente')).toBe(true)
+    expect(pausaOSla(' Pendente ')).toBe(true)
+    expect(pausaOSla('Aguardando validação')).toBe(true)
+    expect(pausaOSla('Aguardando Equipe Interna')).toBe(false)
+    expect(pausaOSla('Aguardando Aprovação')).toBe(false)
+  })
+
+  it('D5a: S9 e S1 leem as esperas reais; Equipe Interna não conta na S9 nem desconta da S1', () => {
+    const base = baseDe(25)
+    const esperas = (etapa: string): EtapaChamado[] =>
+      base.chamados.map((c) => ({
+        chamado_id: c.chamado_id,
+        etapa: etapa as EtapaChamado['etapa'],
+        entrada: t('2026-09-14T09:00-03:00', CALENDARIO_PADRAO),
+        saida: t('2026-09-14T11:00-03:00', CALENDARIO_PADRAO),
+        motivo_pendencia: null,
+      }))
+    const sem = baseDe(25)
+    const comEspera = criarContextoAC(
+      { ...base, etapas: [...sem.etapas, ...esperas('Aguardando Suporte Terceiros')] },
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    const s9 = calcularS9(comEspera, F)
+    const forn = s9.porMotivo.find((m) => m.motivo === 'Aguardando fornecedor')
+    expect(forn?.n).toBe(25)
+    if (forn?.estatistica.status === 'ok') expect(forn.estatistica.valor.p50).toBeCloseTo(2, 6)
+    else throw new Error('S9 sem estatística')
+    // 9 h do relógio menos as 2 h de espera
+    const p3 = calcularS1(comEspera, F).prioridades.find((p) => p.prioridade === 'P3')
+    if (p3?.restauracao.estatistica.status === 'ok')
+      expect(p3.restauracao.estatistica.valor.p50).toBeCloseTo(7, 6)
+    else throw new Error('S1 sem estatística')
+    const interna = criarContextoAC(
+      { ...base, etapas: [...sem.etapas, ...esperas('Aguardando Equipe Interna')] },
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    expect(calcularS9(interna, F).porMotivo.some((m) => m.motivo.includes('Equipe'))).toBe(false)
+    const p3i = calcularS1(interna, F).prioridades.find((p) => p.prioridade === 'P3')
+    if (p3i?.restauracao.estatistica.status === 'ok')
+      expect(p3i.restauracao.estatistica.valor.p50).toBeCloseTo(9, 6)
+    else throw new Error('S1 sem estatística')
   })
 
   it('pausa depois da restauração não entra no relógio de restauração (S1)', () => {

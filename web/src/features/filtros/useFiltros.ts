@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcoesFiltro } from '@metricas-dspd/contratos'
 import { PERIODOS_PADRAO, TIPO_ID } from '@metricas-dspd/contratos'
@@ -37,6 +37,14 @@ export interface UseFiltros<F> {
   filtros: F
   config: (typeof PAINEIS)[PainelId]
   opcoes: OpcoesFiltro | undefined
+  /** A consulta das opções falhou (a lista de cada filtro mostra o erro). */
+  opcoesErro: boolean
+  /** Uma nova tentativa de "Tentar de novo" está em andamento (a lista segue no estado de erro). */
+  opcoesTentando: boolean
+  /** Alguma nova tentativa já falhou outra vez (o texto do erro muda). */
+  opcoesRepetiu: boolean
+  /** Repete a consulta das opções. */
+  recarregarOpcoes: () => void
   /** Aplica na hora (sem botão "Aplicar"): cada chamada é uma entrada no histórico (Voltar desfaz). */
   definir: (parcial: Partial<F>, opcoes?: { replace?: boolean }) => void
   /** Remove um filtro (ou só um valor dele). Período volta ao padrão. */
@@ -65,8 +73,31 @@ function useBase(painel: PainelId, prefixo: string) {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { data: opcoes } = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
-  return { config, params, navigate, location, opcoes: opcoes, prefixo }
+  const q = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
+  // No TanStack Query v5 uma consulta sem dado que busca de novo sai de `error`; aqui o erro vale até a
+  // nova tentativa terminar, para o botão (e o foco) ficar no lugar e a falha repetida ser percebida.
+  const [tentando, setTentando] = useState(false)
+  const [repeticoes, setRepeticoes] = useState(0)
+  const recarregarOpcoes = () => {
+    if (tentando) return
+    setTentando(true)
+    void q.refetch().then((r) => {
+      setTentando(false)
+      if (r.isError) setRepeticoes((n) => n + 1)
+    })
+  }
+  return {
+    config,
+    params,
+    navigate,
+    location,
+    opcoes: q.data,
+    opcoesErro: q.isError || tentando,
+    opcoesTentando: tentando,
+    opcoesRepetiu: repeticoes > 0,
+    recarregarOpcoes,
+    prefixo,
+  }
 }
 
 /** Nome pelo id; sem opções carregadas (ou id desconhecido), mostra o próprio id. */
@@ -82,7 +113,16 @@ function chipsDe(
 ): ChipFiltro[] {
   const chips: ChipFiltro[] = []
   const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
+  const setores = opcoes?.dominio === 'businessmap' ? opcoes.setores : undefined
   const f = filtros as FiltrosFluxo & FiltrosSustentacao
+  if (visiveis.includes('setor'))
+    for (const id of f.setor ?? [])
+      chips.push({
+        chave: 'setor',
+        rotulo: ROTULO_FILTRO.setor,
+        valor: rotuloDe(setores, id),
+        valorId: id,
+      })
   if (visiveis.includes('equipe'))
     for (const id of f.equipe)
       chips.push({
@@ -139,7 +179,17 @@ export function useFiltros(
   o: OpcaoHook = {},
 ): UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao> {
   const prefixo = o.prefixo ?? ''
-  const { config, params, navigate, location, opcoes } = useBase(painel, prefixo)
+  const {
+    config,
+    params,
+    navigate,
+    location,
+    opcoes,
+    opcoesErro,
+    opcoesTentando,
+    opcoesRepetiu,
+    recarregarOpcoes,
+  } = useBase(painel, prefixo)
   const ehSust = config.dominio === 'sustentacao'
   const memoria = useMemoriaFiltros()
   const guardados = useMemoriaAtual()
@@ -160,8 +210,11 @@ export function useFiltros(
   const efetivo = useMemo(() => {
     const f = leitura.filtros as FiltrosFluxo & FiltrosSustentacao
     if (ehSust) return f
+    const { setor, ...resto } = f
     return {
-      ...f,
+      ...resto,
+      // Só com seleção: sem setor o objeto é o de antes (mesma chave de cache e mesma consulta).
+      ...(config.filtros.includes('setor') && setor && setor.length > 0 ? { setor } : {}),
       equipe: config.filtros.includes('equipe') ? f.equipe : [],
       tipo: config.filtros.includes('tipo') ? f.tipo : [],
     }
@@ -179,7 +232,7 @@ export function useFiltros(
     const livre = lerFluxo(params, opcoes, config.periodoPadrao, '').filtros
     const txt = paramsDeFluxo(livre)
     const upd: Parameters<typeof memoria.atualizar>[0] = {}
-    for (const k of ['equipe', 'tipo', 'sistema'] as const) {
+    for (const k of ['setor', 'equipe', 'tipo', 'sistema'] as const) {
       if (params.has(k)) upd[k] = txt[k]
       else if (config.filtros.includes(k)) upd[k] = null
     }
@@ -310,6 +363,7 @@ export function useFiltros(
         const txt = paramsDeFluxo(f)
         const padraoP = f.periodo.tipo === config.periodoPadrao
         memoria.atualizar({
+          setor: txt.setor,
           ...(config.filtros.includes('equipe') ? { equipe: txt.equipe } : {}),
           ...(config.filtros.includes('tipo') ? { tipo: txt.tipo } : {}),
           sistema: txt.sistema,
@@ -344,6 +398,7 @@ export function useFiltros(
   const vazio = useCallback(
     (): FiltrosFluxo & FiltrosSustentacao => ({
       ...lerAgora(),
+      setor: [],
       equipe: [],
       tipo: [],
       sistema: [],
@@ -362,6 +417,8 @@ export function useFiltros(
         f.prioridade = valorId
           ? f.prioridade.filter((x) => x.toLowerCase() !== valorId.toLowerCase())
           : []
+      else if (chave === 'setor')
+        f.setor = valorId ? (f.setor ?? []).filter((x) => x !== valorId) : []
       else if (chave === 'equipe') f.equipe = valorId ? f.equipe.filter((x) => x !== valorId) : []
       else if (chave === 'sistema')
         f.sistema = valorId ? f.sistema.filter((x) => x !== valorId) : []
@@ -388,6 +445,10 @@ export function useFiltros(
     filtros: efetivo,
     config,
     opcoes,
+    opcoesErro,
+    opcoesTentando,
+    opcoesRepetiu,
+    recarregarOpcoes,
     definir,
     remover,
     limpar,

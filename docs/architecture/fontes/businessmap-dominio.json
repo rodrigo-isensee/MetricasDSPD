@@ -2,19 +2,44 @@
   "versao": 1,
   "versao_criterio": {
     "dominio": "businessmap",
-    "descricao": "Severidade do card vem do priority nativo do BusinessMap: 1 Crítica, 2 Alta, 3 Média, 4 Baixa; priority nulo fica sem severidade",
-    "motivo": "Pedido 099, lote C8a (O16): fato conferido na OpenAPI v2 (GET /cards, parâmetro priorities: 1 Critical, 2 High, 3 Average, 4 Low; escala decrescente). Nulo vira Sem severidade pela Q-099-33, recomendação A (reversível trocando este arquivo); valor acima de 4 é recusado e contado. Afeta O16",
-    "referencia": "pedido 099, E3.62; docs/analises/099-d3b-c8a.md (parte 2); Q-099-33",
+    "descricao": "Fase de detecção do bug (O15) é a coluna em que estava o card da demanda (pai do bug) quando o bug foi criado, pela tabela coluna para fase aprovada pelo dono; só os bugs com pai na base entram",
+    "motivo": "Pedido 105, E7.5 (decisão do dono de 2026-11-15): tabela coluna_id para uma das cinco fases (347 colunas com movimento nos 7 quadros, análise docs/analises/105-o15-o18-o24.md, com D-1 a D-9 e P-1 a P-3 como propostos); pai já entregue na criação do bug é Produção; pai em backlog ou compromisso e pai Sprint ficam sem fase. Cada troca de linha é nova versão de critério. Afeta O15",
+    "referencia": "pedido 105, E7.5; docs/analises/105-o15-o18-o24.md (§2.2 e §2.3)",
     "afeta": [
-      "O16"
+      "O15"
     ]
   },
   "schema": "dspd_bm",
   "tabela": "ref_dominio",
-  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio até a resposta do dono (P-097-9), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6)",
+  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio e foi preenchido com os nomes que o dono passou (P-097-9, pedido 099 de 12 e 13/11 e pedido 097 de 12/11; o quadro 35 fica fora até a P-097-10), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6). fase_deteccao_coluna: mapa coluna_id (codigo, só dígitos, a folha, nunca o nome da coluna) -> uma das 5 fases do briefing 4.4 (rotulo: Desenvolvimento, Revisão de código, Teste interno, Homologação do negócio, Produção); sem coluna repetida; coluna fora do mapa não tem fase (backlog e compromisso, descarte, fluxos fora das cinco fases); gravação em ref_dominio com campo fase_deteccao_coluna; o projetor usa a coluna do card pai na criação do bug e preenche dim_card.fase_deteccao sem sobrescrever a história (dim_card_versao).",
   "campos": [],
   "motivo_bloqueio": [],
-  "setores": [],
+  "setores": [
+    {
+      "codigo": "23",
+      "rotulo": "Sistemas Corporativos"
+    },
+    {
+      "codigo": "24",
+      "rotulo": "Escritório de Processos e Projetos"
+    },
+    {
+      "codigo": "25",
+      "rotulo": "Sistemas de Vendas e Operações"
+    },
+    {
+      "codigo": "27",
+      "rotulo": "Plataformas"
+    },
+    {
+      "codigo": "31",
+      "rotulo": "Ciência de Dados"
+    },
+    {
+      "codigo": "79",
+      "rotulo": "Marketing e Vendas"
+    }
+  ],
   "prioridade_severidade": [
     {
       "codigo": "1",
@@ -31,6 +56,1396 @@
     {
       "codigo": "4",
       "rotulo": "Baixa"
+    }
+  ],
+  "fase_deteccao_coluna": [
+    {
+      "codigo": "396",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "397",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "400",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "401",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "402",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "405",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "406",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "410",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "411",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "412",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "440",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "461",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "462",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "465",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "466",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "467",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "485",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "486",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "487",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "680",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "683",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "684",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "686",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "689",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "690",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "691",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "696",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "978",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1068",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1069",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1070",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1294",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1295",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1296",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1297",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1298",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1304",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1305",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1306",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1407",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1408",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1410",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1416",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1418",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1468",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1473",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1474",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1475",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1487",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1489",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1490",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1499",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1507",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1508",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1510",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1511",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1512",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1513",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1514",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1515",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1525",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1526",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1527",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1559",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1560",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1563",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1564",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1592",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1604",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1605",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1623",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1624",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1643",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1644",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1645",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1659",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1660",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1676",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1677",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1678",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1691",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1692",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1705",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1711",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1712",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1718",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1719",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1721",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1722",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1731",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1732",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1744",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1745",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1746",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1747",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1756",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1761",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1762",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1764",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1765",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1766",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1767",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1771",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1773",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1775",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1776",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1780",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1781",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1782",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1795",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1798",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1799",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1823",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1824",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1826",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1827",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1828",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1831",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1835",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1836",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1837",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1845",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1846",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1847",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1861",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1866",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1886",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1887",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1911",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1912",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1919",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1926",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1927",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1928",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1932",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1933",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1934",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1935",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1936",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "1937",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1945",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1946",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1967",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1972",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1973",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1974",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1983",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1984",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1986",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1987",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "1988",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1989",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "1991",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1995",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1996",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "1997",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "1998",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2000",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2001",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2002",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2003",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2005",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2006",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2007",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2008",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2016",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2027",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2036",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2038",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2040",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2041",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2045",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2046",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2052",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2053",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2099",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2100",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2114",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2115",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2161",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2162",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2163",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2164",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2165",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2166",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2167",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2168",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2188",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2192",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2193",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2194",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2210",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2236",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2237",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2238",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2240",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2244",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2246",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2248",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2258",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2259",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2260",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2261",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2262",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2265",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2266",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2267",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2279",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2280",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2281",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2282",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2283",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2284",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2285",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2286",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2287",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2288",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2289",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2290",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2300",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2301",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2302",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2304",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2305",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2309",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2311",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2313",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2314",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2323",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2324",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2325",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2326",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2327",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2332",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2333",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2343",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2344",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2345",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2346",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2347",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2359",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2360",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2361",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2362",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2363",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2365",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2368",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2393",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2394",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2396",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2397",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2398",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2399",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2400",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2401",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2403",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2404",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2405",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2406",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2413",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2415",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2416",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2432",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2433",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2434",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2438",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2439",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2440",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2442",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2443",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2444",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2455",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2456",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2457",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2462",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2464",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2481",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2486",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2491",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2499",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2500",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2506",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2511",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2512",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2518",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2519",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2524",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2527",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2528",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2531",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2532",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2534",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2542",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2543",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2545",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2546",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2547",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2548",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2549",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2550",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2552",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2553",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2554",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2586",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2587",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2589",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2590",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2591",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2592",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2593",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2594",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2596",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2597",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2598",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2610",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2627",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2635",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2808",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2809",
+      "rotulo": "Homologação do negócio"
+    },
+    {
+      "codigo": "2810",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2907",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2908",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "2909",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2910",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "2911",
+      "rotulo": "Teste interno"
+    },
+    {
+      "codigo": "2913",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2914",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2915",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2916",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2917",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2918",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "2920",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "3077",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3112",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3115",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3116",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3117",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "3135",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3136",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3138",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3140",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "3154",
+      "rotulo": "Produção"
+    },
+    {
+      "codigo": "3170",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3171",
+      "rotulo": "Desenvolvimento"
+    },
+    {
+      "codigo": "3172",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "3173",
+      "rotulo": "Revisão de código"
+    },
+    {
+      "codigo": "3174",
+      "rotulo": "Homologação do negócio"
     }
   ]
 }

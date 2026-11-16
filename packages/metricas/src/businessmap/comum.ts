@@ -34,8 +34,13 @@ export interface OpcoesSelecao {
   semTipo?: boolean
   semEquipe?: boolean
   semSistema?: boolean
+  /** Ignora o filtro de setor (097, L10b): projeto e as métricas do FL3 que não se recortam por setor, como a equipe. */
+  semSetor?: boolean
   incluirInativos?: boolean
 }
+
+/** Setores do filtro (slugs); ausente = lista vazia = "Todos". */
+export const setoresDe = (f: FiltrosFluxo): readonly string[] => f.setor ?? []
 
 /** Memória da seleção por contexto: vários cartões do mesmo painel pedem os mesmos filtros. */
 const memoSelecao = new WeakMap<ContextoBM, Map<string, readonly MarcosCard[]>>()
@@ -53,7 +58,8 @@ export function selecionar(
   const eq = o.semEquipe ? [] : f.equipe
   const si = o.semSistema ? [] : f.sistema
   const ti = o.semTipo ? [] : f.tipo
-  const chave = `${g}|${o.incluirInativos ? 1 : 0}|${ordenarNeutro(eq, (x) => [x]).join(',')}|${ordenarNeutro(si, (x) => [x]).join(',')}|${ordenarNeutro(ti, (x) => [x]).join(',')}`
+  const st = o.semSetor ? [] : setoresDe(f)
+  const chave = `${g}|${o.incluirInativos ? 1 : 0}|${ordenarNeutro(st, (x) => [x]).join(',')}|${ordenarNeutro(eq, (x) => [x]).join(',')}|${ordenarNeutro(si, (x) => [x]).join(',')}|${ordenarNeutro(ti, (x) => [x]).join(',')}`
   let memo = memoSelecao.get(ctx)
   if (!memo) {
     memo = new Map()
@@ -66,6 +72,7 @@ export function selecionar(
       m.card.granularidade === g &&
       (o.incluirInativos || m.ativo) &&
       (eq.length === 0 || eq.includes(m.slugEquipe)) &&
+      (st.length === 0 || st.includes(m.slugSetor)) &&
       (si.length === 0 || si.includes(m.slugSistema)) &&
       (ti.length === 0 || g !== 'story' || (ti as readonly TipoCard[]).includes(m.card.tipo)),
   )
@@ -94,21 +101,48 @@ export const baseAmostral = (
 export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ctx: ContextoBM) =>
   criteriosDe(id, serie, janela, ctx.criterios)
 
-export const CLASSES_T: readonly ClasseServico[] = ['Urgente', 'Prazo fixo', 'Padrão', 'Intangível']
+export const CLASSES_T: readonly ClasseServico[] = [
+  'Urgente',
+  'Prioritário',
+  'Prazo fixo',
+  'Padrão',
+]
 export const r2 = (v: number): number => Math.round(v * 100) / 100
+
+/**
+ * A coluna é da equipe? Base real: a coluna diz a equipe do workflow dela; base semeada (sem `equipe`): vale o quadro
+ * `quadro-<slug>`. Predicado único (O20 e `colunasDaEquipe`).
+ */
+export const colunaDaEquipe = (
+  c: { equipe?: string; quadro_id: string },
+  equipe: string,
+): boolean =>
+  c.equipe === undefined ? c.quadro_id === `quadro-${slug(equipe)}` : c.equipe === equipe
 
 /**
  * Colunas de trabalho e homologação de uma equipe, em ordem. Base real: a coluna diz a equipe do workflow
  * dela; base semeada (sem `equipe`): vale o quadro `quadro-<slug>`.
  */
 export function colunasDaEquipe(ctx: ContextoBM, equipe: string) {
-  const quadro = `quadro-${slug(equipe)}`
   return ordenarNeutro(
     ctx.idx.base.colunas.filter(
-      (c) =>
-        (c.equipe === undefined ? c.quadro_id === quadro : c.equipe === equipe) &&
-        (c.papel === 'trabalho' || c.papel === 'homologacao'),
+      (c) => colunaDaEquipe(c, equipe) && (c.papel === 'trabalho' || c.papel === 'homologacao'),
     ),
     (c) => [c.ordem, c.coluna],
+  )
+}
+
+/**
+ * Equipes (da configuração) que têm coluna em quadro dos setores filtrados: o limite de WIP e o detalhe por coluna seguem as equipes
+ * do recorte, não as de toda a base. Sem setor no filtro, todas.
+ */
+export function equipesDoRecorte(ctx: ContextoBM, f: FiltrosFluxo) {
+  const st = setoresDe(f)
+  const todas = ctx.idx.base.config.equipes
+  if (st.length === 0) return todas
+  return todas.filter((e) =>
+    colunasDaEquipe(ctx, e.nome).some((c) =>
+      st.includes(ctx.idx.setorDoQuadro.get(c.quadro_id) ?? ''),
+    ),
   )
 }

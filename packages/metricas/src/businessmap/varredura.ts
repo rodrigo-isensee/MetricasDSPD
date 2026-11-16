@@ -1,6 +1,6 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { ordenarNeutro } from '../core/ordenar'
-import { selecionar } from './comum'
+import { selecionar, setoresDe } from './comum'
 import {
   varrerPorColuna,
   varrerVidaPorColuna,
@@ -30,7 +30,7 @@ export function varreduraPorColuna(
   quadro: string | null,
   instantes: readonly number[],
 ): VarreduraPorColuna {
-  const chave = `${quadro ?? '*'}|${norm(f.equipe)}|${norm(f.sistema)}|${norm(f.tipo)}|${instantes.join(',')}`
+  const chave = `${quadro ?? '*'}|${norm(setoresDe(f))}|${norm(f.equipe)}|${norm(f.sistema)}|${norm(f.tipo)}|${instantes.join(',')}`
   let m = memo.get(ctx)
   if (!m) {
     m = new Map()
@@ -57,7 +57,7 @@ export function varreduraVida(
   instantes: readonly number[],
   desde: number,
 ): VarreduraVida {
-  const chave = `${quadro}|${norm(f.equipe)}|${norm(f.sistema)}|${norm(f.tipo)}|${desde}|${instantes.join(',')}`
+  const chave = `${quadro}|${norm(setoresDe(f))}|${norm(f.equipe)}|${norm(f.sistema)}|${norm(f.tipo)}|${desde}|${instantes.join(',')}`
   let m = memoVida.get(ctx)
   if (!m) {
     m = new Map()

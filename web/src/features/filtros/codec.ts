@@ -84,9 +84,12 @@ function lerPeriodo(
   return { tipo: padrao }
 }
 
-const idsDe = (o: Opcoes, campo: 'equipes' | 'sistemas'): string[] | null => {
+const idsDe = (o: Opcoes, campo: 'equipes' | 'sistemas' | 'setores'): string[] | null => {
   if (!o) return null
   if (campo === 'sistemas') return o.dominio === 'businessmap' ? o.sistemas.map((x) => x.id) : null
+  // Setor só existe no BusinessMap; resposta sem `setores` (servidor antigo) equivale a lista vazia.
+  if (campo === 'setores')
+    return o.dominio === 'businessmap' ? (o.setores ?? []).map((x) => x.id) : null
   return o.equipes.map((x) => x.id)
 }
 
@@ -99,8 +102,10 @@ export function lerFluxo(
 ): Leitura<FiltrosFluxo> {
   const p = prefixar(params, prefixo)
   const invalidos: string[] = []
+  const setor = lerLista(p, 'setor', idsDe(opcoes, 'setores'), 'setor', invalidos)
   return {
     filtros: {
+      ...(setor.length > 0 ? { setor } : {}),
       equipe: lerLista(p, 'equipe', idsDe(opcoes, 'equipes'), 'equipe', invalidos),
       tipo: lerLista(p, 'tipo', idsTipo(opcoes), 'tipo', invalidos).map(
         (id) => TIPO_POR_ID.get(id) as TipoFiltro,
@@ -192,6 +197,7 @@ export function escreverFluxo(
   prefixo = '',
 ): URLSearchParams {
   const p = new URLSearchParams(base)
+  gravar(p, prefixo, 'setor', f.setor?.join(',') || null)
   gravar(p, prefixo, 'equipe', f.equipe.join(',') || null)
   gravar(p, prefixo, 'tipo', f.tipo.map((t) => TIPO_ID[t]).join(',') || null)
   gravar(p, prefixo, 'sistema', f.sistema.join(',') || null)
@@ -215,8 +221,9 @@ export function escreverSustentacao(
 /** Texto de URL de cada filtro de fluxo (para a memória de sessão e para os links). */
 export function paramsDeFluxo(
   f: FiltrosFluxo,
-): Record<'equipe' | 'tipo' | 'sistema' | 'periodo' | 'de' | 'ate', string | null> {
+): Record<'setor' | 'equipe' | 'tipo' | 'sistema' | 'periodo' | 'de' | 'ate', string | null> {
   return {
+    setor: f.setor?.join(',') || null,
     equipe: f.equipe.join(',') || null,
     tipo: f.tipo.map((t) => TIPO_ID[t]).join(',') || null,
     sistema: f.sistema.join(',') || null,
@@ -250,6 +257,7 @@ export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
   const todos = (sel: readonly string[], validos: readonly string[] | null): boolean =>
     validos !== null && validos.length > 0 && validos.every((v) => sel.includes(v))
   const r = { ...f } as FiltrosFluxo & FiltrosSustentacao
+  if (todos(r.setor ?? [], idsDe(opcoes, 'setores'))) delete r.setor
   if (todos(r.equipe, idsDe(opcoes, 'equipes'))) r.equipe = []
   if (sustentacao) {
     if (todos(r.prioridade, maiusculasPrioridade(opcoes))) r.prioridade = []

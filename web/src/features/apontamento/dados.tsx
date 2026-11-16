@@ -22,6 +22,9 @@ export interface DadosAba {
   /** Rótulos das equipes escolhidas no filtro (nunca pessoa); vazio sem filtro. */
   equipes: string[]
   removerEquipe: () => void
+  /** Rótulos dos setores escolhidos no filtro (nunca pessoa); vazio sem filtro. */
+  setores: string[]
+  removerSetor: () => void
 }
 
 const Ctx = createContext<DadosAba | null>(null)

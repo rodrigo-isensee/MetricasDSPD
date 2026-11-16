@@ -71,6 +71,66 @@ describe('Barras', () => {
     expect(texto).toContain('Concluídos')
   })
 
+  it('série sem nenhum valor fica fora da legenda e da tabela alternativa', () => {
+    const cats = [
+      { rotulo: 'Sem 1', valores: { a: 3, vazia: null } },
+      { rotulo: 'Sem 2', valores: { a: 5 } },
+    ]
+    const ss = [
+      { chave: 'a', rotulo: 'Concluídos' },
+      { chave: 'vazia', rotulo: 'Sem tamanho' },
+    ]
+    const { unmount } = render(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    const legenda = screen.getByRole('list', { name: 'Legenda' })
+    expect(within(legenda).getByText('Concluídos')).toBeInTheDocument()
+    expect(within(legenda).queryByText('Sem tamanho')).not.toBeInTheDocument()
+    unmount()
+    tabela(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    expect(screen.getByRole('columnheader', { name: /Concluídos/ })).toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: /Sem tamanho/ })).not.toBeInTheDocument()
+  })
+
+  it('série só com valor 0 continua na legenda e na tabela alternativa', () => {
+    const cats = [
+      { rotulo: 'Sem 1', valores: { a: 3, zero: 0 } },
+      { rotulo: 'Sem 2', valores: { a: 5, zero: 0 } },
+    ]
+    const ss = [
+      { chave: 'a', rotulo: 'Concluídos' },
+      { chave: 'zero', rotulo: 'Bloqueados' },
+    ]
+    const { unmount } = render(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    const legenda = screen.getByRole('list', { name: 'Legenda' })
+    expect(within(legenda).getByText('Bloqueados')).toBeInTheDocument()
+    unmount()
+    tabela(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    expect(screen.getByRole('columnheader', { name: /Bloqueados/ })).toBeInTheDocument()
+    const linha1 = screen.getByRole('row', { name: /Sem 1/ })
+    expect(
+      within(linha1)
+        .getAllByRole('cell')
+        .map((c) => c.textContent),
+    ).toEqual(['3', '0'])
+  })
+
+  it('série vazia no meio: cor e padrão das demais são recalculados por posição', () => {
+    const cats = [{ rotulo: 'Sem 1', valores: { a: 1, vazia: null, b: 2, c: 3 } }]
+    const ss = [
+      { chave: 'a', rotulo: 'Alfa' },
+      { chave: 'vazia', rotulo: 'Vazia' },
+      { chave: 'b', rotulo: 'Beta' },
+      { chave: 'c', rotulo: 'Gama' },
+    ]
+    render(<Barras categorias={cats} series={ss} descricao="Vazão" />)
+    const legenda = screen.getByRole('list', { name: 'Legenda' })
+    expect(within(legenda).queryByText('Vazia')).not.toBeInTheDocument()
+    const preenchimento = (rotulo: string) =>
+      within(legenda).getByText(rotulo).querySelector('rect[rx]')?.getAttribute('fill')
+    expect(preenchimento('Alfa')).toBe('var(--serie-1)')
+    expect(preenchimento('Beta')).toMatch(/-listras-2\)$/)
+    expect(preenchimento('Gama')).toMatch(/-pontos-3\)$/)
+  })
+
   it('tooltip da linha usa o formatador próprio da linha', async () => {
     const { container } = render(
       <Barras
@@ -435,6 +495,49 @@ describe('Dispersao', () => {
     expect(within(t).getByRole('row', { name: /A-2/ })).toHaveTextContent('Teste')
     expect(within(t).getByRole('row', { name: /A-2/ })).toHaveTextContent('anel (bloqueado)')
     expect(within(t).getByRole('row', { name: /A-1/ })).toHaveTextContent('círculo')
+  })
+
+  it('bloqueado põe o anel por cima da forma da situação, sem esconder o triângulo', () => {
+    const { container } = render(
+      <Dispersao
+        pontos={[
+          { id: 'A-1', x: 0, y: 9, forma: 'triangulo', bloqueado: true },
+          { id: 'A-2', x: 1, y: 3, forma: 'triangulo' },
+        ]}
+        eixoX={{ tipo: 'categorias', categorias: ['Análise', 'Teste'] }}
+        rotuloY="Idade"
+        descricao="Idade por etapa"
+      />,
+    )
+    const grupos = container.querySelectorAll('.recharts-scatter g g')
+    const comAnel = [...grupos].find((g) => g.querySelector('circle[r="11"]')) as Element
+    expect(comAnel.querySelector('path')).not.toBeNull()
+    expect(container.querySelectorAll('circle[r="11"]')).toHaveLength(1)
+  })
+
+  it('a tabela diz "com anel (bloqueado)" para forma e anel, e não repete no anel puro', () => {
+    tabela(
+      <Dispersao
+        pontos={[
+          { id: 'A-1', x: 0, y: 9, forma: 'triangulo', bloqueado: true },
+          { id: 'A-2', x: 1, y: 3, bloqueado: true },
+          { id: 'A-3', x: 1, y: 4, forma: 'anel', bloqueado: true },
+        ]}
+        eixoX={{ tipo: 'categorias', categorias: ['Análise', 'Teste'] }}
+        rotuloY="Idade"
+        descricao="Idade por etapa"
+      />,
+    )
+    const t = screen.getByRole('table')
+    expect(within(t).getByRole('row', { name: /A-1/ })).toHaveTextContent(
+      'triângulo com anel (bloqueado)',
+    )
+    expect(within(t).getByRole('row', { name: /A-2/ })).toHaveTextContent(
+      'círculo com anel (bloqueado)',
+    )
+    const puro = within(t).getByRole('row', { name: /A-3/ })
+    expect(puro).toHaveTextContent('anel (bloqueado)')
+    expect(puro).not.toHaveTextContent('com anel')
   })
 
   it('eixo por categorias desenha os rótulos no gráfico', () => {

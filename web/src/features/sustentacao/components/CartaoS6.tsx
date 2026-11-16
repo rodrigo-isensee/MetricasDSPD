@@ -5,7 +5,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { CartaoMotivos } from './CartaoMotivos'
-import { TextoInsuficiente } from './comuns'
+import { NotaForaDoFluxo, TextoInsuficiente } from './comuns'
 
 export function CartaoS6({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S6')
@@ -27,24 +27,27 @@ export function CartaoS6({ filtros }: { filtros: FiltrosSustentacao }) {
       {...(d ? { naoInformado: d.naoInformado } : {})}
       extra={
         t && (
-          <NumeroGrande
-            data-testid="s6-taxa-contorno"
-            valor={t.status === 'ok' ? fmtPct(t.pct, 0) : '—'}
-            rotulo="Taxa de contorno"
-            textoCompleto={
-              t.status === 'ok'
-                ? `Taxa de contorno: ${fmtPct(t.pct, 0)}, ${t.k} de ${t.n} encerramentos`
-                : `Taxa de contorno indisponível: ${t.k} de ${t.n}, abaixo de 20`
-            }
-            complemento={
-              t.status === 'ok' ? (
-                `${fmtInteiro(t.k)} de ${fmtInteiro(t.n)}`
-              ) : (
-                <TextoInsuficiente n={t.n} />
-              )
-            }
-            className="w-fit"
-          />
+          <>
+            <NotaForaDoFluxo n={d.foraDoFluxo} testid="s6-fora-do-fluxo" />
+            <NumeroGrande
+              data-testid="s6-taxa-contorno"
+              valor={t.status === 'ok' ? fmtPct(t.pct, 0) : '—'}
+              rotulo="Taxa de contorno"
+              textoCompleto={
+                t.status === 'ok'
+                  ? `Taxa de contorno: ${fmtPct(t.pct, 0)}, ${t.k} de ${t.n} encerramentos`
+                  : `Taxa de contorno indisponível: ${t.k} de ${t.n}, abaixo de 20`
+              }
+              complemento={
+                t.status === 'ok' ? (
+                  `${fmtInteiro(t.k)} de ${fmtInteiro(t.n)}`
+                ) : (
+                  <TextoInsuficiente n={t.n} />
+                )
+              }
+              className="w-fit"
+            />
+          </>
         )
       }
       estadoProps={{

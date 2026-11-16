@@ -5,7 +5,7 @@ import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes, fmtPct } from '@/lib/formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
-import { TextoInsuficiente } from './comuns'
+import { NotaForaDoFluxo, TextoInsuficiente } from './comuns'
 import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 type Bloco = ResultadoS7['reclassificacaoDeTipo']
@@ -79,7 +79,7 @@ export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
       pergunta={m.pergunta}
       estado={q.estado}
       atualizando={q.atualizando}
-      {...(d ? { base: d.base, criterios: d.criterios } : {})}
+      {...(d ? { base: d.base, criterios: d.criterios, notasDoCartao: d.notas } : {})}
       {...(leitura ? { leitura } : {})}
       nota={NOTAS_SUSTENTACAO.S7 as NonNullable<(typeof NOTAS_SUSTENTACAO)[string]>}
       meta={m.meta}
@@ -89,6 +89,7 @@ export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
       erro={q.erro}
       className="lg:col-span-12"
     >
+      {d && <NotaForaDoFluxo n={d.foraDoFluxo} testid="s7-fora-do-fluxo" />}
       {d && j && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <BlocoMensal

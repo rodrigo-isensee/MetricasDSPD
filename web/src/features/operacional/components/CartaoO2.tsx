@@ -73,13 +73,11 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
       : `Nenhum item está acima do P95 do seu tipo.${mais ? ` O mais velho tem ${fmtDiasUteis(mais.idadeDiasUteis, 0)} e está em "${mais.etapa}".` : ''}`
     : undefined
   const forma = (s: (typeof itens)[number]): FormaPonto =>
-    s.bloqueioMotivo
-      ? 'anel'
-      : s.situacao === 'acima-p95'
-        ? 'triangulo'
-        : s.situacao === 'entre-p85-p95'
-          ? 'losango'
-          : 'circulo'
+    s.situacao === 'acima-p95'
+      ? 'triangulo'
+      : s.situacao === 'entre-p85-p95'
+        ? 'losango'
+        : 'circulo'
   return (
     <CartaoMetrica
       {...propsCartao('O2', q, NOTAS_OPERACIONAL.O2)}
@@ -114,6 +112,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                   x: Math.max(0, d.etapas.indexOf(i.etapa)),
                   y: i.idadeDiasUteis,
                   forma: forma(i),
+                  bloqueado: !!i.bloqueioMotivo,
                 }))}
                 referencias={
                   ref?.status === 'ok'
@@ -128,7 +127,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                   circulo: 'até o P85',
                   losango: 'entre o P85 e o P95',
                   triangulo: 'acima do P95',
-                  anel: 'bloqueado',
+                  ...(doTipo.some((i) => i.bloqueioMotivo) ? { anel: 'bloqueado' } : {}),
                 }}
               />
               {ref?.status === 'insuficiente' && (
@@ -203,12 +202,19 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                 idade: fmtInteiro(i.idadeDiasUteis),
                 parado: fmtInteiro(i.semMoverHaDiasUteis),
                 situacao: SITUACAO[i.situacao],
-                bloqueio: i.bloqueioMotivo ? <MotivoBloqueio motivo={i.bloqueioMotivo} /> : '—',
+                bloqueio: i.bloqueioMotivo ? (
+                  <MotivoBloqueio motivo={i.bloqueioMotivo} />
+                ) : (
+                  <>
+                    <span aria-hidden="true">—</span>
+                    <span className="sr-only">não bloqueado</span>
+                  </>
+                ),
               }))}
               descritoPor={naoClass ? 'o2-apoio-motivo' : undefined}
             />
             {naoClass && (
-              <div id="o2-apoio-motivo" className="mt-2 text-xs text-texto-2">
+              <div id="o2-apoio-motivo" className="mt-2 text-sm text-texto-2">
                 <ApoioMotivoNaoClassificado />
               </div>
             )}

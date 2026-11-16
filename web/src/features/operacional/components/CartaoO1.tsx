@@ -32,6 +32,9 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
   const h = d?.hoje
   // O contrato ainda aceita bloqueados null (nunca 0); a API real já o calcula (pedido 075, 6b).
   const semBloqueio = !!d && d.hoje.bloqueados === null
+  // Hoje com número e alguma coluna com null: a barra daquela coluna sai sem a série Bloqueados; avisa em vez de calar.
+  const colunaSemBloqueio =
+    !semBloqueio && !!d && (d.porColuna ?? d.porTipoColuna).some((c) => c.bloqueados === null)
   const leitura =
     d && h
       ? `Hoje há ${fmtInteiro(h.total)} ${plural(h.total, 'item', 'itens')} em progresso para um limite de ${fmtInteiro(h.limite)} (${fmtInteiro(h.acimaDoLimite)} acima), ${h.bloqueados === null ? 'bloqueados: sem dado real' : `${fmtInteiro(h.bloqueados)} deles bloqueados`}. Nos últimos ${fmtInteiro(d.diasDentroDoLimite.n)} dias úteis o WIP ficou dentro do limite em ${fmtInteiro(d.diasDentroDoLimite.k)}.`
@@ -106,6 +109,11 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
           {semBloqueio && (
             <p className="text-sm text-texto-2" data-testid="o1-bloqueados-sem-dado">
               Bloqueados: sem dado real. O WIP total e o limite seguem valendo.
+            </p>
+          )}
+          {colunaSemBloqueio && (
+            <p className="text-sm text-texto-2" data-testid="o1-coluna-sem-bloqueio">
+              Há colunas sem dado real de bloqueio: nelas a barra mostra só o que está em progresso.
             </p>
           )}
           <SerieLinhas

@@ -3,7 +3,7 @@ import { fmtData } from '@/lib/formatar'
 
 export type PainelId = 'operacional' | 'tatico' | 'estrategico' | 'sustentacao'
 export type DominioFiltros = 'fluxo' | 'sustentacao'
-export type ChaveFiltro = 'equipe' | 'tipo' | 'sistema' | 'periodo' | 'prioridade'
+export type ChaveFiltro = 'setor' | 'equipe' | 'tipo' | 'sistema' | 'periodo' | 'prioridade'
 
 export interface ConfigPainel {
   dominio: DominioFiltros
@@ -19,13 +19,13 @@ export interface ConfigPainel {
 }
 
 const PERIODOS_TODOS: readonly PeriodoPadrao[] = ['4s', '12s', '6m', '12m']
-const BASE_FLUXO = ['equipe', 'tipo', 'sistema', 'periodo', 'de', 'ate'] as const
+const BASE_FLUXO = ['setor', 'equipe', 'tipo', 'sistema', 'periodo', 'de', 'ate'] as const
 
 /** Padrões e filtros por painel (spec de UX 2.1 e 2.5). */
 export const PAINEIS: Record<PainelId, ConfigPainel> = {
   operacional: {
     dominio: 'fluxo',
-    filtros: ['equipe', 'tipo', 'sistema', 'periodo'],
+    filtros: ['setor', 'equipe', 'tipo', 'sistema', 'periodo'],
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
@@ -49,7 +49,7 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
   },
   tatico: {
     dominio: 'fluxo',
-    filtros: ['equipe', 'tipo', 'sistema', 'periodo'],
+    filtros: ['setor', 'equipe', 'tipo', 'sistema', 'periodo'],
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
@@ -57,11 +57,11 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
   },
   estrategico: {
     dominio: 'fluxo',
-    filtros: ['sistema', 'periodo'],
+    filtros: ['setor', 'sistema', 'periodo'],
     periodoPadrao: '12m',
     periodos: ['6m', '12m'],
     personalizado: false,
-    params: ['sistema', 'periodo', 'e1', 'ei_fl3'],
+    params: ['setor', 'sistema', 'periodo', 'e1', 'ei_fl3'],
   },
   sustentacao: {
     dominio: 'sustentacao',
@@ -81,6 +81,7 @@ export const rotuloDoFiltro = (chave: ChaveFiltro, dominio: DominioFiltros): str
   chave === 'equipe' && dominio === 'sustentacao' ? ROTULO_EQUIPE_SUSTENTACAO : ROTULO_FILTRO[chave]
 
 export const ROTULO_FILTRO: Record<ChaveFiltro, string> = {
+  setor: 'Setor',
   equipe: 'Equipe',
   tipo: 'Tipo de demanda',
   sistema: 'Sistema',

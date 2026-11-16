@@ -1,5 +1,5 @@
 import {
-  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
@@ -11,12 +11,14 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
-import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
-import { comCorteDaSerieO1, comNotaS12SemFonte, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
+import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSetoresBM, lerTurnosVigentes, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
+import {
+  comCorteDaSerieO1, comNotaExcecaoSlaSemFonte, comNotaS12SemFonte, comNotaS1PrimeiroAtendimento, comNotaS5SemRisco, comNotaAjusteNaoIgualVazio, semParteDeAjusteDePrioridade, semParteDeBloqueio,
+} from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
-  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerHistoricoDesdeBM, lerLimiteFrentes,
+  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerFluxosProc, lerHistoricoDesdeBM, lerLimiteFrentes,
   lerLimitesWip, lerSle, lerTransicoes, lerVersoesColuna,
 } from './repositorio.js';
 
@@ -40,8 +42,10 @@ export const MAX_RESULTADOS = 500;
 const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
 /** Métricas de SLA que não contam os chamados sem agente (D-9 do plano 056): a biblioteca recebe a base sem eles. */
 const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
-/** Pedido 069 (L9-a) e 077 (L6a): métricas que levam a parte sem dado do ajuste de prioridade. */
-const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3', 'S2', 'TENDENCIA_SUST'];
+/** Pedido 069 (L9-a) e 077 (L6a): métricas que levam a parte sem dado do ajuste de prioridade; o S3 só enquanto `AJUSTE_PRIORIDADE_COM_FONTE` for falso. */
+const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3'];
+/** Pedido 105 (D2, P1 = B): métricas que só contam os cinco fluxos do PROC; sem a lista na base real o estado é "sem dado real" com o motivo. */
+const METRICAS_COM_FLUXOS_PROC: readonly MetricaId[] = ['S5', 'S6', 'S7'];
 /** Por base carregada: a base sem os chamados sem agente (D-9) e a extensão do S8 (D-10). Só da fonte real; a base semeada tem tudo com agente. */
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 /**
@@ -75,7 +79,7 @@ const dominioDe = fonteDaMetrica;
 export function normalizar(f: FiltrosMetrica): string {
   const o = f as Partial<FiltrosFluxo & FiltrosSustentacao>;
   const lista = (l: readonly string[] | undefined): string => [...new Set(l ?? [])].sort().join(',');
-  return JSON.stringify([lista(o.equipe), lista(o.tipo), lista(o.sistema), lista(o.prioridade), o.periodo ?? null]);
+  return JSON.stringify([lista(o.equipe), lista(o.tipo), lista(o.sistema), lista(o.prioridade), o.periodo ?? null, lista(o.setor)]);
 }
 
 /** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
@@ -156,6 +160,8 @@ export class ServicoMetricas {
       limiteFrentes: await lerLimiteFrentes(db, S), sle: await lerSle(db, S), alocacao: await lerAlocacao(db, S),
       objetivos: await lerDominio(db, 'objetivo_estrategico', S), areasInternas: await lerDominio(db, 'area_interna', S),
       fichas: await lerFichas(db, S), criterios: await lerVersoes(db, 'businessmap', S),
+      // L10b do 097: setor de cada quadro (dicionário versionado, sem sobrenome); nunca o nome do quadro no BusinessMap.
+      setores: await lerSetoresBM(db, S),
     };
     const base = montarBaseBM({ cards, transicoes, bloqueios, colunas, ref, real }, {
       aoDescartarTipo: (quantos) => this.deps.log?.({ cardsForaDoContrato: quantos }, 'cards com tipo fora de TIPOS_CARD ficaram fora do contexto'),
@@ -174,7 +180,7 @@ export class ServicoMetricas {
     const { db, S } = this.deps;
     const chamados = await lerChamados(db, S);
     const base = montarBaseAC({
-      chamados, etapas: await lerEtapas(db, S), alvos: await lerAlvos(db, S), criterios: await lerVersoes(db, 'acelerato', S),
+      chamados, etapas: await lerEtapas(db, S), alvos: await lerAlvos(db, S), criterios: await lerVersoes(db, 'acelerato', S), fluxosProc: await lerFluxosProc(db, S),
     });
     EXTRAS_AC.set(base, extrasAC(base, chamados));
     const cal = await calendarioDaReferencia(db, S, 'acelerato', 'sustentacao');
@@ -279,7 +285,13 @@ export class ServicoMetricas {
     // Pedido 077 (L5, A14): a tendência do fluxo sem carga inicial com sucesso não tem início de histórico; sem ele não se publica a série.
     if (id === 'TENDENCIA_FLUXO' && this.deps.modoMock !== true && bm?.historicoDesde === undefined) return semDado();
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
+      // L18 (dono, 15/11, E3.298): na API padrão o S1 sem alvos responde "sem dado real" com o motivo; o 503 fica só no modo mock explícito.
+      if (this.deps.modoMock !== true) return { ...semDado(), resultado: { ...corpoSemDadoReal(id), motivo: MOTIVO_ALVOS_NAO_CARREGADOS }, chave: `${id}|sem-alvos` };
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
+    }
+    // Pedido 105 (D2, P1 = B): S5, S6 e S7 valem só para os cinco fluxos do PROC; sem a lista na base real nada é presumido.
+    if (ac !== null && this.deps.modoMock !== true && ac.base.config.fluxos_proc === undefined && METRICAS_COM_FLUXOS_PROC.includes(id)) {
+      return { ...semDado(), resultado: { ...corpoSemDadoReal(id), motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS }, chave: `${id}|sem-fluxos-proc` };
     }
     // Data de corte (S-a): a informada (fim do dia) ou a da última coleta bem-sucedida; sem coleta, agora. Os dois domínios da
     // Visão geral usam o mesmo corte (o mais antigo dos dois: nenhum painel mostra dado além da própria coleta).
@@ -330,8 +342,14 @@ export class ServicoMetricas {
     if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
     if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
+    // Pedido 069 (L9-a) e 077 (L6a): a exceção de SLA por registro posterior segue sem fonte; a nota do S2 e da tendência não depende do ajuste de prioridade.
+    if (real) resultado = comNotaExcecaoSlaSemFonte(id, resultado);
+    // Pedido 105 (D2): notas só de publicação do S5 (Risco de estouro de SLA sem fonte) e do S3 e S7 ("Não" e campo vazio não se separam).
+    if (real) resultado = comNotaAjusteNaoIgualVazio(id, comNotaS5SemRisco(id, resultado));
     // Pedido 099 (D9): o S12 real sem a fonte da exceção de SLA sai `excecaoSla: null` da biblioteca; aqui só a nota. Só publicação.
     if (real) resultado = comNotaS12SemFonte(id, resultado);
+    // Pedido 099 (D4, Q-099-5b = A): o S1 real traz a nota de que o primeiro atendimento inclui resposta automática. Só publicação.
+    if (real) resultado = comNotaS1PrimeiroAtendimento(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };

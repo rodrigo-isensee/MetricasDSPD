@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  ARQUIVO_DOMINIO_BM, prioridadesDeLinhas, TIPOS_SELECAO_UNICA, TAMANHO_MAXIMO_ARQUIVO, analisarDominioBm, dominiosDeLinhas, lerDominioBm, listasDoArquivo, sincronizarDominioBm,
+  ARQUIVO_DOMINIO_BM, fasesDeLinhas, prioridadesDeLinhas, TIPOS_SELECAO_UNICA, TAMANHO_MAXIMO_ARQUIVO, analisarDominioBm, dominiosDeLinhas, lerDominioBm, listasDoArquivo, sincronizarDominioBm,
 } from '../src/modulos/businessmap/dominio-businessmap.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { ErroDominio } from '../src/modulos/referencia/dominio-acelerato.js';
@@ -40,7 +40,7 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     expect(lido.arquivo.prioridade_severidade).toEqual([
       { codigo: '1', rotulo: 'Crítica' }, { codigo: '2', rotulo: 'Alta' }, { codigo: '3', rotulo: 'Média' }, { codigo: '4', rotulo: 'Baixa' },
     ]);
-    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O16']);
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O15']);
     expect(lido.sha256).toBe(createHash('sha256').update(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')).digest('hex'));
     expect(TIPOS_SELECAO_UNICA).toEqual([]);
   });
@@ -59,8 +59,9 @@ describe('bm:ref-sync: o arquivo versionado', () => {
       motivo_bloqueio: [],
       setor_quadro: [],
       prioridade_severidade: [],
+      fase_deteccao_coluna: [],
     });
-    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], setor_quadro: [], prioridade_severidade: [] });
+    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], setor_quadro: [], prioridade_severidade: [], fase_deteccao_coluna: [] });
   });
 
   it.each(PROIBIDOS)('CA-069-1: o field %s no arquivo recusa a carga inteira, sem valor na mensagem', (id) => {
@@ -190,7 +191,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
     const versao = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio'))!;
     expect(versao.valores).toEqual([HOJE, 'Teste do bm:ref-sync', 'Teste', `069:ref-bm-campos:${lido.sha256}`, AGORA.toISOString()]);
-    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade']]);
+    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade', 'fase_deteccao_coluna']]);
   });
 
   it('já vigente e igual: nada é gravado e nenhuma versão é registrada; versão já existente não duplica', async () => {
@@ -218,8 +219,15 @@ describe('bm:ref-sync: lista setores (097 L10a)', () => {
   const comSetores = (setores: unknown[]): string => arquivo([], { setores });
   const bom = [{ codigo: '23', rotulo: 'Plataformas' }, { codigo: '35', rotulo: 'Desenv Sistemas Plataformas Digitais - Gerencial' }];
 
-  it('o arquivo versionado nasce com a lista vazia (as 7 linhas esperam a P-097-9)', () => {
-    expect(lerDominioBm().arquivo.setores).toEqual([]);
+  it('o arquivo versionado traz os 6 quadros que o dono nomeou (o 35 fica fora até a P-097-10)', () => {
+    expect(lerDominioBm().arquivo.setores).toEqual([
+      { codigo: '23', rotulo: 'Sistemas Corporativos' },
+      { codigo: '24', rotulo: 'Escritório de Processos e Projetos' },
+      { codigo: '25', rotulo: 'Sistemas de Vendas e Operações' },
+      { codigo: '27', rotulo: 'Plataformas' },
+      { codigo: '31', rotulo: 'Ciência de Dados' },
+      { codigo: '79', rotulo: 'Marketing e Vendas' },
+    ]);
   });
 
   it('arquivo sem a lista é aceito (padrão vazio) e a lista vira a lista setor_quadro de ref_dominio', () => {
@@ -287,5 +295,77 @@ describe('C8a: mapa priority -> severidade (prioridade_severidade)', () => {
     expect(r).toMatchObject({ inseridas: 1, versaoRegistrada: true });
     const m = d.chamadas.filter((c) => c.texto.startsWith('INSERT INTO dspd_core.ref_versao_criterio_metrica'));
     expect(m.map((c) => c.valores)).toEqual([['77', 'O16']]);
+  });
+});
+
+// Pedido 105 (E7.5): tabela coluna_id -> fase de detecção do bug. As cinco fases e as colunas conferidas estão escritas AQUI, não importadas do código (B-1 da ADR 0020).
+describe('105: tabela coluna -> fase de detecção (fase_deteccao_coluna)', () => {
+  const FASES = ['Desenvolvimento', 'Revisão de código', 'Teste interno', 'Homologação do negócio', 'Produção'];
+  const comFases = (f: unknown, afeta: unknown = []): string => JSON.stringify({
+    ...JSON.parse(arquivo([])), fase_deteccao_coluna: f,
+    versao_criterio: { dominio: 'businessmap', descricao: 'Teste', motivo: 'Teste', referencia: 'teste', afeta },
+  });
+
+  it('o arquivo versionado traz as 347 colunas aprovadas pelo dono, só com as cinco fases, sem coluna repetida', () => {
+    const t = lerDominioBm().arquivo.fase_deteccao_coluna;
+    expect(t).toHaveLength(347);
+    expect(new Set(t.map((x) => x.codigo)).size).toBe(347);
+    expect(new Set(t.map((x) => x.rotulo))).toEqual(new Set(FASES));
+    const por = (f: string): number => t.filter((x) => x.rotulo === f).length;
+    expect([por(FASES[0]!), por(FASES[1]!), por(FASES[2]!), por(FASES[3]!), por(FASES[4]!)]).toEqual([104, 44, 18, 36, 145]);
+  });
+
+  it('colunas conferidas na análise: uma de cada fase, as duvidosas D-1 a D-6 como propostas e as sem fase fora do mapa', () => {
+    const m = new Map(lerDominioBm().arquivo.fase_deteccao_coluna.map((x) => [x.codigo, x.rotulo]));
+    expect([m.get('400'), m.get('686'), m.get('1298'), m.get('1416'), m.get('396')]).toEqual(FASES);
+    // D-5 (quadro 27, "Validação") e D-4 (quadro 27, "Aguardando Deploy") como propostos
+    expect([m.get('2313'), m.get('2314')]).toEqual(['Homologação do negócio', 'Produção']);
+    // D-7 (ponta do quadro 25: Aguardando Build 1891, Em Andamento 1890, Pronto 1895 e 1892) fica sem fase
+    for (const id of ['1890', '1891', '1892', '1895']) expect(m.has(id), id).toBe(false);
+    // sem movimento ou sem papel: nenhum id desconhecido entra
+    expect(m.has('1')).toBe(false);
+  });
+
+  it('a tabela vira a lista fase_deteccao_coluna de ref_dominio e a versão de critério afeta o O15', () => {
+    const lido = analisarDominioBm(comFases([{ codigo: '400', rotulo: 'Desenvolvimento' }, { codigo: '396', rotulo: 'Produção' }], ['O15']));
+    expect(listasDoArquivo(lido.arquivo).fase_deteccao_coluna).toEqual([{ codigo: '400', rotulo: 'Desenvolvimento' }, { codigo: '396', rotulo: 'Produção' }]);
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O15']);
+  });
+
+  it.each([
+    ['fase fora das cinco', [{ codigo: '400', rotulo: 'Planejamento' }]],
+    ['código não numérico', [{ codigo: 'Em andamento', rotulo: 'Desenvolvimento' }]],
+    ['código com sinal', [{ codigo: '-4', rotulo: 'Desenvolvimento' }]],
+    ['código vazio', [{ codigo: '', rotulo: 'Desenvolvimento' }]],
+    ['coluna repetida', [{ codigo: '400', rotulo: 'Desenvolvimento' }, { codigo: '400', rotulo: 'Produção' }]],
+    ['coluna repetida com zeros à esquerda', [{ codigo: '400', rotulo: 'Desenvolvimento' }, { codigo: '0400', rotulo: 'Produção' }]],
+    ['campo extra (nome da coluna)', [{ codigo: '400', rotulo: 'Desenvolvimento', nome: 'Em andamento' }]],
+  ])('recusa a carga inteira: %s, sem o valor na mensagem', (_n, f) => {
+    const msg = recusa(comFases(f));
+    expect(msg).toContain('inválido');
+    expect(msg).not.toContain('Planejamento');
+    expect(msg).not.toContain('Em andamento');
+  });
+
+  it('mais de 2000 colunas recusa', () => {
+    recusa(comFases(Array.from({ length: 2001 }, (_v, i) => ({ codigo: String(i + 1), rotulo: 'Produção' }))));
+  });
+
+  it('a leitura do projetor desconfia do banco: só coluna numérica e uma das cinco fases; coluna ligada a duas fases sai', () => {
+    const l = (campo: string, codigo: string, rotulo: string) => ({ campo, codigo, rotulo });
+    expect([...fasesDeLinhas([
+      l('fase_deteccao_coluna', '400', 'Desenvolvimento'), l('fase_deteccao_coluna', '401', 'Planejamento'), l('fase_deteccao_coluna', 'x', 'Produção'),
+      l('outro', '402', 'Produção'), l('fase_deteccao_coluna', '403', 'Teste interno'), l('fase_deteccao_coluna', '403', 'Produção'),
+      l('fase_deteccao_coluna', '0404', 'Revisão de código'),
+    ])]).toEqual([['400', 'Desenvolvimento'], ['404', 'Revisão de código']]);
+  });
+
+  it('a primeira carga registra a versão de critério do O15, uma linha de métrica, só em dspd_core', async () => {
+    const lido = analisarDominioBm(comFases([{ codigo: '400', rotulo: 'Desenvolvimento' }], ['O15']));
+    const d = criarDublePg((c) => (c.texto.includes('RETURNING versao_id') ? [{ versao_id: '78' }] : []));
+    const r = await sincronizarDominioBm(d.pool, montarEsquemas(''), lido, '2026-11-15', new Date('2026-11-15T12:00:00Z'));
+    expect(r).toMatchObject({ inseridas: 1, versaoRegistrada: true });
+    expect(d.chamadas.filter((c) => c.texto.startsWith('INSERT INTO dspd_core.ref_versao_criterio_metrica')).map((c) => c.valores)).toEqual([['78', 'O15']]);
+    expect(d.chamadas.find((c) => c.texto.startsWith('INSERT INTO dspd_bm.ref_dominio'))!.valores).toEqual(['fase_deteccao_coluna', '400', '2026-11-15', 'Desenvolvimento', 0]);
   });
 });

@@ -161,6 +161,15 @@ export const VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL: VersaoCriterio = {
   afeta: ['O17'],
 }
 
+/** Pedido 099 (A4, Q-099-4): o O8 passou de "Sem dado real" inteiro para o tempo em execução real; a divisão por tamanho segue sem dado real até o campo do WS1. */
+export const VERSAO_CRITERIO_O8_TEMPO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-14-o8-tempo-real',
+  data: '2026-11-14',
+  descricao:
+    'O tempo em execução das demandas passou a ser calculado com o dado real do BusinessMap (antes o cartão saía inteiro como "Sem dado real"); a divisão por tamanho segue "sem dado real" até o campo de tamanho no quadro (WS1)',
+  afeta: ['O8'],
+}
+
 /** Pedido 099 (D9): o S12 entrou no mapa real só com o volume; a exceção de SLA por registro posterior sai nula (sem fonte), antes ficava no mock. */
 export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-12-s12-volume-real',
@@ -168,6 +177,94 @@ export const VERSAO_CRITERIO_S12_VOLUME_REAL: VersaoCriterio = {
   descricao:
     'O volume por sistema passou a ser calculado com o dado real do Acelerato; a exceção de SLA por registro posterior e a reincidência saem sem fonte (nulas, nunca 0%) até a coleta trazer os campos',
   afeta: ['S12'],
+}
+
+/**
+ * Pedido 099 (O12, Q-099-10 = B, Q-099-23 = AAA, Q-099-4 = A): a data acordada é o prazo nativo (`deadline`) do card, convertido ao dia civil de Brasília
+ * (Q-RO-6c, L13 opção c do dono de 2026-11-15: meia-noite UTC em ponto fica no dia gravado); a Visão geral entra porque o alerta de vencidos internos deixa de ser gerado sem o campo de
+ * responsabilidade. Data do PR (a do merge corrige se escorregar): o dono confirma a da primeira projeção real com o prazo.
+ */
+export const VERSAO_CRITERIO_O12_PRAZO_DO_CARD: VersaoCriterio = {
+  id: 'criterio-2026-11-14-o12-prazo-do-card',
+  data: '2026-11-14',
+  descricao:
+    'O12 usa como data acordada o prazo nativo (deadline) do card do BusinessMap, que pode mudar depois do compromisso; o prazo com hora vira o dia de Brasília; a responsabilidade do atraso segue sem dado real',
+  afeta: ['O12', 'VISAO_GERAL'],
+}
+
+/**
+ * Pedido 099 (D5a): a S9 passa a ler as esperas reais do Acelerato como pendência e a S1 as desconta do relógio. Decisão do dono (Q-099-8
+ * revista e Q-099-21): Aguardando Solicitante, Suporte Terceiros, Fornecedor e Janela de Mudança contam; `Pendente` sem motivo é
+ * "Não classificado". Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até o dono decidir.
+ */
+export const VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA: VersaoCriterio = {
+  id: 'criterio-2026-11-14-s1-s9-esperas-pendencia',
+  data: '2026-11-14',
+  descricao:
+    'As esperas Aguardando Solicitante, Suporte Terceiros, Fornecedor e Janela de Mudança contam como pendência no tempo em pendência (S9) e saem do relógio de resolução da S1; Pendente sem motivo é "Não classificado"; Equipe Interna, Aprovação, Mudança e Data Acordada ficam fora até decisão do dono',
+  afeta: ['S1', 'S9'],
+}
+
+/**
+ * Pedido 099 (D4, Q-099-5b = A): o S1 entrou no mapa real. O primeiro atendimento passa a ser o primeiro comentário da tabela do Acelerato
+ * (inclui resposta automática) e a restauração segue `data_pronto`; antes o S1 não tinha dado real publicado.
+ */
+export const VERSAO_CRITERIO_S1_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-s1-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O S1 passou a ser calculado com o dado real do Acelerato: o primeiro atendimento é o primeiro comentário do chamado (inclui resposta automática) e a restauração vai até a data de pronto',
+  afeta: ['S1'],
+}
+
+/**
+ * Pedido 105 (E7.5, decisão do dono de 2026-11-15): o O15 passou de "Sem dado real" para dado real. A fase de detecção do bug é a coluna em que
+ * estava o card da demanda (o pai do bug, vínculo parent e child) quando o bug foi criado, pela tabela coluna para fase aprovada (`fase_deteccao_coluna`);
+ * só entram os bugs com pai na base. Data do PR (a do merge corrige se escorregar): o dono confirma a da primeira projeção com a tabela.
+ */
+export const VERSAO_CRITERIO_O15_FASE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-o15-fase-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O15 passou a ser calculado com a fase em que o bug foi encontrado: a coluna do card da demanda (pai do bug) na abertura do bug, pela tabela coluna para fase aprovada; só entram os bugs com pai na base, com a nota de quantos ficaram fora; cada fase só publica a contagem com 20 bugs ou mais',
+  afeta: ['O15'],
+}
+
+/**
+ * Pedido 105 (D2): o campo "Prioridade ajustada manualmente?" passa a alimentar o S3 (`ajustesManuais`) e o S7; só "Sim" conta, e a coleta não
+ * separa "Não" de campo vazio. Antes o S3 publicava `ajustesManuais: null` e o S7 não tinha dado real.
+ */
+export const VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-ajuste-prioridade-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'O ajuste manual de prioridade passou a vir do campo "Prioridade ajustada manualmente?" do Acelerato (só "Sim" conta; "Não" e campo vazio não se separam), no S3 e no S7',
+  afeta: ['S3', 'S7'],
+}
+
+/**
+ * Pedido 105 (D2, P1 a P3 do dono): S5, S6 e S7 passam a ter dado real, só dos cinco fluxos do PROC; os motivos gravados entram por de-para só
+ * dos pares óbvios (caixa e vírgula) e o preenchido sem par vira a faixa "Outro", separada de "Não informado".
+ */
+export const VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-15-motivos-proc-dado-real',
+  data: '2026-11-15',
+  descricao:
+    'S5, S6 e S7 passaram a ser calculados com o dado real do Acelerato, só dos cinco fluxos do PROC; motivo sem par no domínio vira "Outro", separado de "Não informado"',
+  afeta: ['S5', 'S6', 'S7'],
+}
+
+/**
+ * Pedido 105 (E7.4, O18 = c do dono, 2026-11-15): o bug é da entrega quando ligado a ela no BusinessMap por vínculo pai e filho ou relacionado;
+ * vínculo de bug com bug não liga a entrega; a janela de 30 dias da entrega (briefing 4.2) segue. O bug conta pelo tipo, sem exigir fase de detecção.
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_O18_VINCULOS: VersaoCriterio = {
+  id: 'criterio-2026-11-15-o18-vinculos',
+  data: '2026-11-15',
+  descricao:
+    'O18 passou a ser calculado com o dado real do BusinessMap: o bug é da entrega quando ligado a ela por vínculo pai e filho ou relacionado, até 30 dias após a entrega; vínculo de bug com bug não liga a uma entrega',
+  afeta: ['O18'],
 }
 
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
@@ -184,7 +281,15 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
+  VERSAO_CRITERIO_O8_TEMPO_REAL,
   VERSAO_CRITERIO_S12_VOLUME_REAL,
+  VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
+  VERSAO_CRITERIO_S1_S9_ESPERAS_PENDENCIA,
+  VERSAO_CRITERIO_S1_DADO_REAL,
+  VERSAO_CRITERIO_O15_FASE_DADO_REAL,
+  VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
+  VERSAO_CRITERIO_O18_VINCULOS,
 ]
 
 /**

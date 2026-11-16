@@ -51,6 +51,8 @@ interface Props {
   /** Fonte da faixa, quando a página tem duas: "Pede atenção na semana · Sustentação (Acelerato)". */
   fonte?: string
   itens: readonly ItemAtencao[]
+  /** Lacunas de dado real que não geram item (a ausência não pode ser lida como "não há"): uma linha cada, sob a lista. */
+  lacunas?: readonly string[]
   vazio?: string
   /** Linha auxiliar sob o título com a janela dos números do alerta ("Janela: últimas 12 semanas"). */
   janela?: string
@@ -68,6 +70,7 @@ export function FaixaAtencao({
   fonte,
   titulo = fonte ? `${TITULOS_FAIXA[momento]} · ${fonte}` : TITULOS_FAIXA[momento],
   itens: itensBrutos,
+  lacunas = [],
   vazio = 'Nada pede atenção agora com base nas metas publicadas.',
   janela,
   maximo,
@@ -210,6 +213,16 @@ export function FaixaAtencao({
           })}
         </ul>
       )}
+      {(estado === 'ok' || estado === 'parcial') &&
+        lacunas.map((l) => (
+          <p
+            key={l}
+            className="mt-2 flex items-center gap-2 text-sm text-texto-2"
+            data-testid="faixa-atencao-lacuna"
+          >
+            <Icone nome="info" /> {l}
+          </p>
+        ))}
       {(estado === 'ok' || estado === 'parcial') && omitidos > 0 && (
         <p className="mt-2 text-xs text-texto-2" data-testid="atencao-omitidos-calibracao">
           Itens de métricas em calibração não aparecem aqui.

@@ -17,15 +17,22 @@ import {
   type NumeroModelo,
 } from './modelo'
 import { FiltroEquipeBloco } from './FiltroEquipeBloco'
+import { FiltroSetorBloco } from './FiltroSetorBloco'
 import { NumeroChave } from './NumeroChave'
 import { TendenciaFluxo } from './TendenciaFluxo'
 
 function ConteudoFluxo() {
   const uso = useFiltros('operacional')
-  // O Resumo usa os padrões; só a equipe do bloco vem da URL (a leitura é a dos outros painéis de fluxo).
+  // O Resumo usa os padrões; só a equipe e o setor do bloco vêm da URL (a leitura é a dos outros painéis de fluxo).
+  // Sem setor escolhido o objeto não ganha a chave: as consultas seguem as mesmas da Diária e da Semanal (cache).
+  const setor = uso.filtros.setor
   const f = useMemo(
-    () => ({ ...FILTROS_FLUXO_RESUMO, equipe: uso.filtros.equipe }),
-    [uso.filtros.equipe],
+    () => ({
+      ...FILTROS_FLUXO_RESUMO,
+      ...(setor && setor.length > 0 ? { setor } : {}),
+      equipe: uso.filtros.equipe,
+    }),
+    [uso.filtros.equipe, setor],
   )
   const destinoDe = useDestinoNaVisao()
   const destinoVisao = useDestinoDaVisao()
@@ -40,9 +47,13 @@ function ConteudoFluxo() {
   const qO10 = useMetrica('O10', f)
   const todas = [qO3, qO4, qO2, qO12, qBL, qO1, qO10]
   // A tendência só dispara depois dos números e dos alertas do bloco (resolvidos, com sucesso ou não).
-  const qT = useMetrica('TENDENCIA_FLUXO', filtrosTendencia(referencia.dataReferencia, f.equipe), {
-    habilitada: referencia.pronta && todas.every((q) => q.estado !== 'carregando'),
-  })
+  const qT = useMetrica(
+    'TENDENCIA_FLUXO',
+    filtrosTendencia(referencia.dataReferencia, f.equipe, setor),
+    {
+      habilitada: referencia.pronta && todas.every((q) => q.estado !== 'carregando'),
+    },
+  )
   const itens = [
     ...itensDiaria(qO2.dados, qBL.dados, qO1.dados),
     ...itensSemanal(qO3.dados, qO10.dados, qO12.dados),
@@ -95,7 +106,10 @@ function ConteudoFluxo() {
   ]
   return (
     <>
-      <FiltroEquipeBloco bloco="fluxo" uso={uso} />
+      <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+        <FiltroSetorBloco uso={uso} />
+        <FiltroEquipeBloco bloco="fluxo" uso={uso} />
+      </div>
       <FaixaAtencao
         nivel="h3"
         titulo="Pede atenção · Fluxo de projeto (BusinessMap)"

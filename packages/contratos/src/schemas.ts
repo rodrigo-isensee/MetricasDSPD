@@ -13,8 +13,8 @@ import {
   METRICA_IDS,
   FASES_DETECCAO,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
-  MOTIVOS_ENCERRAMENTO,
-  MOTIVOS_ESCALACAO,
+  MOTIVOS_ENCERRAMENTO_PUBLICADOS,
+  MOTIVOS_ESCALACAO_PUBLICADOS,
   NATUREZAS_ENTREGA,
   NIVEIS_RESOLUCAO,
   ORIGENS_DEMANDA,
@@ -33,7 +33,14 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema, notaS12IdSchema, notaSustentacaoIdSchema } from './origem'
+import {
+  NOTA_SUSTENTACAO_IDS,
+  notaCartaoIdSchema,
+  notaMotivosIdSchema,
+  notaS12IdSchema,
+  notaS1IdSchema,
+  notaSustentacaoIdSchema,
+} from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -284,17 +291,20 @@ export const resultadoO12 = z.object({
       emAndamento: z.boolean(),
       acordos: z.number(),
       vencidos: z.number(),
-      porResponsabilidade: responsabilidadeOuNao,
+      /** Nulo sem o campo de responsabilidade no quadro (099, Q-099-4 = A): nunca 0. */
+      porResponsabilidade: responsabilidadeOuNao.nullable(),
       pctVencidos: taxaSchema,
     }),
   ),
   totais: z.object({
     acordos: z.number(),
     vencidos: z.number(),
-    porResponsabilidade: responsabilidadeOuNao,
+    porResponsabilidade: responsabilidadeOuNao.nullable(),
     pctVencidos: taxaSchema,
   }),
-  vencidosCausaInterna: z.number(),
+  /** Nulo sem o campo de responsabilidade no quadro; `motivoResponsabilidade` diz por quê. */
+  vencidosCausaInterna: z.number().nullable(),
+  motivoResponsabilidade: z.string().min(1).nullable(),
   statusMeta: statusMetaSchema,
 })
 
@@ -304,9 +314,15 @@ export const resultadoO15 = z.object({
     z.object({
       fase: z.enum(FASES_DETECCAO),
       grupo: z.enum(['contido', 'negocio', 'producao']),
-      contagem: z.number(),
+      /** Bugs da fase; `null` abaixo do mínimo de 20 (a fase não publica contagem, só entra no total de `base.n`). */
+      contagem: z.number().int().nullable(),
     }),
   ),
+  /**
+   * Bugs do período sem fase de detecção (sem pai na base, pai sem coluna conhecida ou coluna sem fase na tabela aprovada): ficam
+   * fora da conta e a nota do cartão diz quantos (pedido 105, E7.5). `base.n` conta só os que têm fase.
+   */
+  bugsSemFase: z.number().int().min(0),
   contencao: taxaSchema,
   escape: taxaSchema,
   serieMensal: z.array(
@@ -381,7 +397,7 @@ export const resultadoT2 = z.object({
   classes: z.array(
     z.object({
       classe,
-      /** null = "SLE: não publicado" (Intangível ou amostra insuficiente). */
+      /** null = "SLE: não publicado" (classe sem SLE publicado ou amostra insuficiente). */
       sle: z.object({ diasUteis: z.number(), publicadoEm: iso }).nullable(),
       n: z.number(),
       dentroDoSle: taxaSchema.nullable(),
@@ -638,6 +654,8 @@ export const resultadoS1 = z.object({
   prioridades: z.array(
     z.object({ prioridade, primeiroAtendimento: classeS1, restauracao: classeS1 }),
   ),
+  /** Pedido 099 (D4, Q-099-5b = A): nota do primeiro atendimento na base real (os textos vivem em `origem.ts`). */
+  notas: z.array(notaS1IdSchema).optional(),
 })
 
 const celulaS2 = z.object({ taxa: taxaSchema, statusMeta: statusMetaSchema })
@@ -665,7 +683,8 @@ export const resultadoS3 = z.object({
       ajustesManuais: z.number().nullable(),
     }),
   ),
-  notas: z.array(notaSustentacaoIdSchema).optional(),
+  /** Pedido 105 (D2, A2): o S3 real também traz a nota `s7-nao-igual-vazio` (texto neutro do ajuste, comum ao S7). */
+  notas: z.array(z.enum([...NOTA_SUSTENTACAO_IDS, 's7-nao-igual-vazio'])).optional(),
   /**
    * Janela inteira do período filtrado (chamados abertos entre `periodo.inicio` e `periodo.fim`), não a soma de
    * meses: o volume e a proporção de P1+P2 já calculados pela biblioteca (a tela não soma nem divide).
@@ -713,14 +732,22 @@ const distMotivo = <T extends readonly [string, ...string[]]>(valores: T) =>
       }),
     ),
   })
-export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO).extend({
+/**
+ * Pedido 105 (D2, P1 e P3 do dono): a faixa `Outro` (motivo preenchido sem par no domínio) entra em `motivos`, separada de `naoInformado` (campo
+ * vazio). `foraDoFluxo` = chamados do período e dos filtros fora dos cinco fluxos do PROC, que não entram na métrica (0 quando a base não separa fluxo).
+ */
+const foraDoFluxo = z.number()
+export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO_PUBLICADOS).extend({
   /** Escalados (N2, N3 ou fornecedor) sem motivo de escalação: "Não informado", nunca inferido. */
   naoInformado: z.number(),
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
 })
-export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({
+export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO_PUBLICADOS).extend({
   /** Chamados fechados sem motivo de encerramento ("Não informado"). */
   naoInformado: z.number(),
   taxaContorno: taxaSchema,
+  foraDoFluxo,
 })
 
 const blocoS7 = z.object({
@@ -737,6 +764,8 @@ const blocoS7 = z.object({
 })
 export const resultadoS7 = z.object({
   ...comum,
+  foraDoFluxo,
+  notas: z.array(notaMotivosIdSchema).optional(),
   ajusteDePrioridade: blocoS7.extend({ justificados: z.object({ k: z.number(), n: z.number() }) }),
   reclassificacaoDeTipo: blocoS7,
 })
@@ -893,26 +922,46 @@ export const resultadoO6 = z.object({
 })
 
 /** O8: tamanho das demandas (tempo em execução, dias úteis), nunca média isolada. */
-export const resultadoO8 = z.object({
-  ...comum,
-  janelaPercentis: janelaSchema,
-  tipos: z.array(
-    z.object({
-      tipo,
-      n: z.number(),
-      estatistica: estatisticaSchema(
-        z.object({
-          mediana: z.number(),
-          media: z.number(),
-          p85: z.number(),
-          /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
-          acimaP85AnteriorPct: z.number().nullable(),
-        }),
-      ),
-      porTamanho: z.array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() })),
-    }),
-  ),
-})
+export const resultadoO8 = z
+  .object({
+    ...comum,
+    janelaPercentis: janelaSchema,
+    tipos: z.array(
+      z.object({
+        tipo,
+        n: z.number(),
+        estatistica: estatisticaSchema(
+          z.object({
+            mediana: z.number(),
+            media: z.number(),
+            p85: z.number(),
+            /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
+            acimaP85AnteriorPct: z.number().nullable(),
+          }),
+        ),
+        /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+        porTamanho: z
+          .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
+          .nullable(),
+      }),
+    ),
+    /** Motivo de `porTamanho` nulo; null quando a divisão por tamanho é publicada. */
+    motivoPorTamanho: z.string().min(1).nullable(),
+  })
+  // Pedido 105 (L24 (a) do K-359): o motivo é obrigatório só quando NENHUM tipo publica `porTamanho`; com algum tipo publicando, os demais podem ter `porTamanho` nulo e motivo nulo.
+  .superRefine((r, ctx) => {
+    if (
+      r.motivoPorTamanho === null &&
+      r.tipos.length > 0 &&
+      r.tipos.every((t) => t.porTamanho === null)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['motivoPorTamanho'],
+        message: 'porTamanho nulo em todos os tipos exige motivoPorTamanho',
+      })
+    }
+  })
 
 /** O11: composição do backlog (retrato no fim de cada mês). */
 export const resultadoO11 = z.object({
