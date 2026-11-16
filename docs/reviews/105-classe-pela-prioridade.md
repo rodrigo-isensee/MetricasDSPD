@@ -3,16 +3,22 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-classe-pela-prioridade
-commit: fa07f5417a8c5fdaeeaf1d21f6d6873d1b96aa02
-parecer: reprovado
+commit: d3795d73
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: classe pela prioridade nativa do BusinessMap (E7.100, E7.161; review E7.173; revalidação E7.204)
+# Code review: classe pela prioridade nativa do BusinessMap (E7.100, E7.161; review E7.173; revalidação E7.204 e E7.222)
+
+## Revalidação (volta 2, E7.222)
+- Delta lido: `forge-check parecer delta docs/reviews/105-classe-pela-prioridade.md`, intervalo `fa07f541..a0ee7f04`: "nenhum arquivo do domínio mudou"; dispensado `e2e/tests/b12-fluxo.spec.ts` (teste do QA aprovado em `d3795d7`). Fora isso, só os pareceres do QA e deste review mudaram.
+- **A6 resolvido em `d3795d73`.** TAT-02/03 (`b12-fluxo.spec.ts:327`) afirma "Sem prioridade (BusinessMap): N de M entregues (P%)" com N >= 1.
+- **A7 resolvido em `d3795d73`.** TAT-06 (`b12-fluxo.spec.ts:363`) deixa "itens mínimos" e afirma a faixa do T4 com o universo "cartões com chegada ou entrega no período", o que a tela mostra.
+- **CI:** run `43877746733` (pull_request, `0b4afd15`, merge sem mudança de código sobre `d3795d73`) verde: `e2e`, `e2e-parte (1/2)` e `(2/2)`, `build`, `testes`, `banco`, `openapi`, `seguranca`, `imagem`, `filtro` e `rapida`; `perf` pulado. Citado, não rerrodado.
 
 ## Revalidação (volta 1)
-- Delta lido: `forge-check parecer delta docs/reviews/105-classe-pela-prioridade.md`, intervalo `8ec2598e..d4c535de`, sem o que veio da `develop`. O código da volta está em `ae49e54e` (40 arquivos, +443 −185); depois vieram `1e3f1bf2` (merge da `develop` com conflito) e `fa07f541` (merge do `fcd3a117`, hash do QA), a cabeça deste parecer.
+- Delta lido: `forge-check parecer delta docs/reviews/105-classe-pela-prioridade.md`, intervalo `8ec2598e..d4c535de`, sem o que veio da `develop`. O código da volta está em `ae49e54e` (40 arquivos, +443 −185); depois vieram `1e3f1bf2` (merge da `develop` com conflito) e `fa07f541` (merge do `fcd3a117`, hash do QA).
 - **A1 resolvido.** `painel-real-f6.pg.test.ts:113` tira o T1 da lista "sem dado real" e o caso novo `(d1)` (`:124`) afirma o T1 real: sem `estado`, schema válido, `base.n > 0` e `semPrioridade.total = base.n + semPrioridade.n`. Job `banco` verde.
 - **A2 resolvido em `fcd3a117`** (QA, E7.205): `hash-base-fase-a.json` passa a ef67b23e e 1f3e6fd7, os valores que o CI calculava, com o motivo na nota; Acelerato intacto. Job `build` verde.
 - **A3 resolvido.** `catalogos.test.ts:21` cobre os seis ramos de `prioridadePorClasse`; `mock.test.ts` cobre o bug com severidade. Job `testes` verde (cobertura do mock no limite).
@@ -21,11 +27,7 @@ data: 2026-11-16
 - **Universos conferidos.** T1, T2 e T6: `total = base + sem prioridade` do mesmo filtro (entregues na janela). O6: 39 + 7 = 46 no teste. O24: `iniciosNoPeriodo` é o filtro comum, e `n` e `total` saem dele (`o24.ts:106`).
 - **Contrato (politica-de-mudanca §5): aceite ratificado.** `semPrioridade` ganha `total: number` obrigatório em T1, T2, T4, O6, T6 e O24 (`schemas.ts:53`, `tambem.ts`). O objeto `semPrioridade` nasce neste mesmo PR e nunca foi à `develop`, então nenhum consumidor publicado quebra; é mudança compatível sem impacto estrutural, aprovada pelo tech-lead no review. `openapi.json`, `docs/api/metricas.md`, `docs/contratos/metricas/*.md` e as fotografias `snapshots/resultados/*.json` acompanham; job `openapi` verde.
 - **Conflito da `develop` em `1e3f1bf2`** (O8 por tamanho, `cc2b7535`), resolvido em `allow-list.ts`, `normalizador.ts`, `projetor.ts` e `fluxo.tsx`. Lido o diff combinado: as duas saídas convivem (`severidade` e `tamanho_declarado` fora de `COLUNAS_LISTA`, ambas no `projetarCard` e em `COLUNAS_DIM`; imports de `SemPrioridade` e da régua juntos). Correto.
-
-## Suíte (CI do head, citado e não rerrodado)
-Cabeça `fa07f541`: run `43874159036` (push) verde, com `e2e` e `perf` pulados no push. Run `43874169191` (pull_request) **vermelho**: `e2e-parte (1/2)` em failure, 2 testes; `build`, `testes`, `banco`, `openapi`, `seguranca`, `imagem`, `filtro`, `rapida` e `e2e-parte (2/2)` verdes. O e2e só rodou agora porque o `build` estava vermelho antes (A2).
-- TAT-02/03 (`b12-fluxo.spec.ts:322`): "Expected pattern: /Sem prioridade: \d+ cartões? (ficou|ficaram) fora/"; a tela mostra "Sem prioridade (BusinessMap): 11 de 602 entregues (2%)".
-- TAT-06 (`b12-fluxo.spec.ts:356`): "Expected pattern: /16 de 20 itens mínimos|\d+ de 20 itens mínimos/"; no T4 a Média (aba padrão) tem amostra e os quatro níveis publicam razão, sem nenhum "itens mínimos".
+- Suíte na cabeça `fa07f541`: run `43874159036` (push) verde; run `43874169191` (pull_request) vermelho só em `e2e-parte (1/2)`, TAT-02/03 e TAT-06 (A6 e A7).
 
 ## Achados
 - A1 (bloqueante) server/tests/painel-real-f6.pg.test.ts:112 · resolvido em `ae49e54e` (caso `(d1)`; `banco` verde).
@@ -33,8 +35,8 @@ Cabeça `fa07f541`: run `43874159036` (push) verde, com `e2e` e `perf` pulados n
 - A3 (bloqueante) packages/mock/src/businessmap/catalogos.ts:144 · resolvido (`catalogos.test.ts:21`; `testes` verde).
 - A4 (bloqueante) packages/metricas/src/businessmap/t4.ts:35 · resolvido (`cartoesDe`, teste `prioridade.test.ts:109`).
 - A5 (recomendado) web/src/components/ui/SemPrioridade.tsx:10 · resolvido (N de M, P%, universo e frase do campo vazio).
-- A6 (bloqueante) e2e/tests/b12-fluxo.spec.ts:327 · TAT-02/03 espera o texto antigo da faixa; e2e vermelho no run 43874169191. Afirmar "Sem prioridade (BusinessMap): N de M entregues (P%)".
-- A7 (bloqueante) e2e/tests/b12-fluxo.spec.ts:363 · TAT-06 espera "N de 20 itens mínimos" no T4, que o mock novo não produz na Média; e2e vermelho. Escolher o nível insuficiente no seletor ou afirmar o que a tela mostra.
+- A6 (bloqueante) e2e/tests/b12-fluxo.spec.ts:327 · resolvido em `d3795d73` (faixa "N de M entregues (P%)"; e2e verde no run 43877746733).
+- A7 (bloqueante) e2e/tests/b12-fluxo.spec.ts:363 · resolvido em `d3795d73` (TAT-06 afirma a faixa do T4; e2e verde no run 43877746733).
 
 ## Sondas
 - S1 · calcularT4 com 7 stories sem prioridade entregues na janela · espera: semPrioridade.n = 7 · obtido: 7 (teste prioridade.test.ts:109 na volta 1, testes verde)
