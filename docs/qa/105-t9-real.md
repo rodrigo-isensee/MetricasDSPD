@@ -1,0 +1,79 @@
+---
+tipo: qa
+contrato: 1
+pedido: 105-melhorias-15-11
+branch: feature/105-t9-real
+commit: 9fd6b8c2fc4667afa2e29becb32b9d2df37da69e
+parecer: aprovado
+resultado: aprovado
+escopo: incremental
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-11-16
+---
+# QA: T9 avanço real e escopo com dado real (E7.68, PR 483)
+
+Sem especificação de UX nova. Os critérios vêm da decisão do dono (D-T9 "A") e do brief; `CA-n` abaixo são as obrigações nomeadas.
+
+## Achados
+- A1 (bloqueante) packages/metricas/src/businessmap/t9.test.ts:41 · RESOLVIDO na volta 1; mutante sobrevivente: trocar `criado_em > inicioProjeto` por `>=` (t9.ts:43) passa os 7 testes. Falta o teste da fronteira: frente criada no mesmo instante do início do projeto conta como original.
+- A2 (recomendado) packages/metricas/src/businessmap/e5.ts:36 · o E5 ainda lê `adicionado_apos_inicio_pai`, coluna que o T9 deixou de usar e que a própria suíte trata como nunca gravada (false). T9 e E5 podem dizer "frentes adicionadas" com números diferentes. Fora do escopo do PR; vira cartão.
+
+## Critério → teste → resultado
+| Critério | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| CA-1 adicionada = frente criada depois do início do projeto; criada antes conta como original | t9.test.ts "frente criada antes do início..." | antes x depois do início; igualdade coberta pelo teste "fronteira: mesmo instante" (A1, volta 1) | passou |
+| CA-2 não lê `adicionado_apos_inicio_pai` | t9.test.ts "não lê adicionado_apos_inicio_pai" | coluna false não zera | passou |
+| CA-3 projeto sem início fora da tabela e contado (`projetosSemInicio`); sem frente não conta | t9.test.ts "projeto sem início..." | início nulo; projeto vazio | passou |
+| CA-4 avanço pelas frentes filhas, sem story | t9.test.ts "o avanço sai pelas frentes filhas..." | story filha ignorada | passou |
+| CA-5 censo por projeto, sem estatística agregada, igual com 19 e 20 projetos | t9.test.ts it.each [19, 20] | 19/20 | passou |
+| CA-6 versão de critério afeta o T9, com data | t9.test.ts "a versão de critério..." | n/a | passou |
+| CA-7 T9 em `METRICAS_ORIGEM_REAL` e na tela de origem | origem.test.ts (contratos), web origem.test.tsx, qa-f6-painel, painel-real-f6 | métrica mock x real | passou |
+| CA-8 nota do cartão (singular e plural de projetos sem início) | web ramos.test.tsx | 1 x 2+ projetos | passou |
+| CA-9 contrato (openapi, snapshot, T9.md) acompanha `projetosSemInicio` | contratos/snapshot, openapi check do CI | campo opcional | passou (CI) |
+
+## Cenários e resultado real
+- Suíte inteira: CI do mesmo sha 6b772b00, run 43840512709 (push), conclusão success (jobs seguranca, build, imagem, openapi, filtro, rapida, testes, e2e, perf). O run do PR (43840521762) ainda estava em andamento quando fechei; não o uso.
+- Local, meus cenários: `packages/metricas` t9.test.ts 7 de 7; web `ramos.test.tsx` e `origem.test.tsx` 36 de 36; server `painel-real-f6` e `qa-f6-painel` 55 de 55.
+- E2E que mostra o T9 (chromium, local): `b12-fluxo.spec.ts` TAT-10 (T9: k de n frentes, escopo cresceu, ordenado) passou; `intensivo-sistemico.spec.ts` SIS-CONS-04 (Visão geral x cartão do T9) passou.
+- Acessibilidade: a mudança de interface é um parágrafo de texto (`t9-nota-escopo`); sem controle novo, sem teclado novo. Sem verificação automática própria além do e2e do painel.
+
+### Vermelho antes do verde
+`forge-testes --vermelho ffc59d8a` saiu sem veredito útil (rc 0 impresso por pipe, mas a saída diz `nenhum teste prova a mudança`: "o mapa não sabe (packages/contratos/src/origem.test.ts sem mapa); suíte completa", `módulos=` vazio, `contagem: nenhum teste`). Não conta como vermelho. Fallback manual, na minha worktree: `t9.ts` trazido para a base ffc59d8a com os testes do head mantidos: `Failed Tests 5` em t9.test.ts (entre eles "frente criada antes do início conta como original..." com `expected ... to match object { totalFrentes: 4, originais: 2, ...}`, "não lê adicionado_apos_inicio_pai" e "projeto sem início fica fora da tabela"). Restaurado, árvore limpa.
+
+### Mutação no diff (um por vez, restaurado a cada rodada)
+| Mutante | Resultado |
+|---|---|
+| M1 `criado_em >= inicioProjeto` (frente no mesmo instante vira adicionada) | SOBREVIVE: 7 de 7 passam (A1) |
+| M1b `criado_em < inicioProjeto` (regra invertida) | morto: 2 falhas (it.each 19 e 20) |
+| M2 projeto sem início contado mesmo sem frente | morto: 1 falha |
+| M2b projeto sem início entra na tabela (filtro `>= 0`) | morto: 1 falha |
+| M3 volta a ler `adicionado_apos_inicio_pai` | morto: 4 falhas |
+| M4 avanço lendo story em vez de frente | morto: 6 falhas |
+| M5 projeto sem início tratado como com início | morto: 1 falha |
+
+Observação: M1b morre só nos testes de fronteira 19 e 20 (o teste principal e o de "criado antes" não pegam a inversão sozinhos em todos os casos); a lacuna de igualdade é a mesma classe de A1.
+
+## Revalidação (volta 1, cabeça f7164507)
+`forge-check parecer delta` lista no domínio: CHANGELOG.md, t9.test.ts, CartaoMetrica.tsx, CartaoT9.tsx, ramos.test.tsx; `t9.ts` não mudou.
+- A1: o teste "fronteira: frente criada no mesmo instante do início do projeto conta como original" entrou em t9.test.ts. Mutante M1 de novo (`criado_em >= inicioProjeto`, t9.ts:43): MORTO, `Tests 1 failed | 7 passed (8)`, falha em t9.test.ts:74 (`toMatchObject({ totalFrentes: 1, originais: 1, ...})`). Restaurado, árvore limpa; sem o mutante, 8 de 8.
+- Delta web (complementoVazio, nota dos projetos sem início no vazio, "Escopo sem frente original" com 0 originais, singular, nota sem "a base não guarda"): `web/src/features/tatico/ramos.test.tsx` 23 de 23 local, com teste por ramo.
+- A2 (recomendado) segue como cartão, fora do escopo do PR.
+- Suíte inteira: CI do mesmo sha f7164507, run 43847926313 (push), conclusão success (a execução do PR, 43847934403, não foi usada).
+
+CA-1 passa a `passou`; demais critérios inalterados (o cálculo não mudou, só texto e estado vazio na interface).
+
+## Revalidação (merge da develop, cabeça 9fd6b8c2)
+`forge-check parecer delta` (intervalo f7164507..9fd6b8c2, sem o que veio da base) lista no domínio: CHANGELOG.md, openapi.json, contratos `origem.ts`, `origem.test.ts`, `schemas.ts`, `criterios.ts`, `painel-real-f6.test.ts`, `qa-f6-painel.test.ts`, web `origem.test.tsx`. Código de produção do T9 (`t9.ts`) não mudou.
+- Asserções reescritas conferidas: `qa-f6-painel.test.ts` põe T11 entre as reais e exclui T9 e T11 do laço do FL2; `origem.test.tsx` conta o tático menos 2 e afirma `semDadoReal` falso para T9 e T11. Mantêm a obrigação do CA-7 (T9 real) sem enfraquecer: o laço ainda exige `sem-dado` em todo T/E fora os dois.
+- Local: web `origem.test.tsx` 18 de 18; contratos `origem.test.ts` 26 de 26; server `qa-f6-painel` e `painel-real-f6` 58 de 58.
+- Suíte inteira: CI do mesmo sha 9fd6b8c2, run 43852723503 (push), conclusão success. A execução do PR (43852730813) estava em andamento; não a uso.
+- CA-7 segue `passou`; demais critérios inalterados. Sem achado novo; A2 segue como cartão.
+
+## Parecer final
+Aprovado: A1 resolvido e provado, sem bloqueio aberto.
+
+## Parecer anterior (6b772b00)
+Reprovado por A1 (mutante sobrevivente, bloqueante). Correção: um teste em `t9.test.ts` com frente `criado` igual ao `iniciado` do projeto, esperando `originais: 1, adicionadas: 0` (a regra escrita é "depois", estrito). Aceite do restante: sem outro bloqueio; reteste com `forge-check parecer delta docs/qa/105-t9-real.md`.

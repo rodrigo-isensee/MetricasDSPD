@@ -27,6 +27,7 @@ import {
 import {
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_O18_VINCULOS,
+  VERSAO_CRITERIO_T11_DADO_REAL,
   VERSOES_DA_BIBLIOTECA,
 } from '../core/criterios'
 import { blocosDe } from './blocos'
@@ -185,6 +186,8 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(VERSAO_CRITERIO_O12_PRAZO_DO_CARD.afeta).toEqual(['O12', 'VISAO_GERAL'])
     expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O18_VINCULOS)
     expect(VERSAO_CRITERIO_O18_VINCULOS.afeta).toEqual(['O18'])
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_T11_DADO_REAL)
+    expect(VERSAO_CRITERIO_T11_DADO_REAL.afeta).toEqual(['T11'])
   })
 
   it('O12 (Q-099-23 b = A): card com prazo que nunca passou pelo compromisso não conta como acordo', () => {

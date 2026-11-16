@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, MOTIVO_S11_CONVERSAO_SEM_DADO_REAL, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -54,7 +54,7 @@ const ALVOS = [
   ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
 ].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[]; entregues?: boolean };
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[]; entregues?: boolean | string[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -67,7 +67,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
     if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
     if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
-    if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z'), ...(o.entregues === true ? [tr(k.card_id, '3', '4', '2026-09-08T12:00:00Z')] : [])]);
+    if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z'), ...(o.entregues === true ? [tr(k.card_id, '3', '4', '2026-09-08T12:00:00Z')] : Array.isArray(o.entregues) && o.entregues.includes(k.card_id) ? [tr(k.card_id, '3', '4', '2026-09-20T12:00:00Z')] : [])]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
     if (x.includes('FROM r_dspd_bm.ref_coluna')) return VERSOES;
     if (x.includes('FROM r_dspd_bm.ref_time')) return [{ nome: 'Time A' }];
@@ -93,6 +93,53 @@ async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   });
   return { app, d };
 }
+
+describe('pedido 105 (E7.64): T11 com dado real pelo dim_card', () => {
+  const demandas = (n: number, extra: Partial<LinhaCard> = {}): LinhaCard[] =>
+    Array.from({ length: n }, (_, i) => card(`D${i}`, 'Melhoria', { criado_em: new Date(`2026-08-${String((i % 27) + 1).padStart(2, '0')}T12:00:00Z`), ...extra }));
+  type R = { base: { n: number }; anos: { ano: number; meses: { mes: number; entradas: number | null }[] }[]; mediaMensal: number | null };
+  const t11 = async (cards: LinhaCard[]) => {
+    const { app, d } = await montar({ cards });
+    const r = await app.inject('/api/v1/metricas/T11');
+    expect(r.statusCode).toBe(200);
+    return { r, j: r.json() as R, d };
+  };
+
+  it('T11 está no mapa real, lê só a base real e passa no schema', async () => {
+    expect(origemDaMetrica('T11')).toBe('real');
+    const { r, j, d } = await t11(demandas(20));
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T11.safeParse(j).success).toBe(true);
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+    expect(j.anos.find((a) => a.ano === 2026)?.meses.find((m) => m.mes === 8)?.entradas).toBe(20);
+  });
+
+  it('fronteira 19 e 20: com 19 demandas não publica (vazio, n = 19); com 20 publica', async () => {
+    const com19 = (await t11(demandas(19))).j;
+    expect(com19.anos).toEqual([]);
+    expect(com19.mediaMensal).toBeNull();
+    expect(com19.base.n).toBe(19);
+    expect((await t11(demandas(20))).j.base.n).toBe(20);
+  });
+
+  it('a regra de chegada é a do T4 e do O7: Bug interno, frente, projeto e subtarefa e excluído ficam fora; arquivado entra', async () => {
+    const cards = [
+      ...demandas(18),
+      card('ARQ', 'Melhoria', { arquivado_em: new Date('2026-09-05T12:00:00Z') }),
+      card('EXC', 'Melhoria', { excluido_em: new Date('2026-09-05T12:00:00Z') }),
+      card('NOVA', 'Defeito em produção'),
+      card('BUG', 'Bug interno'),
+      card('FRE', 'Melhoria', { granularidade: 'frente' }),
+      card('PRJ', 'Melhoria', { granularidade: 'projeto' }),
+      card('SUB', 'Melhoria', { eh_subtarefa: true }),
+    ];
+    // 18 + ARQ + NOVA = 20; o EXC (excluído, não entregue) não conta, como no O7 e no T4.
+    const { j } = await t11(cards);
+    expect(j.base.n).toBe(20);
+    const semExcluido = (await t11(cards.filter((c) => c.card_id !== 'ARQ'))).j;
+    expect(semExcluido.base.n).toBe(19);
+  });
+});
 
 describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é um portão', () => {
   it('métrica real lê só a base real; métrica fora do mapa responde "sem dado real" sem ler base nenhuma', async () => {
@@ -597,7 +644,7 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect((s7.ajusteDePrioridade as { totais: { total: number; ocorrencias: number } }).totais).toEqual({ total: 21, ocorrencias: 6 });
   }, 60_000);
 
-  it('D6a (pedido 105, Decisão 18b do 099): S11 real pelo fluxo do chamado: campo nativo no PROC, etapa Causa Raiz fora dele, sem fluxo contado, conversão nula com o motivo', async () => {
+  it('D6a (pedido 105, Decisão 18b do 099): S11 real pelo fluxo do chamado: campo nativo no PROC, etapa Causa Raiz fora dele, sem fluxo contado, conversão insuficiente abaixo de 20 avaliações', async () => {
     const PROC = ['SSVO - INCIDENTE'];
     const fim = new Date('2026-09-25T12:00:00Z');
     // 22 do PROC (P1 a P3; o P3 entra pelo "Contorno Aplicado" real), 8 de fluxo antigo e 3 sem fluxo; todos no escopo do S11.
@@ -617,14 +664,31 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     const { app } = await montar({ chamados: [...proc, ...antigos, ...semFluxo], fluxosProc: PROC, etapas });
     const r = await app.inject('/api/v1/metricas/S11');
     expect(r.statusCode).toBe(200);
-    const s11 = r.json() as { campoDisponivel: boolean; semFluxo: number; escopo: { k: number; n: number; status: string }; conversao: unknown; motivoConversao: string; porGrupo: { grupo: string; taxa: { k: number; n: number } }[] };
+    const s11 = r.json() as { campoDisponivel: boolean; semFluxo: number; escopo: { k: number; n: number; status: string }; conversao: { status: string; k: number; n: number }; motivoConversao: string | null; foraDaConversao: number; porGrupo: { grupo: string; taxa: { k: number; n: number } }[] };
     expect(SCHEMAS_RESULTADO.S11.safeParse(s11).success).toBe(true);
     expect(s11.campoDisponivel).toBe(true);
     expect(s11.semFluxo).toBe(3);
     expect(s11.escopo).toMatchObject({ status: 'ok', k: 11 + 3, n: 30 });
     expect(s11.porGrupo.find((g) => g.grupo === 'Contorno')!.taxa).toMatchObject({ k: 3, n: 6 });
-    expect(s11.conversao).toBeNull();
-    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL);
+    // E7.101: 11 avaliações "Aberto" nos 22 do PROC (as dos antigos e sem fluxo não entram): abaixo de 20, não publica; os 3 antigos avaliados pela etapa vão a foraDaConversao.
+    expect(s11.conversao).toMatchObject({ status: 'insuficiente', k: 11, n: 11 });
+    expect(s11.motivoConversao).toBeNull();
+    expect(s11.foraDaConversao).toBe(3);
+  }, 60_000);
+
+  it('E7.101: conversão do S11 pelo campo Avaliação de Problema: "Aberto" sobre as avaliações, "Não aplicável" só no denominador (fronteira 20)', async () => {
+    const fim = new Date('2026-09-25T12:00:00Z');
+    const mk = (n: number, aberto: number) => Array.from({ length: n }, (_, i) => chamado(`P${i}`, {
+      fluxo: 'SSVO - INCIDENTE', status: 'Concluído', data_finalizado: fim, prioridade: 'P1',
+      avaliacao_problema: i < aberto ? 'Aberto' : 'Não aplicável e com justificativa',
+    }));
+    const com20 = await montar({ chamados: mk(20, 5), fluxosProc: ['SSVO - INCIDENTE'] });
+    const r20 = (await com20.app.inject('/api/v1/metricas/S11')).json() as { conversao: { status: string; k: number; n: number; pct?: number } };
+    expect(SCHEMAS_RESULTADO.S11.safeParse(r20).success).toBe(true);
+    expect(r20.conversao).toMatchObject({ status: 'ok', k: 5, n: 20, pct: 25 });
+    const com19 = await montar({ chamados: mk(19, 5), fluxosProc: ['SSVO - INCIDENTE'] });
+    const r19 = (await com19.app.inject('/api/v1/metricas/S11')).json() as { conversao: { status: string } };
+    expect(r19.conversao.status).toBe('insuficiente');
   }, 60_000);
 
   it('L2: S2 real traz a nota e o resto do resultado fica igual', async () => {
@@ -763,3 +827,42 @@ describe('pedido 105 (E7.100): classe pela prioridade nativa na base real', () =
   }, 60_000);
 });
 
+// Pedido 105 (E7.68, D-T9 "T9 A"): o T9 é real. Frente adicionada = criada depois do início do projeto (derivada na leitura; a coluna
+// `adicionado_apos_inicio_pai` nunca é gravada e vem false); projeto sem início fica fora, contado; avanço pelas frentes filhas.
+describe('pedido 105 (E7.68): T9 com dado real', () => {
+  const projeto = (id: string, extra: Partial<LinhaCard> = {}) => card(id, 'Melhoria', { granularidade: 'projeto', ...extra });
+  const frente = (id: string, pai: string, criado: string, extra: Partial<LinhaCard> = {}) =>
+    card(id, 'Melhoria', { granularidade: 'frente', card_pai: pai, criado_em: new Date(criado), ...extra });
+
+  it('o T9 está no mapa real e a resposta traz o escopo pela regra do criado_em, sem ler o seed', async () => {
+    expect(origemDaMetrica('T9')).toBe('real');
+    const { app, d } = await montar({
+      cards: [
+        projeto('P1'), // iniciado em 2026-09-03
+        frente('F1', 'P1', '2026-09-01T12:00:00Z', { concluido_em: new Date('2026-09-20T12:00:00Z') }), // criada antes: original (mesmo ligada depois)
+        frente('F2', 'P1', '2026-09-10T12:00:00Z'), // criada depois: adicionada
+        projeto('P2', { iniciado_em: null, comprometido_em: null }), // sem início: fora, contado
+        frente('F3', 'P2', '2026-09-05T12:00:00Z'),
+      ],
+      entregues: ['F1'],
+    });
+    const r = await app.inject('/api/v1/metricas/T9');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T9.safeParse(r.json()).success).toBe(true);
+    const j = r.json();
+    expect(j.projetos).toHaveLength(1);
+    expect(j.projetos[0]).toMatchObject({ projetoId: 'P1', totalFrentes: 2, originais: 1, adicionadas: 1, concluidas: 1, avancoPct: 50, crescimentoEscopoPct: 100 });
+    expect(j.projetosSemInicio).toBe(1);
+    expect(j.projetosComEscopoCrescido).toBe(1);
+    expect(r.headers['x-versao-criterio']).not.toBe('0');
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+  });
+
+  it('sem nenhum projeto com frente a base é vazia e nunca inventa adicionadas', async () => {
+    const { app } = await montar({ cards: [card('A', 'Bug interno')] });
+    const j = (await app.inject('/api/v1/metricas/T9')).json();
+    expect(j.projetos).toEqual([]);
+    expect(j.projetosSemInicio).toBe(0);
+  });
+});

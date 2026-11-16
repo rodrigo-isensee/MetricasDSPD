@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   fonteDaMetrica,
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
-  MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
   MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   type FiltrosFluxo,
   type FiltrosSustentacao,
@@ -85,7 +84,7 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(o17.campoDisponivel).toBe(false)
     expect(o17.porCausa).toBeNull()
     expect(o17.motivoCausaRaiz).toBe(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL)
-    expect(o17.motivoCausaRaiz).toContain('causa aparente')
+    expect(o17.motivoCausaRaiz).toContain('texto livre')
     // Pedido 099 (E3.20, B' da Q-099-7): a parte por sistema é dado real mesmo sem a extensão.
     expect(o17.base.n).toBeGreaterThan(0)
     expect(o17.porSistema.reduce((t, x) => t + x.n, 0)).toBe(o17.base.n)
@@ -100,8 +99,8 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(s8.cobertura.n).toBe(0)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
     expect(s11.campoDisponivel).toBe(true) // pedido 105 (D6a): a avaliação é dado real
-    expect(s11.conversao).toBeNull()
-    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL)
+    expect(s11.conversao).not.toBeNull() // E7.101: a conversão sai do campo, com ou sem extensão
+    expect(s11.motivoConversao).toBeNull()
     expect(calcularMetrica('S11', FS, ctxMock).motivoConversao).toBeNull()
     const s12 = calcularMetrica('S12', FS, ctxSemExt)
     expect(s12.campoDisponivel).toBe(false)

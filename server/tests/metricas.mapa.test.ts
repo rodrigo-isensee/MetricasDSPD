@@ -66,7 +66,7 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(r.map((c) => c.coluna)).toEqual(['A', 'E']);
     expect(r[1]).toMatchObject({ tipo_coluna: 'execucao', papel: 'entrega', limite_wip: 3, quadro_id: 'q' });
   });
-  it('config do BM: sem linha de limite de frentes = 0; sem SLE = lista vazia; limite de WIP por equipe', () => {
+  it('config do BM: sem linha de limite de frentes = nulo; sem SLE = lista vazia; limite de WIP por equipe', () => {
     const vazio = configBM({ equipes: [], sistemas: [], limitesWip: [], limiteFrentes: null, sle: [], alocacao: [], objetivos: [], areasInternas: [], fichas: [], criterios: [] });
     expect(vazio).toMatchObject({ limite_frentes: null, sle: [], limite_wip_fluxo: {}, equipes: [] });
     const c = configBM({ equipes: ['Fluig'], sistemas: [{ codigo: 'fluig', rotulo: 'Fluig' }], limitesWip: [{ equipe: 'Fluig', limite: 14 }], limiteFrentes: 12,

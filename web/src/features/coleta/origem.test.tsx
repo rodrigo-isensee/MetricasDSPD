@@ -174,6 +174,8 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(contarSemDadoReal('tatico', 'api')).toBe(tatico)
     expect(tatico).toBeLessThan(cartoesDoPainel('tatico').length)
+    expect(origemDoCartao('T9', 'api').semDadoReal).toBe(false)
+    expect(origemDoCartao('T11', 'api').semDadoReal).toBe(false)
   })
 })
 
@@ -204,8 +206,12 @@ describe('painel com API real: estado "Sem dado real" por cartão e nota do cabe
     const t5 = await screen.findByTestId('metrica-T5')
     expect(await within(t5).findByTestId('estado-sem-dado-real-T5')).toBeInTheDocument()
     expect(within(t5).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
-    // Faixa de atenção: com T2 e T4 reais e T3 e T9 sem dado, a faixa lista o que há ou diz que a lacuna é parcial; nunca afirma que nada pede atenção.
+    // Faixa de atenção: com T2, T4, T9 e T11 reais e T3 sem dado, a faixa lista o que há ou diz que a lacuna é parcial; nunca afirma que nada pede atenção.
     expect(screen.queryByText(/Nada pede atenção/)).not.toBeInTheDocument()
+    expect(
+      await within(await screen.findByTestId('metrica-T9')).findByTestId('tabela-T9'),
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('faixa-atencao-sem-dado-real')).not.toBeInTheDocument()
   })
 
   it('com a fonte mock não há nota nem estado de sem dado real (o aviso global cobre)', async () => {

@@ -513,7 +513,7 @@ export const REGRAS_METRICA = {
     status: 'ok',
   },
   O17: {
-    // Acelerato, painel Sustentação. Por sistema: dado real. Causa raiz: sem dado real (Registro de Problemas; pedido 099, B' da Q-099-7).
+    // Acelerato, painel Sustentação. Por sistema: dado real. Causa raiz: não é contada, é texto livre no Acelerato (ADR 0020; pedido 105, K-372).
     dominio: 'acelerato',
     segmentacao: ['causa-raiz', 'sistema'],
     ordem: 'neutra',

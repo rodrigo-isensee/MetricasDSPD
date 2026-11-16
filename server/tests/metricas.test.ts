@@ -1,13 +1,15 @@
 import { gzipSync } from 'node:zlib';
-import { METRICA_IDS, MOTIVO_S11_CONVERSAO_SEM_DADO_REAL } from '@metricas-dspd/contratos';
+import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
+import { businessmap, CALENDARIO_PADRAO } from '@metricas-dspd/metricas';
 import { EXTENSAO_TAMBEM_BM_VAZIA } from '@metricas-dspd/metricas/businessmap';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { paginarO2 } from '../src/modulos/metricas/rotas.js';
 import { extensaoTambemMock } from '../src/plataforma/db/extensoes-mock.js';
 import { normalizar, ServicoMetricas, TTL_VERSAO_MS } from '../src/modulos/metricas/index.js';
+import { BASE_BM_VAZIA } from '../src/modulos/metricas/servico.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Respondedor } from './duble-pg.js';
 
@@ -236,12 +238,12 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(s8.total.status).toBe('insuficiente');
     expect(s8.statusMeta).toBe('sem-referencia');
     const s11 = (await get(app, '/api/v1/metricas/S11')).json();
-    expect(s11.campoDisponivel).toBe(true); // pedido 105 (D6a): a avaliação é dado real; só a conversão fica sem fonte
-    expect(s11.conversao).toBeNull();
-    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL);
+    expect(s11.campoDisponivel).toBe(true); // pedido 105 (D6a): a avaliação é dado real
+    expect(s11.conversao).not.toBeNull(); // E7.101: a conversão sai do campo Avaliação de Problema, sem extensão
+    expect(s11.motivoConversao).toBeNull();
     const o17 = (await get(app, '/api/v1/metricas/O17')).json();
     expect(o17.porCausa).toBeNull();
-    expect(o17.motivoCausaRaiz).toContain('causa aparente');
+    expect(o17.motivoCausaRaiz).toContain('texto livre');
     expect(o17.porSistema.reduce((t: number, x: { n: number }) => t + x.n, 0)).toBe(o17.base.n);
     const mock = await montar();
     expect((await get(mock.app, '/api/v1/metricas/S8')).json().campoDisponivel).toBe(true);
@@ -390,6 +392,23 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((await get(app, '/api/v1/metricas/VISAO_GERAL')).statusCode).toBe(503); // modo mock: o portão do mapa real não vale
     expect((await get(app, '/api/v1/metricas/T1?periodo=custom&de=2026-10-01&ate=2026-10-10')).statusCode).toBe(422);
     expect((await get(app, '/api/v1/metricas/T1?periodo=custom&de=2026-10-10&ate=2026-10-10')).statusCode).toBe(200);
+  });
+});
+
+describe('K-375: fallback do BusinessMap sem limite de frentes', () => {
+  it('a base de fallback tem limite_frentes nulo e o T7 sai sem limite nem "acima do limite", nunca 0', () => {
+    expect(BASE_BM_VAZIA.config.limite_frentes).toBeNull();
+    const ctx = businessmap.criarContextoBM(BASE_BM_VAZIA, '2026-10-10T12:00:00-03:00', CALENDARIO_PADRAO);
+    const t7 = businessmap.calcularT7(ctx, { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } });
+    expect(t7.kpis.limiteFrentes).toBeNull();
+    expect(t7.kpis.acimaDoLimite).toBeNull();
+  });
+  it('base vazia na API: T7 responde 200 no schema, sem limite', async () => {
+    const { app } = await montar(() => []);
+    const r = await get(app, '/api/v1/metricas/T7');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T7.safeParse(r.json()).success).toBe(true);
+    expect(r.json().kpis.limiteFrentes).toBeNull();
   });
 });
 

@@ -554,6 +554,12 @@ export const resultadoT9 = z.object({
     }),
   ),
   projetosComEscopoCrescido: z.number(),
+  /**
+   * Projetos com frentes filhas e sem `iniciado_em`: ficam fora da tabela e da conta, e a nota do cartão diz quantos (pedido 105, D-T9).
+   * Sem início não há como separar frente original de frente adicionada. Opcional só para a mudança ser compatível (a API sempre o envia);
+   * ausente lê-se 0.
+   */
+  projetosSemInicio: z.number().int().min(0).optional(),
 })
 
 /* ---------- FL3 ---------- */
@@ -1051,7 +1057,7 @@ export const resultadoO16 = z.object({
 
 /**
  * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
- * Contagem, sem mínimo. Causa raiz: sem dado real até o Registro de Problemas ter vínculo ao incidente (pedido 099, B' da Q-099-7).
+ * Contagem, sem mínimo. Causa raiz: não é contada, é texto livre no Acelerato (ADR 0020; decisão do dono de 16/11, pedido 105, K-372).
  */
 export const resultadoO17 = z.object({
   ...comum,
@@ -1225,10 +1231,15 @@ export const resultadoS11 = z.object({
   porGrupo: z.array(z.object({ grupo: z.enum(['P1', 'P2', 'Contorno']), taxa: taxaSchema })),
   /** Chamados do escopo sem fluxo ou com fluxo múltiplo: ficam fora do cálculo e são contados (P-S11-1 aberta ao dono). 0 quando a base não separa fluxo. */
   semFluxo: z.number().int().min(0),
-  /** null = conversão em Registro de Problema sem dado real (a base não tem o vínculo): nunca "0 de 0"; o motivo vai em `motivoConversao`. */
+  /**
+   * Conversão em Registro de Problema pela decisão registrada no chamado (pedido 105, E7.101): "Aberto" no campo "Avaliação de Problema" ÷ avaliações
+   * registradas, só nos fluxos do PROC; abaixo de 20 avaliações vem `insuficiente`, nunca um percentual. A anulabilidade fica por compatibilidade.
+   */
   conversao: taxaSchema.nullable(),
-  /** Motivo de `conversao` nula; null quando a conversão é publicada. */
+  /** Motivo de `conversao` nula; null quando a conversão é publicada (inclusive `insuficiente`). */
   motivoConversao: z.string().min(1).nullable(),
+  /** Avaliações dos fluxos antigo e intermediário (regra pela etapa, sem valor "Aberto"): ficam fora da conversão e são contadas aqui. */
+  foraDaConversao: z.number().int().min(0).optional(),
 })
 
 /** S12: volume por sistema, reincidência por sistema e exceção de SLA. */

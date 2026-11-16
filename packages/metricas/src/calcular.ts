@@ -89,7 +89,7 @@ const CALCULOS: {
   S8: (f, c) => AC.calcularS8(c.ac, f, c.ext?.ac),
   S9: (f, c) => AC.calcularS9(c.ac, f),
   S10: (f, c) => AC.calcularS10(c.ac, f),
-  S11: (f, c) => AC.calcularS11(c.ac, f, c.ext?.ac),
+  S11: (f, c) => AC.calcularS11(c.ac, f),
   S12: (f, c) => AC.calcularS12(c.ac, f, c.ext?.ac),
   O17: (f, c) => AC.calcularO17(c.ac, f, c.ext?.ac),
   EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
