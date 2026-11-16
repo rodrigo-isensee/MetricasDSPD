@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-t9-real
-commit: f71645077b0bb66abcf3ae212d26598b0a4fed0c
+commit: 9fd6b8c2fc4667afa2e29becb32b9d2df37da69e
 parecer: aprovado
 resultado: aprovado
 escopo: incremental
@@ -64,6 +64,13 @@ Observação: M1b morre só nos testes de fronteira 19 e 20 (o teste principal e
 - Suíte inteira: CI do mesmo sha f7164507, run 43847926313 (push), conclusão success (a execução do PR, 43847934403, não foi usada).
 
 CA-1 passa a `passou`; demais critérios inalterados (o cálculo não mudou, só texto e estado vazio na interface).
+
+## Revalidação (merge da develop, cabeça 9fd6b8c2)
+`forge-check parecer delta` (intervalo f7164507..9fd6b8c2, sem o que veio da base) lista no domínio: CHANGELOG.md, openapi.json, contratos `origem.ts`, `origem.test.ts`, `schemas.ts`, `criterios.ts`, `painel-real-f6.test.ts`, `qa-f6-painel.test.ts`, web `origem.test.tsx`. Código de produção do T9 (`t9.ts`) não mudou.
+- Asserções reescritas conferidas: `qa-f6-painel.test.ts` põe T11 entre as reais e exclui T9 e T11 do laço do FL2; `origem.test.tsx` conta o tático menos 2 e afirma `semDadoReal` falso para T9 e T11. Mantêm a obrigação do CA-7 (T9 real) sem enfraquecer: o laço ainda exige `sem-dado` em todo T/E fora os dois.
+- Local: web `origem.test.tsx` 18 de 18; contratos `origem.test.ts` 26 de 26; server `qa-f6-painel` e `painel-real-f6` 58 de 58.
+- Suíte inteira: CI do mesmo sha 9fd6b8c2, run 43852723503 (push), conclusão success. A execução do PR (43852730813) estava em andamento; não a uso.
+- CA-7 segue `passou`; demais critérios inalterados. Sem achado novo; A2 segue como cartão.
 
 ## Parecer final
 Aprovado: A1 resolvido e provado, sem bloqueio aberto.
