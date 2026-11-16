@@ -84,7 +84,7 @@ export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
 
 /**
  * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
- * Frase completa (maiúscula e ponto final), exibida como está pelo componente.
+ * Frase em minúsculas sem ponto final, completada pelo componente.
  */
 export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
   'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (o prazo do card diz quando venceu, não de quem foi o atraso)'
@@ -103,7 +103,7 @@ export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
 
 /**
  * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. A base não liga o chamado ao Registro de Problema; a conversão não é
- * publicada como 0. Texto provisório, revisado pela UX. Frase em minúsculas sem ponto final, completada pelo componente.
+ * publicada como 0. Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
  */
 export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
   'Aguardando o vínculo do chamado com o Registro de Problema.'
