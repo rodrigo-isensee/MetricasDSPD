@@ -19,6 +19,7 @@ import {
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
   MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
+  MOTIVO_O26_HISTORICO_RESPONSAVEIS,
   MOTIVO_ORIGEM_MOCK,
   MOTIVO_FLUXOS_PROC_NAO_CARREGADOS,
   MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
@@ -135,8 +136,17 @@ describe('origemDaMetrica (H-13)', () => {
     expect(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL).toContain('causa aparente')
   })
 
-  it('O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
-    for (const id of ['O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
+  it('O26 segue sem dado real, com motivo próprio que diz a data (pedido 105, E7.55)', () => {
+    expect(origemDaMetrica('O26')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('O26')).toBe(MOTIVO_O26_HISTORICO_RESPONSAVEIS)
+    expect(motivoSemDadoReal('O26')).toBe(
+      'A base guarda a troca de responsável dos cards desde 09/11/2026; a métrica precisa de 12 semanas de histórico e passa a ter dado real a partir de 01/02/2027.',
+    )
+    expect(corpoSemDadoReal('O26').motivo).toBe(MOTIVO_O26_HISTORICO_RESPONSAVEIS)
+  })
+
+  it('FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
+    for (const id of ['T1', 'E1', 'VISAO_GERAL'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBeNull()
     }

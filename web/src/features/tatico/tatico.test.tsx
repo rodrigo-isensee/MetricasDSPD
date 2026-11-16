@@ -125,6 +125,18 @@ const t3 = (st: 'ok' | 'insuficiente') => ({
 })
 
 describe('T3 alocação', () => {
+  it('E7.62: acordado ausente aparece como "não definido", nunca 0%', async () => {
+    const base = t3('ok')
+    const naturezas = base.naturezas.map((n) => ({
+      ...n,
+      acordadoPct: null,
+      itens: { ...n.itens, desvioPP: null, statusMeta: 'sem-referencia' as const },
+    }))
+    renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
+    const el = await cartao('T3')
+    expect((await within(el).findAllByText(/acordado não definido/)).length).toBeGreaterThan(0)
+    expect(within(el).queryByText('Desvio acima de 10 p.p.')).not.toBeInTheDocument()
+  })
   it('C1/C2: selo só acima de 10 p.p.; alternador com padrão Itens', async () => {
     renderizarApp('/tatico', new FonteFixa({ T3: t3('ok') }))
     const el = await cartao('T3')
@@ -307,6 +319,19 @@ const t7 = (n: number) => ({
 })
 
 describe('T7 fluxo de frentes', () => {
+  it('E7.62: sem limite vigente mostra "não definido", sem 0 e sem selo de limite', async () => {
+    const base = t7(27)
+    renderizarApp(
+      '/tatico',
+      new FonteFixa({
+        T7: { ...base, kpis: { ...base.kpis, limiteFrentes: null, acimaDoLimite: null } },
+      }),
+    )
+    const el = await cartao('T7')
+    expect(await within(el).findByText('não definido')).toBeInTheDocument()
+    expect(within(el).queryByText('Acima do limite')).not.toBeInTheDocument()
+    expect(within(el).queryByText('Dentro do limite')).not.toBeInTheDocument()
+  })
   it('F1: com n<20 somem percentis e histograma; KPIs e lista permanecem; ordem temporal', async () => {
     renderizarApp('/tatico', new FonteFixa({ T7: t7(7) }))
     const el = await cartao('T7')

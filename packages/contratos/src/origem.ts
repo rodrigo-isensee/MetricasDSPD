@@ -129,16 +129,27 @@ export const BLOQUEIOS_COM_DADO_REAL = true
  */
 export const AJUSTE_PRIORIDADE_COM_FONTE = true
 
+/** Pedido 105 (E7.55): início do histórico de troca de responsável dos cards na base (2026-11-09), exibido como 09/11/2026. */
+export const O26_INICIO_HISTORICO_RESPONSAVEIS = '09/11/2026'
+/** Pedido 105 (E7.55): início do histórico (2026-11-09) mais 12 semanas, a janela da métrica (2027-02-01), exibido como 01/02/2027. */
+export const O26_DATA_DADO_REAL = '01/02/2027'
 /**
- * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 e O26 seguem mock até a F6b, sem motivo próprio.
+ * Pedido 105 (E7.55, decisão 2 do dono de 16/11): o O26 (passagens de mão) segue sem dado real até juntar 12 semanas de histórico de
+ * responsáveis. Texto revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
+ */
+export const MOTIVO_O26_HISTORICO_RESPONSAVEIS = `A base guarda a troca de responsável dos cards desde ${O26_INICIO_HISTORICO_RESPONSAVEIS}; a métrica precisa de 12 semanas de histórico e passa a ter dado real a partir de ${O26_DATA_DADO_REAL}.`
+
+/**
+ * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 seguem mock até a F6b, sem motivo próprio; o O26 tem o seu (E7.55).
  * Sustentação: a EI_SUST não consta do plano 056, então não se calcula por inferência. S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
+  O26: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
-/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, O26, FL2, FL3, Visão geral e a tendência da sustentação). */
+/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, FL2, FL3, Visão geral e a tendência da sustentação). */
 export const MOTIVO_FONTE_REAL_NAO_DEFINIDA = 'fonte real ainda não definida'
 
 /**

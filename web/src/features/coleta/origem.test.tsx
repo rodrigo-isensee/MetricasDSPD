@@ -9,6 +9,7 @@ import {
   type MetricaId,
   type EstadoColeta,
   type PreferenciasMetricas,
+  MOTIVO_O26_HISTORICO_RESPONSAVEIS,
 } from '@metricas-dspd/contratos'
 import { CartaoMetrica } from '@/components/ui'
 import { SemDadoRealErro } from '@/data'
@@ -115,6 +116,12 @@ describe('origem do cartão (pedido 060)', () => {
       })
     }
     expect(origemDoCartao('T2', 'api').semDadoReal).toBe(true)
+    // Pedido 105 (E7.55): o O26 segue sem dado real, com o motivo próprio que diz a data.
+    expect(origemDoCartao('O26', 'api')).toEqual({
+      ficticio: false,
+      semDadoReal: true,
+      motivo: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
+    })
   })
 
   it('código fora do catálogo vale como id de métrica: real se o mapa diz real, senão sem dado real', () => {

@@ -145,7 +145,10 @@
             ]
           },
           "acordadoPct": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "itens": {
             "type": "object",
