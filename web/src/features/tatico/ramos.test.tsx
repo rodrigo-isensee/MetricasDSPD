@@ -243,6 +243,30 @@ describe('T7 e T9', () => {
     const el = await pronto('T9')
     expect(within(el).getAllByText(/\+1 frente;/).length).toBeGreaterThan(0)
   })
+
+  it('T9: um projeto sem data de início fica fora da conta, no singular', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetosSemInicio: number }) => (x.projetosSemInicio = 1),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(within(el).getByTestId('t9-nota-escopo')).toHaveTextContent(
+      '1 projeto sem data de início ficou fora desta conta.',
+    )
+  })
+
+  it('T9: vários projetos sem data de início ficam fora da conta, no plural', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetosSemInicio: number }) => (x.projetosSemInicio = 3),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(within(el).getByTestId('t9-nota-escopo')).toHaveTextContent(
+      '3 projetos sem data de início ficaram fora desta conta.',
+    )
+  })
 })
 
 describe('Painel Tático: faixa "Pede atenção"', () => {
