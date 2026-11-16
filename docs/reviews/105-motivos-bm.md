@@ -3,38 +3,53 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-motivos-bm
-commit: e0fb925f66e710efcd3f150b4385710a87c16407
-parecer: reprovado
+commit: 89e421e46a0ff9fb9014ce21c755db8adbfd0a54
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: motivos de bloqueio do BusinessMap (E7.229)
+# Code review: motivos de bloqueio do BusinessMap (E7.229, revalidação E7.250)
 
-## O que foi conferido
+## Revalidação (E7.250, volta 2, cabeça 89e421e4)
+- **Delta lido:** `forge-check parecer delta docs/reviews/105-motivos-bm.md`, intervalo `e0fb925f..89e421e4`, 8 arquivos no domínio: `CHANGELOG.md`, `docs/architecture/decisoes/105-motivos-bm-contrato.md`, `docs/architecture/fontes/businessmap-dominio.json`, `docs/briefing-execucao-metricas.md`, `packages/metricas/src/businessmap/t12.test.ts`, `packages/metricas/src/businessmap/t12.ts`, `packages/metricas/src/core/criterios.ts`, `server/tests/dominio-businessmap.pg.test.ts`. Só o delta foi relido.
+- **A1 resolvido:** `criterios.ts:142` diz 11 motivos, ids 1 a 3, 6, 7 e 9 a 14, fornecedor "Aguardando fornecedor" e "Dependência Externa".
+- **A2 resolvido:** nota datada em `briefing-execucao-metricas.md:137` com o mesmo texto.
+- **A3 resolvido:** `CHANGELOG.md:9` alinhado.
+- **A4 resolvido:** `regra` de `businessmap-dominio.json` diz "um dos 11 motivos".
+- **A5 resolvido:** comentário de `t12.ts:9` diz 11.
+- **A6 resolvido:** `MOTIVOS_IDA_E_VOLTA` é `ReadonlySet` vazio; `teveIdaEVolta` e `calcularT12` recebem `motivos` por parâmetro com o padrão vazio, e `calcular.ts:63` segue chamando sem o terceiro argumento (produção usa o vazio). O teste "E7.184" chama `calcularT12Base` sem parâmetro e prova o padrão. Mutante rodado: `motivos.has(b.motivo)` trocado por `MOTIVOS_IDA_E_VOLTA.has(b.motivo)` em `t12.ts:28` derruba 5 testes (CA-39 (a) duas vezes, n >= 20 e o do mock): morto. Fonte restaurada, árvore limpa. `t12.test.ts` na cabeça: 15 passaram.
+- **A7 resolvido:** imports no topo; sem `beforeAll`/`afterAll` mutando estado global.
+- **A9 resolvido:** `dominio-businessmap.pg.test.ts:66` espera 381; no CI do push em `89e421e4` (run `43904757225`) o job `banco` passou.
+- **A8 (hash da base mock) é do QA** (histórico 12:22 e 13:14: o QA regrava o hash na E7.251). Segue aberto nesta cabeça: `node e2e/scripts/hash-base-mock.mjs --comparar docs/qa/evidencias/hash-base-fase-a.json` → `FALHOU: difere em hashBase, hashBusinessMap (antes: b6a3c384, 8d47d431; agora: 88a5c095, 08e2b5e2)`, e o passo "Gate (fronteiras BM x AC, hash da base mock, tamanho)" do job `build` do run `43904757225` falhou. O código está correto (a base mock muda pelos motivos, como já registrado); falta só a referência. Não bloqueia este parecer de código, bloqueia o merge até o QA regravar e o CI ficar verde.
+- **Decisão do arquiteto versionada** (`docs/architecture/decisoes/105-motivos-bm-contrato.md`, E7.231): a condição dela (os três textos) está cumprida por A1 a A3. Ratifico como tech-lead, completando o "falta o `tech-lead`" do cabeçalho: aprovação sem `/api/v2`, convivência zero, critério de reversão presente.
+- **Sem PR nesta volta:** a suíte inteira fica para o CI do PR; não afirmo CI verde (o run do push ainda tinha `testes` em andamento e `build` vermelho pelo A8). PQ do autor da volta 2: não há linha de pronto verde para `89e421e4` no histórico do pedido; o Jarvis confere o PQ da E7.232.
+
+## O que foi conferido (primeira passada, e0fb925f)
 - Diff `0c989148...e0fb925f`, 2 commits (`fa1e83e6` E7.184, `e0fb925f` E7.210), 46 arquivos. Código e teste em `packages/`, `server/`, `web/` e `e2e/`: 407 linhas, acima da orientação de 150 (M14). É um comportamento só (o domínio fechado de motivos troca de lista) que se espalha por fixtures e testes que citavam os 7 textos antigos; o PR precisa levar `teto: excedido, 407 linhas, troca do domínio de motivos arrasta fixtures e testes que citavam os 7 do briefing`.
-- **Decisão B do dono (2026-11-16 09:13) e catálogo.** `MOTIVOS_BLOQUEIO` (`packages/contratos/src/comum.ts:99`) tem os 11 rótulos do catálogo, texto exato; `motivo_bloqueio` em `businessmap-dominio.json` mapeia os ids 1 a 3, 6, 7 e 9 a 14 aos mesmos rótulos, sem 5 e 8. Id sem entrada ou nulo segue "não classificado" (`motivosDeLinhas` e `motivoPublicado` inalterados na lógica). Teste `server/tests/dominio-motivo-bloqueio.test.ts`: 14 passaram.
-- **Decisão das 09:29 (T10, substitui a das 09:21).** `MOTIVOS_FORNECEDOR` = 14 Aguardando fornecedor e 11 Dependência Externa, com `satisfies readonly MotivoBloqueio[]`. Neste diff ela só alimenta o mock; o `t10.ts` real continua contando bloqueio com fornecedor informado, de qualquer motivo: a ligação do T10 aos dois motivos é do PR 487, que volta à fila depois deste (Riscos).
-- **T12 sem inferência.** `MOTIVOS_IDA_E_VOLTA` nasce vazio: o critério (a) não conta nada e só o (b) vale, até o dono apontar o motivo (pergunta aberta registrada às 10:29). A fotografia do T12 cai de k=120 para k=28 na base fictícia, coerente com isso. Mutante rodado: `MOTIVOS_IDA_E_VOLTA.has(b.motivo)` trocado por `true` em `t12.ts:24` derruba 3 testes, entre eles o novo "E7.184: sem motivo de ida e volta definido pelo dono" (morto). Fonte restaurada, árvore limpa. `t12.test.ts`: 15 passaram.
-- **Mock.** O sorteio de motivo saiu de `rngBlq` para fluxos derivados próprios e `rngBlq` consome o mesmo número de sorteios de antes (um para a fatia de fornecedor, outro para o nome), então volume e datas dos bloqueios não mudam; a proporção de 2 em 7 para fornecedor fica.
-- **Versão de critério (T2.6).** `VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM` entra em `VERSOES_DA_BIBLIOTECA` com `afeta` BLOQUEADOS, O2, O19, T10 e T12, como o pedido diz. O texto dela, porém, é o do primeiro commit e não foi atualizado com o id 14 (A1); o mesmo texto velho está na nota do briefing (A2) e em outros três lugares (A3 a A5).
-- **Regras invioláveis.** Sem pessoa: motivo é domínio fechado, nunca texto livre. BusinessMap e Acelerato não se misturam: o "Aguardando fornecedor" do Acelerato (`acelerato/modelo.ts:22`, `totalizadores.ts:65`) é outro domínio e não foi tocado. Cálculo na biblioteca compartilhada.
-- **Incompatibilidade de contrato: ratifico** (politica-de-mudanca §2 e §5, junto do arquiteto). O enum de motivo em O2, BLOQUEADOS e O19 perde 6 valores e ganha 10: é incompatível ("valor de enum removido" e "valor novo de enum na resposta"). Aceito sem `/api/v2` porque o único consumidor é o `web` deste repositório, que muda no mesmo PR; e, no dado real, o mapa de motivos nascia vazio, então nada publicado trazia os 7 antigos (tudo saía "não classificado"). O fluxo do §2 foi seguido: fotografias novas em `docs/contratos/snapshots/resultados/` e nenhuma entrada sobrando em `aceitas.json`. Mudança de critério é do dono, e ele decidiu (decisão B).
-- **PQ do autor:** pronto verde em `e0fb925f` (histórico do pedido, 2026-11-16 12:09). Suíte inteira: só no CI do PR. Mas o CI do push em `e0fb925f` (run `43893195688`) terminou vermelho em dois jobs, `build` e `banco` (A8 e A9); o `pronto` local não pega nenhum dos dois. Reproduzi o A8 local: `node e2e/scripts/hash-base-mock.mjs --comparar docs/qa/evidencias/hash-base-fase-a.json` → `FALHOU: difere em hashBase, hashBusinessMap (antes: b6a3c384, 8d47d431; agora: 88a5c095, 08e2b5e2)`.
+- **Decisão B do dono (2026-11-16 09:13) e catálogo.** `MOTIVOS_BLOQUEIO` (`packages/contratos/src/comum.ts:99`) tem os 11 rótulos do catálogo, texto exato; `motivo_bloqueio` em `businessmap-dominio.json` mapeia os ids 1 a 3, 6, 7 e 9 a 14 aos mesmos rótulos, sem 5 e 8. Id sem entrada ou nulo segue "não classificado". Teste `server/tests/dominio-motivo-bloqueio.test.ts`: 14 passaram.
+- **Decisão das 09:29 (T10).** `MOTIVOS_FORNECEDOR` = 14 Aguardando fornecedor e 11 Dependência Externa, com `satisfies readonly MotivoBloqueio[]`. Neste diff ela só alimenta o mock; a ligação do T10 real aos dois motivos é do PR 487 (Riscos).
+- **T12 sem inferência.** `MOTIVOS_IDA_E_VOLTA` nasce vazio: o critério (a) não conta nada e só o (b) vale, até o dono apontar o motivo (pergunta aberta registrada às 10:29).
+- **Mock.** Sorteio de motivo em fluxos derivados próprios; `rngBlq` consome o mesmo número de sorteios, então volume e datas dos bloqueios não mudam.
+- **Versão de critério (T2.6).** `VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM` em `VERSOES_DA_BIBLIOTECA` com `afeta` BLOQUEADOS, O2, O19, T10 e T12.
+- **Regras invioláveis.** Sem pessoa; motivo é domínio fechado. BusinessMap e Acelerato não se misturam (o "Aguardando fornecedor" do Acelerato é outro domínio, não tocado). Cálculo na biblioteca compartilhada.
+- **Incompatibilidade de contrato: ratificada** (politica-de-mudanca §2 e §5, junto do arquiteto): consumidor único (`web` do mesmo repositório), fotografias novas e `aceitas.json` vazio.
 - Commits: Conventional Commits em português, um por etapa, com cartão.
 
 ## Achados
-- A1 (bloqueante) packages/metricas/src/core/criterios.ts:142 · descrição diz "10 motivos, ids ... 9 a 13" e fornecedor só Dependência Externa; o código tem 11 e a decisão das 09:29 conta 11 e 14. O texto vai à tela (`AvisoCriterio.tsx:41`): corrigir para ids 1 a 3, 6, 7, 9 a 14 e os dois de fornecedor.
-- A2 (bloqueante) docs/briefing-execucao-metricas.md:137 · a nota datada na fonte da verdade repete o texto velho (ids até 13, fornecedor só Dependência Externa) e contradiz a decisão das 09:29. Mesma correção de A1.
-- A3 (recomendado) CHANGELOG.md:9 · "os 10 habilitados (ids 1 a 3, 6, 7 e 9 a 13)" e fornecedor só "Dependência Externa"; alinhar com A1.
-- A4 (recomendado) docs/architecture/fontes/businessmap-dominio.json:12 · a `regra` diz "um dos 10 motivos habilitados"; o mapa logo abaixo tem 11.
-- A5 (recomendado) packages/metricas/src/businessmap/t12.ts:9 · o comentário diz "nenhum dos 10 motivos do BusinessMap"; são 11.
-- A6 (recomendado) packages/metricas/src/businessmap/t12.ts:12 · `Set` exportado e mutável: qualquer importador muda a regra do T12, e o teste depende disso. Quando o dono responder, usar `ReadonlySet` constante e passar o motivo de teste por parâmetro de `teveIdaEVolta`.
-- A7 (recomendado) packages/metricas/src/businessmap/t12.test.ts:16 · `import` depois de `beforeAll`/`afterAll`; o ESM içou, mas lê como se os hooks rodassem antes. Subir o `import` para o topo.
-- A8 (bloqueante) docs/qa/evidencias/hash-base-fase-a.json:1 · o gerador mudou a base mock (motivos), mas a referência do hash não; o gate do job `build` falha. Atualizar a referência com o hash novo, registrando no commit que a mudança é a dos motivos.
-- A9 (bloqueante) server/tests/dominio-businessmap.pg.test.ts:66 · `expect(esperadas).toBe(370)` com o arquivo real dando 381 (os 11 do mapa de motivos); o job `banco` falha (`expected 381 to be 370`). Ajustar a contagem fixa ao arquivo.
+- A1 (bloqueante) packages/metricas/src/core/criterios.ts:142 · resolvido em 6eb8560a: descrição com 11 motivos, ids 9 a 14 e os dois de fornecedor.
+- A2 (bloqueante) docs/briefing-execucao-metricas.md:137 · resolvido em 6eb8560a.
+- A3 (recomendado) CHANGELOG.md:9 · resolvido em 6eb8560a.
+- A4 (recomendado) docs/architecture/fontes/businessmap-dominio.json:12 · resolvido em 6eb8560a.
+- A5 (recomendado) packages/metricas/src/businessmap/t12.ts:9 · resolvido em 6eb8560a.
+- A6 (recomendado) packages/metricas/src/businessmap/t12.ts:12 · resolvido em 6eb8560a: `ReadonlySet` e motivo de teste por parâmetro; mutante morto.
+- A7 (recomendado) packages/metricas/src/businessmap/t12.test.ts:1 · resolvido em 6eb8560a/89e421e4.
+- A8 (bloqueante) docs/qa/evidencias/hash-base-fase-a.json:1 · pendente: com o QA (E7.251); a referência do hash ainda é a antiga e o gate do job `build` falha. Bloqueia o merge, não o código.
+- A9 (bloqueante) server/tests/dominio-businessmap.pg.test.ts:66 · resolvido em 6eb8560a: 381; job `banco` verde no run 43904757225.
 
 ## Riscos e pendências
+- Merge depende do A8 (QA regrava o hash) e do CI verde do PR.
 - T10 real ainda não usa `MOTIVOS_FORNECEDOR`: entra pelo PR 487. Até lá, o T10 com dado real segue o critério antigo (fornecedor informado) e a marca da versão de critério já aparece nele.
 - T12: pergunta ao dono (qual motivo é ida e volta) segue aberta; até a resposta, o critério (a) não conta nada.
-- Depois do merge, recarregar o domínio (`pnpm --filter server bm:ref-sync`) e reprojetar os bloqueios para o mapa de motivos chegar à base; sem isso, todo bloqueio real segue "não classificado".
+- Depois do merge, recarregar o domínio (`pnpm --filter server bm:ref-sync`) e reprojetar os bloqueios; sem isso, todo bloqueio real segue "não classificado".
+- O PR leva `teto: excedido` (ver acima) e o hash do aceite de cada contrato (O2, BLOQUEADOS, O19), como pede a observação do arquiteto.
