@@ -5,8 +5,8 @@
  * mudem. Fonte real futura: tabelas próprias (T1.3, T1.4, T4.2). Nenhum campo identifica pessoa.
  */
 import type { NaturezaProjeto, TipoCard } from '@metricas-dspd/contratos'
-import { ehDemandaCard } from './comum'
-import type { DimCard } from './modelo'
+import { ehDemanda } from './comum'
+import type { ContextoBM } from './indice'
 
 /** Sprint = card-template pai no BusinessMap; as entregas são os cards filhos ligados a ele. */
 export interface Sprint {
@@ -52,19 +52,20 @@ export interface EntradaSazonal {
 }
 
 /**
- * T11 na base real (pedido 105, E7.64; decisão do dono D-T11 "A"): a demanda criada é a story que não é Bug interno, a mesma regra de
- * chegada do T4 e do O7 (`ehDemandaCard`), pelo `criado_em`. Arquivados e excluídos ficam (chegaram); subtarefa não é demanda (como no O7 e no T4).
+ * T11 na base real (pedido 105, E7.64/E7.69; decisão do dono: "a mesma chegada do T4 e do O7"): a demanda criada é a que o O7 e o T4
+ * contam, pela mesma regra (`ehDemandaCard`: story que não é Bug interno), pelo `criado_em`. Subtarefa e card excluído (de verdade, como
+ * no índice: excluído e não entregue antes) ficam fora; arquivado fica, como no O7. Sem condição própria.
  * Só campos de contagem: nenhum de pessoa, e a equipe é a do quadro (nunca `equipeResponsavel`).
  */
-export function entradasSazonaisDeCards(cards: readonly DimCard[]): EntradaSazonal[] {
-  return cards
-    .filter((c) => ehDemandaCard(c) && !c.eh_subtarefa)
-    .map((c) => ({
-      criado_em: c.criado_em,
-      tipo: c.tipo,
-      equipe: c.equipe,
-      sistema: c.sistema,
-      quadro_id: c.quadro_id,
+export function entradasSazonaisDeCards(ctx: ContextoBM): EntradaSazonal[] {
+  return ctx.idx.marcos
+    .filter((m) => ehDemanda(m) && !m.card.eh_subtarefa && !m.excluido)
+    .map((m) => ({
+      criado_em: m.card.criado_em,
+      tipo: m.card.tipo,
+      equipe: m.card.equipe,
+      sistema: m.card.sistema,
+      quadro_id: m.card.quadro_id,
     }))
 }
 

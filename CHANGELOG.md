@@ -236,7 +236,7 @@ Na base real, depois do merge na `main`, nesta ordem (se as ações da release 1
 5. `pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial --projetar`: releitura completa com projeção (etiquetas do O24, vínculos do O18, fase do O15). Anote a data em que terminar com sucesso.
 6. `pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico <data do passo 5>`: registra a versão `105:classe-por-etiqueta` (grava uma vez só).
 7. `pnpm run coleta ac`, como de costume, e depois a coleta incremental do BusinessMap.
-- T11 (Sazonalidade da chegada) com dado real: lê `dim_card` (`criado_em`), com a demanda criada = story que não é Bug interno (a chegada do T4 e do O7, regra única `ehDemandaCard`), arquivados e excluídos incluídos, sem pessoa nem equipe responsável; abaixo de 20 demandas não publica; versão de critério `criterio-2026-11-16-t11-dado-real`; T11 no mapa de origem real (pedido 105, E7.64, D-T11 "A").
+- T11 (Sazonalidade da chegada) com dado real: lê `dim_card` (`criado_em`), com a demanda criada = story que não é Bug interno (a chegada do T4 e do O7, regra única `ehDemandaCard`, lida do índice como o O7: arquivados entram; excluídos e subtarefas ficam fora), sem pessoa nem equipe responsável; abaixo de 20 demandas não publica; versão de critério `criterio-2026-11-16-t11-dado-real`; T11 no mapa de origem real (pedido 105, E7.64, D-T11 "A").
 
 ## [0.2.0] - 2026-10-29
 

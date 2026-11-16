@@ -122,9 +122,9 @@ describe('pedido 105 (E7.64): T11 com dado real pelo dim_card', () => {
     expect((await t11(demandas(20))).j.base.n).toBe(20);
   });
 
-  it('a regra de chegada é a do T4 e do O7: Bug interno, frente, projeto e subtarefa ficam fora; arquivado e excluído entram', async () => {
+  it('a regra de chegada é a do T4 e do O7: Bug interno, frente, projeto e subtarefa e excluído ficam fora; arquivado entra', async () => {
     const cards = [
-      ...demandas(17),
+      ...demandas(18),
       card('ARQ', 'Melhoria', { arquivado_em: new Date('2026-09-05T12:00:00Z') }),
       card('EXC', 'Melhoria', { excluido_em: new Date('2026-09-05T12:00:00Z') }),
       card('NOVA', 'Defeito em produção'),
@@ -133,8 +133,11 @@ describe('pedido 105 (E7.64): T11 com dado real pelo dim_card', () => {
       card('PRJ', 'Melhoria', { granularidade: 'projeto' }),
       card('SUB', 'Melhoria', { eh_subtarefa: true }),
     ];
+    // 18 + ARQ + NOVA = 20; o EXC (excluído, não entregue) não conta, como no O7 e no T4.
     const { j } = await t11(cards);
     expect(j.base.n).toBe(20);
+    const semExcluido = (await t11(cards.filter((c) => c.card_id !== 'ARQ'))).j;
+    expect(semExcluido.base.n).toBe(19);
   });
 });
 

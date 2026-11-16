@@ -11,6 +11,7 @@ import {
   type ExtensaoTambemBM,
 } from './index'
 import { criarContextoBM } from './indice'
+import type { DimCard } from './modelo'
 import { HOJE_TESTE, umaBase } from './testing'
 
 const F: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
@@ -223,7 +224,7 @@ describe('T11 com dado real (pedido 105, E7.64)', () => {
     expect(calcularT11(ctxDe(), F, extDe(real(3).entradasSazonais)).anos.length).toBeGreaterThan(0)
   })
 
-  it('entradasSazonaisDeCards: só story que não é Bug interno; arquivado e excluído entram; subtarefa, frente e projeto não; nenhum campo de pessoa', () => {
+  it('entradasSazonaisDeCards: a mesma chegada do O7 e do T4: story que não é Bug interno; arquivado entra; excluído, subtarefa, frente e projeto não; nenhum campo de pessoa', () => {
     const base = umaBase([])
     const molde = {
       ...(base.cards[0] ?? {
@@ -258,9 +259,9 @@ describe('T11 com dado real (pedido 105, E7.64)', () => {
         origem_bug: null,
         adicionado_apos_inicio_pai: false,
       }),
-    } as unknown as Parameters<typeof entradasSazonaisDeCards>[0][number]
+    } as unknown as DimCard
     const c = (id: string, extra: object) => ({ ...molde, card_id: id, ...extra })
-    const r = entradasSazonaisDeCards([
+    const cards = [
       c('a', { tipo: 'Melhoria', granularidade: 'story', criado_em: 10 }),
       c('b', { tipo: 'Bug interno', granularidade: 'story' }),
       c('c', { tipo: 'Melhoria', granularidade: 'story', arquivado_em: 5, criado_em: 11 }),
@@ -268,8 +269,10 @@ describe('T11 com dado real (pedido 105, E7.64)', () => {
       c('e', { tipo: 'Melhoria', granularidade: 'story', eh_subtarefa: true }),
       c('f', { tipo: 'Melhoria', granularidade: 'frente' }),
       c('g', { tipo: 'Melhoria', granularidade: 'projeto' }),
-    ])
-    expect(r.map((e) => e.criado_em)).toEqual([10, 11, 12])
+    ] as unknown as DimCard[]
+    const baseCards = { ...umaBase([]), cards }
+    const r = entradasSazonaisDeCards(criarContextoBM(baseCards, HOJE_TESTE, CALENDARIO_PADRAO))
+    expect(r.map((e) => e.criado_em)).toEqual([10, 11])
     expect(Object.keys(r[0]!).sort()).toEqual([
       'criado_em',
       'equipe',
