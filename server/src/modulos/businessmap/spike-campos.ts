@@ -7,12 +7,17 @@ import { desembrulhar, linhasDeForma, somarForma, type Forma } from './spike-for
 
 // Pedido 105, E7.172 (plano de campos, lote L0): spike SÓ de leitura (GET, cliente da F0 com a lista fechada de caminhos; nada é acrescentado a ela).
 // (1) Para os campos 40 (Diretoria), 41 (Gerência), 49 e 50: a FORMA do valor e cada opção vista (value_id, rótulo, quantos cards) numa amostra
-// de até 200 cards por quadro. O catálogo `/customFields/{id}` está fora dos caminhos permitidos: as opções vêm só dos cards.
+// de até 200 cards por quadro. As opções vistas aqui são só as da amostra.
+// (1b) E7.179: o catálogo `/customFields/{id}` dos campos 40, 41, 48, 49 e 50 (value_id, rótulo, position), por lista de caminhos própria do spike.
 // (2) Pelo `GET /tags`, as etiquetas cujo rótulo começa com "SISTEMA - " (tag_id, rótulo, quantos cards da amostra a usam).
 // Privacidade: o relatório leva rótulo de opção e de etiqueta (texto escrito por pessoas, pode ter nome) e por isso vai SÓ para um arquivo 0600
 // fora do clone, para o dono; o stdout leva apenas contagens e nunca rótulo. Nenhuma resposta bruta é gravada. Nada vai à base.
 
 export const CAMPOS_SPIKE = ['40', '41', '49', '50'] as const;
+/** Campos cujo catálogo de opções (`GET /customFields/{id}`) o spike lê (E7.179): os quatro acima e o 48 (Causa Raiz). */
+export const CAMPOS_CATALOGO = ['40', '41', '48', '49', '50'] as const;
+/** Lista de caminhos PRÓPRIA do spike (não entra na lista global do cliente): só esses cinco ids, sem consulta. */
+export const CAMINHOS_CATALOGO: readonly RegExp[] = [/^\/customFields\/(40|41|48|49|50)$/];
 export const TETO_AMOSTRA = 200;
 const POR_PAGINA = 100;
 const TETO_PAGINAS_TAGS = 50;
@@ -105,6 +110,27 @@ export function somarCard(ac: AcumuloSpike, card: unknown): void {
   }
 }
 
+export interface OpcaoCatalogo { valueId: string; rotulo: string; position: string }
+
+/** Opções de `GET /customFields/{id}`: a primeira lista de objetos com `value_id` em `allowed_values`, `values` ou `options` (sem inferir além disso). */
+export function opcoesDoCatalogo(corpo: unknown): OpcaoCatalogo[] {
+  const { itens } = desembrulhar(corpo);
+  const campo = itens[0];
+  if (!ehObj(campo)) return [];
+  for (const chave of ['allowed_values', 'values', 'options']) {
+    const lista = campo[chave];
+    if (!Array.isArray(lista)) continue;
+    const saida: OpcaoCatalogo[] = [];
+    for (const o of lista) {
+      if (!ehObj(o) || !ehChave(o.value_id)) continue;
+      const rotulo = typeof o.value === 'string' ? o.value : typeof o.label === 'string' ? o.label : typeof o.name === 'string' ? o.name : '';
+      saida.push({ valueId: String(o.value_id), rotulo, position: ehChave(o.position) ? String(o.position) : '' });
+    }
+    if (saida.length > 0 || lista.length === 0) return saida;
+  }
+  return [];
+}
+
 export interface EtiquetaSistema { tagId: string; rotulo: string; cards: number }
 
 /** Etiquetas de sistema do catálogo, com o número de cards da amostra que as usam, ordenadas por rótulo. */
@@ -124,7 +150,7 @@ export function etiquetasDeSistema(catalogo: readonly unknown[], ac: AcumuloSpik
 const NOME_CAMPO: Record<string, string> = { '40': 'Diretoria', '41': 'Gerência', '49': 'Origem da Demanda', '50': 'Objetivo Estratégico' };
 
 /** Relatório completo, COM rótulo (só para o dono, arquivo fora do clone). */
-export function renderizarRelatorio(ac: AcumuloSpike, etiquetas: readonly EtiquetaSistema[], quadros: readonly number[], geradoEm: string, avisos: readonly string[]): string {
+export function renderizarRelatorio(ac: AcumuloSpike, etiquetas: readonly EtiquetaSistema[], quadros: readonly number[], geradoEm: string, avisos: readonly string[], catalogos: ReadonlyMap<string, readonly OpcaoCatalogo[]> = new Map()): string {
   const linhas: string[] = [
     '# Spike dos campos 40, 41, 49 e 50 e das etiquetas SISTEMA (E7.172, L0)',
     '',
@@ -136,7 +162,14 @@ export function renderizarRelatorio(ac: AcumuloSpike, etiquetas: readonly Etique
     linhas.push(`## Campo ${id} (${NOME_CAMPO[id]})`, '', `Cards com o campo na lista: ${c.comEntrada.size}. Com seleção: ${c.preenchidos.size}. Opções distintas: ${c.opcoes.size}.`, '', 'Forma do valor (só chaves, tipos e contagens):', '');
     linhas.push(...(c.forma.size > 0 ? linhasDeForma(c.forma) : ['(campo não apareceu em nenhum card da amostra)']), '', '| value_id | Rótulo | Cards |', '|---|---|---|');
     const ops = [...c.opcoes.entries()].sort((a, b) => b[1].cards.size - a[1].cards.size || a[0].localeCompare(b[0], 'en', { numeric: true }));
-    linhas.push(...ops.map(([vid, o]) => `| ${vid} | ${rotuloSeguro(o.rotulo)} | ${o.cards.size} |`), '');
+    linhas.push(...ops.map(([vid, o]) => `| ${rotuloSeguro(vid)} | ${rotuloSeguro(o.rotulo)} | ${o.cards.size} |`), '');
+  }
+  linhas.push('## Catálogo de opções dos campos (GET /customFields/{id}, E7.179)', '');
+  for (const id of CAMPOS_CATALOGO) {
+    const ops = catalogos.get(id);
+    linhas.push(`### Campo ${id}`, '');
+    if (ops === undefined) linhas.push('(catálogo não lido; ver avisos)', '');
+    else linhas.push(`Opções: ${ops.length}.`, '', '| value_id | Rótulo | position |', '|---|---|---|', ...ops.map((o) => `| ${rotuloSeguro(o.valueId)} | ${rotuloSeguro(o.rotulo)} | ${rotuloSeguro(o.position)} |`), '');
   }
   linhas.push(
     '## Etiquetas SISTEMA - (GET /tags)', '',
@@ -149,7 +182,7 @@ export function renderizarRelatorio(ac: AcumuloSpike, etiquetas: readonly Etique
 }
 
 /** Resumo para o stdout: só contagens, sem rótulo, sem value_id e sem tag_id. */
-export function renderizarResumo(ac: AcumuloSpike, etiquetas: readonly EtiquetaSistema[], avisos: readonly string[]): string {
+export function renderizarResumo(ac: AcumuloSpike, etiquetas: readonly EtiquetaSistema[], avisos: readonly string[], catalogos: ReadonlyMap<string, readonly OpcaoCatalogo[]> = new Map()): string {
   return [
     `Cards distintos lidos: ${ac.cardsLidos.size}.`,
     ...CAMPOS_SPIKE.map((id) => {
@@ -157,6 +190,7 @@ export function renderizarResumo(ac: AcumuloSpike, etiquetas: readonly EtiquetaS
       return `Campo ${id}: ${c.comEntrada.size} cards com o campo, ${c.preenchidos.size} com seleção, ${c.opcoes.size} opções distintas.`;
     }),
     `Cards com alguma etiqueta: ${ac.cardsComEtiqueta.size}. Etiquetas SISTEMA - no catálogo: ${etiquetas.length}, usadas na amostra: ${etiquetas.filter((e) => e.cards > 0).length}.`,
+    ...CAMPOS_CATALOGO.map((id) => `Catálogo do campo ${id}: ${catalogos.get(id)?.length ?? 'não lido'} opções.`),
     `Avisos: ${avisos.length}.`,
   ].join('\n');
 }
@@ -182,7 +216,7 @@ export async function executarSpikeCampos(deps: DepsSpikeCampos): Promise<Result
     apikey = cfg.apikey;
     dir = foraDoRepositorio(deps.dirSaida, deps.raizRepositorio);
     await prepararSaida(dir);
-    cliente = criarClienteHttp({ urlBase: cfg.urlBase, apikey, limitePorMinuto: cfg.limitePorMinuto, timeoutMs: cfg.timeoutMs }, deps);
+    cliente = criarClienteHttp({ urlBase: cfg.urlBase, apikey, limitePorMinuto: cfg.limitePorMinuto, timeoutMs: cfg.timeoutMs, caminhosExtras: CAMINHOS_CATALOGO }, deps);
   } catch (e) {
     return { codigo: 2, saida: '', erro: (e as Error).message };
   }
@@ -230,11 +264,16 @@ export async function executarSpikeCampos(deps: DepsSpikeCampos): Promise<Result
       total = d.paginas ?? 1;
     }
     if (total > TETO_PAGINAS_TAGS) avisos.push(`tags: a API declara ${total} páginas; lidas ${TETO_PAGINAS_TAGS}`);
+    const catalogos = new Map<string, OpcaoCatalogo[]>();
+    for (const id of CAMPOS_CATALOGO) {
+      const corpo = await ler(`catalogo-campo-${id}`, `/customFields/${id}`, {});
+      if (corpo !== undefined) catalogos.set(id, opcoesDoCatalogo(corpo));
+    }
     const etiquetas = etiquetasDeSistema(catalogo, ac);
     const agora = new Date((deps.agora ?? Date.now)()).toISOString();
     const arquivo = join(dir, 'relatorio-campos-sistemas.md');
-    await writeFile(arquivo, renderizarRelatorio(ac, etiquetas, quadros, agora, avisos), { flag: 'wx', mode: 0o600 });
-    return { codigo: 0, saida: `${renderizarResumo(ac, etiquetas, avisos)}\nRelatório (com rótulo, só para o dono) em: ${arquivo}`, erro: '' };
+    await writeFile(arquivo, renderizarRelatorio(ac, etiquetas, quadros, agora, avisos, catalogos), { flag: 'wx', mode: 0o600 });
+    return { codigo: 0, saida: `${renderizarResumo(ac, etiquetas, avisos, catalogos)}\nRelatório (com rótulo, só para o dono) em: ${arquivo}`, erro: '' };
   } catch (e) {
     const erro = e as ErroBusinessMap;
     return { codigo: 1, saida: '', erro: limpar(`${erro.tipo ?? 'erro'}: ${erro.message}`) };

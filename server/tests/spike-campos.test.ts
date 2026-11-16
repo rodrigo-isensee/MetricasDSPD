@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  ehEtiquetaDeSistema, etiquetasDeSistema, executarSpikeCampos, novoAcumulo, renderizarResumo, rotuloSeguro, somarCard, TETO_AMOSTRA,
+  CAMINHOS_CATALOGO, ehEtiquetaDeSistema, etiquetasDeSistema, opcoesDoCatalogo, executarSpikeCampos, novoAcumulo, renderizarResumo, rotuloSeguro, somarCard, TETO_AMOSTRA,
 } from '../src/modulos/businessmap/spike-campos.js';
 
 // Dados fictícios e servidor local: nenhuma chamada ao BusinessMap real; o `.env` nunca é lido.
@@ -85,6 +85,10 @@ const subir = async (cards: unknown[], tags: unknown[]): Promise<{ url: string; 
       const por = Number(u.searchParams.get('per_page'));
       corpo = { data: { data: cards.slice((pagina - 1) * por, pagina * por), pagination: { all_pages: Math.ceil(cards.length / por) } } };
     } else if (u.pathname === '/tags') corpo = { data: tags };
+    else if (/^\/customFields\/\d+$/.test(u.pathname)) {
+      const id = Number(u.pathname.split('/')[2]);
+      corpo = { data: { field_id: id, allowed_values: [{ value_id: id * 10 + 1, value: `Opção Fictícia ${id}A`, position: 0 }, { value_id: id * 10 + 2, value: `Opção Fictícia ${id}B`, position: 1 }] } };
+    }
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(corpo));
   });
@@ -94,6 +98,15 @@ const subir = async (cards: unknown[], tags: unknown[]): Promise<{ url: string; 
 };
 const rodar = (url: string, dirSaida: string, extra: Record<string, string> = {}) =>
   executarSpikeCampos({ env: { BUSINESSMAP_URL_BASE: url, BUSINESSMAP_APIKEY: KEY, BUSINESSMAP_QUADROS_IDS: '10', ...extra }, dirSaida, raizRepositorio: raiz, agora: () => Date.parse('2026-11-16T12:00:00Z') });
+
+describe('catálogo de opções', () => {
+  it('lê allowed_values, values e options; ignora o que não tem value_id', () => {
+    expect(opcoesDoCatalogo({ data: { allowed_values: [{ value_id: 1, value: 'A', position: 2 }, { value: 'sem id' }, 5] } })).toEqual([{ valueId: '1', rotulo: 'A', position: '2' }]);
+    expect(opcoesDoCatalogo({ data: [{ values: [{ value_id: '9', label: 'B' }] }] })).toEqual([{ valueId: '9', rotulo: 'B', position: '' }]);
+    expect(opcoesDoCatalogo({ data: { options: [] } })).toEqual([]);
+    expect(opcoesDoCatalogo({ erro: 1 })).toEqual([]);
+  });
+});
 
 describe('executarSpikeCampos', () => {
   it('só GET, amostra limitada a 200, relatório com rótulo fora do clone e stdout sem rótulo', async () => {
@@ -106,13 +119,17 @@ describe('executarSpikeCampos', () => {
     expect(r.saida).not.toMatch(/Fictíci/);
     expect(TETO_AMOSTRA).toBe(200);
     expect(f.pedidos.every((p) => p.metodo === 'GET' && p.apikey === KEY)).toBe(true);
-    expect(f.pedidos.map((p) => p.caminho).every((c) => c === '/cards' || c === '/tags')).toBe(true);
-    expect(f.pedidos.some((p) => p.caminho.startsWith('/customFields'))).toBe(false);
+    const cat = f.pedidos.filter((p) => p.caminho.startsWith('/customFields'));
+    expect(cat.map((p) => p.url)).toEqual(['40', '41', '48', '49', '50'].map((i) => `/customFields/${i}`)); // sem consulta
+    expect(f.pedidos.map((p) => p.caminho).every((c) => c === '/cards' || c === '/tags' || CAMINHOS_CATALOGO.some((r) => r.test(c)))).toBe(true);
+    expect(r.saida).toContain('Catálogo do campo 48: 2 opções.');
     const arq = join(saida, 'relatorio-campos-sistemas.md');
     expect(statSync(arq).mode & 0o777).toBe(0o600);
     const rel = readFileSync(arq, 'utf8');
     expect(rel).toContain('| 1 | Diretoria Fictícia A | 100 |');
     expect(rel).toContain('| 5 | SISTEMA - Sistema Fictício | 67 |');
+    expect(rel).toContain('| 481 | Opção Fictícia 48A | 0 |');
+    expect(rel).toContain('| 502 | Opção Fictícia 50B | 1 |');
     expect(rel).not.toContain('Outra');
     expect(rel).not.toContain(KEY);
   });
