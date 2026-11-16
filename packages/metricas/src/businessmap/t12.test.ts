@@ -13,8 +13,10 @@ import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
 // Estes testes exercitam o mecanismo do critério (a) com um motivo de teste, só enquanto rodam.
 const MOTIVO_IDA_E_VOLTA = 'Aguardando outro setor/equipe' as const
 const COM_MOTIVO = new Set<MotivoBloqueio>([MOTIVO_IDA_E_VOLTA])
-const calcularT12: typeof calcularT12Base = (ctx, f, motivos = COM_MOTIVO) => calcularT12Base(ctx, f, motivos)
-const teveIdaEVolta: typeof teveIdaEVoltaBase = (ctx, m, motivos = COM_MOTIVO) => teveIdaEVoltaBase(ctx, m, motivos)
+const calcularT12 = (ctx: Parameters<typeof calcularT12Base>[0], f: FiltrosFluxo) =>
+  calcularT12Base(ctx, f, COM_MOTIVO)
+const teveIdaEVolta = (ctx: Parameters<typeof teveIdaEVoltaBase>[0], m: MarcosCard) =>
+  teveIdaEVoltaBase(ctx, m, COM_MOTIVO)
 
 const F: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
 const t = (iso: string) => instanteDeIso(iso, CALENDARIO_PADRAO)
