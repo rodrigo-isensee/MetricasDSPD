@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-tamanho-regua
-commit: 62254d39142a86cb56d89ec38615643fd8d623eb
+commit: 7ce5875431ca1912b89516bb300045eaa51f8ed9
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -79,3 +79,15 @@ parecer: aprovado. Delta de 0ccb21ef a 62254d39 lido por `forge-check parecer de
 
 ## Achados da revalidação
 - A3 (recomendado) CHANGELOG.md:8 · texto desatualizado: diz que o `bm:ref-sync` informa `reguaTimesDesconhecidos`, mas o código conta no relatório do `bm:projetar` como `reguaLinhasDescartadas`. Corrigir o nome e o comando.
+
+## Revalidação (volta 2, cabeça 7ce58754, merge da develop)
+parecer: aprovado. O tech-lead juntou a develop (0c989148, campo 48 Causa Raiz, E7.86) na branch; seis conflitos, conferidos um a um contra os dois lados (`git diff 41543e5c HEAD` e `git diff 0c989148 HEAD` por arquivo). Sem marca de conflito restante.
+
+- businessmap-dominio.json: tem `campos` com o campo 48 (dropdown, `causa_raiz`, 12 opções) e `tamanho_regua` com 63 linhas; `versao_criterio` é a da régua (`afeta: ['O8']`) e o motivo cita que o campo 48 (E7.86, afeta vazio) já estava na develop. Nada perdido: a versão de critério é objeto único e o texto do campo 48 migrou para o motivo.
+- allow-list.ts: `causa_raiz` está no enum de colunas; `tamanho_declarado` saiu (intenção da régua; a allow-list aperta); `chavesDoValor` e `values[]` do campo 48 preservados.
+- dominio-businessmap.test.ts: os testes do campo 48 (12 opções, tipo `dropdown`, texto livre recusado) e os da régua (63 linhas, `tamanho_regua` em `listasDoArquivo`, `campo = ANY` com sete campos) convivem; asserções antigas ajustadas só onde a régua mudou o valor (`afeta ['O8']`).
+- dominio-businessmap.pg.test.ts: 433 = 13 (campo e 12 opções) + 6 setores + 4 prioridade + 347 colunas da fase + 0 motivo + 63 régua; confere com o JSON (campos 1, setores 6, prioridade 4, fase 347, régua 63).
+- data-model.md e CHANGELOG.md: as duas contribuições presentes (`causa_raiz` e `tamanho_regua` em `ref_dominio`; E7.98, S11 e O8 no CHANGELOG).
+- CI do head: run 43864207823, sha 7ce5875431ca1912b89516bb300045eaa51f8ed9, `success`; jobs `testes` e `banco` (onde roda o teste pg do domínio) `success`. Suíte local não rodada (R-QA: vale o CI do mesmo sha).
+- Vermelho e mutação: sem teste nem código novo meu neste delta (só resolução de merge); mutantes M1 a M7 da volta 1 não refeitos.
+- Pendente: A3 (CHANGELOG ainda diz `bm:ref-sync` e `reguaTimesDesconhecidos`; o código tem `reguaLinhasDescartadas` no `bm:projetar`), recomendado, não bloqueia.
