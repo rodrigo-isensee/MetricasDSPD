@@ -96,6 +96,14 @@ describe('E7.86: causa raiz (field 48, dropdown) na fronteira', () => {
     expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12 }] }], D2)).toEqual([{ field_id: '48', valor: 'outros' }]);
     expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 99, value: 'Outros' }] }], D)).toEqual([{ field_id: '48', valor: 'outros' }]);
   });
+  it('values[] com itens escalares (string ou número) casam pelo domínio; item que não é chave (nulo, booleano, lista) e value_id ou value que não são chave são ignorados', () => {
+    const D3 = new Map([['48', new Map([['12', 'outros'], ['Efeito colateral', 'efeito_colateral']])]]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [12] }], D3)).toEqual([{ field_id: '48', valor: 'outros' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: ['Efeito colateral'] }], D3)).toEqual([{ field_id: '48', valor: 'efeito_colateral' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [null, true, ['12'], { value_id: null, value: false }, { value_id: { x: 1 }, value: ['12'] }] }], D3))
+      .toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [null, { value_id: true, value: 12 }] }], D3)).toEqual([{ field_id: '48', valor: 'outros' }]);
+  });
   it('a descrição de Outros e qualquer texto extra são descartados; valor fora da lista vira desconhecido, nunca o texto', () => {
     const r = reduzirCamposCustomizados([
       { field_id: 48, value: 'Outros', comment: DESCRICAO, text: DESCRICAO, values: [{ value_id: 1, description: DESCRICAO }] },
