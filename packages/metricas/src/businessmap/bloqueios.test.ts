@@ -343,10 +343,12 @@ describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () =>
 
   it('T10 sobre o mock: total dos bloqueios encerrados de fornecedor, lista por fornecedor vazia; 12 meses não muda a janela dos percentis', () => {
     const r = calcularT10(ctx, F)
-    const esperado = calcularO19(ctx, F).motivos.find((m) => m.motivo === 'Aguardando fornecedor')
+    const doFornecedor = calcularO19(ctx, F).motivos.filter(
+      (m) => m.motivo === 'Aguardando fornecedor' || m.motivo === 'Dependência Externa',
+    )
     expect(r.fornecedores).toEqual([])
-    expect(r.esperaFornecedores?.bloqueios).toBe(esperado?.bloqueios)
-    expect(r.esperaFornecedores?.diasUteis).toBe(esperado?.diasUteis)
+    expect(r.esperaFornecedores?.bloqueios).toBe(doFornecedor.reduce((a, m) => a + m.bloqueios, 0))
+    expect(r.esperaFornecedores?.diasUteis).toBeCloseTo(doFornecedor.reduce((a, m) => a + m.diasUteis, 0), 1)
     const ano = calcularT10(ctx, { ...F, periodo: { tipo: '12m' } })
     expect((ano.esperaFornecedores?.bloqueios ?? 0) >= (r.esperaFornecedores?.bloqueios ?? 0)).toBe(
       true,
