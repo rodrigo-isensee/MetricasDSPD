@@ -580,7 +580,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['percentis'],
     granularidade: 'story',
     refBriefing:
-      'pedido 011 T10; D-10 = A (sem prazo contratado); R-5 (qualquer motivo com fornecedor informado); B11-001 = sim: fornecedor agrupado pelo nome normalizado (caixa e espaços), exibido pela grafia mais frequente',
+      'pedido 011 T10; D-10 = A (sem prazo contratado); pedido 105, E7.77 (opção A, 2026-11-16): tempo total dos bloqueios encerrados com os motivos Aguardando fornecedor (14) e Dependência Externa (11) (E7.264), sem separar por fornecedor (o nome fica no texto livre, fora da base)',
     status: 'ok',
   },
   O20: {
