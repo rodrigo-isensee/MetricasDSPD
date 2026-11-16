@@ -22,6 +22,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - O17 (sustentação): o motivo da causa raiz é definitivo, por decisão do dono (16/11): o campo "Causa raiz" do Acelerato é texto livre, nunca entra na base (ADR 0020), e a causa raiz de incidente não é contada; sai o "aguardando o Registro de Problemas" (pedido 105, K-372).
 - Base de fallback do BusinessMap sem limite de frentes (`null`, não 0), com teste de que o T7 sai sem limite; o contrato não muda (pedido 105, K-375).
 
+### Alterado
+
+- S9 (sustentação): o cartão avisa que o motivo da pendência não está sendo preenchido no Acelerato e por isso aparece como Não classificado; cálculo e contrato não mudam (pedido 105, E7.254).
+
 ### Adicionado
 
 - Produção na VM da empresa: `docker-compose.prod.yml` sem postgres local e sem senha padrão (falha sem variável), `sslmode=verify-full` com a CA por `DB_CA_ARQUIVO` (volume somente leitura e `NODE_EXTRA_CA_CERTS`), unidades systemd que falham sem o `host.env` e fixam o compose de produção, e um só roteiro de papéis: o gerador (`pnpm run db:sql`) emite `00_papeis_e_banco.sql` com senhas por `\getenv` e webhook, automação e pesquisa NOLOGIN; documento único `docs/devops/105-implantacao-vm.md` e aviso no runbook sobre `PESSOA_ELIMINADA_SAL` (pedido 105, E7.270 e E7.276).
