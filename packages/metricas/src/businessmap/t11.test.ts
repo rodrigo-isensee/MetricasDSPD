@@ -259,7 +259,7 @@ describe('T11 com dado real (pedido 105, E7.64)', () => {
         adicionado_apos_inicio_pai: false,
       }),
     } as unknown as Parameters<typeof entradasSazonaisDeCards>[0][number]
-    const c = (id: string, extra: object) => ({ ...molde, card_id: id, ...extra }) as typeof molde
+    const c = (id: string, extra: object) => ({ ...molde, card_id: id, ...extra })
     const r = entradasSazonaisDeCards([
       c('a', { tipo: 'Melhoria', granularidade: 'story', criado_em: 10 }),
       c('b', { tipo: 'Bug interno', granularidade: 'story' }),
