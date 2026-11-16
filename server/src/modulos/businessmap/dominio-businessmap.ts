@@ -31,7 +31,7 @@ export const CAMPO_MOTIVO_BLOQUEIO = 'motivo_bloqueio';
 export const CAMPO_PRIORIDADE_SEVERIDADE = 'prioridade_severidade';
 /**
  * Valor de `ref_dominio.campo` da tabela coluna -> fase de detecção do bug (pedido 105, E7.5): `codigo` = `coluna_id` (a folha, nunca o nome, que os quadros repetem e
- * renomeiam), `rotulo` = uma das cinco fases de `FASES_DETECCAO`. Coluna fora da tabela não tem fase. A primeira carga e cada troca de linha são versão de critério (`afeta = ['O15']`).
+ * renomeiam), `rotulo` = uma das cinco fases de `FASES_DETECCAO`. Coluna fora da tabela não tem fase. A primeira carga e cada troca de linha são versão de critério; a versão da E7.5 marca o O15 (`afeta = ['O15']`) e a próxima troca desta tabela volta a marcá-lo. A versão do campo 48 (E7.86) tem `afeta` vazio: só coleta, nenhuma métrica muda.
  */
 export const CAMPO_FASE_DETECCAO_COLUNA = 'fase_deteccao_coluna';
 /**
@@ -44,10 +44,10 @@ export const CAMPO_TAMANHO_REGUA = 'tamanho_regua';
 export const CODIGO_TAMANHO_REGUA = /^[1-9]\d{0,9}:(?:0|[1-9]\d{0,3})(?:\.\d{0,2}[1-9])?$/;
 
 /**
- * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Vazia até o diagnóstico (P-L2-1) mostrar os
- * tipos reais; o PR que preencher o arquivo preenche esta constante, com parecer de segurança. Vazia, toda carga com campo é recusada.
+ * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Pedido 105 (E7.86): o diagnóstico (`bm:diagnostico`, 2026-11-16) mostrou o
+ * campo 48 "Causa Raiz" como `dropdown`; só esse tipo é aceito, com parecer de segurança. Campo de outro tipo é recusado na carga do arquivo.
  */
-export const TIPOS_SELECAO_UNICA: readonly string[] = [];
+export const TIPOS_SELECAO_UNICA: readonly string[] = ['dropdown'];
 
 const ID_CAMPO = /^\d{1,10}$/;
 // Mesma regra de `textoSeguro` para o código lido do banco: sem controle, invisível, separador de linha nem arroba.
