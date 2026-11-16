@@ -15,30 +15,6 @@ import { CartaoT10, CartaoT11, CartaoT12, CartaoT13, CartaoT14 } from './taticas
 
 vi.setConfig({ testTimeout: 45000 })
 
-/** Quando ligado, a base do mock sai com todo fornecedor de bloqueio grafado de 3 jeitos (B11-001). */
-const grafias = vi.hoisted(() => ({ variar: false }))
-vi.mock('@metricas-dspd/mock', async (importar) => {
-  const real = await importar<typeof import('@metricas-dspd/mock')>()
-  return {
-    ...real,
-    gerarBaseMock: (...args: Parameters<typeof real.gerarBaseMock>) => {
-      const base = real.gerarBaseMock(...args)
-      if (!grafias.variar) return base
-      const variantes = ['TOTVS', 'Totvs', ' totvs ']
-      let i = 0
-      return {
-        ...base,
-        bm: {
-          ...base.bm,
-          bloqueios: base.bm.bloqueios.map((b) =>
-            b.fornecedor === null ? b : { ...b, fornecedor: variantes[i++ % 3]! },
-          ),
-        },
-      }
-    },
-  }
-})
-
 async function abrir(codigo: string, ui: React.ReactElement, fonte?: MockFonteMetricas) {
   renderizarCartao(ui, fonte ? { fonte } : {})
   const el = await screen.findByTestId(`metrica-${codigo}`)
@@ -84,92 +60,97 @@ class FonteEspia extends FonteFixa {
 }
 
 describe('T10 Tempo de terceiros', () => {
-  const dto = (fornecedores: unknown[], total = 52) => ({
+  const dto = (espera: unknown, extra: Record<string, unknown> = {}) => ({
     ...COMUM,
-    base: { ...COMUM.base, n: fornecedores.length ? 38 : 0, unidade: 'bloqueios' },
-    fornecedores,
-    totalDiasUteis: total,
+    base: { ...COMUM.base, n: 38, unidade: 'bloqueios encerrados esperando fornecedor' },
+    fornecedores: [],
+    totalDiasUteis: 52,
+    ...(espera === undefined ? {} : { esperaFornecedores: espera }),
+    motivoSemFornecedores: 'O nome do fornecedor não é guardado na base.',
+    ...extra,
   })
 
-  it('uma linha por fornecedor como vem da API, com P50 e P85 só com 20 bloqueios ou mais', async () => {
+  it('mostra o total esperando fornecedores, com P50, P85 e P95 quando há 20 bloqueios ou mais', async () => {
     const fonte = new FonteFixa({
-      T10: dto([
-        { fornecedor: 'Fornecedor Beta', bloqueios: 30, diasUteis: 40, duracao: dur(30, 3, 6) },
-        { fornecedor: 'Fornecedor Gama', bloqueios: 8, diasUteis: 12, duracao: insuf(8) },
-      ]),
-    })
-    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
-    expect(el).toHaveTextContent(
-      'Os bloqueios por fornecedor somaram 52 dias úteis no período. Fornecedor Beta respondeu em até 6 dias úteis em 85% dos casos. Prazo contratado não informado.',
-    )
-    const linhas = within(within(el).getByTestId('tabela-T10')).getAllByRole('row').slice(1)
-    expect(linhas).toHaveLength(2)
-    expect(linhas[0]).toHaveTextContent(/Fornecedor Beta\s*30\s*40\s*P50 3 · P85 6 dias úteis/)
-    expect(linhas[1]).toHaveTextContent(/Fornecedor Gama\s*8\s*12\s*— amostra insuficiente/)
-    expect(el).toHaveTextContent('Fonte: BusinessMap')
-    // Nesta fase não há prazo contratado nem "dentro/acima do contratado" (CA-36).
-    expect(el.textContent).not.toMatch(/dentro do contratado|acima do contratado/i)
-    expect(within(el).queryByRole('columnheader', { name: /prazo contratado/i })).toBeNull()
-  })
-
-  it('sem nenhum fornecedor com 20 bloqueios: a leitura não cita resposta em 85% dos casos', async () => {
-    const fonte = new FonteFixa({
-      T10: dto(
-        [{ fornecedor: 'Fornecedor Gama', bloqueios: 8, diasUteis: 12, duracao: insuf(8) }],
-        12,
-      ),
+      T10: dto({ bloqueios: 30, diasUteis: 52, duracao: dur(30, 3, 6) }),
     })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('leitura-T10')).toHaveTextContent(
-      'Os bloqueios por fornecedor somaram 12 dias úteis no período. Prazo contratado não informado.',
+      'Os bloqueios encerrados com o motivo Aguardando fornecedor somaram 52 dias úteis no período, em 30 bloqueios. Nas últimas 12 semanas, em 85% dos casos a espera durou até 6 dias úteis. Prazo contratado não informado.',
+    )
+    const linhas = within(within(el).getByTestId('tabela-T10')).getAllByRole('row').slice(1)
+    expect(linhas).toHaveLength(1)
+    expect(linhas[0]).toHaveTextContent(
+      /Esperando fornecedores\s*30\s*52\s*P50 3 · P85 6 · P95 8 dias úteis/,
+    )
+    expect(within(el).getByTestId('t10-motivo')).toHaveTextContent(
+      'O nome do fornecedor não é guardado na base.',
+    )
+    expect(el).toHaveTextContent('Fonte: BusinessMap')
+    // Sem prazo contratado nem "dentro/acima do contratado" (CA-36) e sem tabela por fornecedor.
+    expect(el.textContent).not.toMatch(/dentro do contratado|acima do contratado/i)
+    expect(
+      within(el).queryByRole('columnheader', { name: /prazo contratado|fornecedor$/i }),
+    ).toBeNull()
+    expect(within(el).queryAllByRole('rowheader')).toHaveLength(1)
+  })
+
+  it('abaixo de 20 bloqueios: contagem e soma sem percentis, "amostra insuficiente" e leitura sem P85', async () => {
+    const fonte = new FonteFixa({
+      T10: dto({ bloqueios: 1, diasUteis: 1.5, duracao: insuf(1) }),
+    })
+    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
+    expect(within(el).getByTestId('leitura-T10')).toHaveTextContent(
+      'Os bloqueios encerrados com o motivo Aguardando fornecedor somaram 1,5 dias úteis no período, em 1 bloqueio. Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas. Prazo contratado não informado.',
+    )
+    const linha = within(within(el).getByTestId('tabela-T10')).getAllByRole('row')[1]!
+    expect(linha).toHaveTextContent(
+      /Esperando fornecedores\s*1\s*1,5\s*— menos de 20 bloqueios na janela de 12 semanas/,
+    )
+    expect(linha.textContent).not.toMatch(/P50|P85|P95/)
+  })
+
+  it('sem o motivo na resposta: não mostra a linha de motivo', async () => {
+    const fonte = new FonteFixa({
+      T10: dto(
+        { bloqueios: 0, diasUteis: 0, duracao: insuf(0) },
+        { motivoSemFornecedores: undefined },
+      ),
+    })
+    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
+    expect(within(el).queryByTestId('t10-motivo')).toBeNull()
+    expect(within(within(el).getByTestId('tabela-T10')).getAllByRole('row')[1]).toHaveTextContent(
+      /Esperando fornecedores\s*0\s*0\s*— menos de 20 bloqueios na janela de 12 semanas/,
     )
   })
 
-  it('exibe o fornecedor exatamente como a API devolve (B11-001: a normalização é do back)', async () => {
-    // A API já agrupou "Totvs", "TOTVS" e " totvs " numa linha só, com a grafia mais frequente.
-    const fonte = new FonteFixa({
-      T10: dto([{ fornecedor: 'Totvs', bloqueios: 41, diasUteis: 70, duracao: dur(41, 4, 9) }], 70),
-    })
-    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
-    const linhas = within(within(el).getByTestId('tabela-T10')).getAllByRole('row').slice(1)
-    expect(linhas).toHaveLength(1)
-    expect(linhas[0]).toHaveTextContent(/^Totvs\s*41/)
-    expect(el.textContent).not.toMatch(/TOTVS|totvs /)
-  })
-
-  it('B11-001 pelo caminho real: o mock com "TOTVS", "Totvs" e " totvs " mostra uma linha só', async () => {
-    grafias.variar = true
-    try {
-      // Fonte nova: a base é gerada (e memoizada) por instância, já com as grafias trocadas.
-      const el = await abrir(
-        'T10',
-        <CartaoT10 filtros={FILTROS_FLUXO} />,
-        new MockFonteMetricas({ latenciaMs: 0 }),
-      )
-      const nomes = within(within(el).getByTestId('tabela-T10')).getAllByRole('rowheader')
-      expect(nomes).toHaveLength(1)
-      expect(nomes[0]!.textContent).toMatch(/^totvs$/i)
-      expect(nomes[0]!.textContent).toBe(nomes[0]!.textContent.trim())
-    } finally {
-      grafias.variar = false
-    }
-  })
-
-  it('sem fornecedor no período: mensagem própria e "Prazo contratado não informado"', async () => {
-    const fonte = new FonteFixa({ T10: dto([], 0) })
+  it('resposta antiga, sem o total: diz o motivo do vazio e o de não separar por fornecedor', async () => {
+    const fonte = new FonteFixa({ T10: dto(undefined, { totalDiasUteis: 0 }) })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('t10-sem-fornecedor')).toHaveTextContent(
-      'Nenhum bloqueio por fornecedor no período.',
+      'Nenhum bloqueio com o motivo "Aguardando fornecedor" foi encerrado no período.',
+    )
+    expect(within(el).getByTestId('t10-motivo')).toHaveTextContent(
+      'O nome do fornecedor não é guardado na base.',
     )
     expect(el).toHaveTextContent('Prazo contratado não informado')
   })
 
-  it('com o mock: fornecedores em ordem alfabética, sem selo de melhor ou pior', async () => {
+  it('vazio sem o motivo na resposta: só a mensagem do vazio', async () => {
+    const fonte = new FonteFixa({
+      T10: dto(undefined, { motivoSemFornecedores: undefined }),
+    })
+    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
+    expect(within(el).getByTestId('t10-sem-fornecedor')).toBeInTheDocument()
+    expect(within(el).queryByTestId('t10-motivo')).toBeNull()
+  })
+
+  it('com o mock: uma linha de total, sem nome de fornecedor nem selo de melhor ou pior', async () => {
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />)
-    const nomes = within(within(el).getByTestId('tabela-T10')).getAllByRole('rowheader')
-    const lista = nomes.map((n) => n.textContent)
-    expect(lista.length).toBeGreaterThan(0)
-    expect(lista).toEqual([...lista].sort((a, b) => a.localeCompare(b, 'pt-BR')))
+    const linhas = within(within(el).getByTestId('tabela-T10')).getAllByRole('row').slice(1)
+    expect(linhas).toHaveLength(1)
+    expect(linhas[0]).toHaveTextContent(/^Esperando fornecedores/)
+    expect(el.textContent).not.toMatch(/Fornecedor (Alfa|Beta|Gama)|totvs/i)
   })
 
   it('falha da API: botão para tentar de novo', async () => {
