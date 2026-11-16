@@ -195,8 +195,12 @@ describe('normalizarToque: estados e eventos (R6-3, R6-4)', () => {
     ]);
   });
 
-  it('comentário sem identidade ou sem instante válido: leitura incompleta, nunca descarte silencioso', () => {
-    for (const ruim of [coment(undefined, 2), coment(0, 2), coment('abc', 2), coment(1.5, 2), coment(null, 2), coment(7, undefined), { ...coment(7, 2), created_at: 'ontem' }]) {
+  it('comentário sem identidade ou sem instante válido: leitura incompleta, nunca descarte silencioso; o motivo diz qual dos dois (A2 do review do B7a)', () => {
+    for (const ruim of [coment(undefined, 2), coment(0, 2), coment('abc', 2), coment(1.5, 2), coment(null, 2)]) {
+      const r = normalizarToque(entrada({ revisao: 1, comentarios: [coment(1, 1), ruim] }));
+      expect(r).toMatchObject({ estado: 'leitura_incompleta', motivo: 'comentario_invalido', eventos: [] });
+    }
+    for (const ruim of [coment(7, undefined), { ...coment(7, 2), created_at: 'ontem' }]) {
       const r = normalizarToque(entrada({ revisao: 1, comentarios: [coment(1, 1), ruim] }));
       expect(r).toMatchObject({ estado: 'leitura_incompleta', motivo: 'instante_invalido', eventos: [] });
     }

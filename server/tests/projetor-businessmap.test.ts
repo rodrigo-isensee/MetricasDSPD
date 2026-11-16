@@ -98,6 +98,10 @@ describe('projetarBusinessMap (F4)', () => {
     expect(com(d, 'INSERT INTO dspd_bm.dim_card_versao')[0]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING');
     expect(com(d, 'DELETE FROM dspd_bm.dim_card WHERE')[0]!.valores).toEqual([['1', '3']]);
     expect(com(d, 'INSERT INTO dspd_bm.dim_card ')[0]!.texto).toContain('::text[]');
+    // 105 (O22, B7b): o DELETE + INSERT zera o primeiro toque; ele se refaz do controle e da staging do toque, para os mesmos cards, depois do INSERT, sem API
+    const toque = com(d, 'UPDATE dspd_bm.dim_card d SET primeiro_toque_em')[0]!;
+    expect(toque.valores).toEqual([['1', '3']]);
+    expect(d.chamadas.indexOf(toque)).toBeGreaterThan(d.chamadas.indexOf(com(d, 'INSERT INTO dspd_bm.dim_card ')[0]!));
     expect(com(d, 'UPDATE dspd_bm.ctl_coleta')[0]!.valores[0]).toBe(88);
     const entidades = com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').map((x) => x.valores[1]);
     expect(entidades).toEqual(expect.arrayContaining(['projecao_card', 'projecao_transicao', 'projecao_evento', 'projecao_versao', 'nota_pai_sprint']));

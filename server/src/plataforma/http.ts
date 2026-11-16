@@ -132,6 +132,8 @@ export type TipoErroHttp =
   | 'http'
   | 'formato'
   | 'limite-paginas'
+  // Pedido 105 (O22, A3 do review do B7a): teto de páginas de UMA leitura do toque (a lista de um card ou o lote de comentários); não é o teto da execução (`limite-paginas`).
+  | 'limite-paginas-leitura'
   | 'limite-bytes'
   | 'limite-requisicoes';
 

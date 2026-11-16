@@ -6,7 +6,7 @@ import { instanteDoBm } from './normalizador.js';
  * Normalizador do primeiro toque do O22 (pedido 105, B7a; ADR 0020 revisão 6, R6-3 a R6-5). Função pura: recebe a lista de revisões como veio da API e os
  * comentários já cortados por `CAMPOS_TOQUE`, e devolve eventos (instante e booleano), o estado da leitura e o motivo em código. `user_id` e autor só existem
  * em memória até `contaComoToque` e NÃO saem daqui; nenhum erro ou resultado carrega valor lido (A3 do parecer de segurança: só código e caminho do campo).
- * Nada é gravado neste arquivo (a gravação e a migração são do B7b).
+ * Nada é gravado neste arquivo (a gravação é de `toque-gravacao.ts`).
  */
 
 /**
@@ -17,7 +17,7 @@ import { instanteDoBm } from './normalizador.js';
 export const AUTOR_DO_TOQUE = { deslocamento: 0 } as const;
 
 export type EstadoLeitura = 'lido' | 'autor_pendente' | 'leitura_incompleta';
-export type MotivoLeitura = 'lista_com_buraco' | 'lista_curta' | 'lista_longa' | 'instante_invalido' | 'revisao_invalida';
+export type MotivoLeitura = 'lista_com_buraco' | 'lista_curta' | 'lista_longa' | 'instante_invalido' | 'revisao_invalida' | 'comentario_invalido';
 
 export interface EventoToque {
   /** `r<n>` (a atualização que criou a revisão `n >= 2`) ou `c<comment_id>`. */
@@ -113,8 +113,10 @@ export function normalizarToque(entrada: EntradaToque): ResultadoToque {
   for (const c of entrada.comentarios) {
     const id = typeof c.comment_id === 'number' ? String(c.comment_id) : c.comment_id;
     const ms = instanteDoBm(c.created_at);
-    // comentário sem identidade ou sem instante válido não se descarta em silêncio: o card inteiro fica com leitura incompleta
-    if (typeof id !== 'string' || !ID_DE_COMENTARIO.test(id) || ms === null) return incompleta(cardId, revisao, 'instante_invalido');
+    // comentário sem identidade ou sem instante válido não se descarta em silêncio: o card inteiro fica com leitura incompleta. O motivo diz qual dos dois
+    // (A2 do review do B7a): `comentario_invalido` é o `comment_id` fora da forma, `instante_invalido` é o `created_at`.
+    if (typeof id !== 'string' || !ID_DE_COMENTARIO.test(id)) return incompleta(cardId, revisao, 'comentario_invalido');
+    if (ms === null) return incompleta(cardId, revisao, 'instante_invalido');
     if (vistos.has(id)) continue;
     vistos.add(id);
     if (c.author_type === 'external') comentariosExternos += 1;

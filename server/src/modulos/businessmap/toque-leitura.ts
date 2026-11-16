@@ -8,8 +8,10 @@ import { normalizarToque, type ResultadoToque } from './toque.js';
  * `cortarComentarioDoToque`. Nada é gravado aqui (gravação, migração e carga são do B7b) e nenhuma mensagem de erro leva valor lido.
  */
 
-/** Erros que param a execução inteira (não são do card nem do lote): sobem para quem chama. */
+/** Erros que param a execução inteira (não são do card nem do lote): sobem para quem chama. `limite-paginas-leitura` NÃO está aqui (A3 do review do B7a): é de uma leitura só. */
 const FATAIS = new Set(['autenticacao', 'limite-requisicoes', 'limite-paginas', 'configuracao', 'host', 'caminho', 'consulta']);
+/** Erro de uma chamada que é do card ou do lote (não da execução): o que não passa aqui sobe. */
+export const ehDoCardOuDoLote = (e: unknown): e is ErroBusinessMap => e instanceof ErroBusinessMap && !FATAIS.has(e.tipo);
 export const MAX_CARDS_POR_LOTE = 200;
 const MAX_PAGINAS = 50;
 const ID_DE_CARD = /^[1-9]\d{0,11}$/;
@@ -27,11 +29,11 @@ function itensDoEnvelope(corpo: unknown, caminho: string): { itens: unknown[]; p
   throw new ErroBusinessMap('formato', `GET ${caminho}: envelope fora do formato esperado`);
 }
 
-async function lerTodasAsPaginas(cliente: ClienteHttp, caminho: string, base: Readonly<Record<string, string>>): Promise<unknown[]> {
+export async function lerTodasAsPaginas(cliente: Pick<ClienteHttp, 'get'>, caminho: string, base: Readonly<Record<string, string>>): Promise<unknown[]> {
   const itens: unknown[] = [];
   let paginas = 1;
   for (let pagina = 1; pagina <= paginas; pagina += 1) {
-    if (pagina > MAX_PAGINAS) throw new ErroBusinessMap('limite-paginas', `GET ${caminho}: acima de ${MAX_PAGINAS} páginas`);
+    if (pagina > MAX_PAGINAS) throw new ErroBusinessMap('limite-paginas-leitura', `GET ${caminho}: acima de ${MAX_PAGINAS} páginas`);
     const lido = itensDoEnvelope(await cliente.get(caminho, { consulta: { ...base, page: pagina } }), caminho);
     itens.push(...lido.itens);
     paginas = lido.paginas;
@@ -40,7 +42,7 @@ async function lerTodasAsPaginas(cliente: ClienteHttp, caminho: string, base: Re
 }
 
 /** `GET /cards/{id}/revisions`, todas as páginas, itens crus (o corte por `CAMPOS_TOQUE` é do normalizador). Card com `revision = 1` não gasta chamada (lista vazia por construção). */
-export async function lerRevisoesDoCard(cliente: ClienteHttp, cardId: string): Promise<unknown[]> {
+export async function lerRevisoesDoCard(cliente: Pick<ClienteHttp, 'get'>, cardId: string): Promise<unknown[]> {
   if (!ID_DE_CARD.test(cardId)) throw new ErroBusinessMap('caminho', 'id de card inválido');
   return lerTodasAsPaginas(cliente, `/cards/${cardId}/revisions`, {});
 }
@@ -61,16 +63,18 @@ export interface ResultadoLoteComentarios {
 }
 
 /** Código de falha do lote por tipo do erro do cliente (R6-7): `toque_comentarios_http_<status>` ou `toque_comentarios_<tipo>`. Nunca a mensagem. */
-const codigoDaFalha = (e: ErroBusinessMap): string => (e.tipo === 'http' ? `toque_comentarios_http_${String(e.status)}` : `toque_comentarios_${e.tipo}`);
+export const codigoDoErro = (prefixo: string, e: ErroBusinessMap): string => (e.tipo === 'http' ? `${prefixo}_http_${String(e.status)}` : `${prefixo}_${e.tipo}`);
+const codigoDaFalha = (e: ErroBusinessMap): string => codigoDoErro('toque_comentarios', e);
 
-async function lerLote(cliente: ClienteHttp, ids: readonly string[], saida: ResultadoLoteComentarios, contar: (caminho: string) => void): Promise<void> {
+async function lerLote(cliente: Pick<ClienteHttp, 'get'>, ids: readonly string[], saida: ResultadoLoteComentarios, contar: (caminho: string) => void): Promise<void> {
   let itens: unknown[];
   try {
     itens = await lerTodasAsPaginas(cliente, '/cards/comments', { card_ids: ids.join(',') });
   } catch (e) {
-    if (!(e instanceof ErroBusinessMap) || FATAIS.has(e.tipo)) throw e;
-    // R-T8 (A5 do parecer): resposta acima do teto de bytes divide o lote ao meio, até um card; os sublotes que passam ficam lidos.
-    if (e.tipo === 'limite-bytes' && ids.length > 1) {
+    if (!ehDoCardOuDoLote(e)) throw e;
+    // R-T8 (A5 do parecer) e A3 do review do B7a: resposta acima do teto de bytes ou de páginas divide o lote ao meio, até um card; os sublotes que passam ficam lidos.
+    // Um card só que estoura o teto fica com o código (`toque_comentarios_limite_bytes` ou `toque_comentarios_limite_paginas_leitura`), sem parar a execução.
+    if ((e.tipo === 'limite-bytes' || e.tipo === 'limite-paginas-leitura') && ids.length > 1) {
       const meio = Math.ceil(ids.length / 2);
       await lerLote(cliente, ids.slice(0, meio), saida, contar);
       await lerLote(cliente, ids.slice(meio), saida, contar);
@@ -103,7 +107,7 @@ async function lerLote(cliente: ClienteHttp, ids: readonly string[], saida: Resu
  * lote marca todos os cards dele com o código (nenhum fica "sem comentário"); falha de bytes divide o lote. Erro fatal (autenticação, limite de requisições
  * ou de páginas) sobe. Lote vazio, com mais de 200 ou com id fora da forma é erro de consulta antes da rede.
  */
-export async function lerComentariosDoLote(cliente: ClienteHttp, cardIds: readonly string[]): Promise<ResultadoLoteComentarios> {
+export async function lerComentariosDoLote(cliente: Pick<ClienteHttp, 'get'>, cardIds: readonly string[]): Promise<ResultadoLoteComentarios> {
   if (cardIds.length === 0 || cardIds.length > MAX_CARDS_POR_LOTE || new Set(cardIds).size !== cardIds.length || !cardIds.every((id) => ID_DE_CARD.test(id))) {
     throw new ErroBusinessMap('consulta', 'lote de comentários exige de 1 a 200 ids de card distintos');
   }
@@ -115,7 +119,7 @@ export async function lerComentariosDoLote(cliente: ClienteHttp, cardIds: readon
 }
 
 export interface DepsToqueDoCard {
-  cliente: ClienteHttp;
+  cliente: Pick<ClienteHttp, 'get'>;
   cardId: string;
   /** `revision` da listagem. */
   revisao: number;

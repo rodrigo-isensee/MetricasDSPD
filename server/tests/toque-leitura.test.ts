@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lerComentariosDoLote, lerRevisoesDoCard, lerToqueDoCard, MAX_CARDS_POR_LOTE } from '../src/modulos/businessmap/toque-leitura.js';
+import { ehDoCardOuDoLote, lerComentariosDoLote, lerRevisoesDoCard, lerToqueDoCard, MAX_CARDS_POR_LOTE } from '../src/modulos/businessmap/toque-leitura.js';
 import { criarClienteHttp, type ClienteHttp, type ErroBusinessMap } from '../src/plataforma/http.js';
 
 // Pedido 105, B7a (O22, ADR 0020 R6-2, R6-4, R6-7): leitura de revisões e comentários. Fetch falso, dados fictícios, nenhuma rede.
@@ -70,9 +70,11 @@ describe('lerRevisoesDoCard', () => {
     }
   });
 
-  it('mais de 50 páginas: limite-paginas', async () => {
+  it('mais de 50 páginas: limite-paginas-leitura (do card, não o teto da execução; A3 do review do B7a)', async () => {
     const { cliente, pedidos } = montar(() => ({ corpo: { data: { data: [], pagination: { all_pages: 51 } } } }));
-    expect((await falha(lerRevisoesDoCard(cliente, '5'))).tipo).toBe('limite-paginas');
+    const e = await falha(lerRevisoesDoCard(cliente, '5'));
+    expect(e.tipo).toBe('limite-paginas-leitura');
+    expect(ehDoCardOuDoLote(e)).toBe(true);
     expect(pedidos).toHaveLength(50);
   });
 });
@@ -131,11 +133,23 @@ describe('lerComentariosDoLote (R6-2, R-T2, R-T8)', () => {
     expect((await lerComentariosDoLote(fora.cliente, ['1'])).porCard.get('1')).toEqual({ ok: false, codigo: 'toque_comentarios_indisponivel' });
   });
 
-  it('erro fatal (401, teto de páginas) sobe, não vira falha do lote', async () => {
+  it('erro fatal (401) sobe, não vira falha do lote; o erro que não é do cliente também sobe', async () => {
     const a = montar(() => ({ status: 401 }));
-    expect((await falha(lerComentariosDoLote(a.cliente, ['1']))).tipo).toBe('autenticacao');
-    const b = montar(() => ({ corpo: { data: { data: [], pagination: { all_pages: 99 } } } }));
-    expect((await falha(lerComentariosDoLote(b.cliente, ['1']))).tipo).toBe('limite-paginas');
+    const e = await falha(lerComentariosDoLote(a.cliente, ['1']));
+    expect(e.tipo).toBe('autenticacao');
+    expect(ehDoCardOuDoLote(e)).toBe(false);
+    expect(ehDoCardOuDoLote(new Error('x'))).toBe(false);
+  });
+
+  it('A3 do review do B7a: lote acima de 50 páginas se divide como no teto de bytes; um card só fica com o código, sem parar a execução', async () => {
+    const { cliente, pedidos } = montar((_c, q) => {
+      const ids = q.get('card_ids')!.split(',');
+      return { corpo: { data: { data: ids.map((id) => comentarioBruto(Number(id), Number(id) + 100)), pagination: { all_pages: ids.includes('5') ? 99 : 1 } } } };
+    });
+    const r = await lerComentariosDoLote(cliente, ['1', '2', '3', '4', '5']);
+    for (const id of ['1', '2', '3', '4']) expect(r.porCard.get(id), id).toMatchObject({ ok: true });
+    expect(r.porCard.get('5')).toEqual({ ok: false, codigo: 'toque_comentarios_limite-paginas-leitura' });
+    expect(pedidos.length).toBeGreaterThan(50);
   });
 
   it('caso 15: resposta acima do teto de bytes divide o lote ao meio até passar; o card que sozinho passa do teto fica com o código', async () => {

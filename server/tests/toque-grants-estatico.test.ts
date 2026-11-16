@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { COLUNAS_API_APONTAMENTO } from '../src/plataforma/db/grants.js';
 
 // Pedido 105, B7a (A4 do parecer 105-o22-adr, R-T5, caso 13): o papel da aba Apontamento lê `pessoa_ref` por card. Se ele lesse o toque por card, daria tempo de
-// resposta por pessoa (regra inviolável: nenhuma métrica para avaliação individual). As colunas ainda não existem (migração do B7b); esta guarda estática impede que
-// entrem na lista do papel e o teste de banco do B7b confirma o `permission denied`.
+// resposta por pessoa (regra inviolável: nenhuma métrica para avaliação individual). As colunas existem desde a migração 0039 (B7b); esta guarda estática impede que
+// entrem na lista do papel e `toque-base.pg.test.ts` confirma o `permission denied` no banco.
 describe('o papel da aba Apontamento não lê o primeiro toque (R-T5)', () => {
   const COLUNAS_DO_TOQUE = ['primeiro_toque_em', 'toque_situacao', 'conta_como_toque', 'revisao_lida', 'estado', 'motivo', 'ocorrido_em', 'evento_id'];
 
