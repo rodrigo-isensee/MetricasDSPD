@@ -98,6 +98,15 @@ export const VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO: VersaoCriterio = {
   afeta: ['T10'],
 }
 
+/** E7.77 = A (pedido 105, decisão do dono de 2026-11-16): o T10 publica o tempo total esperando fornecedores (motivo "Aguardando fornecedor"), sem separar por fornecedor; substitui a P-075-11 "B". */
+export const VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t10-tempo-total-fornecedor',
+  data: '2026-11-16',
+  descricao:
+    'T10 passou a ter dado real: tempo total dos bloqueios encerrados com o motivo Aguardando fornecedor, sem separar por fornecedor',
+  afeta: ['T10'],
+}
+
 /**
  * D2 = A (pedido 011, decisão de 2026-10-17; pedido 024): o E7 deixou de trazer custo em R$ e passou a mostrar só a
  * participação percentual de cada sistema pelas entregas do período. Revê a D-1' e a Q-E7-1.
@@ -275,6 +284,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O19_PCT_DIAS,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
   VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
+  VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR,
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,

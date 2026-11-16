@@ -252,7 +252,7 @@ describe('H-1 / INV-6: nada de horas apontadas', () => {
     const ini = instanteDeIso('2026-10-07T09:00:00-03:00', CALENDARIO_PADRAO)
     const bloqueio: FatoBloqueio = {
       card_id: 'P',
-      motivo: 'Aguardando terceiro' as FatoBloqueio['motivo'],
+      motivo: 'Aguardando fornecedor',
       coluna_em_que_bloqueou: 'Em desenvolvimento',
       fornecedor: null,
       inicio: ini,
@@ -361,12 +361,12 @@ describe('O19-9: o percentual por causa nunca passa de 100% somado', () => {
   })
 })
 
-describe('T10-7 (baixa): fornecedor em branco e a caixa do nome', () => {
+describe('T10-7 (baixa; E7.77): o nome do fornecedor, em branco ou com caixa diferente, não muda o total', () => {
   const bq = (forn: string | null, i: number): FatoBloqueio => {
     const fim = instanteDeIso('2026-09-21T10:00:00-03:00', CALENDARIO_PADRAO)
     return {
       card_id: `c${i}`,
-      motivo: 'Aguardando terceiro' as FatoBloqueio['motivo'],
+      motivo: 'Aguardando fornecedor',
       coluna_em_que_bloqueou: 'Em desenvolvimento',
       fornecedor: forn,
       inicio: fim - 8 * 3_600_000,
@@ -385,10 +385,11 @@ describe('T10-7 (baixa): fornecedor em branco e a caixa do nome', () => {
         '2026-09-30T10:00:00-03:00',
       ),
     }))
-  it('nome só de espaços fica fora; espaços nas pontas não dividem a linha', () => {
-    const base = umaBase(cards(4), [bq('  ', 0), bq('', 1), bq(' Acme ', 2), bq('Acme', 3)])
+  it('nome em branco, nulo ou com caixa e espaços diferentes entra igual no total; nenhuma linha por fornecedor', () => {
+    const base = umaBase(cards(4), [bq('  ', 0), bq('', 1), bq(' Acme ', 2), bq(null, 3)])
     const r = calcularT10(criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO), F12S)
-    expect(r.fornecedores.map((f) => [f.fornecedor, f.bloqueios])).toEqual([['Acme', 2]])
+    expect(r.fornecedores).toEqual([])
+    expect(r.esperaFornecedores).toMatchObject({ bloqueios: 4 })
   })
 })
 

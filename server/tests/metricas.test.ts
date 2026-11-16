@@ -193,7 +193,7 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((e9.json().referenciasP85 as { tipo: string }[]).map((x) => x.tipo)).toEqual(['Iniciativa', 'Melhoria']);
   });
 
-  it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, fornecedor alfabético e sem prazo', async () => {
+  it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, T10 com o total de fornecedores (lista vazia) e sem prazo', async () => {
     const { app } = await montar();
     const o19 = await get(app, '/api/v1/metricas/O19?periodo=12m');
     expect(o19.statusCode).toBe(200);
@@ -202,10 +202,11 @@ describe('GET /api/v1/metricas/:id', () => {
     const t10 = await get(app, '/api/v1/metricas/T10?periodo=12m&tipo=melhoria');
     expect(t10.statusCode).toBe(200);
     expect(SCHEMAS_RESULTADO.T10.safeParse(t10.json()).success).toBe(true);
-    const nomes = (t10.json().fornecedores as { fornecedor: string }[]).map((x) => x.fornecedor);
-    expect(nomes).toEqual([...nomes].sort());
+    // E7.77: o T10 publica o total esperando fornecedores; a lista por fornecedor fica vazia, com o motivo.
+    expect(t10.json().fornecedores).toEqual([]);
+    expect(typeof t10.json().motivoSemFornecedores).toBe('string');
+    expect(Object.keys(t10.json().esperaFornecedores).sort()).toEqual(['bloqueios', 'diasUteis', 'duracao']);
     expect([...chaves(t10.json())].filter((k) => /prazo|contratad/i.test(k))).toEqual([]);
-    expect(Object.keys((t10.json().fornecedores as object[])[0] ?? {}).sort()).toEqual(['bloqueios', 'diasUteis', 'duracao', 'fornecedor']);
     expect((await get(app, '/api/v1/metricas/T10?periodo=abc')).statusCode).toBe(400);
   });
 
