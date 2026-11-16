@@ -267,6 +267,19 @@ export const VERSAO_CRITERIO_O18_VINCULOS: VersaoCriterio = {
   afeta: ['O18'],
 }
 
+/**
+ * Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 passou de "Sem dado real" para dado real. Frente adicionada depois do início
+ * é a frente criada depois do início do projeto; a frente criada antes e ligada depois conta como original (a base não guarda o instante do vínculo).
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t9-escopo-criado-em',
+  data: '2026-11-16',
+  descricao:
+    'T9 passou a ser calculado com o dado real do BusinessMap: o avanço é frentes concluídas sobre o total das filhas; frente adicionada depois do início é a criada depois do início do projeto (a criada antes e ligada depois conta como original); projeto sem início fica fora, com a contagem',
+  afeta: ['T9'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -290,6 +303,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
   VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
   VERSAO_CRITERIO_O18_VINCULOS,
+  VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
 ]
 
 /**

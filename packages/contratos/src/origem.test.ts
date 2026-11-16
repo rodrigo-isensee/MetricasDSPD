@@ -65,6 +65,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O15'], // pedido 105 (E7.5)
         ...['O18'], // pedido 105 (E7.4)
         ...['S11'], // pedido 105 (D6a, Decisão 18b do 099)
+        ...['T9'], // pedido 105 (E7.68, D-T9 "T9 A")
       ].sort(),
     )
   })

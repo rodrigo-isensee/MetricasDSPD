@@ -541,6 +541,12 @@ export const resultadoT9 = z.object({
     }),
   ),
   projetosComEscopoCrescido: z.number(),
+  /**
+   * Projetos com frentes filhas e sem `iniciado_em`: ficam fora da tabela e da conta, e a nota do cartão diz quantos (pedido 105, D-T9).
+   * Sem início não há como separar frente original de frente adicionada. Opcional só para a mudança ser compatível (a API sempre o envia);
+   * ausente lê-se 0.
+   */
+  projetosSemInicio: z.number().int().min(0).optional(),
 })
 
 /* ---------- FL3 ---------- */

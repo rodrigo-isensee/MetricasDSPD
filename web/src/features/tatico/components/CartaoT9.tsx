@@ -25,6 +25,7 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
   const projetos = d
     ? [...d.projetos].sort((a, b) => b.crescimentoEscopoPct - a.crescimentoEscopoPct)
     : []
+  const semInicio = d?.projetosSemInicio ?? 0
   const p0 = projetos[0]
   const leitura = p0
     ? `O projeto ${p0.projeto} tem ${fmtInteiro(p0.concluidas)} de ${fmtInteiro(p0.totalFrentes)} frentes concluídas (${fmtPct(p0.avancoPct)}). ${fmtInteiro(p0.adicionadas)} frentes foram adicionadas depois do início: o escopo cresceu ${fmtPct(p0.crescimentoEscopoPct)}.`
@@ -39,6 +40,13 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
     >
       {d && (
         <div className="flex flex-col gap-3">
+          <p className="text-sm" data-testid="t9-nota-escopo">
+            Frente adicionada depois do início é a frente criada depois do início do projeto. A base
+            não guarda quando a frente foi ligada ao projeto: a frente criada antes do início e
+            ligada depois conta como original.
+            {semInicio > 0 &&
+              ` ${fmtInteiro(semInicio)} ${semInicio === 1 ? 'projeto' : 'projetos'} sem data de início ${semInicio === 1 ? 'ficou' : 'ficaram'} fora desta conta.`}
+          </p>
           <ul className="flex flex-wrap gap-3 text-sm" aria-label="Legenda das barras">
             <li>Concluídas: sólido</li>
             <li>Em andamento: listras finas</li>

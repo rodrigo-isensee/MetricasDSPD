@@ -37,6 +37,11 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 105 (E7.4, O18 = c): entregas com e sem bug pelos vínculos do BusinessMap (pai e filho ou relacionado) projetados em `dim_card.origem_bug`.
   'O18',
   'EI_FL1',
+  // Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 lê o avanço pelas frentes filhas (concluídas ÷ total) e as adicionadas pela regra
+  // do `criado_em` da frente depois do `iniciado_em` do projeto, derivada na leitura (a base não guarda o instante do vínculo: a frente criada antes e
+  // ligada depois conta como original, e a nota do cartão diz isso); projeto sem início fica fora, contado. Só 13 projetos ativos têm frente filha:
+  // o T9 não publica estatística agregada (só "k de n"), e o por projeto segue a regra do briefing (censo).
+  'T9',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
   'BLOQUEADOS',
