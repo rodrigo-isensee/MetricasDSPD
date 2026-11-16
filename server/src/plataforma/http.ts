@@ -139,7 +139,7 @@ export interface ConfigHttp {
   tetoPaginas?: number;
   /**
    * Caminhos a mais SÓ para este cliente (spike pontual, pedido 105 E7.179): cada padrão vale além da lista fechada global,
-   * que não muda, e esses caminhos não aceitam parâmetro de consulta algum. Sem isto, o cliente é o da lista fechada.
+   * que não muda, e esses caminhos só aceitam `page` na consulta (paginação). Sem isto, o cliente é o da lista fechada.
    */
   caminhosExtras?: readonly RegExp[];
 }
@@ -239,7 +239,7 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     const naGlobal = CAMINHOS_PERMITIDOS.some((p) => p.test(caminho));
     const ehExtra = !naGlobal && (cfg.caminhosExtras ?? []).some((p) => p.test(caminho));
     if (!naGlobal && !ehExtra) throw new ErroBusinessMap('caminho', `caminho fora da lista fechada: ${caminho.slice(0, 60)}`);
-    if (ehExtra && Object.keys(consulta).length > 0) throw new ErroBusinessMap('consulta', 'parâmetro de consulta recusado: este caminho não aceita consulta');
+    if (ehExtra && Object.keys(consulta).some((n) => n !== 'page')) throw new ErroBusinessMap('consulta', 'parâmetro de consulta recusado: este caminho só aceita page');
     // `/users` só devolve id e nome (ADR 0020 rev. 3): exige `fields` e `user_ids` e recusa qualquer outro parâmetro.
     const ehUsers = caminho === '/users';
     const permitida = ehUsers

@@ -85,11 +85,14 @@ const subir = async (cards: unknown[], tags: unknown[]): Promise<{ url: string; 
       const por = Number(u.searchParams.get('per_page'));
       corpo = { data: { data: cards.slice((pagina - 1) * por, pagina * por), pagination: { all_pages: Math.ceil(cards.length / por) } } };
     } else if (u.pathname === '/tags') corpo = { data: tags };
-    else if (/^\/customFields\/\d+$/.test(u.pathname)) {
+    else if (/^\/customFields\/\d+\/allowedValues$/.test(u.pathname)) {
       const id = Number(u.pathname.split('/')[2]);
       const ops = [{ value_id: id * 10 + 1, value: `Opção Fictícia ${id}A`, position: 0 }, { value_id: id * 10 + 2, value: `Opção Fictícia ${id}B`, position: 1 }];
       // dois envelopes diferentes: plano (40, 41, 48) e aninhado em duas camadas (49, 50)
-      corpo = id <= 48 ? { data: { field_id: id, allowed_values: ops } } : { data: { field_id: id, config: { choices: { items: ops } } } };
+      const pg = Number(u.searchParams.get('page') ?? 1);
+      const mais = id === 41 ? [{ value_id: id * 10 + 3, value: 'Opção Fictícia 41C', position: 2 }] : [];
+      const lista = id === 41 && pg === 2 ? mais : ops;
+      corpo = id <= 48 ? { data: { data: lista, pagination: { all_pages: id === 41 ? 2 : 1 } } } : { data: { field_id: id, config: { choices: { items: ops } } } };
     }
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(corpo));
@@ -133,8 +136,9 @@ describe('executarSpikeCampos', () => {
     expect(TETO_AMOSTRA).toBe(200);
     expect(f.pedidos.every((p) => p.metodo === 'GET' && p.apikey === KEY)).toBe(true);
     const cat = f.pedidos.filter((p) => p.caminho.startsWith('/customFields'));
-    expect(cat.map((p) => p.url)).toEqual(['40', '41', '48', '49', '50'].map((i) => `/customFields/${i}`)); // sem consulta
+    expect(cat.map((p) => p.url)).toEqual(['40', '41', '48', '49', '50'].flatMap((i) => (i === '41' ? [`/customFields/${i}/allowedValues`, `/customFields/${i}/allowedValues?page=2`] : [`/customFields/${i}/allowedValues`]))); // sem consulta; só o 41 pagina
     expect(f.pedidos.map((p) => p.caminho).every((c) => c === '/cards' || c === '/tags' || CAMINHOS_CATALOGO.some((r) => r.test(c)))).toBe(true);
+    expect(r.saida).toContain('Catálogo do campo 41: 3 opções.');
     expect(r.saida).toContain('Catálogo do campo 48: 2 opções.');
     expect(r.saida).toContain('Catálogo do campo 50: 2 opções.');
     expect(r.saida).toContain('Forma da resposta do campo 50:');

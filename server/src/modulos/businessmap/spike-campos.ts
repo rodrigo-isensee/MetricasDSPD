@@ -14,12 +14,13 @@ import { desembrulhar, linhasDeForma, somarForma, type Forma } from './spike-for
 // fora do clone, para o dono; o stdout leva apenas contagens e nunca rótulo. Nenhuma resposta bruta é gravada. Nada vai à base.
 
 export const CAMPOS_SPIKE = ['40', '41', '49', '50'] as const;
-/** Campos cujo catálogo de opções (`GET /customFields/{id}`) o spike lê (E7.179): os quatro acima e o 48 (Causa Raiz). */
+/** Campos cujo catálogo de opções (`GET /customFields/{id}/allowedValues`) o spike lê (E7.179): os quatro acima e o 48 (Causa Raiz). */
 export const CAMPOS_CATALOGO = ['40', '41', '48', '49', '50'] as const;
 /** Lista de caminhos PRÓPRIA do spike (não entra na lista global do cliente): só esses cinco ids, sem consulta. */
-export const CAMINHOS_CATALOGO: readonly RegExp[] = [/^\/customFields\/(40|41|48|49|50)$/];
+export const CAMINHOS_CATALOGO: readonly RegExp[] = [/^\/customFields\/(40|41|48|49|50)\/allowedValues$/];
 export const TETO_AMOSTRA = 200;
 const POR_PAGINA = 100;
+const TETO_PAGINAS_CATALOGO = 5;
 const TETO_PAGINAS_TAGS = 50;
 const FATAIS = new Set(['autenticacao', 'limite-requisicoes', 'limite-paginas', 'limite-bytes', 'configuracao']);
 
@@ -122,8 +123,10 @@ function listaComValueId(corpo: unknown): unknown[] | undefined {
     for (const no of nivel) {
       if (Array.isArray(no)) {
         if (no.some((o) => ehObj(o) && ehChave(o.value_id))) return no;
-        prox.push(...no);
-      } else if (ehObj(no)) prox.push(...Object.values(no));
+        for (const filho of no) prox.push(filho);
+      } else if (ehObj(no)) {
+        for (const filho of Object.values(no)) prox.push(filho);
+      }
     }
     nivel = prox;
   }
@@ -181,7 +184,7 @@ export function renderizarRelatorio(ac: AcumuloSpike, etiquetas: readonly Etique
     const ops = [...c.opcoes.entries()].sort((a, b) => b[1].cards.size - a[1].cards.size || a[0].localeCompare(b[0], 'en', { numeric: true }));
     linhas.push(...ops.map(([vid, o]) => `| ${rotuloSeguro(vid)} | ${rotuloSeguro(o.rotulo)} | ${o.cards.size} |`), '');
   }
-  linhas.push('## Catálogo de opções dos campos (GET /customFields/{id}, E7.179)', '');
+  linhas.push('## Catálogo de opções dos campos (GET /customFields/{id}/allowedValues, E7.179)', '');
   for (const id of CAMPOS_CATALOGO) {
     const ops = catalogos.get(id);
     linhas.push(`### Campo ${id}`, '');
@@ -277,18 +280,26 @@ export async function executarSpikeCampos(deps: DepsSpikeCampos): Promise<Result
       const corpo = await ler(`tags-p${pagina}`, '/tags', pagina === 1 ? {} : { page: pagina });
       if (corpo === undefined) break;
       const d = desembrulhar(corpo);
-      catalogo.push(...d.itens);
+      for (const item of d.itens) catalogo.push(item);
       total = d.paginas ?? 1;
     }
     if (total > TETO_PAGINAS_TAGS) avisos.push(`tags: a API declara ${total} páginas; lidas ${TETO_PAGINAS_TAGS}`);
     const catalogos = new Map<string, OpcaoCatalogo[]>();
     const formas: string[] = [];
     for (const id of CAMPOS_CATALOGO) {
-      const corpo = await ler(`catalogo-campo-${id}`, `/customFields/${id}`, {});
-      if (corpo !== undefined) {
-        catalogos.set(id, opcoesDoCatalogo(corpo));
-        formas.push(...linhasFormaCatalogo(id, corpo));
+      const caminho = `/customFields/${id}/allowedValues`;
+      const corpo = await ler(`catalogo-campo-${id}`, caminho, {});
+      if (corpo === undefined) continue;
+      const ops = opcoesDoCatalogo(corpo);
+      const paginasCampo = desembrulhar(corpo).paginas ?? 1;
+      for (let pagina = 2; pagina <= paginasCampo && pagina <= TETO_PAGINAS_CATALOGO; pagina += 1) {
+        const mais = await ler(`catalogo-campo-${id}-p${pagina}`, caminho, { page: pagina });
+        if (mais === undefined) break;
+        for (const o of opcoesDoCatalogo(mais)) ops.push(o);
       }
+      if (paginasCampo > TETO_PAGINAS_CATALOGO) avisos.push(`catalogo-campo-${id}: a API declara ${paginasCampo} páginas; lidas ${TETO_PAGINAS_CATALOGO}`);
+      catalogos.set(id, ops);
+      for (const l of linhasFormaCatalogo(id, corpo)) formas.push(l);
     }
     const etiquetas = etiquetasDeSistema(catalogo, ac);
     const agora = new Date((deps.agora ?? Date.now)()).toISOString();

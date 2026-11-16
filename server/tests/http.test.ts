@@ -112,10 +112,11 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     const c = criarClienteHttp({ ...cfg(f.url), caminhosExtras: [/^\/customFields\/(40|48)$/] });
     await c.get('/customFields/48');
     expect(f.pedidos.map((p) => p.metodo)).toEqual(['GET']);
-    expect((await falhaDe(c.get('/customFields/48', { consulta: { page: 1 } }))).tipo).toBe('consulta');
+    expect((await falhaDe(c.get('/customFields/48', { consulta: { per_page: 1 } }))).tipo).toBe('consulta');
+    await c.get('/customFields/48', { consulta: { page: 2 } });
     expect((await falhaDe(c.get('/customFields/49'))).tipo).toBe('caminho');
     expect((await falhaDe(criarClienteHttp(cfg(f.url)).get('/customFields/48'))).tipo).toBe('caminho');
-    expect(f.pedidos).toHaveLength(1);
+    expect(f.pedidos).toHaveLength(2);
   });
 
   it('caminho com host próprio (URL completa ou //host) é recusado: o host é só o do .env', async () => {
