@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
-  analisarComentarios, analisarRevisoes, autorDoComentario, escolherAmostra, executarSpikeO22, levantarContas, novoAcumuloComentarios, novoAcumuloRevisoes,
+  analisarComentarios, analisarRevisoes, autorDoComentario, criadoNaJanela, executarSpikeO22, sortearAmostra, levantarContas, novoAcumuloComentarios, novoAcumuloRevisoes,
   validarSaida, type CardAmostra, type Evento,
 } from '../src/modulos/businessmap/spike-o22.js';
 import { CAMINHOS_PERMITIDOS, criarClienteHttp } from '../src/plataforma/http.js';
@@ -55,16 +55,24 @@ describe('cliente: lista fechada do spike', () => {
   });
 });
 
-describe('escolherAmostra', () => {
-  const card = (id: string, quadro: string): CardAmostra => ({ id, quadro, revisao: 2, ultimaModificacaoMs: null });
-  it('rodízio entre quadros, no máximo 3 por quadro e o total pedido', () => {
-    const m = new Map<string, CardAmostra[]>([
-      ['1', [card('a', '1'), card('b', '1'), card('c', '1'), card('d', '1')]],
-      ['2', [card('e', '2')]],
-      ['3', [card('f', '3'), card('g', '3')]],
-    ]);
-    expect(escolherAmostra(m, 100).map((c) => c.id)).toEqual(['a', 'e', 'f', 'b', 'g', 'c']);
-    expect(escolherAmostra(m, 4).map((c) => c.id)).toEqual(['a', 'e', 'f', 'b']);
+describe('sortearAmostra e janela', () => {
+  it('sorteia até n sem repetir, sem alterar a entrada, e é determinístico com o sorteio injetado', () => {
+    const entrada = ['a', 'b', 'c', 'd', 'e'];
+    let k = 0;
+    const alea = () => [0.1, 0.9, 0.5, 0.3][k++ % 4]!;
+    const r = sortearAmostra(entrada, 3, alea);
+    expect(r).toHaveLength(3);
+    expect(new Set(r).size).toBe(3);
+    expect(entrada).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(sortearAmostra(entrada, 10)).toHaveLength(5);
+  });
+  it('só entra quem foi criado nas últimas 12 semanas', () => {
+    const agora = Date.parse('2026-11-16T12:00:00Z');
+    const c = (criadoMs: number | null | undefined): CardAmostra => ({ id: '1', quadro: '1', revisao: 1, ultimaModificacaoMs: null, criadoMs });
+    expect(criadoNaJanela(c(agora - 83 * 86_400_000), agora)).toBe(true);
+    expect(criadoNaJanela(c(agora - 85 * 86_400_000), agora)).toBe(false);
+    expect(criadoNaJanela(c(null), agora)).toBe(false);
+    expect(criadoNaJanela(c(undefined), agora)).toBe(false);
   });
 });
 
@@ -79,24 +87,58 @@ describe('autorDoComentario', () => {
 });
 
 describe('analisarRevisoes', () => {
-  const card: CardAmostra = { id: '10', quadro: '1', revisao: 4, ultimaModificacaoMs: null };
-  const rev = (n: number, quando: string, user: unknown, extra: Record<string, unknown> = {}) => ({ card_id: 10, revision: n, created_at: quando, user_id: user, column_id: 5, ...extra });
-  it('conta pares iguais nos campos visíveis, campo que muda, sem user_id e cascata; revisão 1 é criação', () => {
+  const CRIADO = Date.parse('2026-11-02T14:00:00Z');
+  const card: CardAmostra = { id: '10', quadro: '1', revisao: 4, ultimaModificacaoMs: null, criadoMs: CRIADO };
+  // Forma real da lista: só revision, user_id e replaced_at (sem created_at).
+  const rev = (n: number, user: unknown, substituida: string | null) => ({ revision: n, user_id: user, replaced_at: substituida });
+  it('forma real (sem created_at): conta autores e instantes pela revisão anterior, com denominadores; nada é descartado antes de contar', () => {
     const a = novoAcumuloRevisoes();
     analisarRevisoes(card, { data: [
-      rev(2, '2026-11-02T15:00:05Z', 7, { column_id: 6 }),
-      rev(1, '2026-11-02T15:00:00Z', 7),
-      rev(3, '2026-11-02T15:00:05Z', 0, { column_id: 6 }),
-      rev(4, '2026-11-02T16:00:00Z', null, { column_id: 7 }),
+      rev(2, 7, '2026-11-02T15:00:05Z'),
+      rev(1, 7, '2026-11-02T15:00:00Z'),
+      rev(3, 0, '2026-11-02T16:00:00Z'),
+      rev(4, 9, null),
     ] }, a);
     expect(a.revisoes).toBe(4);
-    expect(a.semUsuario).toBe(2);
+    expect(a.cardsLidos).toBe(1);
+    expect(a.semUsuario).toBe(1); // user_id 0
+    expect([...a.contasRevisao].sort()).toEqual([7, 9]);
+    expect(a.semInstante).toBe(0);
+    expect(a.instanteDaAnterior).toBe(4);
+    expect(a.comCriadoProprio).toBe(0);
     expect(a.cardsRevisaoBate).toBe(1);
     expect(a.pares).toBe(3);
-    expect(a.paresIguais).toBe(1); // 2 -> 3 só mudam os campos de controle
-    expect(a.camposQueMudam.get('column_id')).toBe(2);
-    expect(a.eventos.filter((e) => e.criacao)).toHaveLength(1);
-    expect(a.eventos.filter((e) => e.cascata)).toHaveLength(2);
+    expect(a.paresComparaveis).toBe(0); // a lista só tem chaves de controle: nada a comparar, e isso aparece na tela
+    expect(a.paresIguais).toBe(0);
+    expect(a.eventos).toHaveLength(4);
+    expect(a.eventos.find((e) => e.criacao)!.ms).toBe(CRIADO);
+    expect(a.eventos.map((e) => e.ms)).toEqual([CRIADO, Date.parse('2026-11-02T15:00:00Z'), Date.parse('2026-11-02T15:00:05Z'), Date.parse('2026-11-02T16:00:00Z')]);
+  });
+  it('revisão sem instante possível ainda conta o autor; created_at próprio é conferido com o derivado; campo comparável vira par comparável', () => {
+    const a = novoAcumuloRevisoes();
+    const semCriado: CardAmostra = { ...card, criadoMs: null };
+    analisarRevisoes(semCriado, { data: [
+      { revision: 1, user_id: 5, replaced_at: null },
+      { revision: 2, user_id: 6, replaced_at: null, created_at: '2026-11-02T15:00:00Z', column_id: 1 },
+      { revision: 3, user_id: 6, replaced_at: null, created_at: '2026-11-02T16:00:00Z', column_id: 1 },
+    ] }, a);
+    expect(a.revisoes).toBe(3);
+    expect(a.semInstante).toBe(1); // a revisão 1, sem created_at do card nem próprio
+    expect(a.contasRevisao.size).toBe(2); // 5 conta mesmo sem instante
+    expect(a.comCriadoProprio).toBe(2);
+    expect(a.criadoProprioBate).toBe(0); // anterior sem replaced_at: nada a conferir
+    expect(a.paresComparaveis).toBe(2);
+    expect(a.paresIguais).toBe(1); // 2 -> 3 iguais; 1 -> 2 muda column_id
+    expect(a.camposQueMudam.get('column_id')).toBe(1);
+  });
+  it('lista vazia conta como card sem revisão e não vira zero silencioso na tela', () => {
+    const a = novoAcumuloRevisoes();
+    analisarRevisoes(card, { data: [] }, a);
+    analisarRevisoes(card, { data: [rev(1, 7, null)] }, a);
+    expect(a.cardsSemRevisao).toBe(1);
+    expect(a.cardsLidos).toBe(2);
+    expect(a.cardsRevisaoBate).toBe(0);
+    expect(a.cardsComparados).toBe(2);
   });
 });
 
@@ -115,6 +157,7 @@ describe('analisarComentarios', () => {
     expect(a.depoisDaUltimaModificacao).toBe(1);
     expect(a.comparados).toBe(3);
     expect(a.porTipo.get('plain')).toBe(2);
+    expect([...a.contas]).toEqual([7]);
     expect(JSON.stringify([a.eventos, [...a.forma.keys()]])).not.toContain(TEXTO);
     expect(JSON.stringify(a.eventos)).not.toContain('a@b.c');
   });
@@ -148,13 +191,13 @@ describe('executarSpikeO22 (cliente falso)', () => {
         if (caminho === '/boards') return Promise.resolve({ data: [{ board_id: 1, name: TITULO }, { board_id: 2, name: TITULO }] });
         if (caminho === '/cards') {
           const q = Number(o!.consulta!.board_ids);
-          return Promise.resolve({ data: { data: [{ card_id: q * 10, board_id: q, revision: 2, created_at: '2026-11-01T10:00:00Z', last_modified: '2026-11-02T10:00:00Z', title: TITULO }], pagination: { all_pages: 1 } } });
+          const antigo = { card_id: q * 10 + 1, board_id: q, revision: 2, created_at: '2026-01-01T10:00:00Z', last_modified: '2026-11-02T10:00:00Z' };
+          return Promise.resolve({ data: { data: [{ card_id: q * 10, board_id: q, revision: 2, created_at: '2026-11-01T10:00:00Z', last_modified: '2026-11-02T10:00:00Z', title: TITULO }, antigo], pagination: { all_pages: 1 } } });
         }
         if (caminho.endsWith('/revisions')) {
-          const id = Number(caminho.split('/')[2]);
           return Promise.resolve({ data: [
-            { card_id: id, revision: 1, created_at: '2026-11-01T10:00:00Z', user_id: 7 },
-            { card_id: id, revision: 2, created_at: '2026-11-02T08:00:00Z', user_id: 9, title: TITULO },
+            { revision: 1, user_id: 7, replaced_at: '2026-11-02T08:00:00Z' },
+            { revision: 2, user_id: 9, replaced_at: null },
           ] });
         }
         if (caminho === '/cards/comments') {
@@ -180,12 +223,20 @@ describe('executarSpikeO22 (cliente falso)', () => {
     const raiz = pasta();
     const fora = pasta();
     const arq = join(fora, 'o22.md');
-    const r = await executarSpikeO22({ cliente, quadros: [], caminhoSaida: arq, raizRepositorio: raiz });
+    const r = await executarSpikeO22({ cliente, quadros: [], caminhoSaida: arq, raizRepositorio: raiz, agora: () => Date.parse('2026-11-16T12:00:00Z') });
     expect(r.erro).toBeNull();
-    expect(r.saida).toContain('amostra: 2 cards em 2 quadros');
+    expect(r.saida).toContain('amostra: 2 cards sorteados de 2 criados nas últimas 12 semanas, em 2 quadros');
+    expect(r.saida).toContain('revisões: 4 lidas em 2 cards; cards que voltaram sem nenhuma revisão: 0 de 2');
+    expect(r.saida).toContain('sem user_id (ausente, nulo ou 0): 0 de 4 revisões');
+    expect(r.saida).toContain('contas distintas pelas revisões: 2 (de 4 revisões com user_id); pelos comentários: 1 (de 1 comentários com autor interno); no total: 2');
+    expect(r.saida).toContain('forma da resposta das revisões (só nomes de campo):');
+    expect(r.saida).toContain('`$[].replaced_at`');
+    expect(r.saida).toContain('`$[].user_id`');
     for (const marcador of [NOME, TEXTO, TITULO, 'Outro']) expect(r.saida).not.toContain(marcador);
     expect(r.saida).not.toMatch(/\b(7|9)\b.*conta/);
-    expect(chamadas.map((c) => c.split('?')[0])).toEqual(['/boards', '/cards', '/cards', '/cards/10/revisions', '/cards/20/revisions', '/cards/comments', '/users']);
+    expect(chamadas.map((c) => c.split('?')[0]).sort()).toEqual(['/boards', '/cards', '/cards', '/cards/10/revisions', '/cards/20/revisions', '/cards/comments', '/users'].sort());
+    expect(chamadas.filter((c) => c.startsWith('/cards/comments')).every((c) => Object.keys(JSON.parse(c.split('?')[1]!)).sort().join() === 'card_ids,page')).toBe(true);
+    expect(chamadas.filter((c) => c.startsWith('/cards?')).every((c) => c.includes('"last_modified_from":"2026-08-24"'))).toBe(true);
     expect(JSON.stringify(chamadas)).not.toContain('description');
     const conteudo = readFileSync(arq, 'utf8');
     expect(conteudo).toContain(NOME);

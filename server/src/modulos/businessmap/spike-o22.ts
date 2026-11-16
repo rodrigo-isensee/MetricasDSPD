@@ -13,14 +13,15 @@ import { foraDoRepositorio } from './spike.js';
 // Privacidade: o texto do comentário nunca é extraído (só `card_id`, `created_at`, `type` e o autor como número); `user_id` e nome só existem em
 // memória e no ARQUIVO DE SAÍDA, que o script recusa gravar dentro do repositório. O texto que vai à tela (`saida`) tem só contagens.
 
-export const QUANTIDADE_PADRAO = 30;
+export const QUANTIDADE_PADRAO = 60;
 export const QUANTIDADE_MAXIMA = 60;
 const MAX_QUADROS_VISITADOS = 60;
-const POR_QUADRO = 3;
-const CARDS_POR_PAGINA = 10;
+const CARDS_POR_PAGINA = 100;
+const MAX_PAGINAS_LISTAGEM = 3;
+const JANELA_MS = 12 * 7 * 86_400_000;
 const MAX_PAGINAS_COMENTARIOS = 5;
 const CAMPOS_AMOSTRA = 'card_id,board_id,revision,created_at,last_modified';
-/** Campos da revisão que não contam como "mudança de conteúdo" ao comparar revisões consecutivas. */
+/** Campos da revisão que não contam como "mudança de conteúdo" ao comparar revisões consecutivas (a lista da API traz só estes: a comparação costuma ficar sem o que comparar, e a tela diz isso). */
 const CAMPOS_DE_CONTROLE = new Set(['revision', 'created_at', 'replaced_at', 'user_id']);
 
 /** Limiares das suspeitas de automação (heurística para o dono confirmar; nunca decide sozinha). */
@@ -47,7 +48,7 @@ export interface Evento {
   cascata?: boolean;
 }
 
-export interface CardAmostra { id: string; quadro: string; revisao: number | null; ultimaModificacaoMs: number | null }
+export interface CardAmostra { id: string; quadro: string; revisao: number | null; ultimaModificacaoMs: number | null; criadoMs?: number | null }
 
 const ehObjeto = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const inteiroPositivo = (v: unknown): number | null => (typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : null);
@@ -56,20 +57,20 @@ const idDe = (v: unknown): string | null => {
   return n === null ? null : String(n);
 };
 
-/** Escolha em rodízio entre os quadros, até `n` cards, no máximo `POR_QUADRO` por quadro (times diferentes). */
-export function escolherAmostra(porQuadro: ReadonlyMap<string, readonly CardAmostra[]>, n: number): CardAmostra[] {
-  const filas = [...porQuadro.values()].map((l) => l.slice(0, POR_QUADRO));
-  const saida: CardAmostra[] = [];
-  for (let rodada = 0; rodada < POR_QUADRO && saida.length < n; rodada += 1) {
-    for (const fila of filas) {
-      const c = fila[rodada];
-      if (c !== undefined && saida.length < n) saida.push(c);
-    }
+/** Sorteio simples (Fisher-Yates) de até `n` candidatos; `aleatorio` injetável para teste. Não altera a lista de entrada. */
+export function sortearAmostra<T>(candidatos: readonly T[], n: number, aleatorio: () => number = Math.random): T[] {
+  const v = [...candidatos];
+  for (let i = v.length - 1; i > 0; i -= 1) {
+    const j = Math.min(i, Math.floor(aleatorio() * (i + 1)));
+    [v[i], v[j]] = [v[j]!, v[i]!];
   }
-  return saida;
+  return v.slice(0, n);
 }
 
-/** Cards de uma página da listagem (`fields` fixo), mais revisados primeiro (a amostra tende a cards com edição). */
+/** Candidatos criados dentro da janela (`created_at` lido e >= agora - 12 semanas). */
+export const criadoNaJanela = (c: CardAmostra, agoraMs: number): boolean => c.criadoMs !== undefined && c.criadoMs !== null && c.criadoMs >= agoraMs - JANELA_MS && c.criadoMs <= agoraMs;
+
+/** Cards de uma página da listagem (`fields` fixo). */
 export function cardsDaListagem(corpo: unknown): CardAmostra[] {
   const lista: CardAmostra[] = [];
   for (const i of desembrulhar(corpo).itens) {
@@ -77,9 +78,9 @@ export function cardsDaListagem(corpo: unknown): CardAmostra[] {
     const id = idDe(i.card_id);
     const quadro = idDe(i.board_id);
     if (id === null || quadro === null) continue;
-    lista.push({ id, quadro, revisao: inteiroPositivo(i.revision), ultimaModificacaoMs: instanteDoBm(i.last_modified) });
+    lista.push({ id, quadro, revisao: inteiroPositivo(i.revision), ultimaModificacaoMs: instanteDoBm(i.last_modified), criadoMs: instanteDoBm(i.created_at) });
   }
-  return lista.sort((a, b) => (b.revisao ?? 0) - (a.revisao ?? 0));
+  return lista;
 }
 
 /** Autor do comentário: só o número quando `internal`; `sender`/`author` externos viram `externo`; o resto, sem autor. */
@@ -96,11 +97,23 @@ export function autorDoComentario(c: Record<string, unknown>): { conta: number |
 export interface RevisoesAnalisadas {
   eventos: Evento[];
   forma: Forma;
-  /** Revisões lidas, pares consecutivos, pares sem diferença nos campos visíveis e `user_id` ausente, nulo ou 0. */
+  /** Revisões lidas (denominador de tudo abaixo), pares consecutivos, pares com ao menos um campo comparável, pares sem diferença neles e `user_id` ausente, nulo ou 0 (contado ANTES de qualquer descarte). */
   revisoes: number;
+  cardsLidos: number;
+  /** Cards cuja lista de revisões voltou vazia (todo card tem ao menos a revisão 1: indício de forma diferente ou resposta vazia). */
+  cardsSemRevisao: number;
   pares: number;
+  paresComparaveis: number;
   paresIguais: number;
   semUsuario: number;
+  /** Contas distintas pelo `user_id` das revisões (só o conjunto em memória; a tela mostra a quantidade). */
+  contasRevisao: Set<number>;
+  /** Instante pelo `replaced_at` da revisão anterior (ou `created_at` do card na revisão 1) e revisões sem instante algum. */
+  instanteDaAnterior: number;
+  semInstante: number;
+  /** Revisões que trazem `created_at` próprio, e quantas delas coincidem com o instante derivado. */
+  comCriadoProprio: number;
+  criadoProprioBate: number;
   /** Cards cuja quantidade de revisões bate com `revision` da listagem. */
   cardsRevisaoBate: number;
   cardsComparados: number;
@@ -114,28 +127,45 @@ const canonico = (v: unknown): string => {
   return JSON.stringify(v) ?? 'undefined';
 };
 
-/** Analisa as revisões de um card (em memória): eventos, forma e as contagens da pergunta (1). Não guarda valor de campo. */
+/** Analisa as revisões de um card (em memória): eventos, forma e as contagens da pergunta (1). Não guarda valor de campo.
+ * Instante da revisão n (n >= 2) = `replaced_at` da revisão n - 1; da revisão 1, o `created_at` do card; se a revisão trouxer
+ * `created_at` próprio, vale ele e se confere com o derivado. O `user_id` é contado antes de qualquer descarte por falta de instante. */
 export function analisarRevisoes(card: CardAmostra, corpo: unknown, acc: RevisoesAnalisadas): void {
   const itens = desembrulhar(corpo).itens.filter(ehObjeto);
   somarForma(itens, acc.forma);
   const ordenadas = [...itens].sort((a, b) => Number(a.revision ?? 0) - Number(b.revision ?? 0));
+  acc.cardsLidos += 1;
+  if (ordenadas.length === 0) acc.cardsSemRevisao += 1;
   acc.revisoes += ordenadas.length;
   if (card.revisao !== null) {
     acc.cardsComparados += 1;
     if (ordenadas.length === card.revisao) acc.cardsRevisaoBate += 1;
   }
   const primeira = ordenadas[0];
+  const instantes = ordenadas.map((r, i) => {
+    const derivado = i === 0 ? (card.criadoMs ?? null) : instanteDoBm(ordenadas[i - 1]!.replaced_at);
+    const proprio = instanteDoBm(r.created_at);
+    if (proprio !== null) {
+      acc.comCriadoProprio += 1;
+      if (derivado !== null && Math.abs(proprio - derivado) < 1000) acc.criadoProprioBate += 1;
+    }
+    const ms = proprio ?? derivado;
+    if (ms === null) acc.semInstante += 1;
+    else if (proprio === null) acc.instanteDaAnterior += 1;
+    return ms;
+  });
   const porSegundo = new Map<number, number>();
   const base: Evento[] = [];
-  for (const r of ordenadas) {
-    const ms = instanteDoBm(r.created_at);
-    if (ms === null) continue;
+  ordenadas.forEach((r, i) => {
     const conta = inteiroPositivo(r.user_id);
     if (conta === null) acc.semUsuario += 1;
+    else acc.contasRevisao.add(conta);
+    const ms = instantes[i]!;
+    if (ms === null) return;
     base.push({ conta, externo: false, ms, card: card.id, fonte: 'revisao', criacao: r === primeira });
     const s = Math.floor(ms / 1000);
     porSegundo.set(s, (porSegundo.get(s) ?? 0) + 1);
-  }
+  });
   for (const e of base) e.cascata = (porSegundo.get(Math.floor(e.ms / 1000)) ?? 0) > 1;
   acc.eventos.push(...base);
   for (let i = 1; i < ordenadas.length; i += 1) {
@@ -143,13 +173,15 @@ export function analisarRevisoes(card: CardAmostra, corpo: unknown, acc: Revisoe
     const chaves = new Set([...Object.keys(a), ...Object.keys(b)].filter((k) => !CAMPOS_DE_CONTROLE.has(k)));
     const mudaram = [...chaves].filter((k) => canonico(a[k]) !== canonico(b[k]));
     acc.pares += 1;
-    if (mudaram.length === 0) acc.paresIguais += 1;
+    if (chaves.size > 0) acc.paresComparaveis += 1;
+    if (chaves.size > 0 && mudaram.length === 0) acc.paresIguais += 1;
     for (const k of mudaram) acc.camposQueMudam.set(chaveSegura(k), (acc.camposQueMudam.get(chaveSegura(k)) ?? 0) + 1);
   }
 }
 
 export const novoAcumuloRevisoes = (): RevisoesAnalisadas => ({
-  eventos: [], forma: new Map(), revisoes: 0, pares: 0, paresIguais: 0, semUsuario: 0, cardsRevisaoBate: 0, cardsComparados: 0, camposQueMudam: new Map(),
+  eventos: [], forma: new Map(), revisoes: 0, cardsLidos: 0, cardsSemRevisao: 0, pares: 0, paresComparaveis: 0, paresIguais: 0, semUsuario: 0,
+  contasRevisao: new Set(), instanteDaAnterior: 0, semInstante: 0, comCriadoProprio: 0, criadoProprioBate: 0, cardsRevisaoBate: 0, cardsComparados: 0, camposQueMudam: new Map(),
 });
 
 export interface ComentariosAnalisados {
@@ -163,10 +195,12 @@ export interface ComentariosAnalisados {
   depoisDaUltimaModificacao: number;
   comparados: number;
   paginasLidas: number;
+  /** Contas distintas pelo autor interno dos comentários (só o conjunto em memória). */
+  contas: Set<number>;
 }
 
 export const novoAcumuloComentarios = (): ComentariosAnalisados => ({
-  eventos: [], forma: new Map(), total: 0, porTipo: new Map(), externos: 0, semAutor: 0, depoisDaUltimaModificacao: 0, comparados: 0, paginasLidas: 0,
+  eventos: [], forma: new Map(), total: 0, porTipo: new Map(), externos: 0, semAutor: 0, depoisDaUltimaModificacao: 0, comparados: 0, paginasLidas: 0, contas: new Set(),
 });
 
 /** Analisa uma página de `/cards/comments`. O texto do comentário nunca é lido: só `card_id`, `created_at`, `type` e o autor. */
@@ -182,6 +216,7 @@ export function analisarComentarios(cards: ReadonlyMap<string, CardAmostra>, cor
     const { conta, externo } = autorDoComentario(c);
     if (externo) acc.externos += 1;
     else if (conta === null) acc.semAutor += 1;
+    else acc.contas.add(conta);
     if (id === null || ms === null) continue;
     const modificado = cards.get(id)?.ultimaModificacaoMs ?? null;
     if (modificado !== null) {
@@ -247,6 +282,8 @@ export interface Tempos { chamadas: number; totalMs: number; maxMs: number }
 export interface DadosSpikeO22 {
   quadrosVisitados: number;
   amostra: readonly CardAmostra[];
+  /** Cards criados na janela de 12 semanas dos quais a amostra foi sorteada. */
+  candidatos: number;
   revisoes: RevisoesAnalisadas;
   comentarios: ComentariosAnalisados;
   contas: readonly ContaLevantada[];
@@ -284,7 +321,7 @@ export function relatorioDoDono(d: DadosSpikeO22): string {
     '## 1a. Revisões (`/cards/{id}/revisions`)',
     `- revisões lidas: ${r.revisoes}; sem \`user_id\` (ausente, nulo ou 0): ${r.semUsuario}`,
     `- cards em que a quantidade de revisões bate com \`revision\` da listagem: ${r.cardsRevisaoBate} de ${r.cardsComparados}`,
-    `- pares de revisões consecutivas: ${r.pares}; sem diferença nos campos visíveis (edição fora da lista gera revisão): ${r.paresIguais} (${pct(r.paresIguais, r.pares)})`,
+    `- pares de revisões consecutivas: ${r.pares}; com campo comparável: ${r.paresComparaveis}; sem diferença nesses campos: ${r.paresIguais} de ${r.paresComparaveis} (${pct(r.paresIguais, r.paresComparaveis)})`,
     `- tempo por chamada: ${mediaMs(d.temposRevisoes)}`,
     '',
     'Campos que mudam entre revisões consecutivas (pares):',
@@ -326,10 +363,19 @@ export function resumoDaTela(d: DadosSpikeO22, caminhoSaida: string): string {
   const r = d.revisoes;
   const c = d.comentarios;
   return [
-    `amostra: ${d.amostra.length} cards em ${new Set(d.amostra.map((x) => x.quadro)).size} quadros`,
-    `revisões: ${r.revisoes}; sem user_id: ${r.semUsuario}; pares iguais nos campos visíveis: ${r.paresIguais} de ${r.pares}`,
-    `comentários: ${c.total}; externos: ${c.externos}; sem autor: ${c.semAutor}`,
-    `contas distintas: ${d.contas.length}; com suspeita de automação: ${d.contas.filter((x) => x.suspeitas.length > 0).length}`,
+    `amostra: ${d.amostra.length} cards sorteados de ${d.candidatos} criados nas últimas 12 semanas, em ${new Set(d.amostra.map((x) => x.quadro)).size} quadros`,
+    `revisões: ${r.revisoes} lidas em ${r.cardsLidos} cards; cards que voltaram sem nenhuma revisão: ${r.cardsSemRevisao} de ${r.cardsLidos}`,
+    `cards com a quantidade de revisões igual a revision da listagem: ${r.cardsRevisaoBate} de ${r.cardsComparados}`,
+    `sem user_id (ausente, nulo ou 0): ${r.semUsuario} de ${r.revisoes} revisões`,
+    `instante: pelo replaced_at da anterior ou pela criação do card: ${r.instanteDaAnterior} de ${r.revisoes}; created_at próprio da revisão: ${r.comCriadoProprio} de ${r.revisoes} (coincide com o derivado em ${r.criadoProprioBate}); sem instante: ${r.semInstante} de ${r.revisoes}`,
+    `pares iguais nos campos comparáveis: ${r.paresIguais} de ${r.paresComparaveis} com campo comparável (${r.pares} pares no total)`,
+    `contas distintas pelas revisões: ${r.contasRevisao.size} (de ${r.revisoes - r.semUsuario} revisões com user_id); pelos comentários: ${c.contas.size} (de ${c.total - c.externos - c.semAutor} comentários com autor interno); no total: ${new Set([...r.contasRevisao, ...c.contas]).size}`,
+    `comentários: ${c.total} em ${d.amostra.length} cards; externos: ${c.externos} de ${c.total}; sem autor: ${c.semAutor} de ${c.total}`,
+    `com suspeita de automação: ${d.contas.filter((x) => x.suspeitas.length > 0).length} de ${d.contas.length} contas com instante`,
+    'forma da resposta das revisões (só nomes de campo):',
+    ...linhasDeForma(r.forma),
+    'forma da resposta dos comentários (só nomes de campo):',
+    ...linhasDeForma(c.forma),
     `relatório completo (só para o dono): ${caminhoSaida}`,
   ].join('\n');
 }
@@ -341,6 +387,9 @@ export interface DepsSpikeO22 {
   caminhoSaida: string;
   raizRepositorio: string;
   quantidade?: number;
+  /** Relógio de calendário em ms (janela de 12 semanas) e sorteio; injetáveis para teste. */
+  agora?: () => number;
+  aleatorio?: () => number;
   /** Relógio monotônico em ms (tempo por chamada). */
   relogio?: () => number;
   escrever?: (caminho: string, texto: string) => Promise<void>;
@@ -391,13 +440,17 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
   const cliente = deps.cliente;
   try {
     const quadros = await listarQuadros(cliente, deps.quadros);
-    const porQuadro = new Map<string, CardAmostra[]>();
+    const agoraMs = (deps.agora ?? Date.now)();
+    const desde = new Date(agoraMs - 12 * 7 * 86_400_000).toISOString().slice(0, 10);
+    const candidatos: CardAmostra[] = [];
     for (const q of quadros) {
-      const corpo = await cliente.get('/cards', { consulta: { board_ids: q, state: 'active', fields: CAMPOS_AMOSTRA, per_page: CARDS_POR_PAGINA, page: 1 } });
-      const cards = cardsDaListagem(corpo);
-      if (cards.length > 0) porQuadro.set(q, cards);
+      for (let pagina = 1, total = 1; pagina <= Math.min(total, MAX_PAGINAS_LISTAGEM); pagina += 1) {
+        const corpo = await cliente.get('/cards', { consulta: { board_ids: q, state: 'active', last_modified_from: desde, fields: CAMPOS_AMOSTRA, per_page: CARDS_POR_PAGINA, page: pagina } });
+        total = desembrulhar(corpo).paginas ?? 1;
+        candidatos.push(...cardsDaListagem(corpo).filter((c) => criadoNaJanela(c, agoraMs)));
+      }
     }
-    const amostra = escolherAmostra(porQuadro, n);
+    const amostra = sortearAmostra(candidatos, n, deps.aleatorio);
 
     const revisoes = novoAcumuloRevisoes();
     const temposRevisoes: Tempos = { chamadas: 0, totalMs: 0, maxMs: 0 };
@@ -438,7 +491,7 @@ export async function executarSpikeO22(deps: DepsSpikeO22): Promise<{ saida: str
         if (e instanceof ErroBusinessMap && ['autenticacao', 'limite-requisicoes', 'configuracao'].includes(e.tipo)) throw e;
       }
     }
-    const dados: DadosSpikeO22 = { quadrosVisitados: quadros.length, amostra, revisoes, comentarios, contas, nomes, nomesLidos, temposRevisoes, temposComentarios };
+    const dados: DadosSpikeO22 = { quadrosVisitados: quadros.length, amostra, candidatos: candidatos.length, revisoes, comentarios, contas, nomes, nomesLidos, temposRevisoes, temposComentarios };
     try {
       await escrever(caminho, relatorioDoDono(dados));
     } catch (e) {
