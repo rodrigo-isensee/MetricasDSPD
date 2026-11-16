@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ei-sust
-commit: bcbe9ff40d7f4de6611819ea5e9b15cb08fcfc87
+commit: bb0b770baef8b9c17279eed5c12cb3d26696664f
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -85,3 +85,8 @@ O M1 é aceito por mim como equivalente: nenhuma entrada válida de BusinessMap 
 Observações, sem achado: a composição soma todas as prioridades do filtro, enquanto o cartão mostra uma aba por vez; o texto do `<details>` diz "todas as prioridades do filtro", então não engana. A1 e A2 do parecer anterior seguem recomendados, em `ei.ts`, fora do delta.
 
 Provas e limites: o pronto completo do autor terminou EXIT 0 (informado no brief). Sem PR, não há check `bateria`; este parecer não afirma CI verde. O E2E do cartão não foi rodado nesta passada; a acessibilidade foi medida no HTML do componente sem a folha de estilo, então o contraste fica para o E2E do CI.
+
+## Revalidação no head bb0b770b (integração da develop)
+Mudança: o tech-lead integrou a `origin/develop` (312a0152) para resolver um conflito só no `CHANGELOG.md`. `forge-check parecer delta` (intervalo bcbe9ff4..bb0b770b) listou 6 arquivos no domínio (`CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `origem.ts`, `origem.test.ts`, `painel-real-f6.test.ts`); a lista compara com a base antiga (57989aa0), por isso inclui o que a develop trouxe (#491, #496, #499, #500, #502) e que não é da EI_SUST. Conferi por arquivo: `git diff --numstat 57989aa0 bcbe9ff4` (aprovado) e `git diff --numstat origin/develop bb0b770b` (agora) dão os mesmos 30 arquivos e as mesmas contagens (+1533/-42 hoje); a única diferença são os dois pareceres (`docs/qa` e `docs/reviews`), que cresceram depois. O merge-base de bb0b770b com a origin/develop é a própria origin/develop (312a0152): a branch é a develop mais o patch da EI_SUST. Código e testes do patch inalterados; o resultado da passada anterior vale. A1 e A2 seguem recomendados, sem mudança.
+
+Limite: não reexecutei a suíte neste head (sem PR, sem check `bateria`); este parecer não afirma CI verde do sha bb0b770b, o que fica para o PR.
