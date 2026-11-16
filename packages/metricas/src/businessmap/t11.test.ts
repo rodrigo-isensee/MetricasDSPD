@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
-import { NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO } from '../core/criterios'
+import {
+  NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO,
+  VERSAO_CRITERIO_T11_DADO_REAL,
+} from '../core/criterios'
 import {
   calcularT11,
   entradasSazonaisDeCards,
@@ -280,5 +283,14 @@ describe('T11 com dado real (pedido 105, E7.64)', () => {
       'sistema',
       'tipo',
     ])
+  })
+})
+
+describe('T11: a descrição da versão de critério publica a regra que o cálculo aplica (review A1)', () => {
+  it('arquivados entram; excluídos e subtarefas ficam fora, e o texto diz isso', () => {
+    const d = VERSAO_CRITERIO_T11_DADO_REAL.descricao
+    expect(d).toContain('as arquivadas entram')
+    expect(d).toContain('as excluídas e as subtarefas ficam fora')
+    expect(d).not.toMatch(/excluídas incluídas|arquivadas e excluídas/)
   })
 })
