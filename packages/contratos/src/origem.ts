@@ -28,8 +28,14 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O20',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
-  // Pedido 105 (E7.3, decisão do dono de 2026-11-15 12:33): o O24 lê a classe de serviço das etiquetas do card (Padrão = etiqueta Padrao); card sem etiqueta de classe fica fora da fila, nunca Padrão por omissão (Q-099-9).
+  // Pedido 105 (E7.100, decisões do dono de 2026-11-16: campo de urgência do BM, "leitura 2", P-1): o O24 usa a fila da prioridade Média (campo `priority` do BusinessMap) no lugar da classe Padrão; card sem prioridade fica fora da fila e contado à parte, nunca Média por omissão.
   'O24',
+  // Pedido 105 (E7.100, decisões do dono de 2026-11-16, P-7: "liga já"): T1, T2, T4 e T6 separam pela prioridade nativa do BusinessMap (Crítica, Alta, Média, Baixa); as quatro passam de 20 entregues em 12 semanas (consulta pri-d). Card sem prioridade fica fora e contado (P-3); abaixo de 20 por nível = insuficiente, nunca somado a outro; T4 nunca agregado.
+  // T2: o SLE segue "não definido" até o dono aprovar os prazos propostos (D-T2); os 60 dias de dado limpo recomeçam na troca (P-5).
+  'T1',
+  'T2',
+  'T4',
+  'T6',
   // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
   'O16',
   // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
@@ -103,11 +109,12 @@ export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
  */
 export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
 /**
- * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
- * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ * Pedido 099 (A4, Q-099-4) e 105 (E7.102): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o tamanho vem do
+ * `size` nativo do card pela régua de cada time (seis faixas); enquanto a régua aprovada não estiver carregada, nenhum card tem tamanho e a
+ * divisão sai sem dado real. Com algum card com tamanho o motivo é nulo (plano de tamanho, seção 4). Texto provisório, revisado pela UX.
  */
 export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
-  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
+  'aguardando a régua de tamanho aprovada: nenhum card tem tamanho pela régua do time'
 
 /**
  * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. Desde o E7.101 a conversão sai do campo "Avaliação de Problema" e o
@@ -197,7 +204,8 @@ export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
 
 /** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */
 export const TEXTO_NOTA_CARTAO = {
-  'sem-classe': 'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
+  'sem-classe':
+    'Cartões sem prioridade ficam fora da separação por prioridade e são contados à parte.',
   'sle-nao-definido': 'SLE não definido.',
 } as const
 export type NotaCartaoId = keyof typeof TEXTO_NOTA_CARTAO

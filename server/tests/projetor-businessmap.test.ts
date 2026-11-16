@@ -98,6 +98,10 @@ describe('projetarBusinessMap (F4)', () => {
     expect(com(d, 'INSERT INTO dspd_bm.dim_card_versao')[0]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING');
     expect(com(d, 'DELETE FROM dspd_bm.dim_card WHERE')[0]!.valores).toEqual([['1', '3']]);
     expect(com(d, 'INSERT INTO dspd_bm.dim_card ')[0]!.texto).toContain('::text[]');
+    // 105 (O22, B7b): o DELETE + INSERT zera o primeiro toque; ele se refaz do controle e da staging do toque, para os mesmos cards, depois do INSERT, sem API
+    const toque = com(d, 'UPDATE dspd_bm.dim_card d SET primeiro_toque_em')[0]!;
+    expect(toque.valores).toEqual([['1', '3']]);
+    expect(d.chamadas.indexOf(toque)).toBeGreaterThan(d.chamadas.indexOf(com(d, 'INSERT INTO dspd_bm.dim_card ')[0]!));
     expect(com(d, 'UPDATE dspd_bm.ctl_coleta')[0]!.valores[0]).toBe(88);
     const entidades = com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').map((x) => x.valores[1]);
     expect(entidades).toEqual(expect.arrayContaining(['projecao_card', 'projecao_transicao', 'projecao_evento', 'projecao_versao', 'nota_pai_sprint']));
@@ -169,6 +173,22 @@ describe('projetarBusinessMap (F4)', () => {
     });
     const r = await projetarBusinessMap({ pool: d.pool, S, agora: () => AGORA, responsaveis: new Map([['1', ['9']]]) });
     expect(r.responsaveisGravados).toBe(1);
+  });
+
+  it('segurança A1 (105): o relatório conta as linhas da régua de time que não existe em ref_time, só a contagem', async () => {
+    const d = criarDublePg((q) => {
+      const t = q.texto;
+      if (t.includes("'projecao'")) return [{ coleta_id: '88' }];
+      if (t.includes('FROM dspd_bm.ref_time') && !t.includes('ref_time_workflow')) return [{ time_id: 26, nome: 'a', motivo: 'carga_inicial', vigente_de: '2020-01-01', vigente_ate: null }];
+      if (t.includes('FROM dspd_bm.ref_dominio') && q.valores[0] === 'tamanho_regua') {
+        return [{ campo: 'tamanho_regua', codigo: '26:1', rotulo: 'P' }, { campo: 'tamanho_regua', codigo: '99:1', rotulo: 'M' }, { campo: 'tamanho_regua', codigo: '77:2', rotulo: 'G' }];
+      }
+      return [];
+    });
+    const r = await projetarBusinessMap({ pool: d.pool, S, agora: () => AGORA });
+    expect(r.reguaLinhasDescartadas).toBe(2);
+    const vazio = await projetarBusinessMap({ pool: criarDublePg((q) => (q.texto.includes("'projecao'") ? [{ coleta_id: '89' }] : [])).pool, S, agora: () => AGORA });
+    expect(vazio.reguaLinhasDescartadas).toBe(0);
   });
 
   it('reconstrução limpa só a lista explícita (dim_card), nunca dim_responsavel, e não tem como chamar o BusinessMap', async () => {

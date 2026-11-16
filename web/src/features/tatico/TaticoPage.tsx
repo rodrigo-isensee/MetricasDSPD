@@ -28,14 +28,14 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   if (fora2)
     itens.push({
       id: 't2',
-      texto: `Aderência ao SLE abaixo da meta em ${fora2} ${fora2 === 1 ? 'classe' : 'classes'}`,
+      texto: `Aderência ao SLE abaixo da meta em ${fora2} ${fora2 === 1 ? 'prioridade' : 'prioridades'}`,
       para: '#t2',
     })
   const fora4 = t4?.classes.filter((c) => c.statusMeta === 'fora').length ?? 0
   if (fora4)
     itens.push({
       id: 't4',
-      texto: `Razão chegada/vazão fora de 0,9 a 1,0 em ${fora4} ${fora4 === 1 ? 'classe' : 'classes'}`,
+      texto: `Razão chegada/vazão fora de 0,9 a 1,0 em ${fora4} ${fora4 === 1 ? 'prioridade' : 'prioridades'}`,
       para: '#t4',
     })
   const fora3 =
