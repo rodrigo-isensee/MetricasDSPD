@@ -84,7 +84,7 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(o17.campoDisponivel).toBe(false)
     expect(o17.porCausa).toBeNull()
     expect(o17.motivoCausaRaiz).toBe(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL)
-    expect(o17.motivoCausaRaiz).toContain('causa aparente')
+    expect(o17.motivoCausaRaiz).toContain('texto livre')
     // Pedido 099 (E3.20, B' da Q-099-7): a parte por sistema é dado real mesmo sem a extensão.
     expect(o17.base.n).toBeGreaterThan(0)
     expect(o17.porSistema.reduce((t, x) => t + x.n, 0)).toBe(o17.base.n)
@@ -234,7 +234,16 @@ describe('O6 previsibilidade e O8 tamanho', () => {
     const r = calcularMetrica('O8', F, { bm: com, ac: ctxMock.ac })
     expect(r.motivoPorTamanho).toBeNull()
     const t = r.tipos[0]
-    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual(['M', 'Sem tamanho'])
+    // 105 (E7.102): as seis faixas sempre, depois "Sem tamanho" (aqui com entregas)
+    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual([
+      'PP',
+      'P',
+      'M',
+      'G',
+      'GG',
+      'XG',
+      'Sem tamanho',
+    ])
     expect(t?.porTamanho?.find((x) => x.tamanho === 'M')?.mediana).not.toBeNull()
     expect(t?.porTamanho?.find((x) => x.tamanho === 'Sem tamanho')?.mediana).toBeNull()
   })

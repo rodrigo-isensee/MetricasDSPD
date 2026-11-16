@@ -14,6 +14,7 @@ import {
   periodoDe,
   r2,
   selecionar,
+  semPrioridadeDe,
 } from './comum'
 import { fimDeVidaAberta } from './descartado'
 import type { ContextoBM, MarcosCard } from './indice'
@@ -30,7 +31,7 @@ interface Passagem {
 const memo = new WeakMap<ContextoBM, Map<string, Passagem>>()
 
 /**
- * Varredura da fila (D-6' = A): para cada grupo (quadro da equipe, classe Padrão, mesmo tipo) os cards são ordenados
+ * Varredura da fila (D-6' = A): para cada grupo (quadro da equipe, prioridade Média, mesmo tipo) os cards são ordenados
  * por `criado_em` e os inícios, por instante. Como os candidatos entram na fila em ordem de criação, o "conjunto
  * ordenado dos que ainda esperam" é uma fila FIFO com retirada preguiçosa na cabeça: O(n log n) por grupo (só as
  * duas ordenações), nunca O(n²). Espera = não iniciado, não descartado nem arquivado naquele instante.
@@ -41,7 +42,7 @@ function varrerFilas(ctx: ContextoBM): Map<string, Passagem> {
   const grupos = new Map<string, MarcosCard[]>()
   for (const m of ctx.idx.marcos) {
     const c = m.card
-    if (c.classe_servico !== 'Padrão' || !ehDemanda(m) || c.eh_subtarefa || m.excluido) continue
+    if (c.prioridade !== 'Média' || !ehDemanda(m) || c.eh_subtarefa || m.excluido) continue
     const chave = `${c.quadro_id}|${c.tipo}`
     const l = grupos.get(chave)
     if (l) l.push(m)
@@ -86,8 +87,8 @@ function varrerFilas(ctx: ContextoBM): Map<string, Passagem> {
 }
 
 /**
- * O24: ordem de chegada. Dos inícios do período (só classe Padrão), quantos passaram na frente de um pedido mais antigo
- * do mesmo tipo, na fila da mesma equipe (D-6' = A; Urgente, Prioritário e Prazo fixo ficam fora). A fila de cada
+ * O24: ordem de chegada. Dos inícios do período (só a fila da prioridade Média do BusinessMap, P-1 do dono; E7.100), quantos passaram na frente de um pedido mais antigo
+ * do mesmo tipo, na fila da mesma equipe (D-6' = A; Crítica, Alta e Baixa ficam fora; card sem prioridade fica fora e é contado em `semPrioridade`, nunca Média por omissão). A fila de cada
  * equipe nunca é comparada com a de outra e a saída não traz equipe (R5). Custo da ultrapassagem (R-1 = A): dias úteis
  * entre o início do primeiro item que passou na frente e o início do ultrapassado; ultrapassado que ainda não iniciou
  * fica fora da estatística até iniciar. P50/P85/P95 pela biblioteca, só com n >= 20 na janela de 12 semanas, por tipo
@@ -97,10 +98,13 @@ export function calcularO24(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO24 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, 'story')
   const passagens = varrerFilas(ctx)
-  const iniciados = selecionar(ctx, f, 'story').filter(
-    (m) => m.card.classe_servico === 'Padrão' && ehDemanda(m) && m.inicio !== null,
+  const iniciadosDeStory = selecionar(ctx, f, 'story').filter(
+    (m) => ehDemanda(m) && m.inicio !== null,
   )
+  const iniciados = iniciadosDeStory.filter((m) => m.card.prioridade === 'Média')
   const noPeriodo = iniciados.filter((m) => dentro(ctx, m.inicio, periodo))
+  const iniciosNoPeriodo = iniciadosDeStory.filter((m) => dentro(ctx, m.inicio, periodo))
+  const semPrioridade = semPrioridadeDe(iniciosNoPeriodo).length
   const fora = (m: MarcosCard): boolean => (passagens.get(m.card.card_id) as Passagem).foraDeOrdem
   const meses = mesesEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia).map(
     (b) => {
@@ -122,8 +126,9 @@ export function calcularO24(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO24 {
   const naJanela = iniciados.filter((m) => dentro(ctx, m.inicio, janela) && espera(m) !== null)
   const crit = criterios('O24', periodo, janela, ctx)
   return {
-    base: baseAmostral(noPeriodo.length, 'inícios da classe Padrão', periodo),
+    base: baseAmostral(noPeriodo.length, 'inícios da prioridade Média', periodo),
     criterios: crit,
+    semPrioridade: { n: semPrioridade, total: iniciosNoPeriodo.length },
     inicios: taxa(noPeriodo.filter(fora).length, noPeriodo.length),
     meses,
     marcacoes: crit.serie,

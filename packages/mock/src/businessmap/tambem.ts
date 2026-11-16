@@ -171,7 +171,7 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
         const trs = lista(c.card_id)
         if (!(
           ehDemandaDoTime(c) &&
-          c.classe_servico === 'Padrão' &&
+          c.prioridade === 'Média' &&
           c.tipo !== 'Defeito em produção' &&
           c.concluido_em !== null &&
           c.arquivado_em === null &&
@@ -214,11 +214,7 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
             primeiroFilho.set(pai, f.criado_em)
       const grupos = new Map<string, DimCard[]>()
       for (const c of cards) {
-        if (!(
-          ehDemandaDoTime(c) &&
-          c.classe_servico === 'Padrão' &&
-          c.tipo !== 'Defeito em produção'
-        ))
+        if (!(ehDemandaDoTime(c) && c.prioridade === 'Média' && c.tipo !== 'Defeito em produção'))
           continue
         const chave = `${c.quadro_id}|${c.tipo}`
         const l = grupos.get(chave)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carregarConfigBusinessMap, carregarConfigColetaBusinessMap, carregarConfigProjetorBusinessMap } from '../src/plataforma/config.js';
+import { carregarConfigBusinessMap, carregarConfigColetaBusinessMap, carregarConfigProjetorBusinessMap, carregarConfigToqueBusinessMap } from '../src/plataforma/config.js';
 
 const base = { BUSINESSMAP_URL_BASE: 'https://exemplo.kanbanize.com/api/v2', BUSINESSMAP_APIKEY: 'chave-de-teste' };
 
@@ -65,5 +65,17 @@ describe('config do projetor (F4 do plano 052)', () => {
   it('recusa sem a URL do coletor ou com URL inválida; a mensagem cita só o nome', () => {
     expect(() => carregarConfigProjetorBusinessMap({})).toThrow(/^Configuração inválida \(variáveis: PG_COLETOR_URL\)$/);
     expect(() => carregarConfigProjetorBusinessMap({ PG_COLETOR_URL: 'senha-secreta' })).not.toThrow(/senha-secreta/);
+  });
+});
+
+describe('config da carga do primeiro toque (105, B7b)', () => {
+  const coletor = 'postgres://dspd_coletor:coletor_dev@127.0.0.1:5432/metricas';
+  it('a configuração do BusinessMap mais o banco do coletor: sem sal e sem papel de referência', () => {
+    expect(carregarConfigToqueBusinessMap({ ...base, PG_COLETOR_URL: coletor })).toMatchObject({ PG_COLETOR_URL: coletor, BUSINESSMAP_APIKEY: 'chave-de-teste', BUSINESSMAP_LIMITE_POR_MINUTO: 25 });
+  });
+  it('recusa sem a URL do coletor ou sem a chave; a mensagem cita só nomes', () => {
+    expect(() => carregarConfigToqueBusinessMap(base)).toThrow(/^Configuração inválida \(variáveis: PG_COLETOR_URL\)$/);
+    expect(() => carregarConfigToqueBusinessMap({ PG_COLETOR_URL: coletor })).toThrow(/^Configuração inválida \(variáveis: BUSINESSMAP_[A-Z_, ]+\)$/);
+    expect(() => carregarConfigToqueBusinessMap({ ...base, PG_COLETOR_URL: 'senha-secreta' })).not.toThrow(/senha-secreta/);
   });
 });

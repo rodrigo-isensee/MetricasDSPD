@@ -123,6 +123,22 @@
       ],
       "additionalProperties": false
     },
+    "semPrioridade": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "n",
+        "total"
+      ],
+      "additionalProperties": false
+    },
     "classes": {
       "type": "array",
       "items": {
@@ -131,10 +147,10 @@
           "classe": {
             "type": "string",
             "enum": [
-              "Urgente",
-              "Prioritário",
-              "Prazo fixo",
-              "Padrão"
+              "Crítica",
+              "Alta",
+              "Média",
+              "Baixa"
             ]
           },
           "n": {
@@ -397,6 +413,7 @@
   "required": [
     "base",
     "criterios",
+    "semPrioridade",
     "classes"
   ],
   "additionalProperties": false

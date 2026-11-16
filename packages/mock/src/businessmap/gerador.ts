@@ -61,6 +61,7 @@ import {
   PESO_SISTEMA,
   SISTEMAS,
   classePorTipo,
+  prioridadePorClasse,
   equipeDoSistema,
   pseudonimo,
   tituloFicticio,
@@ -212,6 +213,7 @@ export function gerarBaseBusinessMap(
     origem_demanda: null,
     fase_deteccao: null,
     severidade: null,
+    prioridade: null,
     origem_bug: null,
     adicionado_apos_inicio_pai: false,
     ...p,
@@ -396,11 +398,13 @@ export function gerarBaseBusinessMap(
       (o.tipo === 'Dívida técnica' || o.tipo === 'Bug interno' || bernoulli(r, 0.12)
         ? AREA_INTERNA
         : escolha(r, AREAS_EXTERNAS))
+    const classeDoCard = o.classe ?? classePorTipo(o.tipo, r())
     const card = novaDim({
       card_id: proxId('S'),
       titulo: tituloFicticio(seqTitulo++, o.sistema, o.tipo),
       tipo: o.tipo,
-      classe_servico: o.classe ?? classePorTipo(o.tipo, r()),
+      classe_servico: classeDoCard,
+      prioridade: prioridadePorClasse(classeDoCard, o.tipo),
       sistema: o.sistema,
       area_solicitante: area,
       fornecedor: null,
@@ -419,6 +423,8 @@ export function gerarBaseBusinessMap(
       fase_deteccao: o.fase ?? null,
       severidade: o.fase ? escolha(r, ['Crítica', 'Alta', 'Média', 'Baixa'] as const) : null,
     })
+    // No BusinessMap a severidade do bug é o `priority` do card: uma coluna só (`dim_card.severidade`), então bug tem a prioridade igual à severidade.
+    if (card.severidade !== null) card.prioridade = card.severidade
     let linha = linhaStory(r, o.criado, o.mult, o.esquecido ? [2400, 0.5] : o.fila, rapido)
     linha = aplicarDescarte(r, card, linha, o.descarte)
     cards.push(card)
@@ -780,10 +786,9 @@ export function gerarBaseBusinessMap(
       limite_wip_fluxo: limiteFluxo,
       limite_frentes: 12,
       sle: [
-        { classe: 'Urgente', dias_uteis: 4, publicado_em: '2026-06-15' },
-        { classe: 'Prazo fixo', dias_uteis: 8, publicado_em: '2026-06-15' },
-        { classe: 'Padrão', dias_uteis: 5, publicado_em: '2026-06-15' },
-        { classe: 'Prioritário', dias_uteis: 6, publicado_em: '2026-06-15' },
+        { classe: 'Crítica', dias_uteis: 4, publicado_em: '2026-06-15' },
+        { classe: 'Alta', dias_uteis: 6, publicado_em: '2026-06-15' },
+        { classe: 'Média', dias_uteis: 5, publicado_em: '2026-06-15' },
       ],
       alocacao: aloc.map((a) => ({ ...a })),
       objetivos: [...OBJETIVOS_ESTRATEGICOS],

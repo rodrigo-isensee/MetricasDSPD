@@ -106,18 +106,36 @@ describe('O24: ordem de chegada', () => {
     expect(r.custo.porTipo).toEqual([])
   })
 
-  it('Urgente, Prioritário e Prazo fixo ficam fora, como quem passa na frente e como quem espera (CA-17)', () => {
-    for (const classe of ['Urgente', 'Prioritário', 'Prazo fixo'] as const) {
-      // o mais novo é da outra classe e passa na frente do Padrão antigo: não é início do O24, e o Padrão fica em ordem
-      const passa = calcularO24(ctxDe([card('a', C1, I2), card('b', C2, I1, { classe })]), F)
-      expect(passa.base.n, classe).toBe(1)
-      expect(passa.inicios, classe).toMatchObject({ k: 0, n: 1 })
-      expect(passa.custo.porTipo, classe).toEqual([])
-      // o mais antigo é da outra classe e espera: não conta como ultrapassado
-      const espera = calcularO24(ctxDe([card('a', C1, I2, { classe }), card('b', C2, I1)]), F)
-      expect(espera.inicios, classe).toMatchObject({ k: 0, n: 1 })
-      expect(espera.custo.porTipo, classe).toEqual([])
+  it('Crítica, Alta e Baixa ficam fora, como quem passa na frente e como quem espera (CA-17, E7.100)', () => {
+    for (const prioridade of ['Crítica', 'Alta', 'Baixa'] as const) {
+      // o mais novo é de outra prioridade e passa na frente do Média antigo: não é início do O24, e o Média fica em ordem
+      const passa = calcularO24(ctxDe([card('a', C1, I2), card('b', C2, I1, { prioridade })]), F)
+      expect(passa.base.n, prioridade).toBe(1)
+      expect(passa.inicios, prioridade).toMatchObject({ k: 0, n: 1 })
+      expect(passa.custo.porTipo, prioridade).toEqual([])
+      expect(passa.semPrioridade, prioridade).toEqual({ n: 0, total: 2 })
+      // o mais antigo é de outra prioridade e espera: não conta como ultrapassado
+      const espera = calcularO24(ctxDe([card('a', C1, I2, { prioridade }), card('b', C2, I1)]), F)
+      expect(espera.inicios, prioridade).toMatchObject({ k: 0, n: 1 })
+      expect(espera.custo.porTipo, prioridade).toEqual([])
     }
+  })
+
+  it('card sem prioridade fica fora da fila e é contado à parte, nunca Média por omissão (E7.100, P-3)', () => {
+    const passa = calcularO24(
+      ctxDe([card('a', C1, I2), card('b', C2, I1, { prioridade: null })]),
+      F,
+    )
+    expect(passa.base.n).toBe(1)
+    expect(passa.inicios).toMatchObject({ k: 0, n: 1 })
+    expect(passa.semPrioridade).toEqual({ n: 1, total: 2 })
+    const espera = calcularO24(
+      ctxDe([card('a', C1, I2, { prioridade: null }), card('b', C2, I1)]),
+      F,
+    )
+    expect(espera.inicios).toMatchObject({ k: 0, n: 1 })
+    expect(espera.semPrioridade).toEqual({ n: 1, total: 2 })
+    expect(passa.base.unidade).toBe('inícios da prioridade Média')
   })
 
   it('só compara com o mesmo tipo', () => {
@@ -149,6 +167,7 @@ describe('O24: ordem de chegada', () => {
       'inicios',
       'marcacoes',
       'meses',
+      'semPrioridade',
     ])
     expect(r.grupo).toBe('equipe-tipo-padrao')
     expect(Object.keys(r.meses[0]!).sort()).toEqual([
@@ -296,7 +315,7 @@ describe('O24: ordem de chegada', () => {
     const pool = ctx.idx.marcos.filter(
       (m) =>
         m.card.granularidade === 'story' &&
-        m.card.classe_servico === 'Padrão' &&
+        m.card.prioridade === 'Média' &&
         m.card.tipo !== 'Bug interno' &&
         !m.card.eh_subtarefa &&
         m.card.excluido_em === null,

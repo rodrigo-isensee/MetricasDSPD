@@ -80,6 +80,14 @@ export const TIPO_DA_CATEGORIA: Record<CategoriaTipoCard, TipoCard> = {
 export const CLASSES_SERVICO = ['Urgente', 'Prioritário', 'Prazo fixo', 'Padrão'] as const
 export type ClasseServico = (typeof CLASSES_SERVICO)[number]
 
+/**
+ * Pedido 105 (E7.100, decisões do dono de 2026-11-16): T1, T2, T4, T6, O6 e O24 separam pela prioridade nativa do BusinessMap, não pela
+ * classe de serviço. Nome próprio: não confundir com `PRIORIDADES` (P1 a P5) do Acelerato; as duas fontes nunca se misturam. Card sem
+ * prioridade fica fora da separação e é contado à parte (`semPrioridade`), nunca vira Média por omissão.
+ */
+export const NIVEIS_PRIORIDADE_BM = ['Crítica', 'Alta', 'Média', 'Baixa'] as const
+export type NivelPrioridadeBM = (typeof NIVEIS_PRIORIDADE_BM)[number]
+
 export const PRIORIDADES = ['P1', 'P2', 'P3', 'P4', 'P5'] as const
 export type Prioridade = (typeof PRIORIDADES)[number]
 
@@ -94,6 +102,10 @@ export const FASES_DETECCAO = [
   'Produção',
 ] as const
 export type FaseDeteccao = (typeof FASES_DETECCAO)[number]
+
+/** Pedido 105 (E7.102): as seis faixas de tamanho da régua de cada time, da menor para a maior; a ordem é a do O8 (decisão do dono, 16/11). */
+export const TAMANHOS_REGUA = ['PP', 'P', 'M', 'G', 'GG', 'XG'] as const
+export type TamanhoRegua = (typeof TAMANHOS_REGUA)[number]
 
 /** Motivos habilitados no BusinessMap (decisão B do dono, 2026-11-16): no lugar dos 7 do briefing. Ids 5 e 8 (code review) ficam fora. */
 export const MOTIVOS_BLOQUEIO = [

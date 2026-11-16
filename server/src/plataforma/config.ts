@@ -111,6 +111,9 @@ const esquemaColetaBusinessMap = esquemaBusinessMap
  */
 const esquemaApontamentoBusinessMap = esquemaBusinessMap.extend({ PG_COLETOR_URL: urlPg, PESSOA_ELIMINADA_SAL: z.string().min(32) });
 
+/** Carga e portão do primeiro toque (pedido 105, B7b): a configuração do BusinessMap mais o banco do `dspd_coletor`. Sem sal (o toque não resolve pessoa) nem papel de referência. */
+const esquemaToqueBusinessMap = esquemaBusinessMap.extend({ PG_COLETOR_URL: urlPg });
+
 /** Eliminação a pedido (059, A4): só o banco do dono dos objetos (`dspd_migrador`) e o sal da lista de supressão. Não lê a chave do BusinessMap. */
 const esquemaEliminacaoPessoa = z.object({ ...comum, PG_MIGRADOR_URL: urlPg, PESSOA_ELIMINADA_SAL: z.string().min(32) });
 
@@ -132,6 +135,7 @@ export type ConfigBusinessMap = z.output<typeof esquemaBusinessMap>;
 export type ConfigProjetorBusinessMap = z.output<typeof esquemaProjetorBusinessMap>;
 export type ConfigColetaBusinessMap = z.output<typeof esquemaColetaBusinessMap>;
 export type ConfigApontamentoBusinessMap = z.output<typeof esquemaApontamentoBusinessMap>;
+export type ConfigToqueBusinessMap = z.output<typeof esquemaToqueBusinessMap>;
 export type ConfigEliminacaoPessoa = z.output<typeof esquemaEliminacaoPessoa>;
 /** Variáveis que ligavam o mock na API e saíram no pedido 060: a presença (mesmo vazia) recusa a partida, para que um `.env` antigo não religue o mock em silêncio. */
 export const VARIAVEIS_REMOVIDAS_API = ['DADOS_FONTE', 'DSPD_SCHEMA_PREFIXO_SEED'] as const;
@@ -150,4 +154,5 @@ export const carregarConfigColetaBusinessMap = (env: NodeJS.ProcessEnv = process
 export const carregarConfigBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigBusinessMap => validar(esquemaBusinessMap, env);
 export const carregarConfigProjetorBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigProjetorBusinessMap => validar(esquemaProjetorBusinessMap, env);
 export const carregarConfigApontamentoBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigApontamentoBusinessMap => validar(esquemaApontamentoBusinessMap, env);
+export const carregarConfigToqueBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigToqueBusinessMap => validar(esquemaToqueBusinessMap, env);
 export const carregarConfigEliminacaoPessoa = (env: NodeJS.ProcessEnv = process.env): ConfigEliminacaoPessoa => validar(esquemaEliminacaoPessoa, env);

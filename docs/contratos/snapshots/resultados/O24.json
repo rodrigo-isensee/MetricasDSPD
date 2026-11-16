@@ -123,6 +123,22 @@
       ],
       "additionalProperties": false
     },
+    "semPrioridade": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "n",
+        "total"
+      ],
+      "additionalProperties": false
+    },
     "inicios": {
       "oneOf": [
         {
@@ -406,6 +422,7 @@
   "required": [
     "base",
     "criterios",
+    "semPrioridade",
     "inicios",
     "meses",
     "marcacoes",

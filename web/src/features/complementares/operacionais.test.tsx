@@ -16,6 +16,7 @@ import {
   CartaoO25,
   CartaoO26,
 } from './operacionais'
+import { CartaoO6 } from './fluxo'
 
 vi.setConfig({ testTimeout: 45000 })
 
@@ -427,9 +428,24 @@ describe('O22 Primeiro toque', () => {
   })
 })
 
+describe('O6 faixa sem prioridade', () => {
+  it('B1: sem nenhuma prioridade publicável e a faixa sendo a maioria, a leitura diz que a maior parte está sem prioridade', async () => {
+    const dto = {
+      ...base(5, 'itens concluídos'),
+      janelaPercentis: JANELA,
+      semPrioridade: { n: 60, total: 100 },
+      alvoMax: 2.5,
+      classes: [{ classe: 'Alta', n: 5, estatistica: insuf(5), statusMeta: 'sem-referencia' }],
+    }
+    const el = await abrir('O6', <CartaoO6 filtros={FILTROS_FLUXO} />, new FonteFixa({ O6: dto }))
+    expect(el).toHaveTextContent('A maior parte dos cartões deste recorte está sem prioridade')
+  })
+})
+
 describe('O24 Ordem de chegada', () => {
   const dto = (inicios: unknown, porTipo: unknown[]) => ({
     ...base(64, 'inícios'),
+    semPrioridade: { n: 317, total: 800 },
     inicios,
     meses: [
       { mes: '2026-08', emOrdem: 20, foraDeOrdem: 8, emAndamento: false },
@@ -440,7 +456,7 @@ describe('O24 Ordem de chegada', () => {
     grupo: 'equipe-tipo-padrao',
   })
 
-  it('destaque, custo dos ultrapassados e a nota fixa da classe Padrão', async () => {
+  it('destaque, custo dos ultrapassados e a fila da prioridade Média e a contagem sem prioridade', async () => {
     const el = await abrir(
       'O24',
       <CartaoO24 filtros={FILTROS_FLUXO} />,
@@ -461,6 +477,9 @@ describe('O24 Ordem de chegada', () => {
     )
     expect(el).toHaveTextContent('O cartão mostra o custo de passar na frente, não um erro.')
     expect(el.textContent).not.toMatch(/dias a mais/i)
+    expect(within(el).getByTestId('sem-prioridade-O24')).toHaveTextContent(
+      'Sem prioridade (BusinessMap): 317 de 800 inícios no período (40%).',
+    )
   })
 
   it('menos de 20 inícios e menos de 20 ultrapassados: "k de n" e amostra insuficiente', async () => {
@@ -795,6 +814,7 @@ describe('ramos de borda dos complementares operacionais', () => {
       new FonteFixa({
         O24: {
           ...base(10, 'inícios'),
+          semPrioridade: { n: 0, total: 80 },
           inicios: zero,
           meses: [{ mes: '2026-09', emOrdem: 1, foraDeOrdem: 0, emAndamento: false }],
           marcacoes: [],

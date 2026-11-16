@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { FASES_DETECCAO, METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, type FaseDeteccao, type MotivoBloqueio } from '@metricas-dspd/contratos';
+import { FASES_DETECCAO, METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, TAMANHOS_REGUA, type FaseDeteccao, type MotivoBloqueio } from '@metricas-dspd/contratos';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, ErroDominio, planejarDominio, rotuloDeSetorSeguro, textoSeguro, type LinhaVigente } from '../referencia/index.js';
 import { CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
+import type { ReguaTamanho } from './normalizador.js';
 
 /**
  * Mapa `field_id` -> coluna de `dim_card` e domínios dos campos customizados do BusinessMap, carregados do arquivo versionado
@@ -33,6 +34,19 @@ export const CAMPO_PRIORIDADE_SEVERIDADE = 'prioridade_severidade';
  * renomeiam), `rotulo` = uma das cinco fases de `FASES_DETECCAO`. Coluna fora da tabela não tem fase. A primeira carga e cada troca de linha são versão de critério; a versão da E7.5 marca o O15 (`afeta = ['O15']`) e a próxima troca desta tabela volta a marcá-lo. A versão do campo 48 (E7.86) tem `afeta` vazio: só coleta, nenhuma métrica muda.
  */
 export const CAMPO_FASE_DETECCAO_COLUNA = 'fase_deteccao_coluna';
+/**
+ * Pedido 105 (E7.203): prefixo do valor de `ref_dominio.campo` que guarda os `value_id` de uma coluna de lista (`valor_id_<coluna>`): `codigo` = `value_id` (só dígitos),
+ * `rotulo` = código do domínio da opção. Sem coluna nova nem GRANT novo; `varchar(40)` comporta o prefixo mais a maior coluna.
+ */
+export const PREFIXO_VALOR_ID = 'valor_id_';
+/**
+ * Valor de `ref_dominio.campo` da régua de tamanho por time (pedido 105, E7.102): `codigo` = `<time_id>:<size>` (o id do time da carga inicial dos times, nunca o nome; o `size` nativo do card, com
+ * ponto para meio ponto, sem zero à esquerda nem à direita), `rotulo` = uma das seis faixas de `TAMANHOS_REGUA`. Valor de size fora da régua, card sem size e time sem régua ficam sem
+ * tamanho, contados, nunca M por omissão. A primeira carga e cada troca de linha são versão de critério (`afeta = ['O8']`) e pedem nova aprovação do dono.
+ */
+export const CAMPO_TAMANHO_REGUA = 'tamanho_regua';
+/** `<time_id>:<size>`: id de 1 a 10 dígitos sem zero à esquerda; size inteiro sem zero à esquerda (ou 0) com fração opcional de até 3 casas sem zero à direita. */
+export const CODIGO_TAMANHO_REGUA = /^[1-9]\d{0,9}:(?:0|[1-9]\d{0,3})(?:\.\d{0,2}[1-9])?$/;
 
 /**
  * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Pedido 105 (E7.86): o diagnóstico (`bm:diagnostico`, 2026-11-16) mostrou o
@@ -44,7 +58,8 @@ const ID_CAMPO = /^\d{1,10}$/;
 // Mesma regra de `textoSeguro` para o código lido do banco: sem controle, invisível, separador de linha nem arroba.
 const CODIGO_SEGURO = /^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}@]{1,80}$/u;
 
-const valorDominio = z.object({ codigo: textoSeguro(80), rotulo: textoSeguro(120) }).strict();
+// E7.203: `value_id` (só dígitos) é a chave do casamento nos cards, que a API manda só com `values[].value_id`, sem rótulo. Opcional: campo sem `value_id` casa pelo rótulo.
+const valorDominio = z.object({ codigo: textoSeguro(80), rotulo: textoSeguro(120), value_id: z.string().regex(ID_CAMPO).optional() }).strict();
 const criarCampo = (tipos: readonly string[]) =>
   z
   .object({
@@ -63,6 +78,9 @@ const valorMotivo = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enu
 
 // Pedido 105 (E7.5): `coluna_id` (só dígitos) -> uma das 5 fases do briefing 4.4; nunca texto livre.
 const valorFaseColuna = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(FASES_DETECCAO) }).strict();
+
+// Pedido 105 (E7.102): `<time_id>:<size>` -> uma das 6 faixas; nunca texto livre.
+const valorTamanhoRegua = z.object({ codigo: z.string().regex(CODIGO_TAMANHO_REGUA), rotulo: z.enum(TAMANHOS_REGUA) }).strict();
 
 // L10a do 097 (E7): quadro (codigo, só dígitos) -> setor (rotulo, sem sobrenome do responsável). Rótulo com o padrão de sobrenome é recusado.
 const valorSetor = z
@@ -87,9 +105,15 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
     setores: z.array(valorSetor).max(50).default([]),
     prioridade_severidade: z.array(valorPrioridade).max(20).default([]),
     fase_deteccao_coluna: z.array(valorFaseColuna).max(2000).default([]),
+    tamanho_regua: z.array(valorTamanhoRegua).max(1000).default([]),
   })
   .strict()
   .superRefine((d, ctx) => {
+    const chavesDaRegua = new Set<string>();
+    for (const [i, t] of d.tamanho_regua.entries()) {
+      if (chavesDaRegua.has(t.codigo)) ctx.addIssue({ code: 'custom', path: ['tamanho_regua', i, 'codigo'], message: 'chave repetida' });
+      chavesDaRegua.add(t.codigo);
+    }
     const prioridades = new Set<string>();
     for (const [i, p] of d.prioridade_severidade.entries()) {
       if (prioridades.has(p.codigo)) ctx.addIssue({ code: 'custom', path: ['prioridade_severidade', i, 'codigo'], message: 'priority repetido' });
@@ -127,7 +151,12 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
       colunas.add(c.coluna);
       const codigos = new Set<string>();
       const rotulos = new Set<string>();
+      const valueIds = new Set<string>();
       for (const [j, v] of c.valores.entries()) {
+        if (v.value_id !== undefined) {
+          if (valueIds.has(String(Number(v.value_id)))) ctx.addIssue({ code: 'custom', path: ['campos', i, 'valores', j, 'value_id'], message: 'value_id repetido' });
+          valueIds.add(String(Number(v.value_id)));
+        }
         // `desconhecido` é o código reservado do valor fora do domínio.
         if (codigos.has(v.codigo) || v.codigo === VALOR_DESCONHECIDO) ctx.addIssue({ code: 'custom', path: ['campos', i, 'valores', j, 'codigo'], message: 'código repetido ou reservado' });
         if (rotulos.has(v.rotulo)) ctx.addIssue({ code: 'custom', path: ['campos', i, 'valores', j, 'rotulo'], message: 'rótulo repetido' });
@@ -166,11 +195,16 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
   const listas: Record<string, { codigo: string; rotulo: string }[]> = {
     [CAMPO_CUSTOMIZADO]: a.campos.map((c) => ({ codigo: c.field_id, rotulo: c.coluna })),
   };
-  for (const c of a.campos) listas[c.coluna] = c.valores;
+  for (const c of a.campos) {
+    listas[c.coluna] = c.valores.map((v) => ({ codigo: v.codigo, rotulo: v.rotulo }));
+    // E7.203: uma lista `valor_id_<coluna>` por campo (mesmo vazia, para fechar o que saiu): value_id -> código do domínio.
+    listas[`${PREFIXO_VALOR_ID}${c.coluna}`] = c.valores.flatMap((v) => (v.value_id === undefined ? [] : [{ codigo: String(Number(v.value_id)), rotulo: v.codigo }]));
+  }
   listas[CAMPO_MOTIVO_BLOQUEIO] = a.motivo_bloqueio;
   listas[CAMPO_SETOR_QUADRO] = a.setores;
   listas[CAMPO_PRIORIDADE_SEVERIDADE] = a.prioridade_severidade;
   listas[CAMPO_FASE_DETECCAO_COLUNA] = a.fase_deteccao_coluna;
+  listas[CAMPO_TAMANHO_REGUA] = a.tamanho_regua;
   return listas;
 }
 
@@ -247,7 +281,18 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
   const colunas = COLUNAS_LISTA as readonly string[];
   const colunaDe = colunasDosCampos(linhas);
   const porColuna = new Map<string, Map<string, string | null>>();
+  const idsPorColuna = new Map<string, Map<string, string | null>>();
   for (const l of linhas) {
+    // E7.203: `valor_id_<coluna>`: só `value_id` numérico e código seguro, nunca o reservado; `value_id` ligado a dois códigos é ignorado.
+    if (l.campo.startsWith(PREFIXO_VALOR_ID) && colunas.includes(l.campo.slice(PREFIXO_VALOR_ID.length))) {
+      if (!ID_CAMPO.test(l.codigo) || !CODIGO_SEGURO.test(l.rotulo) || l.rotulo === VALOR_DESCONHECIDO) continue;
+      const col = l.campo.slice(PREFIXO_VALOR_ID.length);
+      const id = String(Number(l.codigo));
+      const m = idsPorColuna.get(col) ?? new Map<string, string | null>();
+      m.set(id, m.has(id) && m.get(id) !== l.rotulo ? null : l.rotulo);
+      idsPorColuna.set(col, m);
+      continue;
+    }
     if (l.campo === CAMPO_CUSTOMIZADO || !colunas.includes(l.campo)) continue;
     if (!CODIGO_SEGURO.test(l.codigo) || l.codigo === VALOR_DESCONHECIDO || l.rotulo.length === 0) continue;
     const m = porColuna.get(l.campo) ?? new Map<string, string | null>();
@@ -258,6 +303,9 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
   for (const [id, coluna] of colunaDe) {
     const dominio = new Map<string, string>();
     for (const [rotulo, codigo] of porColuna.get(coluna) ?? []) if (codigo !== null) dominio.set(rotulo, codigo);
+    // E7.203: o `value_id` só vale se o código existe na lista da coluna e não colide com um rótulo já no mapa.
+    const codigos = new Set(dominio.values());
+    for (const [valueId, codigo] of idsPorColuna.get(coluna) ?? []) if (codigo !== null && codigos.has(codigo) && !dominio.has(valueId)) dominio.set(valueId, codigo);
     if (dominio.size > 0) mapa.set(id, dominio);
   }
   return mapa;
@@ -311,4 +359,26 @@ export function fasesDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, F
   const mapa = new Map<string, FaseDeteccao>();
   for (const [id, f] of por) if (f !== null) mapa.set(id, f);
   return mapa;
+}
+
+/**
+ * Leitura da régua de tamanho para o projetor (pedido 105, E7.102), com a desconfiança do banco: só código `<time_id>:<size>` na forma canônica e rótulo entre as 6 faixas;
+ * chave ligada a duas faixas é ignorada (sem tamanho, nunca uma das duas). `times` é o conjunto de times que têm ao menos uma linha válida: time fora dele é "sem régua". Sem entrada
+ * nenhum card tem tamanho. Nenhuma tradução no código: a régua só vem do arquivo.
+ */
+export function reguaDeLinhas(linhas: readonly LinhaRefDominio[]): ReguaTamanho {
+  const validos = TAMANHOS_REGUA as readonly string[];
+  const por = new Map<string, string | null>();
+  for (const l of linhas) {
+    if (l.campo !== CAMPO_TAMANHO_REGUA || !CODIGO_TAMANHO_REGUA.test(l.codigo) || !validos.includes(l.rotulo)) continue;
+    por.set(l.codigo, por.has(l.codigo) && por.get(l.codigo) !== l.rotulo ? null : l.rotulo);
+  }
+  const faixas = new Map<string, string>();
+  const times = new Set<string>();
+  for (const [chave, faixa] of por) {
+    if (faixa === null) continue;
+    faixas.set(chave, faixa);
+    times.add(chave.slice(0, chave.indexOf(':')));
+  }
+  return { faixas, times };
 }

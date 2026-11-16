@@ -82,7 +82,7 @@ describe('O17 por sistema: definição e ordem (QA 099)', () => {
   it('sem extensão (base real): causa raiz nula com o motivo, nunca lista vazia nem "Não informada"', () => {
     expect(r.porCausa).toBeNull()
     expect(r.campoDisponivel).toBe(false)
-    expect(r.motivoCausaRaiz).toContain('causa aparente')
+    expect(r.motivoCausaRaiz).toContain('texto livre')
   })
 
   it('período sem incidentes: base 0 e por sistema vazio, sem erro', () => {

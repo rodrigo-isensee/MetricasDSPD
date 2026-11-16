@@ -18,7 +18,7 @@ const pronto = async (codigo: string) => {
 }
 const INSUF = { status: 'insuficiente', n: 5, minimo: 20, janela: null }
 
-describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
+describe('T1 e T2: nenhuma prioridade com amostra suficiente', () => {
   it('T1 não publica lead time e avisa na leitura', async () => {
     renderizarCartao(<CartaoT1 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
@@ -28,7 +28,7 @@ describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
     })
     const el = await pronto('T1')
     expect(within(el).getByTestId('leitura-T1')).toHaveTextContent(
-      'Nenhuma classe tem amostra suficiente para publicar o lead time.',
+      'Nenhuma prioridade tem amostra suficiente para publicar o lead time.',
     )
   })
 
@@ -41,7 +41,7 @@ describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
     })
     const el = await pronto('T2')
     expect(within(el).getByTestId('leitura-T2')).toHaveTextContent(
-      'Nenhuma classe tem amostra suficiente para publicar a aderência ao SLE.',
+      'Nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.',
     )
   })
 })
@@ -62,7 +62,7 @@ describe('T2: fronteira de 20 itens', () => {
     const el = await pronto('T2')
     const itens = within(el).getAllByTestId(/^t2-/)
     for (const li of itens) {
-      expect(li).toHaveTextContent('SLE ainda não publicado para esta classe.')
+      expect(li).toHaveTextContent('SLE ainda não definido para esta prioridade.')
       expect(li).not.toHaveTextContent('Amostra insuficiente')
     }
   })
@@ -121,7 +121,7 @@ describe('T4: demanda x capacidade', () => {
   const comClasse = (fn: (c: Record<string, unknown>) => void) =>
     new FonteAjustada({
       T4: (r: { classes: Record<string, unknown>[] }) => {
-        const padrao = r.classes.find((c) => c.classe === 'Padrão') as Record<string, unknown>
+        const padrao = r.classes.find((c) => c.classe === 'Média') as Record<string, unknown>
         fn(padrao)
       },
     })
@@ -154,7 +154,7 @@ describe('T4: demanda x capacidade', () => {
     expect(within(el).getByTestId('leitura-T4')).toHaveTextContent('A fila cresce')
   })
 
-  it('classe com amostra insuficiente: leitura "n de 20" e bloco de amostra insuficiente', async () => {
+  it('prioridade com amostra insuficiente: leitura "n de 20" e bloco de amostra insuficiente', async () => {
     renderizarCartao(<CartaoT4 filtros={FILTROS_FLUXO} />, {
       fonte: comClasse((c) => (c.estatistica = { ...INSUF, n: 9 })),
     })
@@ -163,11 +163,11 @@ describe('T4: demanda x capacidade', () => {
     expect(within(el).getByTestId('amostra-insuficiente-T4')).toBeInTheDocument()
   })
 
-  it('sem a classe Padrão no resultado, não há leitura nem gráfico (nada é inventado)', async () => {
+  it('sem a prioridade Média no resultado, não há leitura nem gráfico (nada é inventado)', async () => {
     renderizarCartao(<CartaoT4 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
         T4: (r: { classes: { classe: string }[] }) => {
-          r.classes = r.classes.filter((c) => c.classe !== 'Padrão')
+          r.classes = r.classes.filter((c) => c.classe !== 'Média')
         },
       }),
     })
@@ -352,7 +352,7 @@ describe('T9: estados de borda (UX T9-1, T9-2, T9-3)', () => {
 })
 
 describe('Painel Tático: faixa "Pede atenção"', () => {
-  it('mais de uma classe fora da meta e mais de uma natureza com desvio: plural', async () => {
+  it('mais de uma prioridade fora da meta e mais de uma natureza com desvio: plural', async () => {
     renderizarApp(
       '/tatico',
       new FonteAjustada({
@@ -365,7 +365,7 @@ describe('Painel Tático: faixa "Pede atenção"', () => {
       }),
     )
     await screen.findByTestId('faixa-atencao')
-    expect(await screen.findByText(/abaixo da meta em \d+ classes/)).toBeInTheDocument()
+    expect(await screen.findByText(/abaixo da meta em \d+ prioridades/)).toBeInTheDocument()
     expect(
       await screen.findByText(/desvio acima de 10 p\.p\. em \d+ naturezas/),
     ).toBeInTheDocument()

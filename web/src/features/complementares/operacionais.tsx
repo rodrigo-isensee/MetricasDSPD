@@ -17,6 +17,7 @@ import {
   ApoioMotivoNaoClassificado,
   Icone,
   MotivoBloqueio,
+  SemPrioridade,
   SeletorLocal,
   TabelaDados,
   ordenarMotivos,
@@ -599,8 +600,8 @@ function leituraO24(d: ResultadoO24): string | undefined {
   if (d.inicios.n === 0) return undefined
   const t1 =
     d.inicios.status === 'ok'
-      ? `${fmtNumero(d.inicios.pct, 0)}% dos inícios da classe Padrão passaram na frente de um pedido mais antigo do mesmo tipo, na fila da mesma equipe.`
-      : `${fmtInteiro(d.inicios.k)} de ${fmtInteiro(d.inicios.n)} inícios da classe Padrão passaram na frente de um pedido mais antigo do mesmo tipo.`
+      ? `${fmtNumero(d.inicios.pct, 0)}% dos inícios da prioridade Média passaram na frente de um pedido mais antigo do mesmo tipo, na fila da mesma equipe.`
+      : `${fmtInteiro(d.inicios.k)} de ${fmtInteiro(d.inicios.n)} inícios da prioridade Média passaram na frente de um pedido mais antigo do mesmo tipo.`
   const c = d.custo.porTipo.find((x) => x.estatistica.status === 'ok')
   const t2 =
     c && c.estatistica.status === 'ok'
@@ -609,7 +610,7 @@ function leituraO24(d: ResultadoO24): string | undefined {
   return t1 + t2
 }
 
-/** O24: ordem de chegada na classe Padrão. Mostra o custo de passar na frente, não um erro. */
+/** O24: ordem de chegada na fila da prioridade Média. Mostra o custo de passar na frente, não um erro. */
 export function CartaoO24({ filtros }: P) {
   const q = useMetrica('O24', filtros)
   const [tipo, setTipo] = useState<string | null>(null)
@@ -672,6 +673,7 @@ export function CartaoO24({ filtros }: P) {
                 Nenhum pedido ultrapassado no período.
               </AvisoInfo>
             )}
+            <SemPrioridade {...r.semPrioridade} universo="inícios no período" codigo="O24" />
             <Leia>O cartão mostra o custo de passar na frente, não um erro.</Leia>
             <LeiaJunto id="o24" />
           </div>

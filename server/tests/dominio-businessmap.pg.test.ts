@@ -48,25 +48,47 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   const versoes = async (c: pg.PoolClient, sha: string): Promise<number> =>
     Number((await c.query(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [referenciaDaVersaoBm(sha)])).rows[0].n);
 
-  it('o arquivo real (campo 48 Causa Raiz com 12 opções, mapa priority -> severidade) grava as linhas do arquivo (o campo e suas 12 opções, 6 setores, 4 de prioridade, as colunas da fase de detecção e o motivo de bloqueio), registra a versão de critério sem métrica afetada (E7.86 é só coleta e projeção) e repetir não grava mais nada', async () => {
+  it('o arquivo real (campos 48 Causa Raiz com 12 opções e 49 Origem da Demanda com 6, com as listas valor_id_*, mapa priority -> severidade) grava as linhas do arquivo (os 2 campos, suas opções e os value_id, 6 setores, 4 de prioridade, as colunas da fase de detecção, as 63 linhas da régua de tamanho e os 11 motivos de bloqueio), registra a versão de critério com as métricas afetadas O8, O14, O17, BLOQUEADOS, O2, O19, T10 e T12 (E7.102, E7.203 e E7.184 chegam juntas) e repetir não grava mais nada', async () => {
     await comoRef(async (pool, c) => {
       const real = lerDominioBm();
       const a = real.arquivo;
       expect(a.setores).toHaveLength(6);
       expect(a.prioridade_severidade).toHaveLength(4);
       expect(a.fase_deteccao_coluna.length).toBeGreaterThan(0);
-      expect(a.campos).toHaveLength(1);
+      expect(a.tamanho_regua).toHaveLength(63);
+      expect(a.campos).toHaveLength(2);
       expect(a.campos[0]).toMatchObject({ field_id: '48', coluna: 'causa_raiz' });
+      expect(a.campos[1]).toMatchObject({ field_id: '49', coluna: 'origem_demanda' });
       expect(a.campos[0]!.valores).toHaveLength(12);
-      // cada campo grava 1 linha de campo_customizado e uma por opção
-      const doCampo = a.campos.length + a.campos.reduce((n, c) => n + c.valores.length, 0);
-      expect(doCampo).toBe(13);
-      const esperadas = doCampo + a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length;
-      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 1, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
-      expect(esperadas).toBe(381);
-      expect((await linhas(c, 'campo_customizado')).map((l) => [l.codigo, l.rotulo])).toEqual([['48', 'causa_raiz']]);
-      expect((await linhas(c, 'causa_raiz')).map((l) => l.codigo).sort()).toEqual(a.campos[0]!.valores.map((v) => v.codigo).sort());
+      expect(a.campos[1]!.valores).toHaveLength(6);
+      // cada campo grava 1 linha de campo_customizado, uma por opção e uma por value_id (valor_id_<coluna>)
+      const doCampo = a.campos.length + a.campos.reduce((n, c) => n + 2 * c.valores.length, 0);
+      expect(doCampo).toBe(38);
+      const esperadas = doCampo + a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length + a.tamanho_regua.length;
+      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 2, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
+      expect(esperadas).toBe(469);
+      expect((await linhas(c, 'campo_customizado')).map((l) => [l.codigo, l.rotulo])).toEqual([['48', 'causa_raiz'], ['49', 'origem_demanda']]);
+      for (const campo of a.campos) {
+        expect((await linhas(c, campo.coluna)).map((l) => l.codigo).sort()).toEqual(campo.valores.map((v) => v.codigo).sort());
+        // as linhas valor_id_<coluna> (codigo = value_id, rotulo = código do domínio) gravadas pelo dspd_ref
+        const ids = await linhas(c, `valor_id_${campo.coluna}`);
+        expect(ids.map((l) => [l.codigo, l.rotulo]).sort()).toEqual(campo.valores.map((v) => [v.value_id!, v.codigo]).sort());
+        expect(ids.every((l) => l.vigente_ate === null)).toBe(true);
+      }
+      // a leitura da coleta (dspd_coletor, mesmo banco) liga os value_id 114 a 125 (48) e 126 a 131 (49) aos códigos
+      const mapa = await dominiosDaColeta({ query: (t: string, v?: unknown[]) => c.query(t, v) }, S);
+      for (const campo of a.campos) {
+        const m = mapa.get(campo.field_id)!;
+        for (const v of campo.valores) {
+          expect(m.get(v.value_id!)).toBe(v.codigo);
+          expect(m.get(v.rotulo)).toBe(v.codigo);
+        }
+      }
+      expect([...mapa.get('48')!.keys()].filter((k) => /^\d+$/.test(k)).sort()).toEqual(Array.from({ length: 12 }, (_, i) => String(114 + i)).sort());
+      expect([...mapa.get('49')!.keys()].filter((k) => /^\d+$/.test(k)).sort()).toEqual(Array.from({ length: 6 }, (_, i) => String(126 + i)));
+      expect(mapa.get('49')!.get('114')).toBeUndefined();
       expect((await linhas(c, 'fase_deteccao_coluna')).length).toBe(a.fase_deteccao_coluna.length);
+      expect((await linhas(c, 'tamanho_regua')).length).toBe(63);
       expect((await linhas(c, 'prioridade_severidade')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([
         ['1', 'Crítica', null], ['2', 'Alta', null], ['3', 'Média', null], ['4', 'Baixa', null]]);
       expect((await linhas(c, 'setor_quadro')).map((l) => [l.codigo, l.rotulo])).toEqual([
@@ -75,7 +97,7 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
       const metricas = (await c.query(
         `SELECT m.metrica_id FROM ${S.core}.ref_versao_criterio v JOIN ${S.core}.ref_versao_criterio_metrica m USING (versao_id) WHERE v.referencia = $1`,
         [referenciaDaVersaoBm(real.sha256)])).rows.map((r) => r.metrica_id);
-      expect(metricas).toEqual([]);
+      expect(metricas.sort()).toEqual(['BLOQUEADOS', 'O14', 'O17', 'O19', 'O2', 'O8', 'T10', 'T12']);
       expect(await sincronizarDominioBm(pool, S, real, D2, AGORA)).toMatchObject({ inseridas: 0, fechadas: 0, versaoRegistrada: false });
       expect(await versoes(c, real.sha256)).toBe(1);
     });
