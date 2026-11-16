@@ -52,7 +52,7 @@ Ficam em `/etc/metricas-dspd/coleta.env`, lido só pelo serviço de coleta (`doc
 | `BUSINESSMAP_URL_BASE` | Endereço do BusinessMap | Sim | `.env.example` |
 | `BUSINESSMAP_APIKEY` | Chave de acesso (a do dono; nunca em log nem no git) | Sim | `.env.example` |
 | `BUSINESSMAP_QUADROS_IDS` | Quais quadros coletar | Sim | `.env.example` |
-| `PESSOA_ELIMINADA_SAL` | Texto secreto de 32+ caracteres, necessário à carga de Apontamento | Sim (Apontamento) | `server/src/plataforma/config.ts`, runbook; **não está em nenhum `.env.example`** |
+| `PESSOA_ELIMINADA_SAL` | Texto secreto de 32+ caracteres, necessário à carga de Apontamento | Sim (Apontamento) | `server/src/plataforma/config.ts`, runbook; consta no `.env.example` |
 | `BUSINESSMAP_LIMITE_POR_MINUTO` | Teto de chamadas por minuto (máx. 25) | Não | `.env.example` |
 | `BUSINESSMAP_TIMEOUT_MS`, `BUSINESSMAP_PAGINA_TAMANHO` | Tempo limite e tamanho de página | Não | `.env.example` |
 
@@ -103,7 +103,7 @@ Todos na pasta do projeto na VM, na versão liberada pelo dono (`R-MAIN`: nunca 
 6. **Coletas diárias, agendadas pelo systemd** (`deploy/systemd/`, instalação no `docs/devops/runbook-coleta-diaria.md`, item 4):
    - BusinessMap, todo dia 06:00: `src/entradas/coleta-businessmap.ts incremental --projetar`. O Apontamento incremental roda como etapa desta coleta (comentário em `server/src/entradas/apontamento-businessmap.ts`), sem timer próprio.
    - Acelerato, todo dia 06:30: `src/entradas/coleta.ts ac`; releitura aos domingos 07:30: `coleta.ts ac --releitura`.
-   - Ligar: `systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer`; conferir com `systemctl list-timers 'metricas-coleta-*'`.
+   - Ligar: `systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer metricas-referencias.timer` (este, domingo 05:00, roda as quatro sincronizações de referência); conferir com `systemctl list-timers 'metricas-coleta-*'`.
    - Falha: e-mail ao `AVISO_EMAIL`; log em `journalctl -u metricas-coleta-businessmap.service`.
 7. **Parar:** `docker compose -f docker-compose.prod.yml down` (o banco é da empresa; os dados ficam lá).
 8. **Backup:** `scripts/db-backup.sh`, diário 03:30, e teste de restauração aos domingos 04:30 (`docs/engineering/operacao-banco.md`). Agendamento descrito só para Windows/WSL e cron: **LACUNA** para o agendador da VM (cron serve, o texto existente já traz o modelo).
@@ -142,8 +142,8 @@ Não há coleta agendada nem referências reais em homologação.
 
 - **Compose de produção:** existe (`docker-compose.prod.yml`, seção 7). **LACUNA:** nada fixa as imagens base por digest (`node:24-slim`, `nginx:alpine`).
 - **LACUNA: acesso de outras máquinas.** As portas 8080 e 3000 abrem só em `127.0.0.1`. Para a equipe abrir o painel de outro computador falta decidir proxy reverso e HTTPS; o projeto não traz isso.
-- **LACUNA: Apontamento na VM.** O runbook da coleta só descreve BusinessMap e Acelerato. A carga inicial do Apontamento e o `PESSOA_ELIMINADA_SAL` estão no código, mas faltam num roteiro de VM e no `.env.example`. A medição de duração das coletas segue pendente.
-- **LACUNA: sincronização de referências no agendador.** Os cinco comandos da seção 2.1, item 4, são manuais (decisão da ADR 0022, item 4); nenhum timer os chama.
+- **LACUNA: Apontamento na VM.** O runbook da coleta só descreve BusinessMap e Acelerato. A carga inicial do Apontamento e o `PESSOA_ELIMINADA_SAL` (já no `.env.example`) estão no código, mas falta um roteiro de VM. A medição de duração das coletas segue pendente.
+- **LACUNA: sincronização de referências no agendador.** Os cinco comandos da seção 2.1, item 4, são manuais (decisão da ADR 0022, item 4); o `metricas-referencias.timer` (domingo 05:00) os chama como rotina semanal.
 - **LACUNA: versão do Node em arquivo.** Não há `.nvmrc`; vale `engines` (24 ou mais novo).
 - **Roteiros K-333 e K-216:** os dois são do computador local (`docs/devops/104-roteiro-dono.md`, `docs/devops/105-roteiro-dono.md`), não da VM. K-216 confirma que a API do Compose monta sozinha a conexão do Apontamento a partir de `DSPD_PWD_APONTAMENTO`; o K-333 lista a ordem carga a carga que a seção 2.1 reaproveita. Os cartões K-333, K-216 e K-340 (VM) não aparecem no `KANBAN.md` desta branch; usei os roteiros em `docs/devops/`.
 - **Divergência a decidir:** o `CLAUDE.md` descreve o Acelerato como "API pública, só GET", e o código lê o banco MySQL em modo leitura (`.env.example`, ADR 0023). Este documento segue o código; o git da empresa deve receber a versão correta.
@@ -166,7 +166,7 @@ Decisão do dono: **a empresa fornece o banco e o HTTPS**; o time pede tudo o qu
 | 9 | **Saída de rede da VM para o BusinessMap**: HTTPS (443) ao endereço da empresa, sem inspeção que quebre o certificado. O endereço entra em `BUSINESSMAP_URL_BASE` (variável, não está no código). | Coleta do Operacional e do Apontamento. `.env.example`, `docs/devops/runbook-coleta-diaria.md` | Sim |
 | 10 | **Saída de rede da VM para o Acelerato**: o código lê o **banco MySQL** do Acelerato, só leitura, com TLS fixado (não a API HTTP; divergência com o `CLAUDE.md` na seção 4). Host e porta em `ACELERATO_MYSQL_HOST` e `_PORT`. | Coleta da Sustentação. `.env.example`, ADR 0023 | Sim, se a Sustentação sobe no 1º dia |
 | 11 | **Acessos de leitura, criados pela área dona de cada sistema** (só o tipo; o valor vai ao dono): (a) BusinessMap: **conta de serviço só leitura**, limitada aos quadros de `BUSINESSMAP_QUADROS_IDS`, com rotação combinada, no lugar da chave pessoal do dono (`BUSINESSMAP_APIKEY`); (b) Acelerato: conta MySQL **só com SELECT na tabela `ACELERATO_CHAMADOS`** (por coluna da lista de campos permitidos da coleta, quando possível; `server/src/modulos/acelerato/sql.ts`), o certificado do servidor (`.pem`) e a impressão digital SHA-256 (`ACELERATO_MYSQL_USER`, `_PASSWORD`, `_TLS_CERT_FILE`, `_TLS_SHA256`). Nenhuma conta com escrita. | `.env.example`, `server/src/plataforma/config.ts` | Sim |
-| 12 | **Agendamento**: systemd na VM, com 3 timers (BusinessMap 06:00, Acelerato 06:30, releitura do Acelerato domingo 07:30) e o do backup (03:30), se for o `db-backup.sh`. | `deploy/systemd/`, runbook item 4 | Sim |
+| 12 | **Agendamento**: systemd na VM, com 4 timers (BusinessMap 06:00, Acelerato 06:30, releitura do Acelerato domingo 07:30, referências domingo 05:00) e o do backup (03:30), se for o `db-backup.sh`. | `deploy/systemd/`, runbook item 4 | Sim |
 | 13 | **E-mail de saída (relay SMTP) ou outro canal** para o aviso de falha da coleta (`AVISO_EMAIL`), com o endereço de quem recebe. | `deploy/systemd/aviso-falha.sh`, runbook item 3 | Não (recomendado) |
 | 14 | **Monitoramento e logs**: logs da VM e dos contêineres retidos (sugestão: 30 dias) e visíveis a quem opera; alerta de disco cheio, contêiner parado e coleta que falhou; relógio sincronizado (NTP). | `GET /health` da API; `journalctl -u 'metricas-coleta-*'` | Não (recomendado) |
 | 15 | **Acesso administrativo**: SSH por chave e `sudo` para instalar e ligar os timers, só para a lista nominal que o dono enviar; sem acesso direto ao banco para quem não é do DBA. | `R-CONFORMIDADE`: acessos e segredos são do dono | Sim |
@@ -184,7 +184,7 @@ O banco é da empresa. O mesmo esquema chega por **duas formas**, com o mesmo re
 |---|---|---|
 | `00_papeis_e_banco.sql` | Cria os cinco papéis de login e os três NOLOGIN e o banco `metricas`, concede `CONNECT` só aos cinco de login e fecha o schema `public`. Senhas por variável de **ambiente** lida pelo `psql` (`\getenv`), nunca por `-v` nem no arquivo | Administrador, banco `postgres`, **uma vez**. Se o banco já existe, apague a linha `CREATE DATABASE` |
 | `0000_preparo.sql`, `0001_...sql` a `0039_...sql` | Um arquivo por migração, em ordem; cada um em transação e já registra o nome na tabela de controle `dspd_core.pgmigrations` | `dspd_migrador`, banco `metricas` |
-| `9000_grants.sql` | GRANTs por papel (inclui os por coluna: `dspd_api` e `dspd_api_apontamento` sem coluna de pessoa). Depende de todas as migrações | `dspd_migrador`, por último |
+| `9000_grants.sql` | GRANTs por papel (inclui os por coluna: `dspd_api` sem coluna de pessoa; `dspd_api_apontamento` lê `responsavel_nome` e `pessoa_ref` do Apontamento, já com o nome eliminado pelo sal). Depende de todas as migrações | `dspd_migrador`, por último |
 | `consolidado.sql` | De `0000` a `9000` numa só transação (tudo ou nada). Em instalação nova é o único arquivo depois do `00` | `dspd_migrador`, banco `metricas` |
 
 Passo a passo do DBA (instalação nova):
