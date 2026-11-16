@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-vm-producao
-commit: 13d6d524
-parecer: reprovado
-resultado: reprovado
-escopo: completo
+commit: d9f8bb9b
+parecer: aprovado
+resultado: aprovado
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
-bugs_medios: 2
-bugs_baixos: 2
+bugs_medios: 0
+bugs_baixos: 1
 data: 2026-11-16
 ---
 # QA: configuração de produção da VM (pedido 105, E7.288)
@@ -40,7 +40,20 @@ A especificação desta etapa é o brief e o documento de implantação; não h�
 | Unidades systemd válidas | `systemd-analyze verify` nas 9 unidades copiadas: sem erro além do caminho `/opt` inexistente na máquina de teste; todas com `COMPOSE_FILE=docker-compose.prod.yml`, `COMPOSE_ENV_FILES` e `EnvironmentFile=/etc/metricas-dspd/host.env` (sem `-`) | env de produção | passou |
 | Passos do documento batem com os arquivos | scripts `db:migrate`, `db:sql`, `coleta`, `stack:up`, `homolog:*` na raiz; os oito comandos do `server`; os 23 arquivos citados existem; horários dos timers 06:00, 06:30, dom 07:30 | referência quebrada | passou, com A1 e A3 |
 
+## Revalidação (volta 2, head d9f8bb9b)
+
+`forge-check parecer delta` (intervalo 13d6d524..d9f8bb9b, sem o que veio da base): no domínio do QA só `CHANGELOG.md` (entrada do O12, de outra branch via develop) e o comentário de `deploy/systemd/metricas-referencias.service` (`docker-compose.yml` virou `docker-compose.prod.yml`, correto). O resto da volta 2 é documento (`docs/devops/105-implantacao-vm.md`), lido no diff e conferido contra os arquivos. Sem PR: não afirmo CI verde.
+
+- A2 (bloqueante): resolvido. Linha 187 agora diz `dspd_api` sem coluna de pessoa e `dspd_api_apontamento` lê `responsavel_nome` e `pessoa_ref`, com nome eliminado pelo sal; bate com o `has_column_privilege` da 1ª rodada (`9000_grants.sql:403,411`).
+- A1 (recomendado): resolvido. O `enable --now` (linha 106) e a linha 169 trazem os 4 timers; `metricas-referencias.timer` existe e é `Sun 05:00 America/Sao_Paulo`; a LACUNA da linha 146 já cita o timer. Observação menor, não bloqueia: o `list-timers 'metricas-coleta-*'` da linha 106 não lista `metricas-referencias.timer` (nome fora do padrão).
+- A3 (recomendado): resolvido. Linhas 55 e 145 dizem que consta no `.env.example`; `.env.example:46` traz `PESSOA_ELIMINADA_SAL=`.
+- A4 (recomendado): aberto, fora da volta 2 (`deploy/sql/00_papeis_e_banco.sql` e o gerador não mudaram). Recuperável pelo roteiro do §6. Vira cartão (`R-QA`), sem bloquear.
+
 ## Achados
+
+- A4 (recomendado) deploy/sql/00_papeis_e_banco.sql:20 · com uma das cinco senhas ausente, o script cria os papéis anteriores e falha com erro de sintaxe sem nomear a variável. Aberto; vira cartão.
+
+## Achados da 1ª rodada (histórico, A1 a A3 resolvidos)
 
 - A1 (recomendado) docs/devops/105-implantacao-vm.md:146 · a LACUNA diz que "nenhum timer" chama as referências, mas `deploy/systemd/metricas-referencias.timer` (domingo 05:00) existe e o runbook item 4 o liga. O `systemctl enable` da linha 106 e "3 timers" da linha 169 omitem esse quarto timer: quem segue o documento não o ativa.
 - A2 (bloqueante) docs/devops/105-implantacao-vm.md:187 · "dspd_api e dspd_api_apontamento sem coluna de pessoa" é falso para o 2º: 9000_grants.sql:411 dá SELECT em dim_responsavel(pessoa_ref, responsavel_nome) e :403 em pessoa_ref. Provado por has_column_privilege. Corrigir o texto.
