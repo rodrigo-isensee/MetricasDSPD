@@ -21,13 +21,13 @@ const BLOQUEADOS = {
   criterios: { serie: [], janela: [] },
   itens: [
     { cardId: 'S-1', titulo: 'Item sem motivo', tipo: 'Requisição', etapa: 'Em desenvolvimento', motivo: NC, fornecedor: null, bloqueadoHaDiasUteis: 9 },
-    { cardId: 'S-2', titulo: 'Item com motivo', tipo: 'Melhoria', etapa: 'Em desenvolvimento', motivo: 'Janela de mudança', fornecedor: null, bloqueadoHaDiasUteis: 2 },
+    { cardId: 'S-2', titulo: 'Item com motivo', tipo: 'Melhoria', etapa: 'Em desenvolvimento', motivo: 'Aguardando publicação GMUD', fornecedor: null, bloqueadoHaDiasUteis: 2 },
   ],
 }
 const O19 = {
   base: { n: 80, unidade: 'bloqueios encerrados', janela: { inicio: JANELA.inicio, fim: JANELA.fim } },
   criterios: { serie: [], janela: [] },
-  motivos: [motivo(NC, 40, 70), motivo('Janela de mudança', 25, 20), motivo('Aguardando fornecedor', 30, 10)],
+  motivos: [motivo(NC, 40, 70), motivo('Aguardando publicação GMUD', 25, 20), motivo('Dependência Externa', 30, 10)],
   abertosForaDaSoma: 0,
   totalDiasUteis: 100,
 }
