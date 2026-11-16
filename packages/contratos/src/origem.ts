@@ -52,8 +52,10 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // excluídos e subtarefas ficam fora; sem pessoa nem `equipeResponsavel`); a base real tem 25 meses sem buraco (consulta tat-i). Abaixo de 20 demandas não publica.
   'T11',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
-  // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
+  // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T12 segue fora (P-075-12, "B").
   'BLOQUEADOS',
+  // Pedido 105 (E7.77, decisão do dono de 2026-11-16, opção A): o T10 publica o tempo total dos bloqueios encerrados com o motivo "Aguardando fornecedor", sem separar por fornecedor (o nome fica no texto livre, fora da base). Substitui a P-075-11 "B".
+  'T10',
   'PV1',
   // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S12 entrou no pedido 099 (D9) só com o volume.
   'S2',

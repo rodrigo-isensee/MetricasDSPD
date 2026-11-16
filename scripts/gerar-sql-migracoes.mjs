@@ -35,6 +35,10 @@ if (fase === 'arquivos') {
   for (const f of readdirSync(SAIDA)) if (f.endsWith('.sql')) rmSync(join(SAIDA, f));
   // Papéis e banco: o DBA roda uma vez, como administrador; senhas por variável de AMBIENTE (\getenv), nunca por -v (histórico e lista de processos).
   const ler = PAPEL_SENHA.map(([, v, e]) => `\\getenv ${v} ${e}`).join('\n');
+  // Conferência antes do primeiro CREATE: variável ausente ou vazia para o script, nomeando a que falta (nada é criado pela metade).
+  const conferir = PAPEL_SENHA.map(([, v, e]) =>
+    `\\if :{?${v}}\n\\else\n  DO $$ BEGIN RAISE EXCEPTION 'falta a variável de ambiente ${e}; nada foi criado'; END $$;\n\\endif\n` +
+    `SELECT (btrim(:'${v}') = '') AS ${v}_vazia \\gset\n\\if :${v}_vazia\n  DO $$ BEGIN RAISE EXCEPTION '${e} está vazia ou só de espaços; nada foi criado'; END $$;\n\\endif`).join('\n');
   const criar = PAPEL_SENHA.map(([p, v]) => `CREATE ROLE ${p} LOGIN PASSWORD :'${v}';`).join('\n');
   const semLogin = PAPEL_SEM_LOGIN.map((p) => `CREATE ROLE ${p} NOLOGIN;`).join('\n');
   const logins = PAPEL_SENHA.map(([p]) => p).join(', ');
@@ -42,12 +46,16 @@ if (fase === 'arquivos') {
   escrever('00_papeis_e_banco.sql', `${CAB}-- Roda UMA vez, como administrador, conectado ao banco \`postgres\` (psql 15 ou mais novo, por causa do \\getenv).
 -- Antes, no shell do DBA: \`read -rs <VARIAVEL>; export <VARIAVEL>\` para cada uma de ${envs}; \`unset\` ao terminar.
 --   psql "host=<servidor> dbname=postgres sslmode=verify-full" -v ON_ERROR_STOP=1 -f 00_papeis_e_banco.sql
--- Variável ausente para o script (falha fechada). Nenhuma senha vai na linha de comando; o SET abaixo evita o comando com senha no log do servidor.
+-- Variável ausente ou vazia: o script para antes do primeiro CREATE e diz qual falta (falha fechada, nada é criado). Nenhuma senha vai na linha de comando; os SET do começo (antes de qualquer comando que leia uma senha) tiram o comando com senha do log do servidor, mesmo com log_statement=all, log_min_duration_statement=0 ou erro no CREATE ROLE.
 -- webhook, automação e pesquisa ficam NOLOGIN, sem senha e sem CONNECT (existem só para os GRANTs das migrações); ligar um deles é decisão do dono.
 -- Se falhar no meio, nada é desfeito sozinho: veja "Se o roteiro de papéis falhar" em docs/devops/105-implantacao-vm.md.
 -- Se a empresa já criou o banco \`metricas\` (UTF8), apague a linha CREATE DATABASE.
-${ler}
+\\set ON_ERROR_STOP on
 SET log_statement = 'none';
+SET log_min_duration_statement = -1;
+SET log_min_error_statement = panic;
+${ler}
+${conferir}
 ${criar}
 ${semLogin}
 CREATE DATABASE metricas ENCODING 'UTF8' TEMPLATE template0;

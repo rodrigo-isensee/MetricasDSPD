@@ -52,6 +52,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     metricas: ['S11'],
   },
   {
+    referencia: '105:S8-so-respondidos',
+    descricao: 'S8 conta só os incidentes com o campo "Este problema já ocorreu nos últimos 90 dias?" respondido (sim ou não); sem resposta sai do denominador e é contado no cartão; abaixo de 20 respondidos não publica',
+    motivo: 'Decisão A do dono (pedido 105, S8, 16/11): substitui a D-10 (sem resposta = não reincidente). Hoje 195 incidentes, 186 sem resposta, 9 "não". Campo novo e opcional semResposta no contrato. Afeta S8.',
+    metricas: ['S8'],
+  },
+  {
     referencia: '105:S1-escala-p',
     descricao: 'S1 mede só os chamados da escala P1 a P5 da matriz; chamados de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prazo ficam fora e são contados',
     motivo: 'Decisão B do dono (pedido 105, E7.238, 16/11): a escala P1 a P5 cobre só 174 chamados; mais de 4.600 usam escalas com prazos próprios. Antes o S1 media todos contra os alvos da matriz. Afeta S1.',

@@ -68,6 +68,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O15'], // pedido 105 (E7.5)
         ...['O18'], // pedido 105 (E7.4)
         ...['S11'], // pedido 105 (D6a, Decisão 18b do 099)
+        ...['T10'], // pedido 105 (E7.77): tempo total esperando fornecedores
         ...['T9'], // pedido 105 (E7.68, D-T9 "T9 A")
         ...['T11'], // pedido 105 (E7.64, D-T11 "A")
       ].sort(),
@@ -215,15 +216,18 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(motivoDaOrigemSemDado('PV1')).toBeNull()
   })
 
-  it('C1/C2 (pedido 075, 6b): BLOQUEADOS, O5 e O19 são reais e sem motivo de mock; T10 e T12 seguem fora do mapa real, com o motivo genérico (SEG-A5)', () => {
+  it('C1/C2 (pedido 075, 6b): BLOQUEADOS, O5 e O19 são reais e sem motivo de mock; T12 segue fora do mapa real (o T10 entrou no pedido 105, E7.77), com o motivo genérico (SEG-A5)', () => {
     for (const id of ['BLOQUEADOS', 'O5', 'O19'] as const) {
       expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(true)
       expect(origemDaMetrica(id), id).toBe('real')
       expect(motivoDaOrigemSemDado(id), id).toBeNull()
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
     }
-    // T10 e T12 leem a mesma `fato_bloqueio`, mas esperam a WS1 (P-075-11 e P-075-12, "B"): nada muda para eles.
-    for (const id of ['T10', 'T12'] as const) {
+    // T12 lê a mesma `fato_bloqueio`, mas espera a WS1 (P-075-12, "B"): nada muda para ele. O T10 virou real no pedido 105 (E7.77, opção A).
+    expect(METRICAS_ORIGEM_REAL.has('T10')).toBe(true)
+    expect(origemDaMetrica('T10')).toBe('real')
+    expect(motivoDaOrigemSemDado('T10')).toBeNull()
+    for (const id of ['T12'] as const) {
       expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(false)
       expect(origemDaMetrica(id), id).toBe('sem-dado')
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
