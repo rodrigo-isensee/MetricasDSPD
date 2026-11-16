@@ -51,6 +51,16 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17', 'BLOQUEADOS', 'O2', 'O19', 'T10', 'T12']);
   });
 
+  it('E7.214: o campo 51 (Responsabilidade do Atraso) traz as 3 opções do catálogo pelo value_id, com o código do contrato; o campo 42 (pessoa) não entra', () => {
+    const lido = lerDominioBm();
+    expect(lido.arquivo.campos[2]).toMatchObject({ field_id: '51', type: 'dropdown', coluna: 'responsabilidade_atraso' });
+    // Escrito AQUI, não importado do código (B-1 da ADR 0020): catálogo do spike allowedValues de 2026-11-16.
+    expect(lido.arquivo.campos[2]!.valores.map((v) => [v.value_id, v.codigo])).toEqual([['137', 'Interno'], ['138', 'Solicitante'], ['139', 'Terceiro']]);
+    expect(lido.arquivo.campos.map((c) => c.field_id)).not.toContain('42');
+    expect(listasDoArquivo(lido.arquivo)['valor_id_responsabilidade_atraso']).toEqual([
+      { codigo: '137', rotulo: 'Interno' }, { codigo: '138', rotulo: 'Solicitante' }, { codigo: '139', rotulo: 'Terceiro' }]);
+  });
+
   it('E7.203: value_id repetido ou não numérico no arquivo é recusado', () => {
     const ruim = JSON.parse(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')) as { campos: { valores: { value_id?: string }[] }[] };
     ruim.campos[0]!.valores[1]!.value_id = ruim.campos[0]!.valores[0]!.value_id!;
@@ -64,11 +74,11 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     // Escrito AQUI, não importado do código (B-1 da ADR 0020): rótulos exatamente como o dono passou, na ordem dele.
     const ROTULOS = ['Requisitos mal definidos', 'Requisito alterado', 'Erro de lógica / codificação', 'Falha de integração', 'Dados / massa de teste',
       'Configuração de ambiente', 'Efeito colateral', 'Dependência externa', 'Teste insuficiente', 'Layout / Interface', 'Não é bug', 'Outros'];
-    expect(lido.arquivo.campos).toHaveLength(2);
+    expect(lido.arquivo.campos).toHaveLength(3);
     expect(lido.arquivo.campos[0]).toMatchObject({ field_id: '48', type: 'dropdown', coluna: 'causa_raiz' });
     expect(lido.arquivo.campos[0]!.valores.map((v) => v.rotulo)).toEqual(ROTULOS);
     expect(new Set(lido.arquivo.campos[0]!.valores.map((v) => v.codigo)).size).toBe(12);
-    expect(listasDoArquivo(lido.arquivo)['campo_customizado']).toEqual([{ codigo: '48', rotulo: 'causa_raiz' }, { codigo: '49', rotulo: 'origem_demanda' }]);
+    expect(listasDoArquivo(lido.arquivo)['campo_customizado']).toEqual([{ codigo: '48', rotulo: 'causa_raiz' }, { codigo: '49', rotulo: 'origem_demanda' }, { codigo: '51', rotulo: 'responsabilidade_atraso' }]);
     expect(lido.arquivo.versao_criterio.descricao).toContain('2026-11-16');
     // C8a: escrito AQUI, não importado do código (B-1 da ADR 0020); fato da OpenAPI v2 do BusinessMap, escala decrescente
     expect(lido.arquivo.prioridade_severidade).toEqual([
