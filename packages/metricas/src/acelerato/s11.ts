@@ -1,8 +1,6 @@
 import type { ResultadoS11, FiltrosSustentacao } from '@metricas-dspd/contratos'
-import { MOTIVO_S11_CONVERSAO_SEM_DADO_REAL } from '@metricas-dspd/contratos'
 import { taxa } from '../core/estatistica'
 import { baseAmostral, criterios, noIntervalo, periodoDe, selecionarAC } from './comum'
-import type { ExtensaoAC } from './extensao'
 import type { ChamadoCalc, ContextoAC } from './indice'
 import { motivoEncerramentoDe } from './motivos'
 
@@ -27,14 +25,13 @@ function regraDe(ctx: ContextoAC, x: ChamadoCalc): Regra {
 
 /**
  * S11: avaliação de Problema em chamados P1, P2 e encerrados por contorno (motivo pelo de-para do D2, "Contorno Aplicado" em qualquer caixa), e
- * conversão em Registro de Problema. Sem extensão (base real) a conversão é nula com o motivo em `motivoConversao`, nunca 0 de 0. O filtro de
- * prioridade não atua (o escopo já é por prioridade e contorno).
+ * conversão em Registro de Problema. Conversão (pedido 105, E7.101; decisão do dono de 16/11): pela decisão registrada no chamado, não pelo vínculo.
+ * "Aberto" no campo "Avaliação de Problema" = Registro de Problema aberto; conversão = "Aberto" ÷ avaliações registradas ("Não aplicável e com
+ * justificativa" fica só no denominador), só nos chamados dos fluxos do PROC (nos fluxos antigos a regra é a etapa, que não tem valor: ficam fora
+ * e são contados em `foraDaConversao`). Abaixo de 20 avaliações não publica (taxa insuficiente). Só Acelerato. O filtro de prioridade não atua
+ * (o escopo já é por prioridade e contorno).
  */
-export function calcularS11(
-  ctx: ContextoAC,
-  f: FiltrosSustentacao,
-  ext?: ExtensaoAC,
-): ResultadoS11 {
+export function calcularS11(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS11 {
   const periodo = periodoDe(ctx, f)
   const fechados = selecionarAC(ctx, f, { semPrioridade: true }).filter(
     (x) => x.fechado && noIntervalo(ctx, x.c.data_finalizado, periodo),
@@ -53,7 +50,8 @@ export function calcularS11(
     P2: escopo.filter((x) => x.c.prioridade === 'P2'),
     Contorno: escopo.filter(contorno),
   }
-  const avaliacoes = comRegra(fechados).filter(avaliado)
+  const avaliados = comRegra(fechados).filter(avaliado)
+  const avaliacoes = avaliados.filter((x) => regraDe(ctx, x) === 'campo')
   return {
     base: baseAmostral(escopo.length, 'chamados no escopo', periodo),
     criterios: criterios('S11', periodo, periodo, ctx),
@@ -64,13 +62,11 @@ export function calcularS11(
     })),
     campoDisponivel: true,
     semFluxo: noEscopo.length - escopo.length,
-    conversao:
-      ext === undefined
-        ? null
-        : taxa(
-            avaliacoes.filter((x) => ext.registroProblema[x.c.chamado_id] === true).length,
-            avaliacoes.length,
-          ),
-    motivoConversao: ext === undefined ? MOTIVO_S11_CONVERSAO_SEM_DADO_REAL : null,
+    conversao: taxa(
+      avaliacoes.filter((x) => x.c.avaliacao_problema === 'Aberto').length,
+      avaliacoes.length,
+    ),
+    motivoConversao: null,
+    foraDaConversao: avaliados.length - avaliacoes.length,
   }
 }

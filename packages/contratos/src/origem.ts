@@ -37,6 +37,11 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 105 (E7.4, O18 = c): entregas com e sem bug pelos vínculos do BusinessMap (pai e filho ou relacionado) projetados em `dim_card.origem_bug`.
   'O18',
   'EI_FL1',
+  // Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 lê o avanço pelas frentes filhas (concluídas ÷ total) e as adicionadas pela regra
+  // do `criado_em` da frente depois do `iniciado_em` do projeto, derivada na leitura (a base não guarda o instante do vínculo: a frente criada antes e
+  // ligada depois conta como original, e a nota do cartão diz isso); projeto sem início fica fora, contado. Só 13 projetos ativos têm frente filha:
+  // o T9 não publica estatística agregada (só "k de n"), e o por projeto segue a regra do briefing (censo).
+  'T9',
   // Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 lê `dim_card` (criado_em; story que não é Bug interno, a chegada do T4 e do O7; arquivados entram;
   // excluídos e subtarefas ficam fora; sem pessoa nem `equipeResponsavel`); a base real tem 25 meses sem buraco (consulta tat-i). Abaixo de 20 demandas não publica.
   'T11',
@@ -79,11 +84,11 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 
 /**
- * Pedido 099 (B' da Q-099-7): motivo da parte por causa raiz do O17. A causa raiz é do Registro de Problemas e a base não tem o
- * vínculo ao incidente; a causa aparente não serve no lugar dela.
+ * Pedido 105 (K-372, decisão do dono de 16/11): motivo definitivo da parte por causa raiz do O17. O campo "Causa raiz" do fluxo de
+ * Problemas do Acelerato é texto livre, que nunca entra na base (ADR 0020); a causa raiz de incidente não é contada.
  */
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
-  'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
+  'A causa raiz do incidente é registrada em texto livre no Acelerato e por isso não é contada.'
 
 /**
  * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
@@ -98,15 +103,16 @@ export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
  */
 export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
 /**
- * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
- * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ * Pedido 099 (A4, Q-099-4) e 105 (E7.102): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o tamanho vem do
+ * `size` nativo do card pela régua de cada time (seis faixas); enquanto a régua aprovada não estiver carregada, nenhum card tem tamanho e a
+ * divisão sai sem dado real. Com algum card com tamanho o motivo é nulo (plano de tamanho, seção 4). Texto provisório, revisado pela UX.
  */
 export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
-  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
+  'aguardando a régua de tamanho aprovada: nenhum card tem tamanho pela régua do time'
 
 /**
- * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. A base não liga o chamado ao Registro de Problema; a conversão não é
- * publicada como 0. Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
+ * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. Desde o E7.101 a conversão sai do campo "Avaliação de Problema" e o
+ * serviço não usa mais este motivo (resta para o resultado antigo com `conversao` nula; a conversão nunca é publicada como 0). Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
  */
 export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
   'Aguardando o vínculo do chamado com o Registro de Problema.'

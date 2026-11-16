@@ -62,7 +62,8 @@ async function calendarioDaReferencia(db: Consultavel, S: Esquemas | undefined, 
   return criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos, turnos: gravados.length > 0 ? gravados : acelerato.TURNOS_SUSTENTACAO });
 }
 const BASE_AC_VAZIA: BaseAC = { chamados: [], etapas: [], config: { alvos: [], criterios: [] } };
-const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
+/** Pedido 105 (K-375): base de fallback do BusinessMap; sem limite de frentes (`null`), nunca 0. */
+export const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
   limite_wip_fluxo: {}, limite_frentes: null, sle: [], alocacao: [], objetivos: [], criterios: [], equipes: [], sistemas: [], areas_internas: [],
 } };
 

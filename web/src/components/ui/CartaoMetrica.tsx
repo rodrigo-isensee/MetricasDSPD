@@ -110,6 +110,8 @@ export interface CartaoMetricaProps {
   /** Altura reservada para o esqueleto (padrão: gráfico + frase de leitura, sem salto de layout). */
   alturaEsqueleto?: number
   children?: ReactNode
+  /** Texto junto do estado vazio (por exemplo, o que ficou fora da conta); só aparece no estado vazio. */
+  complementoVazio?: ReactNode
 }
 
 /**
@@ -390,6 +392,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             {estado === 'vazio' && (
               <div className="mt-3">
                 <EstadoVazio codigo={p.codigo} />
+                {p.complementoVazio}
               </div>
             )}
 

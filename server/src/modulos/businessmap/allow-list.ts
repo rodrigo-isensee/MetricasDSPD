@@ -95,13 +95,14 @@ function reduzirVinculos(v: unknown): { card_id: unknown; link_type: unknown }[]
 export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
 
 /**
- * Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração).
+ * Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a). `causa_raiz` (pedido 105, E7.86): causa raiz do bug do fluxo, campo 48 "Causa Raiz" (dropdown) do BusinessMap; a coluna já existe em `dim_card` e `dim_card_versao`.
  * Pedido 105 (E7.3): `classe_servico` saiu daqui; a classe vem só das etiquetas do card (ADR 0020 4i), uma fonte por coluna.
  * `fase_deteccao` saiu em 105 (E7.5): vem só da projeção pela coluna do pai do bug, para não haver duas fontes.
+ * `tamanho_declarado` saiu em 105 (E7.102): vem só do `size` nativo do card pela régua do time (`tamanho_regua` de `ref_dominio`); a allow-list aperta, não afrouxa.
  */
 export const COLUNAS_LISTA = [
-  'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
-  'responsabilidade_atraso', 'origem_demanda', 'severidade',
+  'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico',
+  'responsabilidade_atraso', 'origem_demanda', 'severidade', 'causa_raiz',
 ] as const;
 
 /**
@@ -110,6 +111,22 @@ export const COLUNAS_LISTA = [
  * Campo de tipo usuário ou texto livre não deve constar aqui (ADR 0020, 4d): o cartão para e a decisão volta ao usuário.
  */
 export type DominiosCamposCustomizados = ReadonlyMap<string, ReadonlyMap<string, string>>;
+
+const ehChave = (v: unknown): v is string | number => typeof v === 'string' || typeof v === 'number';
+/** Chaves candidatas da seleção de um campo: `value` e, na forma de lista, o `value_id` e o `value` de cada item de `values[]` (nunca outra chave). */
+function chavesDoValor(c: Objeto): string[] {
+  const chaves: string[] = [];
+  if (ehChave(c.value)) chaves.push(String(c.value));
+  if (Array.isArray(c.values)) {
+    for (const v of c.values) {
+      if (ehObjeto(v)) {
+        if (ehChave(v.value_id)) chaves.push(String(v.value_id));
+        if (ehChave(v.value)) chaves.push(String(v.value));
+      } else if (ehChave(v)) chaves.push(String(v));
+    }
+  }
+  return chaves;
+}
 
 export function reduzirCamposCustomizados(
   campos: unknown, dominios: DominiosCamposCustomizados,
@@ -121,9 +138,10 @@ export function reduzirCamposCustomizados(
     const id = String(c.field_id);
     const dominio = dominios.get(id);
     if (dominio === undefined) continue;
-    const bruto = c.value;
-    const chave = typeof bruto === 'string' || typeof bruto === 'number' ? String(bruto) : undefined;
-    saida.push({ field_id: id, valor: (chave !== undefined ? dominio.get(chave) : undefined) ?? VALOR_DESCONHECIDO });
+    // E7.86: a seleção vem em `value` (escalar) ou em `values[]` (dropdown, `value_id`). Só entra o código do domínio fechado; o resto do objeto
+    // (texto da opção, descrição de "Outros", qualquer chave extra) nunca é lido para a saída.
+    const valor = chavesDoValor(c).map((k) => dominio.get(k)).find((v) => v !== undefined);
+    saida.push({ field_id: id, valor: valor ?? VALOR_DESCONHECIDO });
   }
   return saida;
 }

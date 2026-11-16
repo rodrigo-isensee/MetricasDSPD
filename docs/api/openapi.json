@@ -11499,9 +11499,12 @@
                                         "tamanho": {
                                           "type": "string",
                                           "enum": [
+                                            "PP",
                                             "P",
                                             "M",
                                             "G",
+                                            "GG",
+                                            "XG",
                                             "Sem tamanho"
                                           ]
                                         },
@@ -23399,6 +23402,11 @@
                         },
                         "projetosComEscopoCrescido": {
                           "type": "number"
+                        },
+                        "projetosSemInicio": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [
@@ -39701,6 +39709,11 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "foraDaConversao": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [

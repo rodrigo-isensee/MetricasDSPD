@@ -106,11 +106,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   O17: {
     oQueE: 'A causa raiz e o sistema dos incidentes já encerrados.',
     comoSeCalcula:
-      'Contagem de incidentes encerrados por sistema (dado real do Acelerato) e por causa raiz. A causa raiz fica sem dado real até o Registro de Problemas ter vínculo ao incidente; nesse caso o cartão diz isso e não publica a parte por causa raiz. Sem mínimo de amostra: é contagem.',
+      'Contagem de incidentes encerrados por sistema (dado real do Acelerato). A causa raiz não é contada: no Acelerato ela é registrada em texto livre. Sem mínimo de amostra: é contagem.',
     comoLer: 'Concentração indica onde investir em prevenção.',
     meta: SEM_ALVO,
     cuidados:
-      'A causa raiz ainda não tem dado real: depende do Registro de Problemas com vínculo ao incidente. Por sistema, nunca por pessoa.',
+      'A causa raiz não é contada, porque é texto livre no Acelerato. Por sistema, nunca por pessoa.',
   },
   T6: {
     oQueE: 'Uma previsão de prazo ou de quantidade de itens a partir da vazão semanal real.',
@@ -177,7 +177,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'Se os chamados que pedem análise de causa (P1, P2 e encerrados por contorno) receberam avaliação de Problema.',
     comoSeCalcula:
-      '% com avaliação registrada. Conta como avaliação: no fluxo do PROC, o campo próprio de avaliação de Problema; nos fluxos antigos, a passagem do chamado pela etapa Causa Raiz. Encerrado por contorno é o chamado encerrado com o motivo Contorno Aplicado. A conversão (avaliações que viraram Registro de Problema ÷ avaliações) aparece como "sem dado real" enquanto a base não ligar a avaliação ao Registro de Problema; chamados sem fluxo definido ficam fora e são contados à parte.',
+      '% com avaliação registrada. Conta como avaliação: no fluxo do PROC, o campo próprio de avaliação de Problema; nos fluxos antigos, a passagem do chamado pela etapa Causa Raiz. Encerrado por contorno é o chamado encerrado com o motivo Contorno Aplicado. Chamados sem fluxo definido ficam fora e são contados à parte.\n\nConversão: das avaliações, quantas terminaram em Registro de Problema aberto. Vale a decisão registrada no chamado, não o vínculo: "Aberto" no campo de avaliação conta como Registro de Problema aberto; "Não aplicável e com justificativa" só entra no total. Vale só para os fluxos do PROC e, com menos de 20 avaliações, não é publicada.',
     comoLer: 'Baixa avaliação deixa causas sem tratamento.',
     meta: SEM_ALVO,
     cuidados: 'Os grupos se sobrepõem: um P1 pode ter contorno.',

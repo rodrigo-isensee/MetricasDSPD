@@ -14,9 +14,13 @@ import {
   TETO_RECOLHIDOS,
 } from '.'
 
-const nota = { titulo: 'Como ler', texto: 'Nota' } as unknown as React.ComponentProps<
-  typeof CartaoMetrica
->['nota']
+const nota = {
+  oQueE: 'Nota',
+  comoSeCalcula: 'Nota',
+  comoLer: 'Nota',
+  meta: 'Nota',
+  cuidados: 'Nota',
+}
 
 const Cartao = (p: Partial<React.ComponentProps<typeof CartaoMetrica>> = {}) => (
   <CartaoMetrica
