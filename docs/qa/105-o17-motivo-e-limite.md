@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-o17-motivo-e-limite
-commit: e046134d1131028f392d415a64074d41ee4828d3
+commit: a84925e3d10a0393ae8d9eed6aaf85dbf5972f1d
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -15,7 +15,7 @@ data: 2026-11-16
 # QA: O17 motivo definitivo da causa raiz (K-372) e fallback sem limite de frentes (K-375)
 
 ## Achados
-- A1 (recomendado) web/src/features/complementares/notas.ts:113 · o texto de apoio ainda diz que a causa raiz "depende do Registro de Problemas com vínculo ao incidente" (também notas.ts:109 e sustentacao.tsx:71), contra a decisão do dono "texto livre". Alinhar em cartão.
+- A1 (recomendado) web/src/features/complementares/notas.ts:113 · RESOLVIDO em a84925e3: notas.ts:109 e :113 e sustentacao.tsx:71 dizem texto livre e não contada; resta só o histórico em criterios.ts:160, que não se reescreve (T2.6).
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
@@ -32,3 +32,12 @@ data: 2026-11-16
 - Vermelho antes do verde: os dois mutantes reproduzem o código anterior e derrubam os testes novos ou ajustados.
 - Suíte inteira: não rodada aqui. Sem PR; o CI do push (run 43852650925) estava na fila ao parecer, então não afirmo CI verde. Vale o PQ do autor e o check `bateria` do PR.
 - Sem teste de acessibilidade novo: só texto de motivo muda.
+
+## Revalidação (delta e046134d..a84925e3, escopo incremental)
+- forge-check parecer delta listou só texto: docs/api/metricas.md, docs/contratos/metricas/O17.md, e2e o17-sistema-qa.spec.ts, schemas.ts, o17.ts, regras.ts (comentários), notas.ts, ramos.test.tsx, sustentacao.tsx. Nenhuma lógica mudou.
+- Os testes acompanham os textos: ramos.test.tsx (linhas 411 e 445) e o e2e (linha 75) usam "A lista de causas é uma proposta do time."; grep de "Registro de Problemas" em web/, packages/*/src e e2e só acha o histórico de criterios.ts:160.
+- ramos.test.tsx local: 31 passed (31).
+- Mutante (texto antigo do Leia de volta em sustentacao.tsx): cai o teste O17 não diz mais frequente (1 failed, 30 passed). Morreu; revertido, árvore limpa.
+- CI do push no head a84925e3 (run 43858233010): success em openapi, imagem, filtro, rapida, build, seguranca, testes, banco; perf e e2e skipped. O check bateria do PR fica para o PR.
+- Parecer da UX versionado em docs/ux/105-revisao-o17-motivo.md; os achados dele (notas, Leia, O17.md, schemas, regras) foram atendidos.
+- Sem bug novo; parecer segue aprovado.
