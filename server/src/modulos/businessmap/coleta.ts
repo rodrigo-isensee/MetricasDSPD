@@ -10,7 +10,7 @@ import { CAMPO_CUSTOMIZADO, dominiosDeLinhas, type LinhaRefDominio } from './dom
 import { ErroReferencia } from './referencia.js';
 import { desembrulhar } from './spike-forma.js';
 import { gravarStgCard, gravarStgRevision } from './staging.js';
-import { lerMapaDeTagsDeClasse } from './tags.js';
+import { lerMapaDeTagsDeClasse, type AvisoTetoTags } from './tags.js';
 import { resolverResponsaveis, type ResultadoUsuarios } from './usuarios.js';
 
 // F3 do plano 052 (K-182): coleta dos cards do BusinessMap para o staging, incremental e carga inicial de 12 meses. Só GET, pelo
@@ -318,7 +318,12 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     // 4i: o catálogo de etiquetas vem antes dos cards. Sem ele, ler os cards gravaria versões sem `classes_tag` e a classe já projetada se perderia:
     // a falha para a leitura dos cards (código e entidade `tags` no controle; nada de rótulo).
     try {
-      x.mapaTags = await lerMapaDeTagsDeClasse(d.cliente);
+      let tetoTags: AvisoTetoTags | undefined;
+      x.mapaTags = await lerMapaDeTagsDeClasse(d.cliente, (a) => { tetoTags = a; });
+      // Aviso, não falha (o status não muda): só contagens, em `ctl_coleta_contagem` (lidos = páginas lidas; falhas = páginas que ficaram sem ler).
+      if (tetoTags !== undefined) {
+        await registrarContagem(d.pool, S, coletaId, 'tags_teto_paginas', { lidos: tetoTags.lidas, inseridos: 0, jaExistentes: 0, falhas: tetoTags.declaradas - tetoTags.lidas });
+      }
     } catch (e) {
       if (!(e instanceof ErroBusinessMap)) throw e;
       x.falhas.push(e.tipo);

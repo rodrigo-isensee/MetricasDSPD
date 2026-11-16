@@ -4,7 +4,7 @@ import {
   CAMPOS_CARD, COLUNAS_LISTA, classeDoRotuloDeTag, mapaDeTagsDeClasse, reduzirTagsDeClasse, registroCard, serializar,
 } from '../src/modulos/businessmap/allow-list.js';
 import { classeDeServicoDasTags } from '../src/modulos/businessmap/normalizador.js';
-import { lerMapaDeTagsDeClasse } from '../src/modulos/businessmap/tags.js';
+import { lerMapaDeTagsDeClasse, TETO_PAGINAS_TAGS } from '../src/modulos/businessmap/tags.js';
 import { criarEsquemaDominioBm } from '../src/modulos/businessmap/dominio-businessmap.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { criarClienteHttp } from '../src/plataforma/http.js';
@@ -32,6 +32,11 @@ describe('rótulo da etiqueta -> classe (decisão do dono de 2026-11-15)', () =>
   });
   it('Intangível não é classe; texto fora da lista, não texto e rótulo enorme ficam sem classe', () => {
     for (const r of ['Intangível', 'Intangivel', 'Expedite', 'Standard', 'Urgentes', '', null, 7, undefined, 'a'.repeat(500)]) expect(classeDoRotuloDeTag(r), String(r)).toBeUndefined();
+  });
+  it('A1: a guarda de tamanho do rótulo vale na borda (120 passa, 121 não), mesmo quando a forma normalizada seria uma classe', () => {
+    expect(classeDoRotuloDeTag('Urgente' + ' '.repeat(113))).toBe('Urgente');
+    expect(classeDoRotuloDeTag('Urgente' + ' '.repeat(114))).toBeUndefined();
+    expect(classeDoRotuloDeTag(' '.repeat(500) + 'Padrão')).toBeUndefined();
   });
   it('item do catálogo que não é objeto é ignorado', () => {
     expect([...mapaDeTagsDeClasse([null, 7, 'Urgente', { tag_id: 1, label: 'Urgente' }]).entries()]).toEqual([['1', 'Urgente']]);
@@ -172,5 +177,42 @@ describe('coleta: catálogo de etiquetas antes dos cards (4i)', () => {
       return Promise.resolve({ data: { data: paginas[p], pagination: { all_pages: 2, current_page: p } } });
     };
     expect([...(await lerMapaDeTagsDeClasse({ get } as never)).entries()]).toEqual([['1', 'Urgente'], ['4', 'Padrão']]);
+  });
+
+  it('A2: catálogo que declara mais páginas que o teto lê só até o teto e avisa com contagens, sem rótulo', async () => {
+    let chamadas = 0;
+    const get = (): Promise<unknown> => {
+      chamadas += 1;
+      return Promise.resolve({ data: { data: [TAGS[0]], pagination: { all_pages: TETO_PAGINAS_TAGS + 7, current_page: 1 } } });
+    };
+    const avisos: unknown[] = [];
+    await lerMapaDeTagsDeClasse({ get } as never, (a) => avisos.push(a));
+    expect(chamadas).toBe(50);
+    expect(avisos).toEqual([{ lidas: 50, declaradas: 57 }]);
+    expect(JSON.stringify(avisos)).not.toContain(MARCADOR);
+  });
+
+  it('A2: no teto exato (50 páginas declaradas) não há aviso, e sem ouvinte o teto não quebra', async () => {
+    const get = (): Promise<unknown> => Promise.resolve({ data: { data: [], pagination: { all_pages: TETO_PAGINAS_TAGS } } });
+    const avisos: unknown[] = [];
+    await lerMapaDeTagsDeClasse({ get } as never, (a) => avisos.push(a));
+    expect(avisos).toEqual([]);
+    const get2 = (): Promise<unknown> => Promise.resolve({ data: { data: [], pagination: { all_pages: TETO_PAGINAS_TAGS + 1 } } });
+    await expect(lerMapaDeTagsDeClasse({ get: get2 } as never)).resolves.toBeInstanceOf(Map);
+  });
+
+  it('A2: a coleta registra o aviso do teto em ctl_coleta_contagem (só números), sem virar falha', async () => {
+    const m = await montar([card(1, { tag_ids: [1] })], { '/tags': { data: { data: TAGS, pagination: { all_pages: 52, current_page: 1 } } } });
+    const r = await coletarCards(m.deps, carga);
+    expect(r.estado).toBe('sucesso');
+    expect(m.banco.estado.contagens.filter((c) => c.entidade === 'tags_teto_paginas')).toEqual([{ entidade: 'tags_teto_paginas', lidos: 50, inseridos: 0, jaExistentes: 0, falhas: 2 }]);
+    expect(m.banco.estado.falhas).toEqual([]);
+    expect(JSON.stringify(m.banco.estado.contagens)).not.toContain(MARCADOR);
+  });
+
+  it('A2: catálogo dentro do teto não registra aviso', async () => {
+    const m = await montar([card(1, { tag_ids: [1] })], { '/tags': { data: TAGS } });
+    await coletarCards(m.deps, carga);
+    expect(m.banco.estado.contagens.some((c) => c.entidade === 'tags_teto_paginas')).toBe(false);
   });
 });
