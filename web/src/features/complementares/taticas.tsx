@@ -22,7 +22,7 @@ interface P {
 
 const num = (n: number) => fmtNumero(n, n % 1 === 0 ? 0 : 1)
 const dias = (n: number) => `${num(n)} ${plural(n, 'dia útil', 'dias úteis')}`
-const SEM_AMOSTRA = '— amostra insuficiente'
+const SEM_AMOSTRA = '— menos de 20 bloqueios na janela de 12 semanas'
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 /** Estado "sem itens" com texto próprio do cartão: o cartão segue em `ok` e o corpo diz o que falta. */
@@ -48,9 +48,9 @@ function leituraT10(d: ResultadoT10): string | undefined {
   if (!e) return undefined
   const resposta =
     e.duracao.status === 'ok'
-      ? ` Em 85% dos casos a espera durou até ${dias(e.duracao.valor.p85)}.`
-      : ''
-  return `Os bloqueios esperando fornecedores somaram ${dias(e.diasUteis)} no período, em ${fmtInteiro(e.bloqueios)} ${plural(e.bloqueios, 'bloqueio', 'bloqueios')}.${resposta} Prazo contratado não informado.`
+      ? ` Nas últimas 12 semanas, em 85% dos casos a espera durou até ${dias(e.duracao.valor.p85)}.`
+      : ' Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas.'
+  return `Os bloqueios encerrados com o motivo Aguardando fornecedor somaram ${dias(e.diasUteis)} no período, em ${fmtInteiro(e.bloqueios)} ${plural(e.bloqueios, 'bloqueio', 'bloqueios')}.${resposta} Prazo contratado não informado.`
 }
 
 /** T10: tempo total esperando fornecedores (bloqueios com motivo "Aguardando fornecedor"), sem separar por fornecedor (pedido 105, E7.82). */
@@ -74,8 +74,14 @@ export function CartaoT10({ filtros }: P) {
           return (
             <div className="flex flex-col gap-3">
               <AvisoInfo testid="t10-sem-fornecedor">
-                Nenhum bloqueio por fornecedor no período.
+                Nenhum bloqueio com o motivo &quot;Aguardando fornecedor&quot; foi encerrado no
+                período.
               </AvisoInfo>
+              {r.motivoSemFornecedores && (
+                <p className="text-sm text-texto-2" data-testid="t10-motivo">
+                  {r.motivoSemFornecedores}
+                </p>
+              )}
               <Leia>Prazo contratado não informado.</Leia>
             </div>
           )
@@ -85,7 +91,7 @@ export function CartaoT10({ filtros }: P) {
               codigo="T10"
               legenda="Tempo total esperando fornecedores: contagem, dias úteis somados e duração P50, P85 e P95"
               colunas={[
-                { chave: 'f', titulo: 'Espera' },
+                { chave: 'f', titulo: 'Tipo de espera' },
                 { chave: 'b', titulo: 'Bloqueios', alinhar: 'direita' },
                 { chave: 'd', titulo: 'Dias úteis somados', alinhar: 'direita' },
                 { chave: 'p', titulo: 'Duração (P50, P85 e P95)' },
@@ -108,9 +114,8 @@ export function CartaoT10({ filtros }: P) {
               </p>
             )}
             <Leia>
-              Prazo contratado não informado. P50, P85 e P95 só com 20 bloqueios ou mais, na janela
-              de 12 semanas; a contagem e a soma seguem o período do painel. Leia junto com os
-              bloqueados agora e os acordos e vencidos (O12).
+              Prazo contratado não informado. Leia junto com os bloqueados agora e os acordos e
+              vencidos (O12).
             </Leia>
           </div>
         )

@@ -76,7 +76,7 @@ describe('T10 Tempo de terceiros', () => {
     })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('leitura-T10')).toHaveTextContent(
-      'Os bloqueios esperando fornecedores somaram 52 dias úteis no período, em 30 bloqueios. Em 85% dos casos a espera durou até 6 dias úteis. Prazo contratado não informado.',
+      'Os bloqueios encerrados com o motivo Aguardando fornecedor somaram 52 dias úteis no período, em 30 bloqueios. Nas últimas 12 semanas, em 85% dos casos a espera durou até 6 dias úteis. Prazo contratado não informado.',
     )
     const linhas = within(within(el).getByTestId('tabela-T10')).getAllByRole('row').slice(1)
     expect(linhas).toHaveLength(1)
@@ -101,10 +101,12 @@ describe('T10 Tempo de terceiros', () => {
     })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('leitura-T10')).toHaveTextContent(
-      'Os bloqueios esperando fornecedores somaram 1,5 dias úteis no período, em 1 bloqueio. Prazo contratado não informado.',
+      'Os bloqueios encerrados com o motivo Aguardando fornecedor somaram 1,5 dias úteis no período, em 1 bloqueio. Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas. Prazo contratado não informado.',
     )
     const linha = within(within(el).getByTestId('tabela-T10')).getAllByRole('row')[1]!
-    expect(linha).toHaveTextContent(/Esperando fornecedores\s*1\s*1,5\s*— amostra insuficiente/)
+    expect(linha).toHaveTextContent(
+      /Esperando fornecedores\s*1\s*1,5\s*— menos de 20 bloqueios na janela de 12 semanas/,
+    )
     expect(linha.textContent).not.toMatch(/P50|P85|P95/)
   })
 
@@ -118,17 +120,29 @@ describe('T10 Tempo de terceiros', () => {
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).queryByTestId('t10-motivo')).toBeNull()
     expect(within(within(el).getByTestId('tabela-T10')).getAllByRole('row')[1]).toHaveTextContent(
-      /Esperando fornecedores\s*0\s*0\s*— amostra insuficiente/,
+      /Esperando fornecedores\s*0\s*0\s*— menos de 20 bloqueios na janela de 12 semanas/,
     )
   })
 
-  it('resposta antiga, sem o total: mensagem própria e "Prazo contratado não informado"', async () => {
+  it('resposta antiga, sem o total: diz o motivo do vazio e o de não separar por fornecedor', async () => {
     const fonte = new FonteFixa({ T10: dto(undefined, { totalDiasUteis: 0 }) })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('t10-sem-fornecedor')).toHaveTextContent(
-      'Nenhum bloqueio por fornecedor no período.',
+      'Nenhum bloqueio com o motivo "Aguardando fornecedor" foi encerrado no período.',
+    )
+    expect(within(el).getByTestId('t10-motivo')).toHaveTextContent(
+      'O nome do fornecedor não é guardado na base.',
     )
     expect(el).toHaveTextContent('Prazo contratado não informado')
+  })
+
+  it('vazio sem o motivo na resposta: só a mensagem do vazio', async () => {
+    const fonte = new FonteFixa({
+      T10: dto(undefined, { motivoSemFornecedores: undefined }),
+    })
+    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
+    expect(within(el).getByTestId('t10-sem-fornecedor')).toBeInTheDocument()
+    expect(within(el).queryByTestId('t10-motivo')).toBeNull()
   })
 
   it('com o mock: uma linha de total, sem nome de fornecedor nem selo de melhor ou pior', async () => {
