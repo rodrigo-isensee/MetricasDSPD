@@ -76,6 +76,7 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   O22: resultadoO22,
   O25: resultadoO25,
   O26: resultadoO26,
+  O27: s.resultadoO27,
   S1: s.resultadoS1,
   S2: s.resultadoS2,
   S3: s.resultadoS3,

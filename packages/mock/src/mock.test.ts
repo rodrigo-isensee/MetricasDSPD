@@ -60,9 +60,9 @@ describe('determinismo', () => {
     expect(ms).toBeLessThan(1500 * fator)
   })
 
-  it('hash da base padrão e da escala 0,2: regravado no B11a, no ajuste do O23 (originais: 924448d4 e b2bfd4c0), no D3 do 099 (unidade dos prazos em config.alvos; escala 0,2 era 824092e4) e no D3b do 099 (dia útil da Sustentação de 528 min no calendário e nos alvos do mock; escala 0,2 era 345c5682) e no K-314 do 099 (exibir_primeiro_atendimento e exibir_restauracao em config.alvos; base era dd6787b1 e escala 0,2 era 5f03955c) e no pedido 105 (Intangível deixou de ser classe: Dívida técnica passa a Prioritário e o SLE ganha a linha; base era 52378641 e escala 0,2 era bf154cb8) e no D6a do 105 (avaliacao_problema com o valor real "Não aplicável e com justificativa"; base era 61ce1180, escala 0,2 era f7437c34, Acelerato era 930570e9 e 692530cf)', () => {
-    expect(hashJson(base)).toBe('b6a3c384')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('649ba93c')
+  it('hash da base padrão e da escala 0,2: regravado no O27 do pedido 105 (causa_raiz nos bugs: base era b6a3c384 e escala 0,2 era 649ba93c), no B11a, no ajuste do O23 (originais: 924448d4 e b2bfd4c0), no D3 do 099 (unidade dos prazos em config.alvos; escala 0,2 era 824092e4) e no D3b do 099 (dia útil da Sustentação de 528 min no calendário e nos alvos do mock; escala 0,2 era 345c5682) e no K-314 do 099 (exibir_primeiro_atendimento e exibir_restauracao em config.alvos; base era dd6787b1 e escala 0,2 era 5f03955c) e no pedido 105 (Intangível deixou de ser classe: Dívida técnica passa a Prioritário e o SLE ganha a linha; base era 52378641 e escala 0,2 era bf154cb8) e no D6a do 105 (avaliacao_problema com o valor real "Não aplicável e com justificativa"; base era 61ce1180, escala 0,2 era f7437c34, Acelerato era 930570e9 e 692530cf)', () => {
+    expect(hashJson(base)).toBe('b5cc67a7')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('dff31bbb')
   })
 
   it('as duas bases usam o mesmo "hoje" (padrão e personalizado), e o contexto também', () => {

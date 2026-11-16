@@ -58,7 +58,7 @@ export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquema
     coluna_atual_id: col(c.quadro_id, c.coluna_atual), excluido_em: dtn(c.excluido_em),
     eh_subtarefa: c.eh_subtarefa, data_acordada: c.data_acordada === null ? null : dia(c.data_acordada),
     responsabilidade_atraso: c.responsabilidade_atraso, origem_demanda: c.origem_demanda,
-    fase_deteccao: c.fase_deteccao, severidade: c.severidade, origem_bug: c.origem_bug,
+    fase_deteccao: c.fase_deteccao, severidade: c.severidade, origem_bug: c.origem_bug, causa_raiz: c.causa_raiz,
     adicionado_apos_inicio_pai: c.adicionado_apos_inicio_pai,
     coletado_em: coletado, atualizado_por_coleta_id: coletaId,
   }));

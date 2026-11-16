@@ -67,7 +67,7 @@ describe('A-2: cada id entra com o seu cálculo (nenhum dado inventado)', () => 
     },
   )
   it('id da fase 3 ou inexistente: 404 METRICA_NAO_ENCONTRADA', async () => {
-    for (const id of ['O27', 'T15', 'E10']) {
+    for (const id of ['T15', 'E10']) {
       const r = await app.inject(url(id))
       expect(r.statusCode).toBe(404)
       expect(r.json().error.code).toBe('METRICA_NAO_ENCONTRADA')

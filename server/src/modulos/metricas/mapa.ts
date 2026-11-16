@@ -48,7 +48,7 @@ export function cardDe(l: LinhaCard, nomes: NomesColuna): DimCard {
     quadro_id: l.quadro_id ?? '', coluna_atual: nome(nomes, l.quadro_id, l.coluna_atual_id), excluido_em: ms(l.excluido_em),
     eh_subtarefa: l.eh_subtarefa === true, data_acordada: fimDoDia(l.data_acordada),
     responsabilidade_atraso: campo(l.responsabilidade_atraso), origem_demanda: origemDeFalha(l.origem_demanda),
-    fase_deteccao: campo(l.fase_deteccao), severidade: campo(l.severidade), origem_bug: l.origem_bug,
+    fase_deteccao: campo(l.fase_deteccao), severidade: campo(l.severidade), origem_bug: l.origem_bug, causa_raiz: l.causa_raiz,
     adicionado_apos_inicio_pai: l.adicionado_apos_inicio_pai === true,
   };
 }

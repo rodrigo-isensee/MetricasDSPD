@@ -46,6 +46,8 @@ export interface DimCard {
   fase_deteccao: FaseDeteccao | null
   severidade: 'Crítica' | 'Alta' | 'Média' | 'Baixa' | null
   origem_bug: string | null
+  /** Causa raiz do bug (campo 48 do BusinessMap, código do domínio `CAUSAS_RAIZ_BUG`); `null` = não informada ou valor fora do domínio. Só o código, nunca a descrição de "Outros". */
+  causa_raiz: string | null
   /** T1.7: frente criada depois do início da execução do projeto pai. */
   adicionado_apos_inicio_pai: boolean
 }

@@ -40,6 +40,8 @@ export interface EspecCard {
   descarte?: string
   classe?: DimCard['classe_servico']
   origemBug?: string
+  /** Código da causa raiz do bug (O27); ausente = não informada. */
+  causaRaiz?: string | null
   fase?: DimCard['fase_deteccao']
   subtarefa?: boolean
   dataAcordada?: string
@@ -102,6 +104,7 @@ export function umCard(e: EspecCard): { card: DimCard; trs: FatoTransicao[] } {
     fase_deteccao: e.fase ?? null,
     severidade: null,
     origem_bug: e.origemBug ?? null,
+    causa_raiz: e.causaRaiz ?? null,
     adicionado_apos_inicio_pai: false,
   }
   return { card, trs }

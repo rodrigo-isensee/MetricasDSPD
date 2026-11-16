@@ -15,11 +15,11 @@ describe('B11a: ajuste do mock da fase 1', () => {
   })
 
   it('sem nenhum passo, a base do BusinessMap é a de antes (hash anterior), com ou sem a opção "tambem: false"', () => {
-    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO, { tambem: false }))).toBe('30aff592')
+    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO, { tambem: false }))).toBe('2b1199e1')
     expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO, { omitir: PASSOS_TAMBEM }))).toBe(
-      '30aff592',
+      '2b1199e1',
     )
-    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO))).not.toBe('30aff592')
+    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO))).not.toBe('2b1199e1')
   })
 
   it('streams próprias: o que nenhum passo toca sai idêntico e nenhum card some, só os de projeto parado entram', () => {

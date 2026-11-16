@@ -511,6 +511,19 @@ export const REGRAS_METRICA = {
     refBriefing: '06 O16; 4.4 origem_bug',
     status: 'ok',
   },
+  O27: {
+    // BusinessMap, story: causa raiz dos bugs fechados (concluídos ou descartados) na janela de 12 semanas; o tipo é a classe (uma coluna por tipo, nunca somadas).
+    // O mínimo de 20 vale por tipo sobre os bugs com causa ("Não é bug" e "Outros" contam como causa; sem causa fica fora do denominador). Nunca por pessoa.
+    dominio: 'businessmap',
+    segmentacao: ['tipo', 'causa-raiz'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing: '06 O17; 4.4 causa_raiz',
+    status: 'ok',
+  },
   O17: {
     // Acelerato, painel Sustentação. Por sistema: dado real. Causa raiz: não é contada, é texto livre no Acelerato (ADR 0020; pedido 105, K-372).
     dominio: 'acelerato',

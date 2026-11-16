@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O22, O24..O26, BLOQUEADOS, T1..T14, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 69 ids, inclui as 17 complementares abaixo, as 16 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O22, O24..O27, BLOQUEADOS, T1..T14, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 70 ids, inclui as 17 complementares abaixo, as 16 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -108,6 +108,7 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | O13 | `meses[{mes,defeitos,vazaoTotal,pct:Taxa}]` | equipe, sistema, período |
 | O14 | `porArea` e `porSistema`: `{itens[{nome,entregues,criados,porTipo}] (top 10), demais}` | equipe, sistema, período |
 | O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
+| O27 | `porTipo[{ tipo ('Bug interno' ou 'Defeito em produção'), n, naoEBug, naoInformada, comCausa, causas[{ causa (código), rotulo, n, pct }] ou null }]`, `porSistema` (sempre `null`), `motivoPorSistema`. Causa raiz dos bugs do BusinessMap fechados (concluídos ou descartados) nas 12 semanas, uma coluna por tipo, nunca somadas. As 12 opções do campo, na ordem do campo; "Não é bug" e "Outros" contam como causa; sem causa (ou valor fora do domínio) fica em `naoInformada`, fora do denominador. `causas` é `null` com menos de 20 bugs com causa no tipo (só os totais). Nada do Acelerato, nenhuma pessoa; não é o O17 | equipe, sistema, período (tipo não atua). Ainda sem cartão no catálogo (`CATALOGO_CARTOES`): o cartão, o "leia junto" do O15 e o registro na tela entram com a tela (L3) |
 | O17 (Sustentação, Acelerato) | `campoDisponivel`, `porCausa[{causa,n}]` ou `null` (incidentes encerrados; null sem dado real), `motivoCausaRaiz` (texto ou `null`; motivo de `porCausa` nulo), `porSistema[{sistema,n}]` (categoria do chamado, dado real) | equipe, prioridade, período (filtros da sustentação; não mais de fluxo) |
 | T6 | `entradas{itens,semanas}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
 | T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |

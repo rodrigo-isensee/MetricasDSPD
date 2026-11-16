@@ -53,3 +53,13 @@ Motivo: o K-314 B1 acrescenta `exibir_primeiro_atendimento` e `exibir_restauraca
 | hashAcelerato | 930570e9 | 797abc95 |
 
 Motivo: o D6a põe o domínio real do D1 no gerador do Acelerato (`avaliacao_problema` "Não aplicável" passa a "Não aplicável e com justificativa"). BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e). Consequência legítima do D6a; o gate do CI reprovou o hash antigo, como o brief previu.
+
+## Regravação de 2026-11-16 (pedido 105, O27 causa raiz dos bugs, E7.218)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | b6a3c384 | b5cc67a7 |
+| hashBusinessMap | 8d47d431 | ea9e8428 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: `dim_card` ganha `causa_raiz` na biblioteca e o gerador do BusinessMap preenche o campo nos bugs (Bug interno e Defeito em produção) por uma regra determinística do número do card, sem sortear (a sequência do gerador não muda; um em cada sete bugs fica sem causa). Cards (5792) e chamados (6062) não mudam; o Acelerato não é tocado. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e). Consequência legítima do O27.

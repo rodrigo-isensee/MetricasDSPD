@@ -161,6 +161,31 @@ export const CAUSAS_RAIZ = [
 ] as const
 export type CausaRaiz = (typeof CAUSAS_RAIZ)[number]
 
+/**
+ * Causa raiz do bug do BusinessMap (O27; campo 48 "Causa Raiz", dropdown, coluna `dim_card.causa_raiz`). São os 12 códigos e rótulos
+ * de `docs/architecture/fontes/businessmap-dominio.json`, na ordem do campo no BusinessMap (a ordem neutra do cartão, sem ranking).
+ * Não é `CAUSAS_RAIZ`, que é o domínio provisório do O17 do Acelerato: os dois nunca se misturam. "Não é bug" e "Outros" contam como
+ * causa; só a opção entra na base, a descrição de "Outros" nunca.
+ */
+export const CAUSAS_RAIZ_BUG = [
+  { codigo: 'requisito_mal_definido', rotulo: 'Requisitos mal definidos' },
+  { codigo: 'requisito_alterado', rotulo: 'Requisito alterado' },
+  { codigo: 'erro_logica_codificacao', rotulo: 'Erro de lógica / codificação' },
+  { codigo: 'falha_integracao', rotulo: 'Falha de integração' },
+  { codigo: 'dados_massa_teste', rotulo: 'Dados / massa de teste' },
+  { codigo: 'configuracao_ambiente', rotulo: 'Configuração de ambiente' },
+  { codigo: 'efeito_colateral', rotulo: 'Efeito colateral' },
+  { codigo: 'dependencia_externa', rotulo: 'Dependência externa' },
+  { codigo: 'teste_insuficiente', rotulo: 'Teste insuficiente' },
+  { codigo: 'layout_interface', rotulo: 'Layout / Interface' },
+  { codigo: 'nao_e_bug', rotulo: 'Não é bug' },
+  { codigo: 'outros', rotulo: 'Outros' },
+] as const
+export type CausaRaizBugCodigo = (typeof CAUSAS_RAIZ_BUG)[number]['codigo']
+export type CausaRaizBugRotulo = (typeof CAUSAS_RAIZ_BUG)[number]['rotulo']
+/** Código da causa "Não é bug" (conta na distribuição, D1 do dono de 16/11). */
+export const CAUSA_RAIZ_BUG_NAO_E_BUG: CausaRaizBugCodigo = 'nao_e_bug'
+
 /** Naturezas de entrega do T3, reaproveitadas pelo E7 (`naturezaDe`, CA-23): lista única. */
 export const NATUREZAS_ENTREGA = ['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'] as const
 export type NaturezaEntrega = (typeof NATUREZAS_ENTREGA)[number]
@@ -202,6 +227,7 @@ export const METRICA_IDS = [
   'O24',
   'O25',
   'O26',
+  'O27',
   'T1',
   'T2',
   'T3',
