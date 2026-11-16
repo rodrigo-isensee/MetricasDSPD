@@ -1,36 +1,31 @@
-# Revisão de UX: classe pela prioridade nativa (105, E7.175)
+# Revisão de UX: classe pela prioridade nativa (105, E7.175 e E7.206)
 
-parecer: aprovado com ressalvas (1 alto, 2 médios, 1 baixo). Nada crítico.
-commit: 8ec2598e
+parecer: aprovado (A1, M1, M2 e B1 resolvidos no código novo; 1 baixo novo). Nada crítico, nada alto.
+commit: d4c535de
 Método: leitura do código (`lido`); sem ferramenta de medição. Itens de acessibilidade abaixo são todos `lido`; o QA mede (@axe).
 
-## O que está certo
-- Rótulos "Prioridade", "Crítica, Alta, Média e Baixa" em T1, T2, T4 e T6 (rótulos de linha, seletor, legenda e tabela). Nenhum "classe de serviço" nem "etiqueta" em código não-teste de `web/src` (Grep). `lido`
-- Faixa "Sem prioridade" presente nos seis cartões (O6, O24, T1, T2, T4, T6) com `data-testid` por cartão; nunca é somada à Média. `lido`
-- T2: prazo "SLE ainda não definido para esta prioridade" (n >= 20) separado de "Amostra insuficiente" (n < 20); nota explica que o SLE fica não definido até o dono aprovar e que os 60 dias recomeçam na troca de critério. `lido`
-- O24: nota diz que usa só a Média e que cartão sem prioridade não entra e é contado à parte. `lido`
-- Texto simples, sem jargão novo.
+## Revalidação dos achados anteriores (E7.206)
 
-## Achados
+| Achado | Resultado | Evidência (`lido`) |
+|---|---|---|
+| A1 (alto): faixa só com número absoluto | Resolvido | `SemPrioridade.tsx` recebe `n` e `total`; escreve "N de M universo (P%)" e a frase "Esses cartões foram trabalhados normalmente; só não têm prioridade preenchida no BusinessMap...". Com P >= 20% (`LIMITE_DESTAQUE_SEM_PRIORIDADE_PCT`) ganha borda, fundo, ícone e texto, nunca só cor; `data-destaque` testável. |
+| M1 (médio): unidade ambígua | Resolvido | Prop `universo` obrigatória: T1 e T2 "entregues", T4 "cartões com chegada ou entrega no período", O24 "inícios no período", O6 e T6 "itens entregues". |
+| M2 (médio): T4 e a razão chegada/vazão | Resolvido | Em `CartaoT4.tsx` a faixa vem logo abaixo da tabela de razão (antes do seletor) e traz o complemento "A chegada total é maior que a soma das prioridades acima." |
+| B1 (baixo): sem pista quando a faixa é a maioria | Resolvido | `maioriaSemPrioridade` (n*2 > total) troca a leitura em T1, T2 e O6 para "A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente...". |
 
-### Alto
-**A1. A faixa "Sem prioridade" mostra só um número absoluto, sem proporção e sem dizer o que ele não significa.**
-Onde: `web/src/components/ui/SemPrioridade.tsx`, usado nos seis cartões.
-Por quê: o texto é "N cartões ficaram fora da separação por prioridade". A pessoa não sabe se N é grande ou pequeno (falta o total) e nada diz que o cartão foi trabalhado e entregue normalmente, só não tem prioridade preenchida. O dado do assistente mostra que isso é 34% dos entregues e 47% dos criados em novembro, concentrado em dois quadros e no tipo Enabler. Com 276 ou 85 cartões lidos sem referência, o risco é duplo: ler "o time não entregou" ou ignorar uma faixa que é quase metade da base. O contrato guarda só `{ n }` (`packages/contratos/src/schemas.ts:53`, `tambem.ts:136`).
-Correção: (1) o contrato passa a trazer o total do mesmo universo e o componente mostra "N de M (P%)". (2) Microcopy sugerida: "Sem prioridade: 85 de 252 entregues (34%). Esses cartões foram trabalhados e entregues; só não têm prioridade preenchida no BusinessMap, por isso ficam fora da separação acima." (3) Quando P for 20% ou mais, destacar (fundo de aviso, ícone e texto, não só cor) em vez de `text-sm text-texto-2`.
+Prioridade nos seis cartões (O6, O24, T1, T2, T4, T6) usa a faixa única, com `data-testid` por código. Sem "classe de serviço" na UI. `lido`
 
-### Médio
-**M1. A unidade da faixa é ambígua entre cartões.** O mesmo "cartões" vale para entregues (T1, T2), criados (T4), inícios (O24), itens (T6) e O6. A pessoa lê o mesmo texto com bases diferentes. Correção: o componente recebe o universo ("entregues", "criados", "iniciados") e o escreve na frase. `lido`
-
-**M2. T4 pode induzir leitura errada da razão chegada/vazão.** Com 47% das criações sem prioridade, a chegada por prioridade está subestimada e a razão parece mais saudável do que a realidade. A faixa fica depois do seletor e do link para T1, longe da tabela de razão. Correção: mover a faixa para logo abaixo da tabela de razão no T4 e acrescentar "A chegada total é maior que a soma das prioridades acima." (como a faixa, só com a contagem real). `lido`
+## Achados novos
 
 ### Baixo
-**B1. Sem pista de onde está a concentração.** A causa é concentrada (quadros de Ciência de Dados e Marketing e Vendas; tipo Enabler). Ao filtrar por esses quadros, a faixa maior que as barras deixa o cartão quase vazio sem explicar. Sugestão: quando nenhuma prioridade publica e a faixa é a maioria, a leitura do cartão deve dizer "A maior parte dos cartões deste recorte está sem prioridade" em vez de só "Nenhuma prioridade tem amostra suficiente" (T1, T2). Hipótese, a validar com o dono: esses times usam ou não o campo (ver ACHADOS do assistente, seção 4).
+**B2. Frase fixa da faixa e o complemento do T4 ficam sem sentido quando n = 0.**
+Onde: `SemPrioridade.tsx` (frase "Esses cartões foram trabalhados normalmente...") e `CartaoT4.tsx:89` (complemento sempre passado).
+Por quê: com `n = 0` a faixa lê "0 de 252 entregues (0%). Esses cartões foram trabalhados...", e no T4 afirma que "a chegada total é maior que a soma das prioridades", o que é falso. Pouco provável hoje (a base real tem sem prioridade), mas vale em recorte filtrado.
+Correção: com `n = 0`, mostrar só "Sem prioridade (BusinessMap): nenhum cartão sem prioridade neste recorte." e omitir a frase e o complemento.
 
 ## Acessibilidade (`lido`)
-- A faixa é texto (`<p>` com `<strong>`), não depende de cor; leitor de tela lê na ordem. Cor `text-texto-2` em `text-sm`: contraste sem medição, o QA mede.
-- Se o destaque de A1 usar cor, manter o texto "Sem prioridade:" e o número como portadores da informação.
+- A faixa é texto (`<p>` com `<strong>`); o destaque soma ícone, fundo e borda ao texto, então não depende de cor. Ícone decorativo ao lado de texto completo.
+- Contraste de `text-texto-2` e de `bg-alerta-fundo` com `text-sm`: sem medição, o QA mede.
 
-## Perguntas ao dono (R-DECISAO, uma por vez, com recomendação)
-1. Mostrar a proporção ("N de M, P%") na faixa? Recomendo sim; exige o total no contrato.
-2. A frase de que o cartão foi entregue, só sem prioridade, entra na faixa ou só na nota? Recomendo na faixa, curta.
+## Perguntas ao dono
+As duas perguntas do parecer anterior (proporção na faixa; frase "foi entregue" na faixa) foram implementadas com a recomendação da UX; a confirmação é do dono na homologação (hipótese até lá).
