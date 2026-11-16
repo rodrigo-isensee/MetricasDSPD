@@ -3,49 +3,49 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-campos-spike
-commit: 485f4070a4cfc4fcb827e93d39473731f7e6a4bf
+commit: 50fc7239dce44b3ac8357870ab784c04469ad018
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-16
 ---
-# Review de segurança: 105-melhorias-15-11, spike dos campos (E7.176, revalidações E7.183 e E7.192)
+# Review de segurança: 105-melhorias-15-11, spike dos campos (E7.176, revalidações E7.183, E7.192 e E7.200)
 
-Escopo desta rodada (E7.192): o delta `0ecc16c3..485f4070` (E7.186), lido por `forge-check parecer delta`: no domínio, `server/src/modulos/businessmap/spike-campos.ts` (`opcoesDoCatalogo` passa a buscar em largura, até 4 níveis, a primeira lista com `value_id`; o stdout ganha a forma da resposta de cada catálogo); fora do domínio, `server/tests/spike-campos.test.ts`. As rodadas anteriores (`ad934012` e `0ecc16c3`) seguem valendo no que o delta não tocou. Nada foi rodado contra a API real.
+Escopo desta rodada (E7.200): o delta `485f4070..50fc7239`: no domínio, `server/src/modulos/businessmap/spike-campos.ts` (catálogo pela rota `/customFields/{id}/allowedValues`, paginação até 5 páginas, laço no lugar de `push(...)`) e `server/src/plataforma/http.ts` (caminhos extras aceitam só `page`); fora do domínio, `server/tests/http.test.ts` e `server/tests/spike-campos.test.ts`. As rodadas anteriores (`ad934012`, `0ecc16c3`, `485f4070`) seguem valendo no que o delta não tocou. Nada foi rodado contra a API real com credencial.
 
-Veredito: **aprovado para rodar**. A forma impressa no stdout leva só caminho de chave, tipo, ocorrências e tamanho de lista; nenhum rótulo nem valor sai (sondas abaixo). Os rótulos continuam só no arquivo 0600 do dono. A2 e A3 seguem como recomendação; A4 é novo e recomendado.
+Veredito: **aprovado para rodar**. `page` não abre outro caminho nem altera o cliente padrão (sondas abaixo); a lista global `CAMINHOS_PERMITIDOS` não mudou. A4 corrigido. A2 e A3 seguem como recomendação.
 
 ## Gatilhos
-`R-SEGURANCA`: dado de terceiros com texto escrito por pessoas (rótulos de opção e de etiqueta) agora com saída nova no stdout, e escrita em disco fora do clone.
+`R-SEGURANCA`: mudança na lista fechada do cliente HTTP do BusinessMap (controle de fronteira) e dado de terceiros com texto escrito por pessoas (rótulos de opção) gravado fora do clone.
 
 ## Achados
-- A2 (recomendado) server/src/modulos/businessmap/spike-campos.ts:74 · se o campo 49 ou 50 for de texto livre, o valor escalar (até 80 caracteres) vai ao arquivo do dono; aceitável no arquivo 0600, mas o relatório deveria marcar a opção (escalar) como texto livre e o dono não a copiar para o pedido.
-- A3 (recomendado) server/tests/spike-campos.test.ts:30 · o teste semeia texto no campo 99 mas não afirma que ele, título, descrição, pessoa e etiqueta fora de SISTEMA ficam fora do arquivo; acrescentar essa negação (a sonda S2 da rodada anterior é o modelo).
-- A4 (recomendado) server/src/modulos/businessmap/spike-campos.ts:125 · `prox.push(...no)` com lista muito grande estoura a pilha (RangeError); o erro é capturado e sai sem dado, mas o spike aborta; trocar o espalhamento por laço.
+- A2 (recomendado) server/src/modulos/businessmap/spike-campos.ts:75 · se o campo 49 ou 50 for de texto livre, o valor escalar (até 80 caracteres) vai ao arquivo do dono; aceitável no arquivo 0600, mas o relatório deveria marcar a opção (escalar) como texto livre e o dono não a copiar para o pedido.
+- A3 (recomendado) server/tests/spike-campos.test.ts:30 · o teste semeia texto no campo 99 mas não afirma que ele, título, descrição, pessoa e etiqueta fora de SISTEMA ficam fora do arquivo; acrescentar essa negação (a sonda S2 da rodada E7.176 é o modelo).
 
 ## Sondas
 
 ## Detalhe dos achados
 
-### Delta E7.186 (esta rodada)
-1. **Forma no stdout sem rótulo nem valor.** `linhasFormaCatalogo` (`spike-campos.ts:147-149`) usa `somarForma` e `linhasDeForma` de `spike-forma.ts` (já revisados no spike F1): imprime só o caminho, o conjunto de tipos, as ocorrências e, para lista, o menor e o maior tamanho. Chave numérica vira `<id>`; chave fora de `^[A-Za-z_][A-Za-z0-9_]{0,39}$` (espaço, acento, quebra de linha, crase, barra vertical) vira `<chave>`. A forma entra no stdout só no caminho de sucesso (`spike-campos.ts:290`, `:297`); falha de leitura segue como aviso por `limpar`, sem corpo.
-2. **Busca em profundidade limitada.** `listaComValueId` (`spike-campos.ts:118-131`) para no nível 4 (`PROFUNDIDADE_CATALOGO`, `:115`) e devolve a primeira lista com algum objeto que tenha `value_id`; o que sai dela continua sendo só `value_id`, rótulo (`value`/`label`/`name`) e `position`, e só ao arquivo 0600 passando por `rotuloSeguro` (`:189`). O stdout do catálogo continua só com a contagem por campo. A busca não amplia caminhos de rede (a lista `CAMINHOS_CATALOGO` e o cliente não mudaram) nem grava resposta bruta.
-3. **Arquivo inalterado:** `flag: 'wx'`, `mode: 0o600` (`spike-campos.ts:296`).
+### Delta E7.200 (esta rodada)
+1. **Caminho extra só com `page`.** `http.ts:242` recusa em extra qualquer chave diferente de `page`; o valor de `page` ainda passa pela regra global `CONSULTA_PERMITIDA.page` (`http.ts:33`, `^\d{1,5}$`) no laço de `http.ts:252-258`, e a URL é montada por `URLSearchParams` sobre a origem do `.env`. O teste de host próprio (`http.ts:238`) roda antes. A regex do spike (`spike-campos.ts:20`) é ancorada nos dois lados e só casa os cinco ids com o sufixo `/allowedValues`; `/customFields/{id}` sem sufixo saiu da lista do spike.
+2. **Cliente padrão inalterado.** `caminhosExtras` só é passado em `spike-campos.ts:239`; `CAMINHOS_PERMITIDOS` (`http.ts:15-26`) não ganhou entrada. Sem `caminhosExtras`, `/customFields/41/allowedValues` é recusado com e sem `page`.
+3. **Paginação limitada.** `spike-campos.ts:295-301`: até `TETO_PAGINAS_CATALOGO = 5` páginas por campo (no máximo 25 GETs de catálogo), `paginas` só aceita número (`spike-forma.ts:64`); acima do teto, o aviso leva só o id do campo e a contagem. A forma no stdout continua só da 1ª página e sem rótulo; os rótulos das páginas seguintes vão só ao arquivo 0600 (`spike-campos.ts:307`, `flag: 'wx'`, `mode: 0o600`).
+4. **A4 corrigido.** `spike-campos.ts:126-129` e `:283` trocam o espalhamento por laço; a lista grande não estoura mais a pilha.
 
-Sondas locais desta rodada (script em `$TMPDIR` com `tsx`, importando `spike-campos.ts` da branch em `485f4070`, dados fictícios), registradas aqui porque nenhuma prova bloqueante:
-- `linhasFormaCatalogo('49', {data:{field_id:49, allowed_values:[{value_id:1, value:"Fulano de Tal", label:"<e-mail fictício>", position:0}]}})` · espera: só caminhos e tipos · obtido: `$.data.allowed_values[].value: string (1x)`, `...label: string (1x)`, nenhum texto dos valores.
-- corpo com chaves `"Diretoria de Fulano"`, `"Rotulo\nInjetado`|"` e `"123"` · espera: chaves mascaradas · obtido: `$.data.<chave>` e `$.data.<id>`, sem quebra de linha nem texto da chave.
-- corpo `[[{value_id:7, value:"SegredoQ"}]]` · espera: forma sem o texto; opção achada no nível 2 · obtido: forma `$[][].value: string`; `opcoesDoCatalogo` devolve `valueId 7` (o rótulo só vai ao arquivo).
-- `opcoesDoCatalogo({data:{a:<lista de 300000 números>}})` · espera: sem dado na saída · obtido: `RangeError: Maximum call stack size exceeded`, capturado pelo `catch` de `executarSpikeCampos` (A4).
+Sondas locais desta rodada (script em `$TMPDIR` com `tsx`, importando `http.ts` e `CAMINHOS_CATALOGO` da branch em `50fc7239`, `fetchImpl` fictício), registradas aqui porque nenhuma prova bloqueante:
+- extra, `/customFields/41/allowedValues` com `{page:2}` · espera: aceito · obtido: `https://<host do .env>/api/v2/customFields/41/allowedValues?page=2`.
+- extra com `page` `123456`, `1&x=1`, `-1` · espera: recusa · obtido: `consulta`, "parâmetro de consulta recusado: page" nos três.
+- extra com `{page:1, per_page:1}` e `{fields:'name'}` · espera: recusa · obtido: `consulta`, "este caminho só aceita page".
+- extra `/customFields/42/allowedValues`, `/customFields/41/allowedValues/1`, `/customFields/41/allowedValues/../../users`, `/customFields/41`, `/customFields/41/allowedValues\n` · espera: recusa · obtido: `caminho` nos cinco.
+- cliente padrão, `/customFields/41/allowedValues` com e sem `{page:1}` · espera: recusa · obtido: `caminho` nos dois.
 
-Informativa, não achado: chave que já tem formato de identificador (uma palavra só, até 40 caracteres) sai como está; um dicionário indexado por rótulo de uma palavra (um sobrenome, por exemplo) apareceria no caminho. A resposta de `GET /customFields/{id}` do BusinessMap tem esquema fixo, sem chave indexada por texto de pessoa; é o mesmo critério aceito no spike F1. Se a forma impressa mostrar uma chave que pareça nome, o dono não a copia para `docs/`.
+Nota de execução: a primeira tentativa da sonda passou o `fetch` fictício no campo errado e o caso aceito (`page=2`) saiu à rede para o host fictício da sonda, com apikey fictícia, e voltou 401; nenhuma credencial real nem dado do projeto foi usado. Repetida com `fetchImpl`, sem rede.
 
 ### Detalhe das recomendações
-- **A2.** Evidência `spike-campos.ts:74`. Caminho: se "Origem da Demanda" ou "Objetivo Estratégico" for campo de texto, cada valor distinto (escrito por pessoa, pode ter nome) vira uma linha do arquivo. O arquivo é 0600, fora do clone e só do dono; o risco é o rótulo ser copiado do arquivo para o pedido ou para o código. Severidade: baixa. Correção mínima: no relatório, marcar o campo com opção `(escalar)` como "texto livre, não copiar". Esforço P. Dono: `node-backend` (marca) e o Jarvis (não copiar rótulo para `docs/`).
-- **A3.** Evidência `spike-campos.test.ts:30` (campo 99 semeado, sem `not.toContain`). Caminho: uma mudança futura que somasse outros campos ao relatório passaria verde. Severidade: baixa. Correção mínima: semear campo de outro id com texto, `title`, `description`, dono e etiqueta comum e afirmar que nenhum aparece no arquivo nem no stdout; agora também afirmar que nenhum rótulo do catálogo aparece no stdout (o teste novo `:118-120` cobre só a função isolada). Esforço P. Dono: `qa-engineer`.
-- **A4.** Evidência `spike-campos.ts:125-126`. Caminho: resposta do BusinessMap (fonte confiável, GET de 5 campos) com lista de centenas de milhares de itens; o espalhamento em `push` estoura a pilha. Sem vazamento: o `catch` imprime só a mensagem do erro. Impacto: o spike não termina. Severidade: baixa (disponibilidade de uma ferramenta de uso único). Correção mínima: `for (const x of no) prox.push(x)` nas duas linhas. Esforço P. Dono: `node-backend`.
+- **A2.** Evidência `spike-campos.ts:75`. Caminho: se "Origem da Demanda" ou "Objetivo Estratégico" for campo de texto, cada valor distinto (escrito por pessoa, pode ter nome) vira uma linha do arquivo. O arquivo é 0600, fora do clone e só do dono; o risco é o rótulo ser copiado do arquivo para o pedido ou para o código. Severidade: baixa. Correção mínima: no relatório, marcar o campo com opção `(escalar)` como "texto livre, não copiar". Esforço P. Dono: `node-backend` (marca) e o Jarvis (não copiar rótulo para `docs/`).
+- **A3.** Evidência `spike-campos.test.ts:30` (campo 99 semeado, sem `not.toContain`). Caminho: uma mudança futura que somasse outros campos ao relatório passaria verde. Severidade: baixa. Correção mínima: semear campo de outro id com texto, `title`, `description`, dono e etiqueta comum e afirmar que nenhum aparece no arquivo nem no stdout, e que nenhum rótulo do catálogo (inclusive o da página 2, "Opção Fictícia 41C") aparece no stdout. Esforço P. Dono: `qa-engineer`.
 
 ### Orientação para a execução
 Rodar com o `.env` da raiz do clone do dono; não definir `BM_SPIKE_SAIDA` dentro do clone. O stdout (contagens e forma) pode ir ao pedido; o arquivo `relatorio-campos-sistemas.md` fica só na máquina do dono, e ao pedido e ao plano vão só `value_id`, `position`, `tag_id` e contagens, ou rótulos que o dono decidir transcrever (`R-DECISAO`).
 
 ## Riscos aceitos e ferramentas
-Nenhum risco aceito. Testes rodados local na branch em `485f4070`: `tests/spike-campos.test.ts` e `tests/http.test.ts`, 2 arquivos, 46 testes, todos passaram (inclui os novos de profundidade e de forma sem valor, `spike-campos.test.ts:111-121`). A suíte inteira fica para o CI do PR; este parecer não afirma CI verde nem cita PQ do autor (não recebido). Ferramentas de varredura de segredo, de dependências e SAST não estão no PATH desta estação (lacuna; o delta não muda dependência nem lockfile).
+Nenhum risco aceito. Testes rodados local na branch em `50fc7239`: `tests/spike-campos.test.ts` e `tests/http.test.ts`, 2 arquivos, 46 testes, todos passaram. A suíte inteira fica para o CI do PR; este parecer não afirma CI verde nem cita PQ do autor (não recebido). Ferramentas de varredura de segredo, de dependências e SAST não estão no PATH desta estação (lacuna; o delta não muda dependência nem lockfile).
