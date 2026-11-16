@@ -1196,6 +1196,8 @@ export const resultadoS8 = z.object({
   campoDisponivel: z.boolean(),
   /** Cobertura do campo `reincidente`: n incidentes com o campo informado de N (nunca ausente = "não"). */
   cobertura: z.object({ n: z.number(), total: z.number() }),
+  /** Incidentes do período sem resposta no campo (fora do denominador): total menos n; 0 sem extensão. Opcional (pedido 105, E7.237). */
+  semResposta: z.number().int().min(0).optional(),
   metaMaxPct: z.number(),
   meses: z.array(
     z.object({

@@ -160,7 +160,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
 
   it('as origens do mapa decidem: as reais calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O8', 'O9', 'O10', 'O11', 'O13', 'O19', 'O21', 'O25', 'BLOQUEADOS', 'EI_FL1', 'S1'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O8', 'O9', 'O10', 'O11', 'O13', 'O19', 'O21', 'O25', 'T10', 'BLOQUEADOS', 'EI_FL1', 'S1'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.headers['x-estado-dado'], id).toBeUndefined();
@@ -168,7 +168,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['T10', 'T12', 'O14', 'O26', 'T3', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['T12', 'O14', 'O26', 'T3', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -515,14 +515,23 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
     for (const t of ['bloqueados', 'bloqueadoHaDiasUteis', 'bloqueioMotivo', 'motivo', 'cardId']) expect(PESSOA.test(t), t).toBe(false);
   });
 
-  it('S7: T10 e T12 seguem "sem dado real" mesmo com fato_bloqueio real, com o motivo genérico', async () => {
-    const { app } = await real();
-    for (const id of ['T10', 'T12']) {
-      const r = await app.inject(`/api/v1/metricas/${id}`);
-      expect(r.statusCode, id).toBe(200);
-      expect(r.headers['x-estado-dado'], id).toBe('sem-dado-real');
-      expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id, motivo: 'fonte real ainda não definida' });
-    }
+  it('S7: T12 segue "sem dado real" com o motivo genérico; T10 (pedido 105, E7.77) é real: total dos bloqueios encerrados de fornecedor, sem nome nem pessoa', async () => {
+    const { app } = await real({ bloqueios: [...BLOQUEIOS, bloq('A', 'Aguardando fornecedor', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8'), bloq('A', 'Dependência Externa', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8'), bloq('A', 'Aguardando publicação GMUD', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8')] });
+    const t12 = await app.inject('/api/v1/metricas/T12');
+    expect(t12.statusCode).toBe(200);
+    expect(t12.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(t12.json()).toMatchObject({ estado: 'sem-dado-real', metrica: 'T12', motivo: 'fonte real ainda não definida' });
+    const r = await app.inject('/api/v1/metricas/T10');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    const j = r.json() as { fornecedores: unknown[]; esperaFornecedores: { bloqueios: number; diasUteis: number; duracao: { status: string; n: number } }; motivoSemFornecedores: string };
+    expect(SCHEMAS_RESULTADO.T10.safeParse(j).success).toBe(true);
+    expect(j.fornecedores).toEqual([]);
+    // Motivos 14 e 11 (8 h cada) entram; o de outro motivo (o A de 16 h, o GMUD) e o aberto ficam fora.
+    expect(j.esperaFornecedores.bloqueios).toBe(2);
+    expect(j.esperaFornecedores.duracao).toMatchObject({ status: 'insuficiente', n: 2 });
+    expect(j.motivoSemFornecedores).toBeTruthy();
+    expect(chaves(j).filter((k) => PESSOA.test(k))).toEqual([]);
   });
 
   it('S8: modo mock (seed com bloqueios) segue calculando BLOQUEADOS e O1 com bloqueados > 0 na série, sem a nota', async () => {

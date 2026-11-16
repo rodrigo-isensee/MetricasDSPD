@@ -9,6 +9,11 @@ name: ${COMPOSE_PROJECT_NAME:-metricasdspd}
 x-servidor: &servidor
   build: { context: ., dockerfile: server/Dockerfile }
 
+# Teto de log dos contêineres (json-file): 5 arquivos de 10 MB por serviço, para o log não encher o disco da VM. Ler: `docker compose logs --tail 200 api`.
+x-log: &log
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
 services:
   migrate:
     <<: *servidor
@@ -19,6 +24,7 @@ services:
     volumes:
       - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
     restart: "no"
+    logging: *log
 
   api:
     <<: *servidor
@@ -32,6 +38,8 @@ services:
     volumes:
       - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
     ports: ["127.0.0.1:${API_PORT:-3000}:3000"]
+    restart: unless-stopped
+    logging: *log
     depends_on:
       migrate: { condition: service_completed_successfully }
     healthcheck:
@@ -52,6 +60,8 @@ services:
       - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
     depends_on:
       migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+    logging: *log
 
   # Coleta agendada (deploy/systemd/): `docker compose --profile coleta run --rm coleta <script> [args]`.
   # Única que recebe a apikey do BusinessMap, a senha do MySQL do Acelerato e PESSOA_ELIMINADA_SAL, vindas do COLETA_ENV_FILE (600) do host.
@@ -72,10 +82,13 @@ services:
       - ${COLETA_SEGREDOS_DIR:-/etc/metricas-dspd/segredos}:/segredos:ro
       - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
     restart: "no"
+    logging: *log
 
   # O HTTPS é da empresa (proxy reverso na frente): a porta fica só em 127.0.0.1.
   web:
     build: { context: ., dockerfile: docker/web/Dockerfile }
     ports: ["127.0.0.1:${WEB_PORT:-8080}:80"]
+    restart: unless-stopped
+    logging: *log
     depends_on:
       api: { condition: service_healthy }
