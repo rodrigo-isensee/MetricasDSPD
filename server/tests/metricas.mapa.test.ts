@@ -22,6 +22,11 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
       eh_subtarefa: false, adicionado_apos_inicio_pai: false, data_acordada: null, responsaveis: [], criado_em: T.getTime(),
       comprometido_em: null, concluido_em: null });
   });
+  it('E7.203: origem_demanda das 5 falhas do contrato passa; "Demanda nova" (sexta opção) e valor fora da lista viram nulo (demanda de valor no O14)', () => {
+    expect(cardDe({ ...cardNulo, origem_demanda: 'Configuração incorreta' }, new Map()).origem_demanda).toBe('Configuração incorreta');
+    expect(cardDe({ ...cardNulo, origem_demanda: 'Demanda nova' }, new Map()).origem_demanda).toBeNull();
+    expect(cardDe({ ...cardNulo, origem_demanda: 'qualquer' }, new Map()).origem_demanda).toBeNull();
+  });
   it('card preenchido: nome da coluna pelo ref_coluna, data_acordada = fim do expediente do dia civil', () => {
     const nomes = nomesDeColuna([col('q1', 'c3', 'Em teste')]);
     const c = cardDe({ ...cardNulo, quadro_id: 'q1', coluna_atual_id: 'c3', eh_subtarefa: true, adicionado_apos_inicio_pai: true,

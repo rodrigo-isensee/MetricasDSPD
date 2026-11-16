@@ -6,6 +6,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Corrigido
 
+- Coleta do BusinessMap: os campos 48 (Causa Raiz) e 49 (Origem da Demanda) casam pelo `value_id`, que é o que a API manda nos cards (sem rótulo); antes o 48 casava pelo rótulo e a carga viraria tudo desconhecido. O arquivo de domínio guarda o `value_id` de cada opção (12 no 48, 6 no 49), `value_id` fora do catálogo vira desconhecido e é contado, e `origem_demanda` passa a ser coletada para o O14 ("Demanda nova" é demanda de valor, não falha). Versão de critério de 2026-11-16 marca O14 e O17 (pedido 105, E7.203).
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - T3 e T7 (tela): sem acordado o cartão do T3 não mostra acordado nem desvio (antes aparecia "desvio 0 p.p.") e a leitura diz que mostra como a capacidade foi dividida, em vez de "menos de 20 itens entregues"; o T7 sem limite mostra o chip "Limite não definido" no lugar de "Sem meta numérica"; teste do mapa do servidor com o nome certo (nulo, não 0) (pedido 105, E7.98).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).

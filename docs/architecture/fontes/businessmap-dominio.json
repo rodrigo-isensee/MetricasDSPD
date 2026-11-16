@@ -2,10 +2,13 @@
   "versao": 1,
   "versao_criterio": {
     "dominio": "businessmap",
-    "descricao": "2026-11-16: coleta da causa raiz do bug do fluxo (campo 48 Causa Raiz, dropdown, 12 opções) para dim_card.causa_raiz; a causa raiz de incidente continua só no Acelerato, nunca misturada",
-    "motivo": "Pedido 105, E7.86 (decisão do dono de 2026-11-16): duas causas raiz separadas; a de bug interno vem do BusinessMap, field_id 48, lista fechada de 12 opções passada pelo dono; a descrição de Outros é texto livre e nunca entra na base; valor fora da lista vira desconhecido e é contado. Só coleta e projeção: nenhuma métrica ou cartão muda (afeta vazio). A fase de detecção do O15 (E7.5, 2026-11-15) segue como estava",
-    "referencia": "pedido 105, E7.86; plano docs do assistente plano-causa-raiz.md, lote L1",
-    "afeta": []
+    "descricao": "2026-11-16: campos 48 (Causa Raiz) e 49 (Origem da Demanda) casados pelo value_id; coleta do 49 para origem_demanda",
+    "motivo": "Pedido 105, E7.203 (spike allowedValues de 2026-11-16): nos cards a API manda as listas só com values[].value_id, sem rótulo; o casamento pelo rótulo deixaria tudo desconhecido. O domínio guarda o value_id de cada opção (48: 12 opções; 49: 6 opções, a sexta Demanda nova é demanda de valor e não conta como falha no O14); value_id fora do catálogo vira desconhecido e é contado. Rótulos do 48 alinhados ao BusinessMap",
+    "referencia": "pedido 105, E7.203; catálogo do spike allowedValues",
+    "afeta": [
+      "O14",
+      "O17"
+    ]
   },
   "schema": "dspd_bm",
   "tabela": "ref_dominio",
@@ -18,51 +21,100 @@
       "valores": [
         {
           "codigo": "requisito_mal_definido",
-          "rotulo": "Requisito mal definido"
+          "rotulo": "Requisitos mal definidos",
+          "value_id": "124"
         },
         {
           "codigo": "requisito_alterado",
-          "rotulo": "Requisito alterado"
+          "rotulo": "Requisito alterado",
+          "value_id": "123"
         },
         {
           "codigo": "erro_logica_codificacao",
-          "rotulo": "Erro de lógica / codificação"
+          "rotulo": "Erro de lógica / codificação",
+          "value_id": "118"
         },
         {
           "codigo": "falha_integracao",
-          "rotulo": "Falha de integração"
+          "rotulo": "Falha de integração",
+          "value_id": "119"
         },
         {
           "codigo": "dados_massa_teste",
-          "rotulo": "Dados / massa de teste"
+          "rotulo": "Dados / massa de teste",
+          "value_id": "115"
         },
         {
           "codigo": "configuracao_ambiente",
-          "rotulo": "Configuração de ambiente"
+          "rotulo": "Configuração de ambiente",
+          "value_id": "114"
         },
         {
           "codigo": "efeito_colateral",
-          "rotulo": "Efeito colateral"
+          "rotulo": "Efeito colateral",
+          "value_id": "117"
         },
         {
           "codigo": "dependencia_externa",
-          "rotulo": "Dependência externa"
+          "rotulo": "Dependência externa",
+          "value_id": "116"
         },
         {
           "codigo": "teste_insuficiente",
-          "rotulo": "Teste insuficiente"
+          "rotulo": "Teste insuficiente",
+          "value_id": "125"
         },
         {
           "codigo": "layout_interface",
-          "rotulo": "Layout / interface"
+          "rotulo": "Layout / Interface",
+          "value_id": "120"
         },
         {
           "codigo": "nao_e_bug",
-          "rotulo": "Não é bug"
+          "rotulo": "Não é bug",
+          "value_id": "121"
         },
         {
           "codigo": "outros",
-          "rotulo": "Outros"
+          "rotulo": "Outros",
+          "value_id": "122"
+        }
+      ]
+    },
+    {
+      "field_id": "49",
+      "type": "dropdown",
+      "coluna": "origem_demanda",
+      "valores": [
+        {
+          "codigo": "Erro em entrega anterior",
+          "rotulo": "1. Erro em entrega anterior",
+          "value_id": "126"
+        },
+        {
+          "codigo": "Configuração incorreta",
+          "rotulo": "2. Configuração incorreta",
+          "value_id": "127"
+        },
+        {
+          "codigo": "Falta de treinamento do usuário",
+          "rotulo": "3. Falta de treinamento do usuário",
+          "value_id": "128"
+        },
+        {
+          "codigo": "Informação não repassada",
+          "rotulo": "4. Informação não repassada",
+          "value_id": "129"
+        },
+        {
+          "codigo": "Processo manual que deveria estar automatizado",
+          "rotulo": "5. Processo manual que deveria estar automatizado",
+          "value_id": "130"
+        },
+        {
+          "codigo": "Demanda nova",
+          "rotulo": "6. Demanda nova",
+          "value_id": "131"
         }
       ]
     }
