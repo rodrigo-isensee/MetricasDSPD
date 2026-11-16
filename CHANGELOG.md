@@ -6,6 +6,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Corrigido
 
+- Bloqueios (O2, O19, BLOQUEADOS, T10, T12): os motivos passam a ser os 11 habilitados no BusinessMap (ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; id sem mapa ou nulo segue "não classificado"; os motivos de fornecedor do T10 são "Aguardando fornecedor" e "Dependência Externa". Versão de critério `criterio-2026-11-16-motivos-bloqueio-bm` (pedido 105, decisão B do dono, E7.184).
 - Coleta do BusinessMap: os campos 48 (Causa Raiz) e 49 (Origem da Demanda) casam pelo `value_id`, que é o que a API manda nos cards (sem rótulo); antes o 48 casava pelo rótulo e a carga viraria tudo desconhecido. O arquivo de domínio guarda o `value_id` de cada opção (12 no 48, 6 no 49), `value_id` fora do catálogo vira desconhecido e é contado, e `origem_demanda` passa a ser coletada para o O14 ("Demanda nova" é demanda de valor, não falha). Versão de critério de 2026-11-16 marca O14 e O17 (pedido 105, E7.203).
 - Coleta (O22, B7a, volta 1): o log também redige `user_id`, `author`, `text`, `attachments` e os campos de comentário e nome quando estão no topo do objeto; `/cards/{id}/comments` passa a recusar qualquer parâmetro de consulta; a guarda estática do papel da aba Apontamento pula só `estado` e `motivo` das tabelas `ctl_` (pedido 105, E7.170).
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
