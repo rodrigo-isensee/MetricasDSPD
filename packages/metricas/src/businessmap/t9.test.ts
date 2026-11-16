@@ -63,6 +63,18 @@ describe('T9 pela regra do dono (D-T9 "T9 A"): frente criada depois do início d
     expect(t9.projetosSemInicio).toBe(0)
   })
 
+  it('fronteira: frente criada no mesmo instante do início do projeto conta como original', () => {
+    const t9 = calcularT9(
+      ctxDe([
+        projeto('P1', '2026-06-20T09:00-03:00'),
+        frente('F1', 'P1', '2026-06-20T09:00-03:00'),
+      ]),
+      F,
+    )
+    expect(t9.projetos[0]).toMatchObject({ totalFrentes: 1, originais: 1, adicionadas: 0 })
+    expect(t9.projetosComEscopoCrescido).toBe(0)
+  })
+
   it('não lê adicionado_apos_inicio_pai: a coluna nunca gravada (false) não zera as adicionadas', () => {
     const base = umaBase([
       projeto('P1', '2026-06-20T09:00-03:00'),

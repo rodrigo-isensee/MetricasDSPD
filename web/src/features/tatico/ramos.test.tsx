@@ -269,6 +269,86 @@ describe('T7 e T9', () => {
   })
 })
 
+describe('T9: estados de borda (UX T9-1, T9-2, T9-3)', () => {
+  it('todos os projetos sem início: o vazio mostra quantos ficaram fora, no plural', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: unknown[]; projetosSemInicio: number; base: { n: number } }) => {
+          x.projetos = []
+          x.base.n = 0
+          x.projetosSemInicio = 2
+        },
+      }),
+    })
+    const el = await screen.findByTestId('metrica-T9')
+    expect(await within(el).findByTestId('t9-nota-vazio')).toHaveTextContent(
+      '2 projetos sem data de início ficaram fora desta conta.',
+    )
+  })
+
+  it('vazio sem projetos fora da conta: nenhuma nota', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: unknown[]; projetosSemInicio: number; base: { n: number } }) => {
+          x.projetos = []
+          x.base.n = 0
+          x.projetosSemInicio = 0
+        },
+      }),
+    })
+    const el = await screen.findByTestId('metrica-T9')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'), { timeout: 8000 })
+    expect(within(el).queryByTestId('t9-nota-vazio')).toBeNull()
+  })
+
+  it('sem frente original: "Escopo sem frente original", sem percentual', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: { originais: number; adicionadas: number; totalFrentes: number }[] }) =>
+          x.projetos.forEach((p) => {
+            p.originais = 0
+            p.adicionadas = 1
+            p.totalFrentes = 1
+          }),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(
+      within(el).getAllByText(/Escopo sem frente original \(\+1 frente\)/).length,
+    ).toBeGreaterThan(0)
+    expect(within(el).queryByText(/Escopo cresceu/)).toBeNull()
+    expect(within(el).getByTestId('leitura-T9')).toHaveTextContent(
+      '1 frente foi adicionada depois do início: o projeto não tem frente original.',
+    )
+    expect(within(el).getByTestId('leitura-T9')).toHaveTextContent('de 1 frente concluída')
+  })
+
+  it('sem frente original com várias adicionadas: plural', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: { originais: number; adicionadas: number; totalFrentes: number }[] }) =>
+          x.projetos.forEach((p) => {
+            p.originais = 0
+            p.adicionadas = 3
+            p.totalFrentes = 3
+          }),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(
+      within(el).getAllByText(/Escopo sem frente original \(\+3 frentes\)/).length,
+    ).toBeGreaterThan(0)
+  })
+
+  it('a nota explica a regra sem vocabulário técnico', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, { fonte: new FonteAjustada({}) })
+    const el = await pronto('T9')
+    expect(within(el).getByTestId('t9-nota-escopo')).toHaveTextContent(
+      'O sistema não registra quando a frente foi ligada ao projeto',
+    )
+  })
+})
+
 describe('Painel Tático: faixa "Pede atenção"', () => {
   it('mais de uma classe fora da meta e mais de uma natureza com desvio: plural', async () => {
     renderizarApp(

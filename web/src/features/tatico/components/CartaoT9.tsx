@@ -28,24 +28,36 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
   const semInicio = d?.projetosSemInicio ?? 0
   const p0 = projetos[0]
   const leitura = p0
-    ? `O projeto ${p0.projeto} tem ${fmtInteiro(p0.concluidas)} de ${fmtInteiro(p0.totalFrentes)} frentes concluídas (${fmtPct(p0.avancoPct)}). ${fmtInteiro(p0.adicionadas)} frentes foram adicionadas depois do início: o escopo cresceu ${fmtPct(p0.crescimentoEscopoPct)}.`
+    ? `O projeto ${p0.projeto} tem ${fmtInteiro(p0.concluidas)} de ${fmtInteiro(p0.totalFrentes)} ${p0.totalFrentes === 1 ? 'frente concluída' : 'frentes concluídas'} (${fmtPct(p0.avancoPct)}). ${fmtInteiro(p0.adicionadas)} ${p0.adicionadas === 1 ? 'frente foi adicionada' : 'frentes foram adicionadas'} depois do início: ${p0.originais === 0 ? 'o projeto não tem frente original' : `o escopo cresceu ${fmtPct(p0.crescimentoEscopoPct)}`}.`
     : undefined
+  const notaSemInicio =
+    semInicio > 0
+      ? `${fmtInteiro(semInicio)} ${semInicio === 1 ? 'projeto' : 'projetos'} sem data de início ${semInicio === 1 ? 'ficou' : 'ficaram'} fora desta conta.`
+      : ''
   return (
     <CartaoMetrica
       {...propsCartao('T9', q, NOTAS_TATICO.T9)}
       baseVariante="censo"
       {...(leitura ? { leitura } : {})}
       semTabela
+      {...(notaSemInicio
+        ? {
+            complementoVazio: (
+              <p className="mt-2 text-sm" data-testid="t9-nota-vazio">
+                {notaSemInicio}
+              </p>
+            ),
+          }
+        : {})}
       className="lg:col-span-6"
     >
       {d && (
         <div className="flex flex-col gap-3">
           <p className="text-sm" data-testid="t9-nota-escopo">
-            Frente adicionada depois do início é a frente criada depois do início do projeto. A base
-            não guarda quando a frente foi ligada ao projeto: a frente criada antes do início e
-            ligada depois conta como original.
-            {semInicio > 0 &&
-              ` ${fmtInteiro(semInicio)} ${semInicio === 1 ? 'projeto' : 'projetos'} sem data de início ${semInicio === 1 ? 'ficou' : 'ficaram'} fora desta conta.`}
+            Contamos como adicionada a frente criada depois do início do projeto. O sistema não
+            registra quando a frente foi ligada ao projeto; por isso a frente criada antes do início
+            e ligada depois conta como original.
+            {notaSemInicio && ` ${notaSemInicio}`}
           </p>
           <ul className="flex flex-wrap gap-3 text-sm" aria-label="Legenda das barras">
             <li>Concluídas: sólido</li>
@@ -99,9 +111,19 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
                     </td>
                     <td className="px-2 py-1">
                       {fmtInteiro(p.concluidas)} de {fmtInteiro(p.totalFrentes)} frentes (
-                      {fmtPct(p.avancoPct)}) · Escopo cresceu {fmtPct(p.crescimentoEscopoPct)} (+
-                      {fmtInteiro(p.adicionadas)} {p.adicionadas === 1 ? 'frente' : 'frentes'};{' '}
-                      {fmtInteiro(p.originais)} originais)
+                      {fmtPct(p.avancoPct)}) ·{' '}
+                      {p.originais === 0 ? (
+                        <>
+                          Escopo sem frente original (+{fmtInteiro(p.adicionadas)}{' '}
+                          {p.adicionadas === 1 ? 'frente' : 'frentes'})
+                        </>
+                      ) : (
+                        <>
+                          Escopo cresceu {fmtPct(p.crescimentoEscopoPct)} (+
+                          {fmtInteiro(p.adicionadas)} {p.adicionadas === 1 ? 'frente' : 'frentes'};{' '}
+                          {fmtInteiro(p.originais)} originais)
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
