@@ -23,7 +23,6 @@ data: 2026-11-16
 - Commit: Conventional Commits em português, escopo e pedido no assunto.
 
 ## Achados
-Nenhum.
 
 ## Riscos e pendências fora do review
 - A data é fixa: em 01/02/2027 o motivo passa a dizer uma data já vencida enquanto o O26 não entrar no mapa real. Ligar o O26 ao dado real nessa data é trabalho novo (pedido próprio), não deste PR.
