@@ -85,6 +85,23 @@ describe('allow-list do card (stg_card, 4a, M-1)', () => {
   });
 });
 
+describe('E7.203: campos 48 e 49 casados pelo value_id (dados fictícios)', () => {
+  const D = new Map([
+    ['48', new Map([['114', 'configuracao_ambiente'], ['122', 'outros']])],
+    ['49', new Map([['126', 'Erro em entrega anterior'], ['131', 'Demanda nova']])],
+  ]);
+  it('a API manda só value_id e position, sem rótulo: casa pelo value_id', () => {
+    expect(reduzirCamposCustomizados([
+      { field_id: 48, values: [{ value_id: 114, position: 1 }] }, { field_id: 49, values: [{ value_id: 126, position: 1 }] },
+    ], D)).toEqual([{ field_id: '48', valor: 'configuracao_ambiente' }, { field_id: '49', valor: 'Erro em entrega anterior' }]);
+    expect(reduzirCamposCustomizados([{ field_id: '49', values: [{ value_id: '131' }] }], D)).toEqual([{ field_id: '49', valor: 'Demanda nova' }]);
+  });
+  it('value_id fora do catálogo vira desconhecido, que a projeção conta como campo_fora_do_dominio', () => {
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 999, position: 1 }] }], D)).toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 49, values: [{ value_id: 114 }] }], D)).toEqual([{ field_id: '49', valor: 'desconhecido' }]);
+  });
+});
+
 describe('E7.86: causa raiz (field 48, dropdown) na fronteira', () => {
   const D = new Map([['48', new Map([['Erro de lógica / codificação', 'erro_logica_codificacao'], ['Outros', 'outros']])]]);
   const DESCRICAO = 'descricao-livre-de-outros-ZZ-NUNCA';

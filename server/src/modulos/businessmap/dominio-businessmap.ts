@@ -35,6 +35,11 @@ export const CAMPO_PRIORIDADE_SEVERIDADE = 'prioridade_severidade';
  */
 export const CAMPO_FASE_DETECCAO_COLUNA = 'fase_deteccao_coluna';
 /**
+ * Pedido 105 (E7.203): prefixo do valor de `ref_dominio.campo` que guarda os `value_id` de uma coluna de lista (`valor_id_<coluna>`): `codigo` = `value_id` (só dígitos),
+ * `rotulo` = código do domínio da opção. Sem coluna nova nem GRANT novo; `varchar(40)` comporta o prefixo mais a maior coluna.
+ */
+export const PREFIXO_VALOR_ID = 'valor_id_';
+/**
  * Valor de `ref_dominio.campo` da régua de tamanho por time (pedido 105, E7.102): `codigo` = `<time_id>:<size>` (o id do time da carga inicial dos times, nunca o nome; o `size` nativo do card, com
  * ponto para meio ponto, sem zero à esquerda nem à direita), `rotulo` = uma das seis faixas de `TAMANHOS_REGUA`. Valor de size fora da régua, card sem size e time sem régua ficam sem
  * tamanho, contados, nunca M por omissão. A primeira carga e cada troca de linha são versão de critério (`afeta = ['O8']`) e pedem nova aprovação do dono.
@@ -53,7 +58,8 @@ const ID_CAMPO = /^\d{1,10}$/;
 // Mesma regra de `textoSeguro` para o código lido do banco: sem controle, invisível, separador de linha nem arroba.
 const CODIGO_SEGURO = /^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}@]{1,80}$/u;
 
-const valorDominio = z.object({ codigo: textoSeguro(80), rotulo: textoSeguro(120) }).strict();
+// E7.203: `value_id` (só dígitos) é a chave do casamento nos cards, que a API manda só com `values[].value_id`, sem rótulo. Opcional: campo sem `value_id` casa pelo rótulo.
+const valorDominio = z.object({ codigo: textoSeguro(80), rotulo: textoSeguro(120), value_id: z.string().regex(ID_CAMPO).optional() }).strict();
 const criarCampo = (tipos: readonly string[]) =>
   z
   .object({
@@ -145,7 +151,12 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
       colunas.add(c.coluna);
       const codigos = new Set<string>();
       const rotulos = new Set<string>();
+      const valueIds = new Set<string>();
       for (const [j, v] of c.valores.entries()) {
+        if (v.value_id !== undefined) {
+          if (valueIds.has(String(Number(v.value_id)))) ctx.addIssue({ code: 'custom', path: ['campos', i, 'valores', j, 'value_id'], message: 'value_id repetido' });
+          valueIds.add(String(Number(v.value_id)));
+        }
         // `desconhecido` é o código reservado do valor fora do domínio.
         if (codigos.has(v.codigo) || v.codigo === VALOR_DESCONHECIDO) ctx.addIssue({ code: 'custom', path: ['campos', i, 'valores', j, 'codigo'], message: 'código repetido ou reservado' });
         if (rotulos.has(v.rotulo)) ctx.addIssue({ code: 'custom', path: ['campos', i, 'valores', j, 'rotulo'], message: 'rótulo repetido' });
@@ -184,7 +195,11 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
   const listas: Record<string, { codigo: string; rotulo: string }[]> = {
     [CAMPO_CUSTOMIZADO]: a.campos.map((c) => ({ codigo: c.field_id, rotulo: c.coluna })),
   };
-  for (const c of a.campos) listas[c.coluna] = c.valores;
+  for (const c of a.campos) {
+    listas[c.coluna] = c.valores.map((v) => ({ codigo: v.codigo, rotulo: v.rotulo }));
+    // E7.203: uma lista `valor_id_<coluna>` por campo (mesmo vazia, para fechar o que saiu): value_id -> código do domínio.
+    listas[`${PREFIXO_VALOR_ID}${c.coluna}`] = c.valores.flatMap((v) => (v.value_id === undefined ? [] : [{ codigo: String(Number(v.value_id)), rotulo: v.codigo }]));
+  }
   listas[CAMPO_MOTIVO_BLOQUEIO] = a.motivo_bloqueio;
   listas[CAMPO_SETOR_QUADRO] = a.setores;
   listas[CAMPO_PRIORIDADE_SEVERIDADE] = a.prioridade_severidade;
@@ -266,7 +281,18 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
   const colunas = COLUNAS_LISTA as readonly string[];
   const colunaDe = colunasDosCampos(linhas);
   const porColuna = new Map<string, Map<string, string | null>>();
+  const idsPorColuna = new Map<string, Map<string, string | null>>();
   for (const l of linhas) {
+    // E7.203: `valor_id_<coluna>`: só `value_id` numérico e código seguro, nunca o reservado; `value_id` ligado a dois códigos é ignorado.
+    if (l.campo.startsWith(PREFIXO_VALOR_ID) && colunas.includes(l.campo.slice(PREFIXO_VALOR_ID.length))) {
+      if (!ID_CAMPO.test(l.codigo) || !CODIGO_SEGURO.test(l.rotulo) || l.rotulo === VALOR_DESCONHECIDO) continue;
+      const col = l.campo.slice(PREFIXO_VALOR_ID.length);
+      const id = String(Number(l.codigo));
+      const m = idsPorColuna.get(col) ?? new Map<string, string | null>();
+      m.set(id, m.has(id) && m.get(id) !== l.rotulo ? null : l.rotulo);
+      idsPorColuna.set(col, m);
+      continue;
+    }
     if (l.campo === CAMPO_CUSTOMIZADO || !colunas.includes(l.campo)) continue;
     if (!CODIGO_SEGURO.test(l.codigo) || l.codigo === VALOR_DESCONHECIDO || l.rotulo.length === 0) continue;
     const m = porColuna.get(l.campo) ?? new Map<string, string | null>();
@@ -277,6 +303,9 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
   for (const [id, coluna] of colunaDe) {
     const dominio = new Map<string, string>();
     for (const [rotulo, codigo] of porColuna.get(coluna) ?? []) if (codigo !== null) dominio.set(rotulo, codigo);
+    // E7.203: o `value_id` só vale se o código existe na lista da coluna e não colide com um rótulo já no mapa.
+    const codigos = new Set(dominio.values());
+    for (const [valueId, codigo] of idsPorColuna.get(coluna) ?? []) if (codigo !== null && codigos.has(codigo) && !dominio.has(valueId)) dominio.set(valueId, codigo);
     if (dominio.size > 0) mapa.set(id, dominio);
   }
   return mapa;

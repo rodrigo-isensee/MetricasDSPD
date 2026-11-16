@@ -173,9 +173,10 @@ describe('determinismo da base', () => {
   // config.alvos (base de dd6787b1 para 52378641, Acelerato de b047a163 para 930570e9).
   // Regravada de novo (pedido 105): Intangível deixou de ser classe (base de 52378641 para 61ce1180; Acelerato e extensões iguais).
   // Regravada de novo (pedido 105, D6): S11 pela Decisão 18b muda o gerador do Acelerato do mock.
+  // Regravada de novo (pedido 105, E7.100): a prioridade nativa separa T1, T2, T4, T6, O6 e O24 (base para ef67b23e).
   it('os hashes da base, do Acelerato e das extensões seguem os de antes', () => {
     const base = mock.gerarBaseMock()
-    expect(mock.hashJson(base)).toBe('b6a3c384')
+    expect(mock.hashJson(base)).toBe('ef67b23e')
     expect(mock.hashJson(base.ac)).toBe('797abc95')
     expect(mock.hashJson(mock.gerarExtensaoTambemMock(base))).toBe('82329bc3')
   })
@@ -183,6 +184,6 @@ describe('determinismo da base', () => {
   it('a duração do boot é informada e a base do núcleo não altera a gerada (hash estável)', async () => {
     const { bootMs } = await new NucleoMock().iniciar()
     expect(bootMs).toBeGreaterThanOrEqual(0)
-    expect(mock.hashJson(mock.gerarBaseMock())).toBe('b6a3c384')
+    expect(mock.hashJson(mock.gerarBaseMock())).toBe('ef67b23e')
   })
 })

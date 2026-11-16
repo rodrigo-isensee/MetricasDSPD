@@ -46,6 +46,39 @@ export const CAMPOS_APONTAMENTO = [
 /** 4h: saída da classificação do comentário (lista fechada e inteiros) que acompanha o registro; nunca o texto. */
 export const CAMPOS_CLASSIFICACAO = ['subgrupo_codigo', 'flags_qualidade', 'qtd_palavras', 'versao_dicionario'] as const;
 
+/**
+ * Pedido 105 (O22, ADR 0020 revisão 6, R6-3): lista fechada do primeiro toque, em duas partes. É a ÚNICA fonte do corte de `GET /cards/{id}/revisions` e de
+ * `GET /cards/comments`: o resto do objeto lido (`text`, `attachments`, `type`, `last_modified`, `sender`, `recipients`, chave desconhecida) é descartado aqui,
+ * antes de qualquer normalizador, tabela ou log. `user_id` e `author.*` só existem em memória até `contaComoToque` (biblioteca do coletor) e nunca são gravados.
+ */
+export const CAMPOS_TOQUE = {
+  revisao: ['revision', 'replaced_at', 'user_id'],
+  comentario: ['card_id', 'comment_id', 'created_at', 'author.type', 'author.value'],
+} as const;
+
+export interface RevisaoCortada { revision: unknown; replaced_at: unknown; user_id: unknown }
+export interface ComentarioCortado { card_id: unknown; comment_id: unknown; created_at: unknown; author_type: unknown; author_value: unknown }
+
+const escalarOuAusente = (v: unknown): string | number | boolean | null | undefined => (ehEscalar(v) ? v : undefined);
+
+/** R6-3: item da lista de revisões cortado campo a campo por `CAMPOS_TOQUE.revisao`. Não é objeto: `null` (quem chama marca a leitura incompleta). */
+export function cortarRevisaoDoToque(item: unknown): RevisaoCortada | null {
+  if (!ehObjeto(item)) return null;
+  const [revision, replaced, user] = CAMPOS_TOQUE.revisao;
+  return { revision: escalarOuAusente(item[revision]), replaced_at: escalarOuAusente(item[replaced]), user_id: escalarOuAusente(item[user]) };
+}
+
+/** R6-3: comentário cortado campo a campo por `CAMPOS_TOQUE.comentario`. `author` que não é objeto deixa os dois campos ausentes. Não é objeto: `null`. */
+export function cortarComentarioDoToque(item: unknown): ComentarioCortado | null {
+  if (!ehObjeto(item)) return null;
+  const [card, comentario, criado] = CAMPOS_TOQUE.comentario;
+  const autor = ehObjeto(item.author) ? item.author : {};
+  return {
+    card_id: escalarOuAusente(item[card]), comment_id: escalarOuAusente(item[comentario]), created_at: escalarOuAusente(item[criado]),
+    author_type: escalarOuAusente(autor.type), author_value: escalarOuAusente(autor.value),
+  };
+}
+
 export const VALOR_DESCONHECIDO = 'desconhecido';
 
 const copiarEscalares = (origem: Objeto, campos: readonly string[], destino: Objeto): void => {
@@ -65,11 +98,13 @@ export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
  * Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a). `causa_raiz` (pedido 105, E7.86): causa raiz do bug do fluxo, campo 48 "Causa Raiz" (dropdown) do BusinessMap; a coluna já existe em `dim_card` e `dim_card_versao`.
  * Pedido 105 (E7.3): `classe_servico` saiu daqui; a classe vem só das etiquetas do card (ADR 0020 4i), uma fonte por coluna.
  * `fase_deteccao` saiu em 105 (E7.5): vem só da projeção pela coluna do pai do bug, para não haver duas fontes.
+ * `severidade` saiu em 105 (E7.100): vem só do `priority` nativo do card pelo mapa `prioridade_severidade` (`severidadeDaPrioridade`); é a prioridade do painel
+ * (T1, T2, T4, T6, O6 e O24) e o eixo não pode mudar de fonte em silêncio por um campo customizado.
  * `tamanho_declarado` saiu em 105 (E7.102): vem só do `size` nativo do card pela régua do time (`tamanho_regua` de `ref_dominio`); a allow-list aperta, não afrouxa.
  */
 export const COLUNAS_LISTA = [
   'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico',
-  'responsabilidade_atraso', 'origem_demanda', 'severidade', 'causa_raiz',
+  'responsabilidade_atraso', 'origem_demanda', 'causa_raiz',
 ] as const;
 
 /**

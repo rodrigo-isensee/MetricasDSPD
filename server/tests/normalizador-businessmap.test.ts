@@ -332,7 +332,7 @@ describe('C2a: data_acordada a partir do deadline nativo (parse estrito, 099-o12
 describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id -> coluna', () => {
   const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'origem_demanda'], ['502', 'sistema'], ['503', 'severidade']]) };
   const LISTA = ['sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
-    'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade', 'causa_raiz'] as const;
+    'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'causa_raiz'] as const;
   const cf = (...c: { field_id: unknown; valor: unknown }[]) => card({ custom_fields: c });
 
   it('campo mapeado preenche a coluna; o que não está no mapa fica nulo e não gera nota', () => {
@@ -346,8 +346,15 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     expect(p.dim.origem_demanda).toBeNull();
     expect(p.dim.sistema).toBeNull();
     expect(p.dim.severidade).toBeNull();
-    expect(p.notas.filter((n) => n === 'campo_fora_do_dominio')).toHaveLength(3);
+    expect(p.notas.filter((n) => n === 'campo_fora_do_dominio')).toHaveLength(2); // o 503 (severidade) não é mais coluna de lista (E7.100)
     expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
+  });
+
+  it('pedido 105 (E7.100): severidade, a prioridade do painel, não vem de campo customizado; só do priority nativo pelo mapa', () => {
+    const p = proj(card({ priority: 2, custom_fields: [{ field_id: '503', valor: 'Crítica' }] }), [], {}, { ...COM_MAPA, prioridades: new Map([['2', 'Alta']]) });
+    expect(p.dim.severidade).toBe('Alta');
+    const sem = proj(card({ custom_fields: [{ field_id: '503', valor: 'Crítica' }] }), [], {}, COM_MAPA);
+    expect(sem.dim.severidade).toBeNull(); // sem priority e sem mapa: nunca Média nem o valor do campo
   });
 
   it('E7.86: o field 48 preenche dim.causa_raiz; valor fora da lista fica nulo com a nota contada, sem o valor', () => {
@@ -390,7 +397,7 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     for (const c of LISTA) expect(sem.dim[c]).toBeNull();
     const antes = Object.fromEntries(Object.entries(sem.dim).filter(([k]) => !(LISTA as readonly string[]).includes(k)));
     expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
-      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'origem_bug', 'classe_servico']);
+      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'origem_bug', 'classe_servico', 'severidade']);
     expect(sem.dim.classe_servico).toBeNull();
   });
 });
@@ -422,13 +429,13 @@ describe('C8a: severidade pelo priority nativo (1 Critical a 4 Low, escala decre
       expect(p.notas).not.toContain('priority_fora_do_mapa');
     }
   });
-  it('o priority substitui a coluna severidade vinda de campo customizado só quando há mapa; as outras colunas de lista seguem', () => {
+  it('severidade vem só do priority pelo mapa (E7.100): campo customizado mapeado para ela é ignorado, com ou sem mapa; as outras colunas de lista seguem', () => {
     const ref: Referencia = { ...COM_PRIORIDADE, camposLista: new Map([['503', 'severidade'], ['502', 'sistema']]) };
     const c = card({ priority: 2, custom_fields: [{ field_id: '503', valor: 'x' }, { field_id: '502', valor: 'sis' }] });
     const p = projetarCard(entrada(c), ref)!;
     expect(p.dim.severidade).toBe('Alta');
     expect(p.dim.sistema).toBe('sis');
-    expect(projetarCard(entrada(c), { ...ref, prioridades: undefined })!.dim.severidade).toBe('x');
+    expect(projetarCard(entrada(c), { ...ref, prioridades: undefined })!.dim.severidade).toBeNull();
   });
   it('priority nulo com mapa carregado apaga a severidade vinda de campo customizado, sem nota', () => {
     const ref: Referencia = { ...COM_PRIORIDADE, camposLista: new Map([['503', 'severidade']]) };

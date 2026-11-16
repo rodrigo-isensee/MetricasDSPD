@@ -13,6 +13,7 @@ import {
 } from './dominio-businessmap.js';
 import { faseDeDeteccao, TIPOS_DE_BUG, type TransicaoDoPai } from './fase-deteccao.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
+import { projetarToque } from './toque-gravacao.js';
 import {
   agrupar, diaDe, instanteDoBm, noDia, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
   type LinhaTipo, type LinhaWorkflow, type Referencia, type ReguaTamanho, type TransicaoStg,
@@ -286,9 +287,11 @@ async function projetarLote(
   // dim_card: projeção, refeita por card (a história fica no staging e em dim_card_versao); `responsaveis` nunca vem do staging
   await db.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [ok]);
   const COLUNAS_DIM = ['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em', 'motivo_descarte', 'titulo',
-    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico', 'fase_deteccao', 'origem_bug', 'tamanho_declarado', ...COLUNAS_LISTA] as const;
+    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico', 'fase_deteccao', 'origem_bug', 'severidade', 'tamanho_declarado', ...COLUNAS_LISTA] as const;
   await inserir(db, `${S.bm}.dim_card`, [...COLUNAS_DIM, 'responsaveis', 'coletado_em', 'atualizado_por_coleta_id'],
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
+  // 105 (O22, B7b, R6-6): o DELETE + INSERT acima zera o primeiro toque; ele se refaz da staging e do controle do toque, sem chamar a API
+  await projetarToque(db, S, ok);
 
   // I-2: na mesma execução, o conjunto lido pela coleta (muda de dono sem mudar o staging); `null` não sobrescreve nada
   for (const { stg: l } of projetados) {

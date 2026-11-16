@@ -18,10 +18,10 @@ const t11 = businessmap.calcularT11(ctx, F, ext)
  */
 describe('B11b: extensão do T11 (entradas sazonais)', () => {
   it('base intacta: hashes do núcleo e do Acelerato iguais aos de antes da extensão', () => {
-    expect(hashJson(base)).toBe('b6a3c384')
+    expect(hashJson(base)).toBe('ef67b23e')
     // regravado no D3 do 099 (unidade dos prazos em config.alvos) e no K-314 (unidade de exibição em config.alvos); ver docs/qa/evidencias/hash-base-fase-a.nota.md
     expect(hashJson(base.ac)).toBe('797abc95')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('649ba93c')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('a603366d')
     expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('4a73ffc7')
   })
 
