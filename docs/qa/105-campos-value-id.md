@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-campos-value-id
-commit: ad04bc375ee5eedc505281b82b44c8d73badd514
-parecer: reprovado
-escopo: completo
+commit: 2ddd243d863336f154c1f245dd53b1d2f264706c
+parecer: aprovado
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -18,7 +18,10 @@ Sem especificação de UX nem contrato de API novos: as obrigações vêm do bri
 
 ## Achados
 
-- A1 (bloqueante) server/tests/dominio-businessmap.pg.test.ts:58 · o teste pg do arquivo real ficou velho: espera 1 campo (e afeta vazio, linha 51) e o arquivo agora tem 2; CI banco do head falha (run 43874353570, 1 de 329). Atualizar para 2 campos, valor_id e afeta O14/O17.
+## Revalidação (delta ad04bc37..2ddd243d)
+A1 e A2 resolvidos em 2ddd243d, nenhum achado aberto. A1: teste pg do arquivo real atualizado para 2 campos, 38 linhas, 395 inseridas, linhas valor_id_* gravadas pelo dspd_ref e lidas por dominiosDaColeta, afeta O14 e O17. A2 (doc): businessmap-causa-raiz-carga.md:11 agora diz 38 linhas.
+O forge-check parecer delta lista no domínio: dominio-businessmap.pg.test.ts e businessmap-causa-raiz-carga.md. Li o diff do teste: confere 2 campos, 38 e 395 linhas, os 18 pares valor_id_* (codigo = value_id, rotulo = código) contra o arquivo, vigente_ate nulo, a leitura da coleta (114 a 125 no 48; 126 a 131 no 49; 114 indefinido no 49) e afeta O14 e O17. Os 3 módulos locais seguem 129 de 129. Sem código de produção no delta, o vermelho e os 4 mutantes da rodada anterior valem.
+CI do head 2ddd243d (run 43888386557): job banco success (o test:pg local tem 12 falhas em arquivos alheios, banco compartilhado; vale o CI); rapida, build, imagem, openapi, filtro e seguranca success; o job testes ainda rodava na hora deste parecer. Sem PR: a suíte inteira fica para o CI do PR; não afirmo CI verde da suíte.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
