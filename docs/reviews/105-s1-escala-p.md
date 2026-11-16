@@ -3,34 +3,38 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s1-escala-p1-p5
-commit: 744e5a36e23676f9edc0cf6af88ef7b3e891890a
-parecer: reprovado
+commit: 07cfc675032c45616599d29a0dc9ec8de547bd8c
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: S1 só com a escala P1 a P5 (E7.238, review E7.308)
+# Code review: S1 só com a escala P1 a P5 (E7.238, review E7.308, revalidação E7.382)
 
-## O que foi conferido
-- Diff `57989aa0...744e5a36`: 1 commit, 34 arquivos; 437 linhas de código e teste (`git diff --numstat --no-renames`, fora `.md` e `.json`). Um comportamento só (o recorte do S1 pela escala), mas passa da orientação de 150 (M14): o corpo do PR precisa de `teto: excedido, <n> linhas, <motivo>` (migração, comando de reprojeção com entrada e testes, contrato e cartão).
-- **Migração 0040** (`server/migrations/0040_ac_dim_chamado_escala_p.ts:13-14`): `ADD COLUMN IF NOT EXISTS escala_p boolean NULL` em `dim_chamado` só, `down` com `DROP COLUMN IF EXISTS`. Uma mudança, caminho de volta, nenhuma linha reescrita, staging e `dim_chamado_versao` intocados (histórico preservado). Checksum novo em `checksums.json`, registro em `tests/migracoes.ts` e contagem estática 531 → 532. GRANT: `dim_chamado` tem SELECT de tabela inteira ao `dspd_api` (`grants.ts:57`, regra das projeções); a coluna é booleano derivado, sem dado de pessoa.
-- **Regra da escala** (`normalizador.ts:235-239`): verdadeiro só para `ESCALA_P`, falso para o que a D-12 mapeia, nulo fora disso; é a mesma função no projetor (`ATRIBUTOS_DIM`, `projetor.ts:30`) e no comando, sem regra duplicada. Do staging só sai o booleano.
-- **Comando `ac:reprojetar-escala`** (`reprojecao-escala.ts:301-341`): uma transação, `exigirEsquemaSemSeed`, cursor por `chamado_id` em lotes de `TAMANHO_LOTE`, `UPDATE ... WHERE d.escala_p IS NULL` só com resultado não nulo: não sobrescreve e repetir não muda dado (só uma linha em `ctl_coleta`). Entrada (`entradas/reprojetar-escala-ac.ts`) imprime só contagens e a categoria do erro, sem URL nem texto do banco; credencial do migrador.
-- **Biblioteca** (`s1.ts:40-50`): `apuraveis` exige prioridade e `escala_p !== false` (ausente vale P, para mock e semeada); `foraDaMatriz` conta outras escalas e sem prazo sobre `selecionarAC(..., { semPrioridade: true })`, independente do filtro de prioridade, nunca estatística. Mínimo de 20 segue pela biblioteca (teste de 10 na escala P com 50 fora sai `insuficiente`). Só Acelerato.
-- **Serviço** (`servico.ts:293-296`): base real com algum chamado de prioridade e `escala_p` ausente responde "sem dado real" com `MOTIVO_ESCALA_NAO_PROJETADA`; nada presumido. `mapa.ts:351` transforma nulo em ausente, o que casa com a guarda.
-- **Contrato e critério**: `foraDaMatriz` opcional e aditivo (`schemas.ts:671`), openapi, contrato S1 e fotografia regenerados; critério `105:S1-escala-p` (T2.6) com CT-49 em oito entradas e linha no CHANGELOG.
-- **Testes rodados aqui** (sem rerrodar a suíte): `server` `acelerato-reprojecao-escala`, `acelerato-normalizador` e `reprojetar-escala-ac-entrada`, 65 passaram; `packages/metricas` bloco "S1 só na escala P1 a P5", 4 passaram. Mutantes: (1) tirar `&& x.c.escala_p !== false` de `naMatriz` em `s1.ts:141` derruba 2 testes (morto); (2) tirar `&& c.escala_p === undefined` da guarda em `servico.ts:293` derruba o teste E7.238 de `painel-real-f6` (morto). Fonte restaurada, árvore limpa.
-- **CI do head `744e5a36`**, run `43953253555` (push): job `banco` **vermelho** (`test:pg`, dois testes, ver A1 e A2); `testes` cancelado em `pnpm run cobertura` pelo push do parecer de segurança (`21ab8e20`), sem resultado; `rapida`, `build`, `openapi`, `seguranca`, `imagem` verdes. Sem PR: o parecer não afirma CI verde.
-- **deploy/sql**: não existe nesta branch. A base `57989aa0` é anterior ao #497 (`f719f984`), que trouxe `deploy/sql/` e `pnpm run db:sql` à `develop` (até `0039_bm_toque_primeiro.sql` e `consolidado.sql`). Não há o que regenerar neste head; precisa ser regenerado **na integração**: ao trazer a `develop` antes do PR, rodar `pnpm run db:sql` e commitar `deploy/sql/0040_ac_dim_chamado_escala_p.sql` e o `consolidado.sql` novos. Nenhum check da CI confere essa sincronia; sem ela, o DBA aplica o esquema sem `escala_p` e o projetor, que agora grava a coluna, quebra a projeção do Acelerato na VM. Ver A3.
-- Commit: Conventional Commits em português, escopo e pedido no assunto.
+## Revalidação no head `07cfc675` (delta lido)
+- Delta lido: `forge-check parecer delta docs/reviews/105-s1-escala-p.md`, intervalo `744e5a36..07cfc675`, sem o que veio da `develop`. Commits da volta: `18e842c7` (testes de banco, SQL do DBA da 0040, testes dos mutantes) e `07cfc675` (integra a `develop` com o #508 e regenera o SQL do DBA).
+- **A1 corrigido**: `server/tests/pg/esquema.snapshot.json:80` ganha só `dspd_ac.dim_chamado.escala_p boolean NULL`; nenhuma outra linha mudou na fotografia.
+- **A2 corrigido**: `server/tests/acelerato-l9c.pg.test.ts:24-25` tira `escala_p` da comparação (`- 'fluxo' - 'escala_p'`), com o comentário dizendo de onde vem cada coluna.
+- **A3 corrigido**: `deploy/sql/0040_ac_dim_chamado_escala_p.sql` novo (`ALTER TABLE dspd_ac.dim_chamado ADD COLUMN IF NOT EXISTS escala_p boolean NULL` e o registro em `pgmigrations`) e `consolidado.sql` com a 0040 (linha 1571). Conferido aqui: o passo `arquivos` do gerador (`scripts/gerar-sql-migracoes.mjs arquivos`) reproduz as 40 migrações sem nenhuma diferença; `consolidado.sql` e `9000_grants.sql` vêm do passo com o Postgres descartável, que não rodei (eles saem do mesmo gerador, e a 0040 não mexe em GRANT). Árvore restaurada e limpa. **O deploy/sql não precisa ser regenerado de novo nesta branch**: a `develop` não tem migração depois da 0039 (`git diff 07cfc675 origin/develop -- server/migrations deploy/sql` só mostra a 0040 desta branch). Isso muda se outra migração entrar na `develop` antes do merge.
+- **A4 resolvido**: `server/tests/acelerato-escala-p.pg.test.ts` (QA) prova o "não sobrescreve" no banco: as linhas `d` (true) e `e` (false), com staging que diria o oposto, seguem como estavam, e a segunda passada não muda a foto da `dim_chamado`.
+- **Conflito do #508** (`criterios-acelerato.ts` e o teste CT-49): as duas entradas ficam, `105:S8-so-respondidos` antes de `105:S1-escala-p`; o registro é idempotente pela referência, e a ordem só muda o id da versão no duplo do teste (8 S8, 9 S1). Sem perda de nenhum lado.
+- **Teste novo dos mutantes** (`packages/metricas/src/acelerato/acelerato.test.ts:110`): rodei o bloco "S1 só na escala P1 a P5", 5 passaram. Mutante: em `s1.ts:86`, trocar `fechados.filter((x) => naMatriz(x)).length` por `fechados.length` derruba o teste novo (morto). Fonte restaurada.
+- **CI do head `07cfc675`**, run `43982920812` (push): `banco` verde (A1 e A2 provados no `test:pg`); `rapida`, `build`, `openapi`, `seguranca`, `imagem` verdes; `testes` ainda em andamento na hora deste parecer. Do autor: `pnpm run pronto` exit 0 e `test:pg` só com as 12 falhas conhecidas de ambiente (K-392). Sem PR: o parecer não afirma CI verde do PR.
+
+## O que foi conferido (rodada 1, head `744e5a36`)
+- Migração 0040 com uma mudança e caminho de volta, sem reescrever histórico; `dim_chamado_versao` e staging intocados; coluna booleana derivada, sem dado de pessoa (GRANT de tabela ao `dspd_api`, `grants.ts:57`).
+- Regra da escala numa função só (normalizador, projetor e comando); comando `ac:reprojetar-escala` numa transação, por lotes, só onde a coluna é nula; entrada imprime só contagens.
+- Biblioteca: `escala_p !== false` vale P, `foraDaMatriz` contado e nunca estatística, mínimo de 20 pela biblioteca, só Acelerato. Serviço: sem escala projetada, "sem dado real" com o motivo.
+- Contrato aditivo (`foraDaMatriz` opcional), openapi e critério `105:S1-escala-p` (T2.6) com CHANGELOG.
+- Tamanho: passa da orientação de 150 linhas (M14); o corpo do PR precisa de `teto: excedido, <n> linhas, <motivo>`.
 
 ## Achados
-- A1 (bloqueante) server/tests/pg/esquema.snapshot.json:1 · CI `banco` vermelho em `server/tests/catalogo.pg.test.ts:24` ("expected [ …(768) ] to deeply equal [ …(767) ]"): a fotografia do esquema não ganhou `dspd_ac.dim_chamado.escala_p boolean NULL`. Regravar com `ATUALIZAR_SNAPSHOT=1` no `test:pg` e conferir que a única linha nova é essa.
-- A2 (bloqueante) server/tests/acelerato-l9c.pg.test.ts:25 · CI `banco` vermelho na linha 58: a subida da 0040 traz `escala_p` para a comparação de linhas. Tirar a coluna como se faz com `fluxo` (`- 'fluxo' - 'escala_p'`) e ajustar o comentário da linha 24.
-- A3 (recomendado) deploy/sql/consolidado.sql:1 · pendente: na integração com a `develop` (que traz `deploy/sql/`), rodar `pnpm run db:sql` e commitar o `0040` e o consolidado na mesma branch, antes do PR. Condição do merge, não deste head.
-- A4 (recomendado) server/tests/acelerato-reprojecao-escala.test.ts:496 · o "não sobrescreve" do comando só é afirmado pelo texto do SQL (`toContain('d.escala_p IS NULL')`) no banco falso; um caso no `test:pg` com uma linha já preenchida (valor oposto ao do staging) que segue igual depois do comando provaria o comportamento.
+- A1 (bloqueante) server/tests/pg/esquema.snapshot.json:80 · corrigido em `18e842c7`; `banco` verde no run `43982920812`.
+- A2 (bloqueante) server/tests/acelerato-l9c.pg.test.ts:25 · corrigido em `18e842c7`; `banco` verde no run `43982920812`.
+- A3 (recomendado) deploy/sql/consolidado.sql:1571 · corrigido em `18e842c7` e `07cfc675`: 0040 e consolidado gerados; regenerar só se outra migração entrar na `develop` antes do merge.
+- A4 (recomendado) server/tests/acelerato-escala-p.pg.test.ts:83 · resolvido: o "não sobrescreve" é provado no banco.
 
 ## Riscos e pendências fora do review
 - Passo do dono depois do merge: migrar, rodar `ac:reprojetar-escala` com a coleta parada e registrar o critério com `criterios-ac`. Até lá o S1 real fica "sem dado real" com o motivo, como decidido.
-- A guarda do serviço olha todos os chamados da base: um chamado com prioridade na dimensão e versão mais nova no staging ainda não projetada, com prioridade fora do mapa, fica nulo e segura o S1 até a próxima projeção. Raro e autocorrigido pela projeção seguinte; registrado para o QA.
-- Revalidação: depois da volta, `forge-check parecer delta docs/reviews/105-s1-escala-p.md` e o CI do novo head com `banco` e `testes` verdes.
+- Chamado com versão nova no staging ainda não projetada, com prioridade fora do mapa, fica nulo e segura o S1 até a próxima projeção; raro e autocorrigido (registrado para o QA na rodada 1).
+- Job `testes` do run `43982920812` ainda em andamento: o merge espera o CI do PR verde.
