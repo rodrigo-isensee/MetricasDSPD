@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { TIPOS_CARD, type FiltrosFluxo } from '@metricas-dspd/contratos'
+import {
+  MINIMO_AMOSTRA,
+  TAMANHOS_REGUA,
+  TIPOS_CARD,
+  type FiltrosFluxo,
+} from '@metricas-dspd/contratos'
 import { Barras, marcaDoTipo } from '@/components/charts'
 import { AmostraInsuficiente, EstadoSemDadoReal, SeletorLocal, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
@@ -121,6 +126,40 @@ export function CartaoO6({ filtros }: P) {
   )
 }
 
+const FAIXAS_O8 = [...TAMANHOS_REGUA, 'Sem tamanho'] as const
+
+/** Seis faixas sempre na mesma ordem, "Sem tamanho" por último (só se existir). Faixa vazia diz "sem entregas", nunca 0; abaixo de 20, amostra insuficiente. */
+function FaixasPorTamanho({
+  tipo,
+  faixas,
+}: {
+  tipo: string
+  faixas: readonly { tamanho: string; n: number; mediana: number | null }[]
+}) {
+  const por = new Map(faixas.map((f) => [f.tamanho, f]))
+  return (
+    <section aria-label={`Faixas de tamanho de ${tipo}`} data-testid={`faixas-O8-${tipo}`}>
+      <h5 className="text-sm font-semibold text-texto">{tipo}</h5>
+      <ul className="m-0 flex list-none flex-col gap-0.5 p-0 text-sm text-texto">
+        {FAIXAS_O8.filter((f) => f !== 'Sem tamanho' || (por.get(f)?.n ?? 0) > 0).map((f) => {
+          const x = por.get(f)
+          const texto =
+            x == null || x.n === 0
+              ? 'sem entregas neste tamanho'
+              : x.mediana == null
+                ? `amostra insuficiente (${fmtInteiro(x.n)} de ${MINIMO_AMOSTRA} itens mínimos)`
+                : `mediana ${fmtDiasUteis(x.mediana)} (${fmtInteiro(x.n)} itens)`
+          return (
+            <li key={f}>
+              {f}: {texto}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
 /** O8: tamanho das demandas. Mediana e P85 sempre; a média nunca aparece sozinha. */
 export function CartaoO8({ filtros }: P) {
   const q = useMetrica('O8', filtros)
@@ -131,7 +170,9 @@ export function CartaoO8({ filtros }: P) {
   const faltam = (d?.tipos ?? []).filter((t) => t.estatistica.status === 'insuficiente')
   const primeiro = ok[0]
   const divide = d?.motivoPorTamanho == null
-  const comTamanho = divide ? ok.filter((t) => t.porTamanho != null) : []
+  const comTamanho = divide
+    ? ok.flatMap((t) => (t.porTamanho != null ? [{ ...t, faixas: t.porTamanho }] : []))
+    : []
   const semTamanho = divide ? ok.filter((t) => t.porTamanho == null) : []
   return (
     <CartaoComplementar
@@ -203,12 +244,22 @@ export function CartaoO8({ filtros }: P) {
                   (t.porTamanho ?? []).map((p) => [p.tamanho, p.mediana]),
                 ),
               }))}
-              series={['P', 'M', 'G', 'Sem tamanho'].map((t, i) => ({
+              series={FAIXAS_O8.map((t) => ({
                 chave: t,
                 rotulo: t === 'Sem tamanho' ? t : `Tamanho ${t}`,
-                cor: ([1, 2, 3, 4] as const)[i] as 1,
               }))}
             />
+          )}
+          {ok.length > 0 && divide && comTamanho.length > 0 && (
+            <>
+              <p className="text-sm text-texto-2" data-testid="nota-O8-regua">
+                Cada time tem a sua régua de tamanho, convertida para as seis faixas (PP, P, M, G,
+                GG e XG). Os tamanhos aparecem somados, sem comparar times.
+              </p>
+              {comTamanho.map((t) => (
+                <FaixasPorTamanho key={t.tipo} tipo={t.tipo} faixas={t.faixas} />
+              ))}
+            </>
           )}
           {divide && comTamanho.length > 0 && semTamanho.length > 0 && (
             <p className="text-sm text-texto" data-testid="nota-O8-sem-tamanho">
