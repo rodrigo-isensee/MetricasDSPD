@@ -7,7 +7,7 @@ const S = montarEsquemas('');
 const AGORA = new Date('2026-11-02T12:00:00Z');
 
 describe('CT-49: marcas da D-7, da D-10 do 066 e do 069 em ref_versao_criterio (T2.6)', () => {
-  it('as sete entradas, com data, e as métricas afetadas (S4, S9, S10, S8, as cinco do L9-c e o S11 da 18b)', async () => {
+  it('as sete entradas, com data, e as métricas afetadas (S4, S9, S10, S8, as cinco do L9-c, o S11 da 18b e a conversão do S11)', async () => {
     let id = 0;
     const d = criarDublePg((q) => (q.texto.startsWith('SELECT 1') ? [] : q.texto.includes('RETURNING versao_id') ? [{ versao_id: String(++id) }] : []));
     const gravadas = await registrarCriteriosAcelerato(d.pool, S, '2026-11-02', AGORA);
