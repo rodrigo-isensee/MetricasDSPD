@@ -1,5 +1,5 @@
 import { gzipSync } from 'node:zlib';
-import { METRICA_IDS } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVO_S11_CONVERSAO_SEM_DADO_REAL } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import { EXTENSAO_TAMBEM_BM_VAZIA } from '@metricas-dspd/metricas/businessmap';
@@ -224,10 +224,10 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((r2.resultado as { sprints: unknown[] }).sprints.length).toBeGreaterThan(0);
   });
 
-  it('fonte real: sem extensões mockadas, S8, S11, S12, O17 e E4 saem sem campo, nunca 0% nem dentro da meta', async () => {
+  it('fonte real: sem extensões mockadas, S8, S12, O17 e E4 saem sem campo e a conversão do S11 sai nula com o motivo, nunca 0% nem dentro da meta', async () => {
     const d = criarDublePg(bancoDoMock(base));
     const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'silent', extensoes: null, extensaoTambem: null });
-    for (const id of ['S8', 'S11', 'S12', 'O17', 'E4']) {
+    for (const id of ['S8', 'S12', 'O17', 'E4']) {
       const r = await get(app, `/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.json().campoDisponivel, id).toBe(false);
@@ -235,7 +235,10 @@ describe('GET /api/v1/metricas/:id', () => {
     const s8 = (await get(app, '/api/v1/metricas/S8')).json();
     expect(s8.total.status).toBe('insuficiente');
     expect(s8.statusMeta).toBe('sem-referencia');
-    expect((await get(app, '/api/v1/metricas/S11')).json().conversao.status).toBe('insuficiente');
+    const s11 = (await get(app, '/api/v1/metricas/S11')).json();
+    expect(s11.campoDisponivel).toBe(true); // pedido 105 (D6a): a avaliação é dado real; só a conversão fica sem fonte
+    expect(s11.conversao).toBeNull();
+    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL);
     const o17 = (await get(app, '/api/v1/metricas/O17')).json();
     expect(o17.porCausa).toBeNull();
     expect(o17.motivoCausaRaiz).toContain('causa aparente');

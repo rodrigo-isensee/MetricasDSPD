@@ -21,6 +21,7 @@ import {
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   MOTIVO_ORIGEM_MOCK,
   MOTIVO_FLUXOS_PROC_NAO_CARREGADOS,
+  MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
   motivoDaOrigemSemDado,
   motivoSemDadoReal,
   semDadoRealSchema,
@@ -63,21 +64,24 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O12'], // pedido 099 (E3.223)
         ...['O15'], // pedido 105 (E7.5)
         ...['O18'], // pedido 105 (E7.4)
+        ...['S11'], // pedido 105 (D6a, Decisão 18b do 099)
       ].sort(),
     )
   })
 
-  it('sustentação: S11 e EI_SUST seguem sem dado real, cada uma com o seu motivo; S1 (D4), S9 (D5a) e S5, S6 e S7 (pedido 105, D2) são reais', () => {
+  it('sustentação: EI_SUST segue sem dado real com o seu motivo; S1 (D4), S9 (D5a), S5, S6 e S7 (pedido 105, D2) e S11 (pedido 105, D6a) são reais', () => {
     expect(origemDaMetrica('S1')).toBe('real')
     expect(motivoDaOrigemSemDado('S1')).toBeNull()
     for (const id of ['S5', 'S6', 'S7'] as const) {
       expect(origemDaMetrica(id), id).toBe('real')
       expect(motivoDaOrigemSemDado(id), id).toBeNull()
     }
-    expect(origemDaMetrica('S11')).toBe('sem-dado')
-    expect(motivoDaOrigemSemDado('S11')).toBe(
-      'aguardando tipo e domínio do campo do chamado (P-DS-19)',
-    )
+    // Pedido 105 (D6a): S11 real pela Decisão 18b; só a conversão fica sem fonte, com motivo próprio no resultado (não no mapa).
+    expect(origemDaMetrica('S11')).toBe('real')
+    expect(motivoDaOrigemSemDado('S11')).toBeNull()
+    expect(MOTIVO_ORIGEM_MOCK).not.toHaveProperty('S11')
+    expect(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL).toMatch(/^[a-z].*[^.]$/)
+    expect(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL).not.toMatch(/fict|mock|simulad/i)
     // Pedido 099 (D5a): S9 é real pelas esperas decididas; sem motivo de dado fictício.
     expect(origemDaMetrica('S9')).toBe('real')
     expect(motivoDaOrigemSemDado('S9')).toBeNull()

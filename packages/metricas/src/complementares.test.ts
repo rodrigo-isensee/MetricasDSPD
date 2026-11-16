@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   fonteDaMetrica,
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
+  MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
   MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   type FiltrosFluxo,
   type FiltrosSustentacao,
@@ -77,7 +78,7 @@ describe('métricas complementares: contratos e regras comuns', () => {
       }
   })
 
-  it('sem extensão: nada é publicado como 0% (S8, S11, S12 insuficientes; O17 e E4 sem partes)', () => {
+  it('sem extensão: nada é publicado como 0% (S8 e S12 insuficientes; conversão do S11 nula com o motivo; O17 e E4 sem partes)', () => {
     const t8 = calcularMetrica('T8', F, ctxSemExt)
     expect(t8.sprints).toEqual([])
     const o17 = calcularMetrica('O17', FS, ctxSemExt)
@@ -98,8 +99,10 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(s8.meses.every((m) => m.reabertos === 0 && m.taxa.status === 'insuficiente')).toBe(true)
     expect(s8.cobertura.n).toBe(0)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
-    expect(s11.campoDisponivel).toBe(false)
-    expect(s11.conversao.status).toBe('insuficiente')
+    expect(s11.campoDisponivel).toBe(true) // pedido 105 (D6a): a avaliação é dado real
+    expect(s11.conversao).toBeNull()
+    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL)
+    expect(calcularMetrica('S11', FS, ctxMock).motivoConversao).toBeNull()
     const s12 = calcularMetrica('S12', FS, ctxSemExt)
     expect(s12.campoDisponivel).toBe(false)
     expect(s12.reincidencia.every((x) => x.proporcao.status === 'insuficiente')).toBe(true)

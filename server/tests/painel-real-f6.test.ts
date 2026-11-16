@@ -1,11 +1,11 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, MOTIVO_S11_CONVERSAO_SEM_DADO_REAL, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { ServicoMetricas } from '../src/modulos/metricas/index.js';
 import { colunasDe, configBM, limitesDosTimes, montarBaseBM, type RefBM } from '../src/modulos/metricas/mapa.js';
-import type { LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColunaReal, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
+import type { LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColunaReal, LinhaEtapa, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Chamada, type Respondedor } from './duble-pg.js';
@@ -54,7 +54,7 @@ const ALVOS = [
   ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
 ].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[] };
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -63,6 +63,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
     const x = c.texto;
     if (!x.includes('r_dspd')) return doSeed(c);
     if (x.includes('FROM r_dspd_ac.dim_chamado')) return o.chamados ?? [];
+    if (x.includes('FROM r_dspd_ac.fato_etapa_chamado')) return o.etapas ?? [];
     if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
     if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
@@ -179,7 +180,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(d.chamadas).toHaveLength(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; S11 e EI_SUST respondem sem dado real; S5, S6 e S7 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
+  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; EI_SUST responde sem dado real; S5, S6, S7 e S11 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
     for (const id of ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
@@ -191,13 +192,13 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
-    for (const id of ['S5', 'S6', 'S7'] as MetricaId[]) {
+    for (const id of ['S5', 'S6', 'S7', 'S11'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.json(), id).toEqual({ estado: 'sem-dado-real', metrica: id, motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS });
     }
-    for (const id of ['S11', 'EI_SUST'] as MetricaId[]) {
+    for (const id of ['EI_SUST'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -594,6 +595,36 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(s7.foraDoFluxo).toBe(3);
     expect(s7.notas).toEqual(['s7-nao-igual-vazio']);
     expect((s7.ajusteDePrioridade as { totais: { total: number; ocorrencias: number } }).totais).toEqual({ total: 21, ocorrencias: 6 });
+  }, 60_000);
+
+  it('D6a (pedido 105, Decisão 18b do 099): S11 real pelo fluxo do chamado: campo nativo no PROC, etapa Causa Raiz fora dele, sem fluxo contado, conversão nula com o motivo', async () => {
+    const PROC = ['SSVO - INCIDENTE'];
+    const fim = new Date('2026-09-25T12:00:00Z');
+    // 22 do PROC (P1 a P3; o P3 entra pelo "Contorno Aplicado" real), 8 de fluxo antigo e 3 sem fluxo; todos no escopo do S11.
+    const proc = Array.from({ length: 22 }, (_, i) => chamado(`P${i}`, {
+      fluxo: 'SSVO - INCIDENTE', status: 'Concluído', data_finalizado: fim, prioridade: i < 8 ? 'P1' : i < 16 ? 'P2' : 'P3',
+      motivo_encerramento: i < 16 ? null : 'Contorno Aplicado', avaliacao_problema: i % 2 === 0 ? 'Aberto' : null,
+    }));
+    const antigos = Array.from({ length: 8 }, (_, i) => chamado(`A${i}`, {
+      fluxo: 'SSSC - INCIDENTE', status: 'Concluído', data_finalizado: fim, prioridade: 'P1', avaliacao_problema: 'Aberto',
+    }));
+    const semFluxo = Array.from({ length: 3 }, (_, i) => chamado(`N${i}`, {
+      fluxo: null, status: 'Concluído', data_finalizado: fim, prioridade: 'P1', avaliacao_problema: 'Aberto',
+    }));
+    const ms = fim.getTime();
+    // Os antigos A0 a A2 passaram pela Causa Raiz (nome da origem, fora da lista da biblioteca); o campo nativo deles não conta.
+    const etapas: LinhaEtapa[] = [0, 1, 2].map((i) => ({ chamado_id: `A${i}`, etapa: 'Causa Raiz', entrada: ms - 3_600_000, saida: ms, motivo_pendencia: null }));
+    const { app } = await montar({ chamados: [...proc, ...antigos, ...semFluxo], fluxosProc: PROC, etapas });
+    const r = await app.inject('/api/v1/metricas/S11');
+    expect(r.statusCode).toBe(200);
+    const s11 = r.json() as { campoDisponivel: boolean; semFluxo: number; escopo: { k: number; n: number; status: string }; conversao: unknown; motivoConversao: string; porGrupo: { grupo: string; taxa: { k: number; n: number } }[] };
+    expect(SCHEMAS_RESULTADO.S11.safeParse(s11).success).toBe(true);
+    expect(s11.campoDisponivel).toBe(true);
+    expect(s11.semFluxo).toBe(3);
+    expect(s11.escopo).toMatchObject({ status: 'ok', k: 11 + 3, n: 30 });
+    expect(s11.porGrupo.find((g) => g.grupo === 'Contorno')!.taxa).toMatchObject({ k: 3, n: 6 });
+    expect(s11.conversao).toBeNull();
+    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL);
   }, 60_000);
 
   it('L2: S2 real traz a nota e o resto do resultado fica igual', async () => {

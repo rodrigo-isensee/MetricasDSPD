@@ -39,6 +39,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão do dono B (pedido 069, 2026-11-05): a lista de campos da etapa não é cronológica; a posição vem da lista etapa_fluxo (pessoas e dono); etapa fora da lista ou empate deixa o campo nulo com contagem. Afeta S5, S6, S7, S9 e S11.',
     metricas: ['S5', 'S6', 'S7', 'S9', 'S11'],
   },
+  {
+    referencia: '105:S11-avaliacao-18b',
+    descricao: 'S11 com dado real: no fluxo do PROC conta o campo "Avaliação de Problema" preenchido; nos fluxos antigo e intermediário, a passagem pela etapa "Causa Raiz"; contorno pelo de-para do motivo de encerramento',
+    motivo: 'Decisão 18b do dono (pedido 099), aplicada pelo fluxo do chamado (pedido 105, D6a). Chamado sem fluxo ou com fluxo múltiplo fica fora e é contado; a conversão em Registro de Problema segue sem dado real. Afeta S11.',
+    metricas: ['S11'],
+  },
 ];
 
 /**

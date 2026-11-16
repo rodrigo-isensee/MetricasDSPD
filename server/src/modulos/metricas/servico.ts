@@ -44,8 +44,8 @@ const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
 const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
 /** Pedido 069 (L9-a) e 077 (L6a): métricas que levam a parte sem dado do ajuste de prioridade; o S3 só enquanto `AJUSTE_PRIORIDADE_COM_FONTE` for falso. */
 const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3'];
-/** Pedido 105 (D2, P1 = B): métricas que só contam os cinco fluxos do PROC; sem a lista na base real o estado é "sem dado real" com o motivo. */
-const METRICAS_COM_FLUXOS_PROC: readonly MetricaId[] = ['S5', 'S6', 'S7'];
+/** Pedido 105 (D2, P1 = B; D6a): métricas que leem a lista dos cinco fluxos do PROC (o S11 para escolher a regra pelo fluxo); sem a lista na base real o estado é "sem dado real" com o motivo. */
+const METRICAS_COM_FLUXOS_PROC: readonly MetricaId[] = ['S5', 'S6', 'S7', 'S11'];
 /** Por base carregada: a base sem os chamados sem agente (D-9) e a extensão do S8 (D-10). Só da fonte real; a base semeada tem tudo com agente. */
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 /**

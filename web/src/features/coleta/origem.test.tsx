@@ -127,13 +127,10 @@ describe('origem do cartão (pedido 060)', () => {
     expect(origemDoCartao('XX9', 'mock').semDadoReal).toBe(false)
   })
 
-  it('Sustentação: S1, S2, S3, S4, S8, S9, S10 e S12 têm dado real; S5, S6 e S7 também (pedido 105, D2); S11 e a EI_SUST estão sem dado real com o motivo do Acelerato', () => {
-    for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S12']) {
+  it('Sustentação: S1, S2, S3, S4, S8, S9, S10 e S12 têm dado real; S5, S6, S7 e S11 também (pedido 105, D2 e D6); só a EI_SUST está sem dado real', () => {
+    for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12']) {
       expect(origemDoCartao(c, 'api').semDadoReal, c).toBe(false)
     }
-    expect(origemDoCartao('S11', 'api').motivo).toBe(
-      'aguardando tipo e domínio do campo do chamado (P-DS-19)',
-    )
     expect(origemDoCartao('EI-SUST', 'api').semDadoReal).toBe(true)
     expect(origemDoCartao('S2', 'mock').semDadoReal).toBe(false)
   })
@@ -144,7 +141,7 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(contarSemDadoReal('sustentacao', 'api')).toBe(n)
     expect(n).toBeLessThan(cartoesDoPainel('sustentacao').length)
-    expect(n).toBeGreaterThanOrEqual(2) // S11 e EI_SUST
+    expect(n).toBeGreaterThanOrEqual(1) // EI_SUST
   })
 
   it('com a fonte mock vale só o catálogo: o aviso global do app já diz que tudo é fictício', () => {

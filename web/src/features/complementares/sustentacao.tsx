@@ -14,6 +14,7 @@ import { fmtInteiro, fmtMes, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { fmtHU } from '@/features/sustentacao/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
+import { NotaForaDoFluxo } from '@/features/sustentacao/components/comuns'
 import { CampoSemFonte, Leia } from './comuns'
 
 interface P {
@@ -287,12 +288,19 @@ export function CartaoS11({ filtros }: P) {
                 g: g.grupo === 'Contorno' ? 'Encerrados por contorno' : g.grupo,
                 t: celula(g.taxa),
               })),
-              { g: 'Avaliações que viraram Registro de Problema', t: celula(r.conversao) },
+              {
+                g: 'Avaliações que viraram Registro de Problema',
+                t: r.conversao === null ? 'sem dado real' : celula(r.conversao),
+              },
             ]}
           />
           <Leia>
             Um chamado pode estar em mais de um grupo; o total do escopo conta cada um uma vez.
           </Leia>
+          {r.conversao === null && r.motivoConversao !== null && (
+            <Leia>{`Avaliações que viraram Registro de Problema: sem dado real. ${r.motivoConversao}`}</Leia>
+          )}
+          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
         </div>
       )}
     </CartaoComplementar>

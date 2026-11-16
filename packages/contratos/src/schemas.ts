@@ -1197,15 +1197,23 @@ export const resultadoS10 = z.object({
   ),
 })
 
-/** S11: avaliação de Problema em P1, P2 e encerrados por contorno. */
+/**
+ * S11: avaliação de Problema em P1, P2 e encerrados por contorno. Pedido 105 (D6a, Decisão 18b do dono no pedido 099): no fluxo do PROC conta o
+ * campo nativo "Avaliação de Problema"; nos fluxos antigo e intermediário, a passagem pela etapa "Causa Raiz" (vale o fluxo do chamado).
+ */
 export const resultadoS11 = z.object({
   ...comum,
-  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  /** Pedido 105 (D6a): sempre true; a avaliação vem da base real. A parte sem fonte (a conversão) sai nula com o motivo, nunca 0%. */
   campoDisponivel: z.boolean(),
   escopo: taxaSchema,
   /** Os grupos se sobrepõem (um P1 pode ter contorno); o escopo conta cada chamado uma vez. */
   porGrupo: z.array(z.object({ grupo: z.enum(['P1', 'P2', 'Contorno']), taxa: taxaSchema })),
-  conversao: taxaSchema,
+  /** Chamados do escopo sem fluxo ou com fluxo múltiplo: ficam fora do cálculo e são contados (P-S11-1 aberta ao dono). 0 quando a base não separa fluxo. */
+  semFluxo: z.number().int().min(0),
+  /** null = conversão em Registro de Problema sem dado real (a base não tem o vínculo): nunca "0 de 0"; o motivo vai em `motivoConversao`. */
+  conversao: taxaSchema.nullable(),
+  /** Motivo de `conversao` nula; null quando a conversão é publicada. */
+  motivoConversao: z.string().min(1).nullable(),
 })
 
 /** S12: volume por sistema, reincidência por sistema e exceção de SLA. */

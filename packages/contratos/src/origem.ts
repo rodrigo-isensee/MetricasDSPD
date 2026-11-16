@@ -64,6 +64,9 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S5',
   'S6',
   'S7',
+  // Pedido 105 (D6a, Decisão 18b do pedido 099): S11 real pela regra do fluxo do chamado (campo nativo no PROC, etapa "Causa Raiz" nos fluxos
+  // antigo e intermediário); chamado sem fluxo fica de fora, contado; a conversão em Registro de Problema sai nula com o motivo.
+  'S11',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -98,8 +101,12 @@ export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
 export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
   'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
 
-export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
-  'aguardando tipo e domínio do campo do chamado (P-DS-19)'
+/**
+ * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. A base não liga o chamado ao Registro de Problema; a conversão não é
+ * publicada como 0. Texto provisório, revisado pela UX. Frase em minúsculas sem ponto final, completada pelo componente.
+ */
+export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
+  'aguardando o vínculo do chamado com o Registro de Problema'
 /** Pedido 099 (L18, E3.298): motivo do S1 sem `ref_alvo_prioridade` carregada; nenhum prazo é presumido. */
 export const MOTIVO_ALVOS_NAO_CARREGADOS =
   'alvos de prazo por prioridade não carregados (ref_alvo_prioridade); o dono roda o ac:ref-sync'
@@ -121,12 +128,10 @@ export const AJUSTE_PRIORIDADE_COM_FONTE = true
 
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 e O26 seguem mock até a F6b, sem motivo próprio.
- * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); a EI_SUST não consta do plano
- * 056, então não se calcula por inferência.
+ * Sustentação: a EI_SUST não consta do plano 056, então não se calcula por inferência. S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
-  S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 

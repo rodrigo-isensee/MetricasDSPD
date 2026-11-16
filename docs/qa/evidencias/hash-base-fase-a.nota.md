@@ -43,3 +43,13 @@ Motivo: o D3b (Decisão 13) passa o dia útil da Sustentação a 528 min (08:00-
 | hashAcelerato | b047a163 | 930570e9 |
 
 Motivo: o K-314 B1 acrescenta `exibir_primeiro_atendimento` e `exibir_restauracao` (min, h ou dia) a `config.alvos` do mock do Acelerato. BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar`. Consequência legítima do K-314 B1 (achado A1 do review 63aeca3).
+
+## Regravação de 2026-11-15 (pedido 105, S11 D6a, E6.32)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | 61ce1180 | b6a3c384 |
+| hashBusinessMap | 8d47d431 | 8d47d431 (intacto) |
+| hashAcelerato | 930570e9 | 797abc95 |
+
+Motivo: o D6a põe o domínio real do D1 no gerador do Acelerato (`avaliacao_problema` "Não aplicável" passa a "Não aplicável e com justificativa"). BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e). Consequência legítima do D6a; o gate do CI reprovou o hash antigo, como o brief previu.
