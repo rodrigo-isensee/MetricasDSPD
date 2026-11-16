@@ -103,6 +103,16 @@ export const baseAmostral = (
 export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ctx: ContextoBM) =>
   criteriosDe(id, serie, janela, ctx.criterios)
 
+/**
+ * Regra do T9 (decisão do dono D-T9 "T9 A"): frente adicionada depois do início = frente criada (`criado_em`) depois do início do projeto
+ * (`iniciado_em`). Projeto sem início não tem referência: nenhuma frente conta como adicionada. A criada antes e ligada depois conta como
+ * original (a base não guarda o instante do vínculo). Fonte única do T9 e do E5.
+ */
+export const frenteAdicionadaAposInicio = (
+  frente: Pick<DimCard, 'criado_em'>,
+  inicioProjeto: number | null,
+): boolean => inicioProjeto !== null && frente.criado_em > inicioProjeto
+
 /** Cards sem prioridade: ficam fora da separação por nível e são contados à parte (E7.100, P-3), nunca Média por omissão. */
 export const semPrioridadeDe = <T extends MarcosCard>(xs: readonly T[]): T[] =>
   xs.filter((m) => m.card.prioridade === null)

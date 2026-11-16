@@ -168,7 +168,7 @@ describe('O5 eficiência de fluxo', () => {
   it('separa execução, fila e bloqueio: a soma das horas é o ciclo', () => {
     const bloqueios: FatoBloqueio[] = Array.from({ length: 25 }, (_, i) => ({
       card_id: `C${i}`,
-      motivo: 'Aguardando fornecedor',
+      motivo: 'Dependência Externa',
       coluna_em_que_bloqueou: 'Em revisão',
       fornecedor: null,
       inicio: Date.parse('2026-09-03T08:00-03:00'),
