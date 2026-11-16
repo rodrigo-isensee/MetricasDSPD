@@ -40,6 +40,21 @@ describe('resultadoO8: motivoPorTamanho (superRefine)', () => {
     expect(resultadoO8.safeParse(corpo(null, p)).success).toBe(true)
   })
 
+  it('aceita as seis faixas da régua (PP, P, M, G, GG, XG) e "Sem tamanho"; faixa vazia com n 0 e mediana nula; recusa faixa fora delas (E7.102)', () => {
+    const faixas = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'Sem tamanho'].map((tamanho) => ({
+      tamanho,
+      n: 0,
+      mediana: null,
+    }))
+    expect(resultadoO8.safeParse(corpo(null, faixas)).success).toBe(true)
+    expect(
+      resultadoO8.safeParse(corpo(null, [{ tamanho: 'XXG', n: 0, mediana: null }])).success,
+    ).toBe(false)
+    expect(
+      resultadoO8.safeParse(corpo(null, [{ tamanho: 'p', n: 0, mediana: null }])).success,
+    ).toBe(false)
+  })
+
   it('aceita um tipo com porTamanho nulo e motivo nulo quando outro tipo publica (L24 (a))', () => {
     const c = corpo(null, [{ tamanho: 'P', n: 3, mediana: null }])
     c.tipos.push(tipoO8(null))

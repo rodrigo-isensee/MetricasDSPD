@@ -11,6 +11,7 @@ import type {
   MotivoBloqueioPublicado,
   OrigemDemanda,
   ResponsabilidadeAtraso,
+  TamanhoRegua,
   TipoCard,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
@@ -32,7 +33,7 @@ export interface DimCard {
   arquivado_em: number | null
   motivo_descarte: string | null
   responsaveis: string[]
-  tamanho_declarado: 'P' | 'M' | 'G' | null
+  tamanho_declarado: TamanhoRegua | null // 105 (E7.102): a faixa da régua do time do card, a partir do `size` nativo; nulo = sem tamanho
   // extensões 4.4 / necessidades do núcleo
   granularidade: Granularidade
   equipe: string

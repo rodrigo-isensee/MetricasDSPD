@@ -171,6 +171,22 @@ describe('projetarBusinessMap (F4)', () => {
     expect(r.responsaveisGravados).toBe(1);
   });
 
+  it('segurança A1 (105): o relatório conta as linhas da régua de time que não existe em ref_time, só a contagem', async () => {
+    const d = criarDublePg((q) => {
+      const t = q.texto;
+      if (t.includes("'projecao'")) return [{ coleta_id: '88' }];
+      if (t.includes('FROM dspd_bm.ref_time') && !t.includes('ref_time_workflow')) return [{ time_id: 26, nome: 'a', motivo: 'carga_inicial', vigente_de: '2020-01-01', vigente_ate: null }];
+      if (t.includes('FROM dspd_bm.ref_dominio') && q.valores[0] === 'tamanho_regua') {
+        return [{ campo: 'tamanho_regua', codigo: '26:1', rotulo: 'P' }, { campo: 'tamanho_regua', codigo: '99:1', rotulo: 'M' }, { campo: 'tamanho_regua', codigo: '77:2', rotulo: 'G' }];
+      }
+      return [];
+    });
+    const r = await projetarBusinessMap({ pool: d.pool, S, agora: () => AGORA });
+    expect(r.reguaLinhasDescartadas).toBe(2);
+    const vazio = await projetarBusinessMap({ pool: criarDublePg((q) => (q.texto.includes("'projecao'") ? [{ coleta_id: '89' }] : [])).pool, S, agora: () => AGORA });
+    expect(vazio.reguaLinhasDescartadas).toBe(0);
+  });
+
   it('reconstrução limpa só a lista explícita (dim_card), nunca dim_responsavel, e não tem como chamar o BusinessMap', async () => {
     const d = montar({ stg: [stg('1')] });
     await proj(d, { reconstruir: true });

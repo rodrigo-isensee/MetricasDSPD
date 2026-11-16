@@ -2,8 +2,10 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  ARQUIVO_DOMINIO_BM, fasesDeLinhas, prioridadesDeLinhas, TIPOS_SELECAO_UNICA, TAMANHO_MAXIMO_ARQUIVO, analisarDominioBm, dominiosDeLinhas, lerDominioBm, listasDoArquivo, sincronizarDominioBm,
+  ARQUIVO_DOMINIO_BM, fasesDeLinhas, prioridadesDeLinhas, reguaDeLinhas, TIPOS_SELECAO_UNICA, TAMANHO_MAXIMO_ARQUIVO, analisarDominioBm, dominiosDeLinhas, lerDominioBm, listasDoArquivo, sincronizarDominioBm,
 } from '../src/modulos/businessmap/dominio-businessmap.js';
+import { reguaSoDeTimesDaReferencia } from '../src/modulos/businessmap/projetor.js';
+import { TIMES } from '../migrations/0019_bm_carga_inicial_times.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { ErroDominio } from '../src/modulos/referencia/dominio-acelerato.js';
 import { criarDublePg } from './duble-pg.js';
@@ -43,12 +45,13 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     expect(lido.arquivo.campos[0]!.valores.map((v) => v.rotulo)).toEqual(ROTULOS);
     expect(new Set(lido.arquivo.campos[0]!.valores.map((v) => v.codigo)).size).toBe(12);
     expect(listasDoArquivo(lido.arquivo)['campo_customizado']).toEqual([{ codigo: '48', rotulo: 'causa_raiz' }]);
-    expect(lido.arquivo.versao_criterio.descricao).toContain('2026-11-16');
     // C8a: escrito AQUI, não importado do código (B-1 da ADR 0020); fato da OpenAPI v2 do BusinessMap, escala decrescente
     expect(lido.arquivo.prioridade_severidade).toEqual([
       { codigo: '1', rotulo: 'Crítica' }, { codigo: '2', rotulo: 'Alta' }, { codigo: '3', rotulo: 'Média' }, { codigo: '4', rotulo: 'Baixa' },
     ]);
-    expect(lido.arquivo.versao_criterio.afeta).toEqual([]);
+    // 105 (E7.102): a versão de critério do arquivo agora é a da régua de tamanho, que afeta só o O8
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8']);
+    expect(lido.arquivo.versao_criterio.descricao).toContain('105:tamanho-pela-regua-do-time');
     expect(lido.sha256).toBe(createHash('sha256').update(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')).digest('hex'));
     expect(TIPOS_SELECAO_UNICA).toEqual(['dropdown']);
   });
@@ -74,8 +77,9 @@ describe('bm:ref-sync: o arquivo versionado', () => {
       setor_quadro: [],
       prioridade_severidade: [],
       fase_deteccao_coluna: [],
+      tamanho_regua: [],
     });
-    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], setor_quadro: [], prioridade_severidade: [], fase_deteccao_coluna: [] });
+    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [], setor_quadro: [], prioridade_severidade: [], fase_deteccao_coluna: [], tamanho_regua: [] });
   });
 
   it.each(PROIBIDOS)('CA-069-1: o field %s no arquivo recusa a carga inteira, sem valor na mensagem', (id) => {
@@ -205,7 +209,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
     const versao = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio'))!;
     expect(versao.valores).toEqual([HOJE, 'Teste do bm:ref-sync', 'Teste', `069:ref-bm-campos:${lido.sha256}`, AGORA.toISOString()]);
-    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade', 'fase_deteccao_coluna']]);
+    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade', 'fase_deteccao_coluna', 'tamanho_regua']]);
   });
 
   it('já vigente e igual: nada é gravado e nenhuma versão é registrada; versão já existente não duplica', async () => {
@@ -381,5 +385,73 @@ describe('105: tabela coluna -> fase de detecção (fase_deteccao_coluna)', () =
     expect(r).toMatchObject({ inseridas: 1, versaoRegistrada: true });
     expect(d.chamadas.filter((c) => c.texto.startsWith('INSERT INTO dspd_core.ref_versao_criterio_metrica')).map((c) => c.valores)).toEqual([['78', 'O15']]);
     expect(d.chamadas.find((c) => c.texto.startsWith('INSERT INTO dspd_bm.ref_dominio'))!.valores).toEqual(['fase_deteccao_coluna', '400', '2026-11-15', 'Desenvolvimento', 0]);
+  });
+});
+
+// Pedido 105 (E7.102): régua de tamanho por time (`tamanho_regua`). As seis faixas e as chaves conferidas estão escritas AQUI, não importadas do código (B-1 da ADR 0020).
+describe('105: régua de tamanho por time (tamanho_regua)', () => {
+  const FAIXAS = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
+  const comRegua = (r: unknown): string => JSON.stringify({ ...JSON.parse(arquivo([])), tamanho_regua: r });
+  const l = (campo: string, codigo: string, rotulo: string) => ({ campo, codigo, rotulo });
+
+  it('o arquivo versionado traz as 63 linhas da seção 2a, só com as seis faixas, sem chave repetida, nos 7 times aprovados', () => {
+    const t = lerDominioBm().arquivo.tamanho_regua;
+    expect(t).toHaveLength(63);
+    expect(new Set(t.map((x) => x.codigo)).size).toBe(63);
+    expect(new Set(t.map((x) => x.rotulo))).toEqual(new Set(FAIXAS));
+    expect(new Set(t.map((x) => x.codigo.split(':')[0]))).toEqual(new Set(['26', '38', '42', '6', '5', '18', '14']));
+    const m = new Map(t.map((x) => [x.codigo, x.rotulo]));
+    // conferência por amostra: meio ponto com ponto; o 191 (26) tem o 1 em P, o 2 em GG e do 2,5 em diante XG; o 243 (14) preenche as seis faixas
+    expect([m.get('26:0.5'), m.get('26:1'), m.get('26:2'), m.get('26:2.5'), m.get('26:64')]).toEqual(['P', 'P', 'GG', 'XG', 'XG']);
+    expect([m.get('38:5'), m.get('14:2.5'), m.get('6:2'), m.get('5:3'), m.get('18:13')]).toEqual(['M', 'P', 'M', 'M', 'XG']);
+    expect(['14:0.5', '14:2', '14:3', '14:4', '14:5', '14:6'].map((k) => m.get(k))).toEqual(['PP', 'P', 'M', 'G', 'GG', 'XG']);
+    // por time, as contagens de valores do plano (19, 7, 6, 7, 6, 6, 12)
+    const por = (id: string): number => t.filter((x) => x.codigo.startsWith(`${id}:`)).length;
+    expect([por('26'), por('38'), por('42'), por('6'), por('5'), por('18'), por('14')]).toEqual([19, 7, 6, 7, 6, 6, 12]);
+  });
+
+  it('vira a lista tamanho_regua de ref_dominio; chave repetida, faixa fora das seis, código fora da forma canônica e campo extra são recusados', () => {
+    const ok = analisarDominioBm(comRegua([{ codigo: '26:0.5', rotulo: 'P' }, { codigo: '26:13', rotulo: 'XG' }]));
+    expect(listasDoArquivo(ok.arquivo).tamanho_regua).toEqual([{ codigo: '26:0.5', rotulo: 'P' }, { codigo: '26:13', rotulo: 'XG' }]);
+    expect(() => analisarDominioBm(comRegua([{ codigo: '26:1', rotulo: 'P' }, { codigo: '26:1', rotulo: 'M' }]))).toThrow(ErroDominio);
+    for (const rotulo of ['PPP', 'p', 'Sem tamanho', 'Média']) expect(() => analisarDominioBm(comRegua([{ codigo: '26:1', rotulo }])), rotulo).toThrow(ErroDominio);
+    for (const codigo of ['26', '26:', ':1', '26:1,5', '26:01', '26:1.50', '26:1.', '026:1', 'x:1', '26:-1', '26:1:2', '26: 1', '26:1e3', '26:12345', '26:1.2345'])
+      expect(() => analisarDominioBm(comRegua([{ codigo, rotulo: 'P' }])), codigo).toThrow(ErroDominio);
+    expect(() => analisarDominioBm(comRegua([{ codigo: '26:1', rotulo: 'P', extra: 1 }]))).toThrow(ErroDominio);
+  });
+
+  it('a leitura do projetor desconfia do banco: código canônico e uma das seis faixas; chave ligada a duas faixas sai; time só entra com linha válida', () => {
+    const r = reguaDeLinhas([
+      l('tamanho_regua', '26:1', 'P'), l('tamanho_regua', '26:0.5', 'P'), l('tamanho_regua', '26:2', 'GG'), l('tamanho_regua', '26:2', 'XG'),
+      l('tamanho_regua', '26:1.50', 'P'), l('tamanho_regua', '26:3', 'Grande'), l('outro', '26:4', 'XG'), l('tamanho_regua', '38:3', 'M'), l('tamanho_regua', '99:1', 'Grande'),
+      l('tamanho_regua', '77:5', 'M'), l('tamanho_regua', '77:5', 'G'),
+    ]);
+    expect([...r.faixas]).toEqual([['26:1', 'P'], ['26:0.5', 'P'], ['38:3', 'M']]);
+    expect([...r.times].sort()).toEqual(['26', '38']);
+    expect(reguaDeLinhas([]).faixas.size).toBe(0);
+  });
+
+  it('a primeira carga registra a versão de critério que afeta só o O8, só em dspd_core', async () => {
+    const lido = analisarDominioBm(JSON.stringify({
+      ...JSON.parse(comRegua([{ codigo: '26:1', rotulo: 'P' }])),
+      versao_criterio: { dominio: 'businessmap', descricao: 'Teste', motivo: 'Teste', referencia: 'teste', afeta: ['O8'] },
+    }));
+    const d = criarDublePg((c) => (c.texto.includes('RETURNING versao_id') ? [{ versao_id: '90' }] : []));
+    const r = await sincronizarDominioBm(d.pool, montarEsquemas(''), lido, '2026-11-16', new Date('2026-11-16T12:00:00Z'));
+    expect(r).toMatchObject({ inseridas: 1, versaoRegistrada: true });
+    expect(d.chamadas.filter((c) => c.texto.startsWith('INSERT INTO dspd_core.ref_versao_criterio_metrica')).map((c) => c.valores)).toEqual([['90', 'O8']]);
+    expect(d.chamadas.find((c) => c.texto.startsWith('INSERT INTO dspd_bm.ref_dominio'))!.valores).toEqual(['tamanho_regua', '26:1', '2026-11-16', 'P', 0]);
+  });
+
+  it('os 7 times da régua do arquivo existem na carga inicial dos times (migração 0019), com o nome de workflow do plano', () => {
+    const porId = new Map(TIMES.map((t) => [String(t.id), t.workflow]));
+    const ids = [...new Set(lerDominioBm().arquivo.tamanho_regua.map((x) => x.codigo.split(':')[0]!))];
+    expect(ids.map((id) => [id, porId.get(id)])).toEqual([['26', '191'], ['38', '208'], ['42', '76'], ['6', '63'], ['5', '255'], ['18', '192'], ['14', '243']]);
+  });
+
+  it('o projetor só usa a régua de time que existe na referência de times; linha de time desconhecido é ignorada', () => {
+    const r = reguaSoDeTimesDaReferencia(reguaDeLinhas([l('tamanho_regua', '26:1', 'P'), l('tamanho_regua', '999:1', 'M'), l('tamanho_regua', '38:3', 'M')]), new Set(['26', '5']));
+    expect([...r.faixas]).toEqual([['26:1', 'P']]);
+    expect([...r.times]).toEqual(['26']);
   });
 });

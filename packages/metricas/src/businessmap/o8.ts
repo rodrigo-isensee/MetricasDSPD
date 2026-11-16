@@ -1,5 +1,9 @@
 import type { ResultadoO8, FiltrosFluxo } from '@metricas-dspd/contratos'
-import { MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL, TIPOS_CARD } from '@metricas-dspd/contratos'
+import {
+  MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
+  TAMANHOS_REGUA,
+  TIPOS_CARD,
+} from '@metricas-dspd/contratos'
 import { diaDeIso } from '../core/calendario'
 import { medianaDe, publicavel, resumoComMedia } from '../core/estatistica'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
@@ -8,7 +12,8 @@ import { baseAmostral, criterios, janelaPercentis, periodoDe, r2, selecionar } f
 import type { ContextoBM } from './indice'
 import { entreguesDe, p85NaJanela } from './o3'
 
-const TAMANHOS = ['P', 'M', 'G', 'Sem tamanho'] as const
+/** As seis faixas da régua, sempre nesta ordem (105, E7.102), e depois "Sem tamanho" (só quando tem entregas). */
+const TAMANHOS = [...TAMANHOS_REGUA, 'Sem tamanho'] as const
 
 /**
  * O8: tamanho das demandas = tempo em execução (dias úteis, o mesmo ciclo do O3). Mediana e média
@@ -16,6 +21,10 @@ const TAMANHOS = ['P', 'M', 'G', 'Sem tamanho'] as const
  * Pedido 099 (A4, Q-099-4; L24 a): a divisão por tamanho é por tipo e só sai se o próprio tipo tem
  * `tamanho_declarado` em algum card; sem, o tipo fica com `porTamanho` nulo (nunca tudo em "Sem tamanho",
  * que pareceria dado) e `motivoPorTamanho` traz o motivo quando nenhum tipo publica a divisão.
+ * Pedido 105 (E7.102): o tamanho de cada card (`tamanho_declarado`) já é a faixa da régua do time dele (PP, P, M, G, GG, XG), posta pelo projetor;
+ * aqui só se divide. As seis faixas saem sempre, na mesma ordem: faixa sem entrega fica com `n` 0 e mediana nula (nunca 0); faixa com menos de 20
+ * entregas fica sem mediana (insuficiente, `publicavel`). "Sem tamanho" (card sem size, size fora da régua ou time sem régua) vai por último,
+ * só com entregas. Consolidado por faixa, nunca por time: a régua não aparece na resposta.
  */
 export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
   const periodo = periodoDe(ctx, f)
@@ -81,7 +90,7 @@ export function calcularO8(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO8 {
                   )
                 : null,
             }
-          }).filter((t) => t.n > 0),
+          }).filter((t) => t.tamanho !== 'Sem tamanho' || t.n > 0),
     }
   }).filter((c) => c.n > 0)
   // O motivo (texto fixo) só sai quando nenhum tipo publica a divisão; com algum tipo publicando, o
