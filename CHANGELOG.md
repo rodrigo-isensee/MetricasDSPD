@@ -8,6 +8,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
+- E5 (previsão de término): `frentesAdicionadasAposInicio` passa a usar a regra do T9 (frente criada depois do início do projeto, função única `frenteAdicionadaAposInicio`), não mais `adicionado_apos_inicio_pai`, que a base real nunca grava; projeto sem início não tem frente adicionada; o E5 segue fora do mapa de origem real (pedido 105, K-376, E7.163). K-374 (remover `registroProblema` da extensão do Acelerato) não foi feito: o S11 ainda lê `registroProblema` para a conversão, que espera o vínculo do D-15.
 
 ### Adicionado
 

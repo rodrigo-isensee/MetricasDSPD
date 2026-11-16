@@ -1,6 +1,13 @@
 import type { ResultadoT9 } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { baseAmostral, criterios, periodoDe, r2, selecionar } from './comum'
+import {
+  baseAmostral,
+  criterios,
+  frenteAdicionadaAposInicio,
+  periodoDe,
+  r2,
+  selecionar,
+} from './comum'
 import type { ContextoBM } from './indice'
 import { ordenarNeutro } from '../core/ordenar'
 
@@ -40,7 +47,7 @@ export function calcularT9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT9 {
         if (fs.length > 0) projetosSemInicio += 1
         return { ...LINHA_VAZIA, projetoId: p.card.card_id, projeto: p.card.titulo }
       }
-      const adicionadas = fs.filter((m) => m.card.criado_em > inicioProjeto).length
+      const adicionadas = fs.filter((m) => frenteAdicionadaAposInicio(m.card, inicioProjeto)).length
       const originais = fs.length - adicionadas
       const concluidas = fs.filter((m) => m.entrega !== null).length
       const emAndamento = fs.filter((m) => m.entrega === null && m.inicio !== null).length

@@ -110,6 +110,16 @@ export const CLASSES_T: readonly ClasseServico[] = [
   'Prazo fixo',
   'Padrão',
 ]
+/**
+ * Regra do T9 (decisão do dono D-T9 "T9 A"): frente adicionada depois do início = frente criada (`criado_em`) depois do início do projeto
+ * (`iniciado_em`). Projeto sem início não tem referência: nenhuma frente conta como adicionada. A criada antes e ligada depois conta como
+ * original (a base não guarda o instante do vínculo). Fonte única do T9 e do E5.
+ */
+export const frenteAdicionadaAposInicio = (
+  frente: Pick<DimCard, 'criado_em'>,
+  inicioProjeto: number | null,
+): boolean => inicioProjeto !== null && frente.criado_em > inicioProjeto
+
 export const r2 = (v: number): number => Math.round(v * 100) / 100
 
 /**
