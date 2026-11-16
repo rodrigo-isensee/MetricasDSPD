@@ -150,3 +150,54 @@ Não há coleta agendada nem referências reais em homologação.
 - **Roteiros K-333 e K-216:** os dois são do computador local (`docs/devops/104-roteiro-dono.md`, `docs/devops/105-roteiro-dono.md`), não da VM. K-216 confirma que a API do Compose monta sozinha a conexão do Apontamento a partir de `DSPD_PWD_APONTAMENTO`; o K-333 lista a ordem carga a carga que a seção 2.1 reaproveita. Os cartões K-333, K-216 e K-340 (VM) não aparecem no `KANBAN.md` desta branch; usei os roteiros em `docs/devops/`.
 - **Divergência a decidir:** o `CLAUDE.md` descreve o Acelerato como "API pública, só GET", e o código lê o banco MySQL em modo leitura (`.env.example`, ADR 0023). Este documento segue o código; o git da empresa deve receber a versão correta.
 - **Critério de classe de serviço:** o roteiro 105 cita `105:classe-por-etiqueta`; o código atual registra `105:classe-pela-prioridade` (`server/src/entradas/criterios-classe-servico.ts`). Vale o código.
+
+## 5. O que pedir à infraestrutura (texto para o chamado, E7.246)
+
+Decisão do dono: **a empresa fornece o banco e o HTTPS**; o time pede tudo o que o sistema precisa. Cada item traz o motivo e o arquivo que o justifica. **Sim** na última coluna = obrigatório no primeiro dia (sem isso a primeira carga não roda). Nenhum valor secreto vai no chamado: só o tipo de acesso; o valor chega ao dono por canal próprio. Sem custo de nuvem (`R-CUSTO`): tudo roda na VM e no banco interno da empresa.
+
+| # | Pedido | Por quê / arquivo | 1º dia? |
+|---|---|---|---|
+| 1 | **VM Linux** (Debian/Ubuntu LTS, com systemd), 4 vCPU, 8 GB de RAM, 60 GB de disco (dados, imagens e backups locais; cresce com o histórico). É estimativa: o projeto não mediu a coleta na VM (seção 4). | Roda API, painel e coletas. `docker-compose.yml`, `deploy/systemd/` | Sim |
+| 2 | **Node.js 24 ou mais novo e pnpm 10.34.6**, e **Docker Engine com Compose 2.24+** (API e painel sobem por Compose). Conta de serviço sem login interativo para as coletas. | Comandos da seção 2.1. `package.json` (`engines`, `packageManager`), `server/Dockerfile` | Sim |
+| 3 | **PostgreSQL 17 gerenciado**, 1 banco `metricas` em UTF8, fuso `UTC`, sem extensões (o SQL gerado não usa `CREATE EXTENSION`). Tamanho inicial 20 GB, a redimensionar depois da carga. | Base analítica. `deploy/sql/`, `docker-compose.yml` (`postgres:17`) | Sim |
+| 4 | **Oito papéis de login no banco**, permissão mínima, sem superusuário: `dspd_migrador` (cria e altera tabelas), `dspd_coletor` (grava as coletas), `dspd_api` (só lê; nunca coluna de pessoa), `dspd_ref` (carga de referências), `dspd_api_apontamento` (só a aba Apontamento), `dspd_webhook`, `dspd_automacao`, `dspd_pesquisa`. Senhas escolhidas pelo dono. O DBA cria com `deploy/sql/00_papeis_e_banco.sql`. | `CLAUDE.md` (GRANT por coluna). `docker/postgres/init/01-databases-papeis.sh`, `server/src/plataforma/db/grants.ts` | Sim |
+| 5 | **Conexão da VM ao banco**: host e porta liberados no firewall, TLS exigido, `CONNECT` dos oito papéis no banco `metricas`. | `PG_*_URL`, seção 1.1 | Sim |
+| 6 | **Backup do banco com retenção** (sugestão: diário, 14 dias, mais um mensal por 6 meses) e **teste de restauração** periódico, pela empresa ou com `scripts/db-backup.sh`; combinar quem restaura e em quanto tempo. | O histórico nunca é recriado (nada se sobrescreve). `docs/engineering/operacao-banco.md` | Sim |
+| 7 | **Nome (DNS), certificado HTTPS e proxy reverso** repassando para `127.0.0.1:8080` (painel; o nginx dele já leva `/api` à API) e mantendo o cabeçalho `Host` original. Só o painel é publicado; a API (`127.0.0.1:3000`) não. | A aba Apontamento valida `Host` e `Origin`. `docker/web/nginx.conf`. Hoje o projeto não traz proxy nem HTTPS (seção 4) | Sim |
+| 8 | **Quem pode abrir o painel**: faixa de rede ou VPN interna, ou grupo; e se a empresa oferece login único. **Decisão do dono**: o projeto não tem login próprio. | LGPD; `CLAUDE.md` (nenhuma métrica individual) | Sim |
+| 9 | **Saída de rede da VM para o BusinessMap**: HTTPS (443) ao endereço da empresa, sem inspeção que quebre o certificado. O endereço entra em `BUSINESSMAP_URL_BASE` (variável, não está no código). | Coleta do Operacional e do Apontamento. `.env.example`, `docs/devops/runbook-coleta-diaria.md` | Sim |
+| 10 | **Saída de rede da VM para o Acelerato**: o código lê o **banco MySQL** do Acelerato, só leitura, com TLS fixado (não a API HTTP; divergência com o `CLAUDE.md` na seção 4). Host e porta em `ACELERATO_MYSQL_HOST` e `_PORT`. | Coleta da Sustentação. `.env.example`, ADR 0023 | Sim, se a Sustentação sobe no 1º dia |
+| 11 | **Acessos de leitura, criados pela área dona de cada sistema** (só o tipo; o valor vai ao dono): (a) BusinessMap: chave de API de leitura e a lista dos quadros a coletar (`BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS`); (b) Acelerato: conta MySQL **só com SELECT** nas tabelas que a coleta lê, o certificado do servidor (`.pem`) e a impressão digital SHA-256 (`ACELERATO_MYSQL_USER`, `_PASSWORD`, `_TLS_CERT_FILE`, `_TLS_SHA256`). Nenhuma conta com escrita. | `.env.example`, `server/src/plataforma/config.ts` | Sim |
+| 12 | **Agendamento**: systemd na VM, com 3 timers (BusinessMap 06:00, Acelerato 06:30, releitura do Acelerato domingo 07:30) e o do backup (03:30), se for o `db-backup.sh`. | `deploy/systemd/`, runbook item 4 | Sim |
+| 13 | **E-mail de saída (relay SMTP) ou outro canal** para o aviso de falha da coleta (`AVISO_EMAIL`), com o endereço de quem recebe. | `deploy/systemd/aviso-falha.sh`, runbook item 3 | Não (recomendado) |
+| 14 | **Monitoramento e logs**: logs da VM e dos contêineres retidos (sugestão: 30 dias) e visíveis a quem opera; alerta de disco cheio, contêiner parado e coleta que falhou; relógio sincronizado (NTP). | `GET /health` da API; `journalctl -u 'metricas-coleta-*'` | Não (recomendado) |
+| 15 | **Acesso administrativo**: SSH por chave e `sudo` para instalar e ligar os timers, só para a lista nominal que o dono enviar; sem acesso direto ao banco para quem não é do DBA. | `R-CONFORMIDADE`: acessos e segredos são do dono | Sim |
+| 16 | **Saída para os repositórios de pacotes** (npm e imagens `postgres`, `node`, `nginx`) ou espelho interno, só para instalar e atualizar. Sem isso, a empresa leva as imagens e o cache do `pnpm` prontos. | `pnpm install --frozen-lockfile`, `docker compose build` | Sim |
+
+## 6. Migrações do banco para o DBA (E7.246)
+
+O banco é da empresa. O mesmo esquema chega por **duas formas**, com o mesmo resultado (o comando de geração prova isso).
+
+**Forma A, pela aplicação.** Com papéis e banco já criados pelo DBA (passo 1 abaixo), na VM: `pnpm run db:migrate`. Roda como `dspd_migrador` (`PG_MIGRADOR_URL`), aplica as migrações em uma transação e depois os GRANTs. É o caminho das atualizações.
+
+**Forma B, SQL aplicado pelo DBA.** Arquivos em `deploy/sql/` (gerados; não edite à mão):
+
+| Arquivo | O que é | Quem roda e onde |
+|---|---|---|
+| `00_papeis_e_banco.sql` | Cria os oito papéis e o banco `metricas`, concede `CONNECT` e fecha o schema `public`. Senhas por variável do `psql` (`-v pwd_migrador=...`), nunca no arquivo | Administrador, banco `postgres`, **uma vez**. Se o banco já existe, apague a linha `CREATE DATABASE` |
+| `0000_preparo.sql`, `0001_...sql` a `0039_...sql` | Um arquivo por migração, em ordem; cada um em transação e já registra o nome na tabela de controle `dspd_core.pgmigrations` | `dspd_migrador`, banco `metricas` |
+| `9000_grants.sql` | GRANTs por papel (inclui os por coluna: `dspd_api` e `dspd_api_apontamento` sem coluna de pessoa). Depende de todas as migrações | `dspd_migrador`, por último |
+| `consolidado.sql` | De `0000` a `9000` numa só transação (tudo ou nada). Em instalação nova é o único arquivo depois do `00` | `dspd_migrador`, banco `metricas` |
+
+Passo a passo do DBA (instalação nova):
+1. `psql -v ON_ERROR_STOP=1 -h <servidor> -U <administrador> -d postgres -v pwd_migrador=... -v pwd_coletor=... -v pwd_api=... -v pwd_ref=... -v pwd_webhook=... -v pwd_automacao=... -v pwd_pesquisa=... -v pwd_apontamento=... -f deploy/sql/00_papeis_e_banco.sql`
+2. `psql -v ON_ERROR_STOP=1 -h <servidor> -U dspd_migrador -d metricas -f deploy/sql/consolidado.sql`
+3. Conferir: `SELECT count(*) FROM dspd_core.pgmigrations;` deve dar 39 (hoje).
+
+Atualização depois (versão com migração nova): gere de novo (`pnpm run db:sql`), aplique só os `00NN_*.sql` novos e, por último, o `9000_grants.sql` atualizado; ou use a Forma A. O registro em `pgmigrations` é o mesmo nas duas formas, então dá para trocar de uma para outra sem refazer nada.
+
+**Comando que gera:** `pnpm run db:sql` (`scripts/gerar-sql-migracoes.sh` e `.mjs`). Lê `server/migrations/*.ts`, sobe um PostgreSQL 17 descartável em Docker (127.0.0.1:55432, apagado ao fim, sem relação com o banco do projeto), aplica os próprios SQL, roda o `db:migrate` real em outro banco e **falha se esquema, GRANTs ou registro de migrações diferirem**. Sem segredo no resultado. Precisa de Docker no computador de quem gera, não na VM. Rode e commite de novo a cada migração nova.
+
+**Volta (rollback):** as migrações têm `down`, mas o `db:migrate down` em servidor exige `DSPD_PERMITIR_DOWN=1` e o backup do dia confirmado (`docs/engineering/operacao-banco.md`). Para o DBA, a volta segura é **restaurar o backup anterior à migração**; os SQL gerados são só de ida.
+
+Cuidados: (1) o banco precisa estar em UTC (o `00` já define); (2) o migrador não cria papel nem concede `CONNECT`: sem o passo 1, a aplicação recusa migrar.
