@@ -72,7 +72,7 @@ for (const tema of ['claro', 'escuro'] as const) {
       const cartao = await abrirO17(page, tema, 'com-causa')
       await expect(cartao.getByRole('heading', { level: 4, name: 'Por causa raiz' })).toBeVisible()
       await expect(cartao.getByRole('heading', { level: 4, name: 'Por sistema' })).toBeVisible()
-      await expect(cartao).toContainText('A causa raiz vem do Registro de Problemas; a lista de causas é uma proposta do time.')
+      await expect(cartao).toContainText('A lista de causas é uma proposta do time.')
       await expect(cartao).not.toContainText('Sem dado real')
       await expect(cartao).not.toContainText('Metabase')
       const r = await rodarAxe(page, { incluir: '[data-testid="metrica-O17"]' })

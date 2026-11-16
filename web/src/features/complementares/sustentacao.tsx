@@ -66,11 +66,7 @@ export function CartaoO17({ filtros }: P) {
             categorias={r.porSistema.map((c) => ({ rotulo: c.sistema, valores: { n: c.n } }))}
             series={[{ chave: 'n', rotulo: 'Incidentes' }]}
           />
-          {r.porCausa !== null && (
-            <Leia>
-              A causa raiz vem do Registro de Problemas; a lista de causas é uma proposta do time.
-            </Leia>
-          )}
+          {r.porCausa !== null && <Leia>A lista de causas é uma proposta do time.</Leia>}
         </div>
       )}
     </CartaoComplementar>

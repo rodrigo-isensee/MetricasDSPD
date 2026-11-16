@@ -408,7 +408,7 @@ describe('ramos dos componentes complementares', () => {
     const el = await screen.findByTestId('metrica-O17')
     await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
     expect(el).not.toHaveTextContent('mais frequente')
-    expect(el).toHaveTextContent('A causa raiz vem do Registro de Problemas')
+    expect(el).toHaveTextContent('A lista de causas é uma proposta do time.')
     a.unmount()
     renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: fonteDeTeste })
     expect(await screen.findByText(/A causa raiz mais frequente é/)).toBeInTheDocument()
@@ -442,7 +442,7 @@ describe('ramos dos componentes complementares', () => {
     expect(el).toHaveTextContent('Por causa raiz')
     expect(el).toHaveTextContent('Por sistema')
     expect(el).not.toHaveTextContent('Metabase')
-    expect(el).not.toHaveTextContent('A causa raiz vem do Registro de Problemas')
+    expect(el).not.toHaveTextContent('A lista de causas é uma proposta do time.')
     expect(within(el).queryByTestId('campo-sem-fonte-O17')).not.toBeInTheDocument()
   })
 

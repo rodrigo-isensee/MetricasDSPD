@@ -106,11 +106,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   O17: {
     oQueE: 'A causa raiz e o sistema dos incidentes já encerrados.',
     comoSeCalcula:
-      'Contagem de incidentes encerrados por sistema (dado real do Acelerato) e por causa raiz. A causa raiz fica sem dado real até o Registro de Problemas ter vínculo ao incidente; nesse caso o cartão diz isso e não publica a parte por causa raiz. Sem mínimo de amostra: é contagem.',
+      'Contagem de incidentes encerrados por sistema (dado real do Acelerato). A causa raiz não é contada: no Acelerato ela é registrada em texto livre. Sem mínimo de amostra: é contagem.',
     comoLer: 'Concentração indica onde investir em prevenção.',
     meta: SEM_ALVO,
     cuidados:
-      'A causa raiz ainda não tem dado real: depende do Registro de Problemas com vínculo ao incidente. Por sistema, nunca por pessoa.',
+      'A causa raiz não é contada, porque é texto livre no Acelerato. Por sistema, nunca por pessoa.',
   },
   T6: {
     oQueE: 'Uma previsão de prazo ou de quantidade de itens a partir da vazão semanal real.',
