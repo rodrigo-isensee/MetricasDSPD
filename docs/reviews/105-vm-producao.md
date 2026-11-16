@@ -22,7 +22,6 @@ data: 2026-11-16
 - **Segurança:** cito o parecer do `security-engineer` (`docs/security/105-vm-producao.md`); não o refaço.
 
 ## Achados
-(nenhum)
 
 ## Parecer
-Aprovado no head `6aa8617707d275aed6947d405fd62a2b3584df8e`.
+Aprovado no head `6aa8617707d275aed6947d405fd62a2b3584df8e`, sem achado novo: A8, A9 e A10 da volta 2 resolvidos.
