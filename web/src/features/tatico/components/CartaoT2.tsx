@@ -1,6 +1,6 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras, MapaCalor } from '@/components/charts'
-import { CartaoMetrica, StatusMeta } from '@/components/ui'
+import { CartaoMetrica, maioriaSemPrioridade, SemPrioridade, StatusMeta } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDiasUteis, fmtInteiro, fmtPct } from '@/lib/formatar'
 import { META_ADERENCIA_SLE_PCT } from '@metricas-dspd/contratos'
@@ -21,7 +21,9 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
   const leitura = publicadas.length
     ? publicadas.map(({ c, t }) => `${c.classe}: ${fmtPct(t.pct, 1)} dentro do SLE.`).join(' ')
     : d
-      ? 'Nenhuma classe tem amostra suficiente para publicar a aderência ao SLE.'
+      ? maioriaSemPrioridade(d.semPrioridade)
+        ? 'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.'
+        : 'Nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.'
       : undefined
   return (
     <CartaoMetrica
@@ -35,7 +37,7 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
         <div className="flex flex-col gap-3">
           {publicadas.length > 0 && (
             <Barras
-              descricao="Percentual dentro do SLE por classe de serviço"
+              descricao="Percentual dentro do SLE por prioridade"
               orientacao="horizontal"
               unidade="%"
               formatar={(v) => fmtPct(v, 1)}
@@ -50,7 +52,7 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
               semLegenda
             />
           )}
-          <ul className="flex flex-col gap-2 text-sm" aria-label="Aderência por classe">
+          <ul className="flex flex-col gap-2 text-sm" aria-label="Aderência por prioridade">
             {classes.map((c) => (
               <li
                 key={c.classe}
@@ -70,7 +72,7 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
                 ) : (
                   <span>
                     {c.n >= 20 ? (
-                      'SLE ainda não publicado para esta classe.'
+                      'SLE ainda não definido para esta prioridade.'
                     ) : (
                       <>
                         Amostra insuficiente ({fmtInteiro(c.n)} de 20 itens mínimos). SLE: não
@@ -82,10 +84,11 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
               </li>
             ))}
           </ul>
+          <SemPrioridade {...d.semPrioridade} universo="entregues" codigo="T2" />
           {comSle.length > 0 && (
             <MapaCalor
               descricao="Estouros do SLE por etapa de maior duração (contagem de itens)"
-              rotuloLinhas="Classe"
+              rotuloLinhas="Prioridade"
               linhas={comSle.map((c) => c.classe)}
               colunas={[...ETAPAS]}
               valores={comSle.map((c) =>

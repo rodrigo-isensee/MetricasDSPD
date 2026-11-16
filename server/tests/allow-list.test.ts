@@ -85,6 +85,72 @@ describe('allow-list do card (stg_card, 4a, M-1)', () => {
   });
 });
 
+describe('E7.203: campos 48 e 49 casados pelo value_id (dados fictícios)', () => {
+  const D = new Map([
+    ['48', new Map([['114', 'configuracao_ambiente'], ['122', 'outros']])],
+    ['49', new Map([['126', 'Erro em entrega anterior'], ['131', 'Demanda nova']])],
+  ]);
+  it('a API manda só value_id e position, sem rótulo: casa pelo value_id', () => {
+    expect(reduzirCamposCustomizados([
+      { field_id: 48, values: [{ value_id: 114, position: 1 }] }, { field_id: 49, values: [{ value_id: 126, position: 1 }] },
+    ], D)).toEqual([{ field_id: '48', valor: 'configuracao_ambiente' }, { field_id: '49', valor: 'Erro em entrega anterior' }]);
+    expect(reduzirCamposCustomizados([{ field_id: '49', values: [{ value_id: '131' }] }], D)).toEqual([{ field_id: '49', valor: 'Demanda nova' }]);
+  });
+  it('value_id fora do catálogo vira desconhecido, que a projeção conta como campo_fora_do_dominio', () => {
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 999, position: 1 }] }], D)).toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 49, values: [{ value_id: 114 }] }], D)).toEqual([{ field_id: '49', valor: 'desconhecido' }]);
+  });
+});
+
+describe('E7.86: causa raiz (field 48, dropdown) na fronteira', () => {
+  const D = new Map([['48', new Map([['Erro de lógica / codificação', 'erro_logica_codificacao'], ['Outros', 'outros']])]]);
+  const DESCRICAO = 'descricao-livre-de-outros-ZZ-NUNCA';
+  it('forma escalar `value` (texto da opção)', () => {
+    expect(reduzirCamposCustomizados([{ field_id: 48, value: 'Erro de lógica / codificação' }], D)).toEqual([{ field_id: '48', valor: 'erro_logica_codificacao' }]);
+  });
+  it('forma `values[]` (value_id ou texto da opção)', () => {
+    // o arquivo real só gera chaves por rótulo (texto da opção): `value_id` sozinho não casa e vira `desconhecido` (contado); com o rótulo junto, casa
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12 }] }], D)).toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12, value: 'Outros' }] }], D)).toEqual([{ field_id: '48', valor: 'outros' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 99, value: 'Outros' }] }], D)).toEqual([{ field_id: '48', valor: 'outros' }]);
+  });
+  it('valor desconhecido com texto em comment, text ou description não vaza: sai só o código do domínio ou `desconhecido`', () => {
+    const extras = { comment: DESCRICAO, text: DESCRICAO, description: DESCRICAO, label: DESCRICAO };
+    const r = reduzirCamposCustomizados([
+      { field_id: 48, value: 'Opção que não existe', ...extras },
+      { field_id: 48, values: [{ value_id: 'sem-chave', ...extras }], ...extras },
+      { field_id: 48, value: 'Outros', ...extras },
+    ], D);
+    expect(r).toEqual([{ field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'outros' }]);
+    expect(JSON.stringify(r)).not.toContain(DESCRICAO);
+    const card = registroCard({ card_id: 1, custom_fields: [{ field_id: 48, value: 'Opção que não existe', ...extras }] }, D);
+    expect(JSON.stringify(card)).not.toContain(DESCRICAO);
+  });
+  it('values[] com itens escalares (string ou número) casam pelo domínio; item que não é chave (nulo, booleano, lista) e value_id ou value que não são chave são ignorados', () => {
+    const D3 = new Map([['48', new Map([['12', 'outros'], ['Efeito colateral', 'efeito_colateral']])]]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [12] }], D3)).toEqual([{ field_id: '48', valor: 'outros' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: ['Efeito colateral'] }], D3)).toEqual([{ field_id: '48', valor: 'efeito_colateral' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [null, true, ['12'], { value_id: null, value: false }, { value_id: { x: 1 }, value: ['12'] }] }], D3))
+      .toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [null, { value_id: true, value: 12 }] }], D3)).toEqual([{ field_id: '48', valor: 'outros' }]);
+  });
+  it('a descrição de Outros e qualquer texto extra são descartados; valor fora da lista vira desconhecido, nunca o texto', () => {
+    const r = reduzirCamposCustomizados([
+      { field_id: 48, value: 'Outros', comment: DESCRICAO, text: DESCRICAO, values: [{ value_id: 1, description: DESCRICAO }] },
+      { field_id: 48, value: DESCRICAO },
+      { field_id: 48, values: [{ value_id: 77, description: DESCRICAO }] },
+      { field_id: 48 },
+    ], D);
+    expect(r).toEqual([
+      { field_id: '48', valor: 'outros' }, { field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'desconhecido' },
+    ]);
+    expect(JSON.stringify(r)).not.toContain(DESCRICAO);
+    const card = registroCard({ card_id: 1, custom_fields: [{ field_id: 48, value: DESCRICAO }, { field_id: 40, value: 'x' }] }, D);
+    expect(JSON.stringify(card)).not.toContain(DESCRICAO);
+    expect(card.custom_fields).toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+  });
+});
+
 describe('campos customizados (4d, B-5)', () => {
   it('campo fora da lista de referência não entra; valor fora do domínio grava `desconhecido`, nunca o texto', () => {
     const r = registroCard(CARD_API, DOMINIOS);

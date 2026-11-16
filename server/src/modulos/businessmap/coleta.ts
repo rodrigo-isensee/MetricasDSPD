@@ -6,7 +6,7 @@ import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/d
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
 import { CAMPOS_CARD, cardTemEtiqueta, CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados, type MapaTagsDeClasse } from './allow-list.js';
-import { CAMPO_CUSTOMIZADO, dominiosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
+import { CAMPO_CUSTOMIZADO, PREFIXO_VALOR_ID, dominiosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
 import { ErroReferencia } from './referencia.js';
 import { desembrulhar } from './spike-forma.js';
 import { gravarStgCard, gravarStgRevision } from './staging.js';
@@ -47,7 +47,7 @@ export { CAMPOS_CUSTOMIZADOS_FORA };
 export async function dominiosDaColeta(db: Consultavel, S: Esquemas): Promise<DominiosCamposCustomizados> {
   const r = await db.query<LinhaRefDominio>(
     `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[]) ORDER BY campo, ordem, codigo`,
-    [[CAMPO_CUSTOMIZADO, ...COLUNAS_LISTA]]);
+    [[CAMPO_CUSTOMIZADO, ...COLUNAS_LISTA, ...COLUNAS_LISTA.map((c) => `${PREFIXO_VALOR_ID}${c}`)]]);
   return dominiosDeLinhas(r.rows);
 }
 

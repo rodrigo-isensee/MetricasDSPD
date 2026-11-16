@@ -10736,6 +10736,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "alvoMax": {
                           "type": "number"
                         },
@@ -10747,10 +10763,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -10907,6 +10923,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "alvoMax",
                         "classes"
                       ],
@@ -11499,9 +11516,12 @@
                                         "tamanho": {
                                           "type": "string",
                                           "enum": [
+                                            "PP",
                                             "P",
                                             "M",
                                             "G",
+                                            "GG",
+                                            "XG",
                                             "Sem tamanho"
                                           ]
                                         },
@@ -17100,6 +17120,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "inicios": {
                           "oneOf": [
                             {
@@ -17399,6 +17435,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "inicios",
                         "meses",
                         "marcacoes",
@@ -19321,6 +19358,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19329,10 +19382,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -19518,6 +19571,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -19943,6 +19997,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19951,10 +20021,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "sle": {
@@ -20118,6 +20188,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -20537,7 +20608,10 @@
                                 ]
                               },
                               "acordadoPct": {
-                                "type": "number"
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
                               },
                               "itens": {
                                 "type": "object",
@@ -21021,6 +21095,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -21029,10 +21119,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -21301,6 +21391,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -22563,10 +22654,16 @@
                               "type": "number"
                             },
                             "limiteFrentes": {
-                              "type": "number"
+                              "type": [
+                                "number",
+                                "null"
+                              ]
                             },
                             "acimaDoLimite": {
-                              "type": "boolean"
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
                             }
                           },
                           "required": [
@@ -23390,6 +23487,11 @@
                         },
                         "projetosComEscopoCrescido": {
                           "type": "number"
+                        },
+                        "projetosSemInicio": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [
@@ -23821,6 +23923,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "entradas": {
                           "type": "object",
                           "properties": {
@@ -23851,10 +23969,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -24213,6 +24331,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "entradas",
                         "classes"
                       ],
@@ -39840,6 +39959,11 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "foraDaConversao": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [

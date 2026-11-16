@@ -19,6 +19,7 @@ import {
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
   MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
+  MOTIVO_O26_HISTORICO_RESPONSAVEIS,
   MOTIVO_ORIGEM_MOCK,
   MOTIVO_FLUXOS_PROC_NAO_CARREGADOS,
   MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
@@ -50,7 +51,8 @@ describe('origemDaMetrica (H-13)', () => {
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['O20'], // pedido 099 (lote A2)
         ...['O25'], // pedido 099 (lote A3)
-        ...['O24'], // pedido 105 (E7.3): classe de serviço pelas etiquetas
+        ...['O24'], // pedido 105 (E7.100): fila da prioridade Média do BusinessMap
+        ...['T1', 'T2', 'T4', 'T6'], // pedido 105 (E7.100, P-7): separação pela prioridade nativa do BusinessMap
         ...['O21'], // pedido 099 (lote A1)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
@@ -66,6 +68,8 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O18'], // pedido 105 (E7.4)
         ...['S11'], // pedido 105 (D6a, Decisão 18b do 099)
         ...['T10'], // pedido 105 (E7.77): tempo total esperando fornecedores
+        ...['T9'], // pedido 105 (E7.68, D-T9 "T9 A")
+        ...['T11'], // pedido 105 (E7.64, D-T11 "A")
       ].sort(),
     )
   })
@@ -132,11 +136,20 @@ describe('origemDaMetrica (H-13)', () => {
   it('O17 é real por sistema (pedido 099, B da Q-099-7) e a causa raiz tem motivo próprio', () => {
     expect(origemDaMetrica('O17')).toBe('real')
     expect(motivoDaOrigemSemDado('O17')).toBeNull()
-    expect(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL).toContain('causa aparente')
+    expect(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL).toContain('texto livre')
   })
 
-  it('O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
-    for (const id of ['O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
+  it('O26 segue sem dado real, com motivo próprio que diz a data (pedido 105, E7.55)', () => {
+    expect(origemDaMetrica('O26')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('O26')).toBe(MOTIVO_O26_HISTORICO_RESPONSAVEIS)
+    expect(motivoSemDadoReal('O26')).toBe(
+      'A base guarda a troca de responsável dos cards desde 09/11/2026; a métrica precisa de 12 semanas de histórico e passa a ter dado real a partir de 01/02/2027.',
+    )
+    expect(corpoSemDadoReal('O26').motivo).toBe(MOTIVO_O26_HISTORICO_RESPONSAVEIS)
+  })
+
+  it('FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
+    for (const id of ['T3', 'E1', 'VISAO_GERAL'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBeNull()
     }
@@ -151,7 +164,9 @@ describe('notas de cartão', () => {
   it('O6 e o SLE (T2) levam a nota de classe; todo id de nota tem texto', () => {
     expect(NOTAS_FIXAS_DO_CARTAO.O6).toEqual(['sem-classe'])
     expect(NOTAS_FIXAS_DO_CARTAO.T2).toEqual(['sem-classe'])
-    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain('sem etiqueta de classe de serviço')
+    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain(
+      'Cartões sem prioridade ficam fora da separação',
+    )
     expect(TEXTO_NOTA_CARTAO['sle-nao-definido']).toBe('SLE não definido.')
     expect(notaCartaoIdSchema.safeParse('outra').success).toBe(false)
   })
@@ -174,7 +189,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     }
     expect(motivoSemDadoReal('O14')).toBe('aguardando campo no quadro')
     expect(motivoSemDadoReal('VISAO_GERAL')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
-    expect(motivoSemDadoReal('T1')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
+    expect(motivoSemDadoReal('T3')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
   })
 
   it('o corpo não carrega número nem campo fora de estado, métrica e motivo', () => {

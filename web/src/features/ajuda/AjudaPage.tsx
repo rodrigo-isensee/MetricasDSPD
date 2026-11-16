@@ -24,7 +24,7 @@ const GLOSSARIO: readonly { termo: string; definicao: string }[] = [
   {
     termo: 'SLE',
     definicao:
-      'Prazo esperado de entrega por classe de serviço: o P85 publicado, com a data da publicação.',
+      'Prazo esperado de entrega por prioridade: o P85 publicado, com a data da publicação.',
   },
   {
     termo: 'SLA',

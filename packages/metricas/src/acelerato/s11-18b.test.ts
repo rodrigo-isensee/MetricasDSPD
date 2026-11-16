@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MOTIVO_S11_CONVERSAO_SEM_DADO_REAL } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
-import { EXTENSAO_AC_VAZIA } from './extensao'
 import {
   ALVOS_PADRAO,
   calcularS11,
@@ -152,32 +150,57 @@ describe('S11: regra pelo fluxo do chamado (Decisão 18b)', () => {
   })
 })
 
-describe('S11: conversão em Registro de Problema', () => {
-  it('sem extensão (base real): campoDisponivel true, conversão nula com o motivo próprio, nunca 0 de 0; valida no contrato', () => {
-    const r = calcularS11(
-      ctxDe(
-        vinte('P', () => ({ avaliacao_problema: 'Aberto' })),
-        [],
-        PROC,
-      ),
-      F,
+describe('S11: conversão pela decisão registrada no chamado (E7.101)', () => {
+  const avaliacoes = (aberto: number, total: number, extra: Partial<Chamado> = {}) =>
+    Array.from({ length: total }, (_, i) =>
+      chamado(`P${i}`, {
+        avaliacao_problema: i < aberto ? 'Aberto' : 'Não aplicável e com justificativa',
+        ...extra,
+      }),
     )
+  it('"Aberto" sobre as avaliações registradas; "Não aplicável" fica só no denominador; sem motivo; valida no contrato', () => {
+    const r = calcularS11(ctxDe(avaliacoes(5, 20), [], PROC), F)
+    expect(r.conversao).toMatchObject({ status: 'ok', k: 5, n: 20, pct: 25 })
+    expect(r.motivoConversao).toBeNull()
+    expect(r.foraDaConversao).toBe(0)
     expect(r.campoDisponivel).toBe(true)
-    expect(r.conversao).toBeNull()
-    expect(r.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL)
     expect(SCHEMAS_RESULTADO.S11.safeParse(r).success).toBe(true)
   })
-  it('com extensão: conversão sobre os avaliados pela regra do fluxo, sem motivo', () => {
+  it('só "Não aplicável" nas 20 avaliações: conversão de 0 de 20 (0%), não insuficiente', () => {
+    const r = calcularS11(ctxDe(avaliacoes(0, 20), [], PROC), F)
+    expect(r.conversao).toMatchObject({ status: 'ok', k: 0, n: 20, pct: 0 })
+  })
+  it('fronteira: 19 avaliações não publicam; 20 publicam', () => {
+    const r19 = calcularS11(ctxDe(avaliacoes(19, 19), [], PROC), F)
+    expect(r19.conversao).toMatchObject({ status: 'insuficiente', k: 19, n: 19, minimo: 20 })
+    expect(r19.conversao).not.toHaveProperty('pct')
+    const r20 = calcularS11(ctxDe(avaliacoes(10, 20), [], PROC), F)
+    expect(r20.conversao).toMatchObject({ status: 'ok', k: 10, n: 20, pct: 50 })
+  })
+  it('chamado sem avaliação registrada não entra no denominador', () => {
     const xs = [
-      ...vinte('P', (i) => ({ avaliacao_problema: i < 10 ? 'Aberto' : null })),
-      ...vinte('V', () => ({ fluxo: 'SSSC - INCIDENTE', avaliacao_problema: 'Aberto' })),
+      ...avaliacoes(4, 20),
+      ...Array.from({ length: 30 }, (_, i) => chamado(`S${i}`, { avaliacao_problema: null })),
     ]
-    const etapas = Array.from({ length: 10 }, (_, i) => etapa(`V${i}`, 'Causa Raiz'))
-    const registroProblema = Object.fromEntries(
-      ['P0', 'P1', 'P2', 'P15', 'V0', 'V15'].map((id) => [id, true]),
-    )
-    const r = calcularS11(ctxDe(xs, etapas, PROC), F, { ...EXTENSAO_AC_VAZIA, registroProblema })
-    expect(r.motivoConversao).toBeNull()
-    expect(r.conversao).toMatchObject({ status: 'ok', k: 4, n: 20, pct: 20 })
+    const r = calcularS11(ctxDe(xs, [], PROC), F)
+    expect(r.conversao).toMatchObject({ k: 4, n: 20 })
+  })
+  it('fluxo antigo fica fora da conversão e é contado; o "Aberto" dele não vale', () => {
+    const xs = [
+      ...avaliacoes(5, 20),
+      ...Array.from({ length: 25 }, (_, i) =>
+        chamado(`V${i}`, { fluxo: 'SSSC - INCIDENTE', avaliacao_problema: 'Aberto' }),
+      ),
+    ]
+    const etapas = Array.from({ length: 25 }, (_, i) => etapa(`V${i}`, 'Causa Raiz'))
+    const r = calcularS11(ctxDe(xs, etapas, PROC), F)
+    expect(r.conversao).toMatchObject({ status: 'ok', k: 5, n: 20, pct: 25 })
+    expect(r.foraDaConversao).toBe(25)
+  })
+  it('chamado sem fluxo fica fora da conversão (e segue em semFluxo)', () => {
+    const xs = [...avaliacoes(5, 20), chamado('N1', { fluxo: null, avaliacao_problema: 'Aberto' })]
+    const r = calcularS11(ctxDe(xs, [], PROC), F)
+    expect(r.conversao).toMatchObject({ k: 5, n: 20 })
+    expect(r.semFluxo).toBe(1)
   })
 })

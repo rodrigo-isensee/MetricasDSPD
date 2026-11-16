@@ -34,9 +34,9 @@ export function calcularT3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT3 {
   const totalItens = xs.length
   const totalHoras = xs.reduce((s, m) => s + (m.cicloHU as number), 0)
   const ok = publicavel(totalItens)
-  const medida = (q: number, total: number, acordado: number) => {
+  const medida = (q: number, total: number, acordado: number | null) => {
     const pct = ok && total > 0 ? r2((q / total) * 100) : null
-    const desvio = pct === null ? null : r2(pct - acordado)
+    const desvio = pct === null || acordado === null ? null : r2(pct - acordado)
     const statusMeta: StatusMeta =
       desvio === null ? 'sem-referencia' : Math.abs(desvio) <= DESVIO_MAXIMO_PP ? 'dentro' : 'fora'
     return { quantidade: r2(q), pct, desvioPP: desvio, statusMeta }
@@ -46,7 +46,8 @@ export function calcularT3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT3 {
     criterios: criterios('T3', periodo, periodo, ctx),
     status: ok ? 'ok' : 'insuficiente',
     naturezas: NATUREZAS.map((natureza) => {
-      const acordado = ctx.idx.base.config.alocacao.find((a) => a.natureza === natureza)?.pct ?? 0
+      const acordado =
+        ctx.idx.base.config.alocacao.find((a) => a.natureza === natureza)?.pct ?? null
       const dele = xs.filter((m) => naturezaDe(m) === natureza)
       return {
         natureza,

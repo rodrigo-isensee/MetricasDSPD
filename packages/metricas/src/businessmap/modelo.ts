@@ -8,9 +8,11 @@ import type {
   ClasseServico,
   FaseDeteccao,
   Granularidade,
+  NivelPrioridadeBM,
   MotivoBloqueioPublicado,
   OrigemDemanda,
   ResponsabilidadeAtraso,
+  TamanhoRegua,
   TipoCard,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
@@ -19,6 +21,7 @@ export interface DimCard {
   card_id: string
   titulo: string // extensão (fictício; a UI mostra código e título)
   tipo: TipoCard
+  /** Coluna legada (etiquetas); o painel não a lê mais desde o pedido 105 (E7.100): a separação é pela `prioridade`. */
   classe_servico: ClasseServico
   sistema: string
   area_solicitante: string
@@ -32,7 +35,7 @@ export interface DimCard {
   arquivado_em: number | null
   motivo_descarte: string | null
   responsaveis: string[]
-  tamanho_declarado: 'P' | 'M' | 'G' | null
+  tamanho_declarado: TamanhoRegua | null // 105 (E7.102): a faixa da régua do time do card, a partir do `size` nativo; nulo = sem tamanho
   // extensões 4.4 / necessidades do núcleo
   granularidade: Granularidade
   equipe: string
@@ -44,7 +47,12 @@ export interface DimCard {
   responsabilidade_atraso: ResponsabilidadeAtraso | null
   origem_demanda: OrigemDemanda | null
   fase_deteccao: FaseDeteccao | null
-  severidade: 'Crítica' | 'Alta' | 'Média' | 'Baixa' | null
+  severidade: NivelPrioridadeBM | null
+  /**
+   * Pedido 105 (E7.100): prioridade nativa do BusinessMap (a mesma projeção da `severidade`, lida da coluna `dim_card.severidade`).
+   * Nula = card sem prioridade: fica fora da separação por nível e é contado à parte, nunca Média por omissão. Estado atual do card.
+   */
+  prioridade: NivelPrioridadeBM | null
   origem_bug: string | null
   /** T1.7: frente criada depois do início da execução do projeto pai. */
   adicionado_apos_inicio_pai: boolean
@@ -101,7 +109,8 @@ export interface AlocacaoAcordada {
 }
 
 export interface SlePublicado {
-  classe: ClasseServico
+  /** Nível da prioridade nativa do BusinessMap (E7.100). */
+  classe: NivelPrioridadeBM
   dias_uteis: number | null // null = sem SLE publicado para a classe
   publicado_em: string
 }
@@ -111,7 +120,8 @@ export interface ConfigBM {
   limite_wip_fluxo: Record<string, number>
   /** Base real (H-12): o limite vem das colunas do quadro e 0 = sem limite (o WIP aparece sem aderência). Ausente = regra anterior. */
   limite_wip_por_coluna?: boolean
-  limite_frentes: number
+  /** Nulo = sem limite vigente na base (nunca 0). */
+  limite_frentes: number | null
   sle: SlePublicado[]
   alocacao: AlocacaoAcordada[]
   objetivos: string[]

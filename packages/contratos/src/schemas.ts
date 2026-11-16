@@ -6,12 +6,13 @@
 import { z } from 'zod'
 import {
   CAUSAS_RAIZ,
-  CLASSES_SERVICO,
+  NIVEIS_PRIORIDADE_BM,
   MINIMOS_PESQUISA,
   NATUREZAS_PROJETO,
   SEVERIDADES,
   METRICA_IDS,
   FASES_DETECCAO,
+  TAMANHOS_REGUA,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
   MOTIVOS_ENCERRAMENTO_PUBLICADOS,
   MOTIVOS_ESCALACAO_PUBLICADOS,
@@ -47,7 +48,14 @@ import { paradosSchema } from './tambem'
 const iso = z.string() // AAAA-MM-DD
 const mes = z.string() // AAAA-MM
 const tipo = z.enum(TIPOS_CARD)
-const classe = z.enum(CLASSES_SERVICO)
+/** Nível da prioridade nativa do BusinessMap (a chave `classe` dos resultados guarda o nível; um só ponto troca o domínio). */
+const classe = z.enum(NIVEIS_PRIORIDADE_BM)
+/** Cards sem prioridade (priority nula no BusinessMap): ficam fora da separação por nível e são contados aqui, nunca somados a um nível. */
+const semPrioridade = z.object({
+  n: z.number(),
+  /** Universo da mesma contagem (cartões com e sem prioridade), para a faixa dizer "N de M". */
+  total: z.number(),
+})
 const prioridade = z.enum(PRIORIDADES)
 
 /** Campos presentes em todo resultado. */
@@ -368,6 +376,7 @@ export const resultadoO18 = z.object({
 export const resultadoT1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   classes: z.array(
     z.object({
       classe,
@@ -394,6 +403,7 @@ const etapaT1 = z.enum(['Fila', 'Espera', 'Execução', 'Homologação'])
 export const resultadoT2 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   classes: z.array(
     z.object({
       classe,
@@ -424,7 +434,8 @@ export const resultadoT3 = z.object({
   naturezas: z.array(
     z.object({
       natureza,
-      acordadoPct: z.number(),
+      /** Nulo = sem referência vigente (nunca 0): statusMeta sai sem-referencia. */
+      acordadoPct: z.number().nullable(),
       itens: medidaAlocacao,
       tempo: medidaAlocacao,
     }),
@@ -439,6 +450,7 @@ const faixaSemanal = z.object({
 })
 export const resultadoT4 = z.object({
   ...comum,
+  semPrioridade,
   classes: z.array(
     z.object({
       classe,
@@ -504,8 +516,10 @@ export const resultadoT7 = z.object({
   kpis: z.object({
     frentesEmAndamento: z.number(),
     projetosComFrentes: z.number(),
-    limiteFrentes: z.number(),
-    acimaDoLimite: z.boolean(),
+    /** Nulo = sem limite vigente (nunca 0). */
+    limiteFrentes: z.number().nullable(),
+    /** Nulo quando não há limite para comparar. */
+    acimaDoLimite: z.boolean().nullable(),
   }),
   porProjeto: z.array(
     z.object({ projetoId: z.string(), projeto: z.string(), abertas: z.number() }),
@@ -541,6 +555,12 @@ export const resultadoT9 = z.object({
     }),
   ),
   projetosComEscopoCrescido: z.number(),
+  /**
+   * Projetos com frentes filhas e sem `iniciado_em`: ficam fora da tabela e da conta, e a nota do cartão diz quantos (pedido 105, D-T9).
+   * Sem início não há como separar frente original de frente adicionada. Opcional só para a mudança ser compatível (a API sempre o envia);
+   * ausente lê-se 0.
+   */
+  projetosSemInicio: z.number().int().min(0).optional(),
 })
 
 /* ---------- FL3 ---------- */
@@ -878,7 +898,7 @@ export const resultadoVisaoGeral = z.object({
 })
 
 /* ---------- Métricas complementares (dados mockados; ver docs/architecture/features/metricas-complementares.md) ---------- */
-const tamanho = z.enum(['P', 'M', 'G', 'Sem tamanho'])
+const tamanho = z.enum([...TAMANHOS_REGUA, 'Sem tamanho'])
 
 /** O5: eficiência de fluxo por tipo. Percentuais 0 a 100. Horas úteis. */
 export const resultadoO5 = z.object({
@@ -903,10 +923,11 @@ export const resultadoO5 = z.object({
   ),
 })
 
-/** O6: previsibilidade (P85 ÷ P50 do cycle time) por classe de serviço. */
+/** O6: previsibilidade (P85 ÷ P50 do cycle time) por prioridade nativa do BusinessMap. */
 export const resultadoO6 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   /** Alvo exibido: razão abaixo deste valor. */
   alvoMax: z.number(),
   classes: z.array(
@@ -939,7 +960,11 @@ export const resultadoO8 = z
             acimaP85AnteriorPct: z.number().nullable(),
           }),
         ),
-        /** null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`. */
+        /**
+         * null = divisão por tamanho sem dado real (pedido 099, A4, Q-099-4): nenhum card tem `tamanho_declarado`; nunca lista vazia nem tudo em "Sem tamanho". O motivo vai em `motivoPorTamanho`.
+         * Com dado (105, E7.102): as seis faixas da régua (PP, P, M, G, GG, XG) sempre, nessa ordem; faixa sem entregas vem com `n` 0 e `mediana` nula ("sem entregas neste tamanho"; nunca 0);
+         * faixa com `n` de 1 a 19 também vem com `mediana` nula (insuficiente). "Sem tamanho" vem por último, só com `n` maior que 0.
+         */
         porTamanho: z
           .array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() }))
           .nullable(),
@@ -1037,7 +1062,7 @@ export const resultadoO16 = z.object({
 
 /**
  * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
- * Contagem, sem mínimo. Causa raiz: sem dado real até o Registro de Problemas ter vínculo ao incidente (pedido 099, B' da Q-099-7).
+ * Contagem, sem mínimo. Causa raiz: não é contada, é texto livre no Acelerato (ADR 0020; decisão do dono de 16/11, pedido 105, K-372).
  */
 export const resultadoO17 = z.object({
   ...comum,
@@ -1068,10 +1093,11 @@ const previsaoItens = estatisticaSchema(
     simulacoes: z.number(),
   }),
 )
-/** T6: previsão probabilística (Monte Carlo) por classe de serviço de stories. */
+/** T6: previsão probabilística (Monte Carlo) por prioridade nativa do BusinessMap, só de stories. */
 export const resultadoT6 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  semPrioridade,
   /** Entradas fixas desta resposta (itens a terminar; semanas disponíveis). */
   entradas: z.object({ itens: z.array(z.number()), semanas: z.array(z.number()) }),
   classes: z.array(
@@ -1210,10 +1236,15 @@ export const resultadoS11 = z.object({
   porGrupo: z.array(z.object({ grupo: z.enum(['P1', 'P2', 'Contorno']), taxa: taxaSchema })),
   /** Chamados do escopo sem fluxo ou com fluxo múltiplo: ficam fora do cálculo e são contados (P-S11-1 aberta ao dono). 0 quando a base não separa fluxo. */
   semFluxo: z.number().int().min(0),
-  /** null = conversão em Registro de Problema sem dado real (a base não tem o vínculo): nunca "0 de 0"; o motivo vai em `motivoConversao`. */
+  /**
+   * Conversão em Registro de Problema pela decisão registrada no chamado (pedido 105, E7.101): "Aberto" no campo "Avaliação de Problema" ÷ avaliações
+   * registradas, só nos fluxos do PROC; abaixo de 20 avaliações vem `insuficiente`, nunca um percentual. A anulabilidade fica por compatibilidade.
+   */
   conversao: taxaSchema.nullable(),
-  /** Motivo de `conversao` nula; null quando a conversão é publicada. */
+  /** Motivo de `conversao` nula; null quando a conversão é publicada (inclusive `insuficiente`). */
   motivoConversao: z.string().min(1).nullable(),
+  /** Avaliações dos fluxos antigo e intermediário (regra pela etapa, sem valor "Aberto"): ficam fora da conversão e são contadas aqui. */
+  foraDaConversao: z.number().int().min(0).optional(),
 })
 
 /** S12: volume por sistema, reincidência por sistema e exceção de SLA. */
