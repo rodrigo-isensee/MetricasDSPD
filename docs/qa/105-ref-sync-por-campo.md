@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-ref-sync-por-campo
-commit: e8258656916af7598f418e6354e1959f8c70a220
+commit: 20ef77beec16d6788053a0d973db69eb02753e7c
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -54,3 +54,6 @@ Esperei a trava 56 min e rodei no head e8258656: `Test Files 2 failed | 48 passe
 ## Observações (sem bloqueio)
 - A entrada `bm:ref-sync` não tem teste que prove "saída 0 com recusados" ponta a ponta; o comportamento vem de leitura (só o `catch` define `exitCode`). Baixo risco; sugestão para cartão, sem aceite do usuário.
 - Pergunta de regra: campo recusado hoje só repete depois da data; isso é a regra antiga mantida pelo brief, não mudou.
+
+## Revalidação no head 20ef77be (delta)
+O comando forge-check parecer delta (intervalo e8258656..20ef77be) listou 3 arquivos no domínio: docs/architecture/server.md, dominio-businessmap.ts e dominio-acelerato.ts. Li o diff: nos dois .ts só mudaram linhas de comentário (as duas recusas por campo: data anterior à última vigência e vigência já aberta na data); em server.md só o parágrafo do bm:ref-sync (gravação por campo, recusados, saída 0, ac:ref-sync segue tudo ou nada). Nenhuma linha de código executável mudou, então os testes, a mutação (M1 a M6) e o resultado do test:pg do head e8258656 seguem valendo; não rerrodei o test:pg, por instrução do brief. A doc agora descreve o que o código e os testes provam. Achados novos: nenhum. Parecer mantido: aprovado.
