@@ -85,6 +85,8 @@ services:
     environment:
       PG_COLETOR_URL: postgres://dspd_coletor:${DSPD_PWD_COLETOR:-coletor_dev}@postgres:5432/metricas
       DSPD_PWD_REF: ${DSPD_PWD_REF:-ref_dev}
+      # Papel dspd_ref (so SELECT/INSERT nas ref_): usado pelos ref-sync semanais (metricas-referencias.service).
+      PG_REF_URL: postgres://dspd_ref:${DSPD_PWD_REF:-ref_dev}@postgres:5432/metricas
       LOG_LEVEL: ${LOG_LEVEL:-info}
     # PEM do certificado do Acelerato: ACELERATO_MYSQL_TLS_CERT_FILE aponta para /segredos/acelerato.pem no arquivo de ambiente.
     volumes:

@@ -30,6 +30,7 @@
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && pnpm run db:up",
     "db:migrate": "bash scripts/db.sh migrate",
+    "db:sql": "bash scripts/gerar-sql-migracoes.sh",
     "bm:diagnostico": "bash scripts/bm-diagnostico.sh",
     "coleta": "bash scripts/coleta.sh",
     "demo:dado-real": "bash scripts/demo-dado-real.sh",

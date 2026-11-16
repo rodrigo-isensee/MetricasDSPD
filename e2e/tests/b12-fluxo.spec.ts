@@ -243,15 +243,15 @@ test.describe('K-023 Operacional semanal', () => {
     await expect(o10.raiz).toContainText(/cliente/i)
   })
 
-  test('OP-17 O12: vencidos por causa interna sem dado real (099), meta não avaliada; % só com >= 20 acordos', async ({
+  test('OP-17 O12: vencidos por causa interna com o campo 51 (105, E7.214), meta avaliada; % só com >= 20 acordos', async ({
     painel,
   }) => {
     await painel.ir(SEM)
     const o12 = painel.cartao('O12')
     await o12.esperarPronto()
     await expect(o12.raiz).toContainText('Meta: Zero vencidos por causa interna')
-    await expect(o12.raiz).toContainText(/Vencidos por causa interna: sem dado real/)
-    await expect(o12.raiz).not.toContainText(/Vencidos por causa interna: \d+/)
+    await expect(o12.raiz).toContainText(/Vencidos por causa interna: \d+/)
+    await expect(o12.raiz).not.toContainText(/Vencidos por causa interna: sem dado real/)
     await expect(o12.raiz).toContainText(/Em andamento \(fora das estatísticas\)/)
   })
 
@@ -289,10 +289,10 @@ test.describe('K-023 Operacional semanal', () => {
     await painel.ir(SEM)
     await painel.esperarPronto()
     await expect(page.locator('#o12')).toHaveCount(1)
-    // O12 sem dado real (099, CA-O12-4): sem número de vencidos por causa interna a faixa não tem o link "Ver O12"
-    // e diz a lacuna no lugar dele; com número real o item aparece (atencao.test.ts cobre o link para #o12).
-    await expect(painel.faixaAtencao).toContainText(/O12: vencidos por causa interna sem dado real/)
-    await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveCount(0)
+    // O12 com a responsabilidade do atraso (105, E7.214): com número de vencidos por causa interna o item aparece na faixa, com o link "Ver O12",
+    // e não há lacuna (sem número a faixa diz a lacuna no lugar dele; atencao.test.ts cobre os dois casos).
+    await expect(painel.faixaAtencao).not.toContainText(/O12: vencidos por causa interna sem dado real/)
+    await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveCount(1)
     // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12')
     await painel.esperarPronto()

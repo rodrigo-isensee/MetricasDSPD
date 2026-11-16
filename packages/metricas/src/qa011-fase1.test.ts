@@ -320,8 +320,8 @@ describe('O19-pct = B (mutante M-2 sobrevivente nos testes existentes): numerado
       duracao_horas_uteis: dias * CALENDARIO_PADRAO.horasPorDia,
     })
     const bl = [
-      ...Array.from({ length: 20 }, (_, i) => bq('Janela de mudança', 2, i)),
-      ...Array.from({ length: 20 }, (_, i) => bq('Aguardando fornecedor', 1, i)),
+      ...Array.from({ length: 20 }, (_, i) => bq('Aguardando publicação GMUD', 2, i)),
+      ...Array.from({ length: 20 }, (_, i) => bq('Dependência Externa', 1, i)),
     ]
     const card: EspecCard = {
       id: 'A',
@@ -338,8 +338,8 @@ describe('O19-pct = B (mutante M-2 sobrevivente nos testes existentes): numerado
       const x = r.motivos.find((y) => y.motivo === m)!.pctDoTotal
       return x.status === 'ok' ? x.pct : null
     }
-    expect(pct('Janela de mudança')).toBeCloseTo((40 / 60) * 100, 6)
-    expect(pct('Aguardando fornecedor')).toBeCloseTo((20 / 60) * 100, 6)
+    expect(pct('Aguardando publicação GMUD')).toBeCloseTo((40 / 60) * 100, 6)
+    expect(pct('Dependência Externa')).toBeCloseTo((20 / 60) * 100, 6)
   })
 })
 
@@ -349,7 +349,7 @@ describe('O19-9: o percentual por causa nunca passa de 100% somado', () => {
     let publicados = 0
     for (const tipo of ['4s', '12s', '6m', '12m'] as const) {
       const lista = calcularO19(ctx.bm, { ...F12S, periodo: { tipo } }).motivos
-      expect(lista.length, tipo).toBe(8)
+      expect(lista.length, tipo).toBe(12)
       const soma = lista.reduce(
         (s, c) => s + (c.pctDoTotal.status === 'ok' ? c.pctDoTotal.pct : 0),
         0,
