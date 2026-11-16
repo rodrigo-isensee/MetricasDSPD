@@ -3,55 +3,45 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-vm-producao
-commit: efe4fb86203357427d789aff8198603595497494
-parecer: reprovado
+commit: 9c3c2ebae42ece652e02bbbca92b73cbe99f0353
+parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-16
 ---
-# Review de segurança: configuração de produção da VM (105, E7.275)
+# Review de segurança: configuração de produção da VM (105, E7.283)
 
-Escopo: `ffc38fe7...efe4fb86` (E7.270): `docker-compose.prod.yml`, `deploy/sql/papeis-producao.sql`, `docs/devops/105-implantacao-vm.md`, aviso no runbook, `.env.example` e CHANGELOG. Conferência contra A1 a A8 de `docs/security/105-implantacao-vm.md` (na develop, commit b0552e47). Revisão estática; nada executado contra banco real nem contra a VM.
+Escopo: revalidação por delta `efe4fb86..9c3c2eba` (E7.276), sem o que veio da develop (`forge-check parecer delta`): `docker-compose.prod.yml`, `deploy/sql/00_papeis_e_banco.sql` (gerado), `scripts/gerar-sql-migracoes.mjs` e `.sh`, as quatro unidades `deploy/systemd/*.service` e o timer, `.env.example`, a remoção de `deploy/sql/papeis-producao.sql` e o `docs/devops/105-implantacao-vm.md` fundido. Conferência contra A1 a A6 do parecer anterior (commit 255d0250) e A1 a A8 de `docs/security/105-implantacao-vm.md`. Revisão estática; nada executado contra banco real nem contra a VM.
 
-**Veredito: reprovado, por integração.** O conteúdo novo está certo e fecha A1, A2, A6 e A8 neste arquivo; mas a branch saiu de `ffc38fe7`, antes do #497, e não integra com a develop: o documento conflita (add/add) e a develop continua com o `00_papeis_e_banco.sql` gerado e o documento antigo, que mandam o DBA passar senhas por `-v` e criar os três papéis com LOGIN. Em produção ficariam dois roteiros de papéis contraditórios, e o que o documento da develop cita é o inseguro.
+**Veredito: aprovado.** A branch integra com a develop sem conflito, há um roteiro de papéis só (o gerado), sem senha por `-v` e com os três papéis sem uso em NOLOGIN; TLS ao banco em `verify-full` fixo com a CA montada; as unidades falham fechadas. Os seis achados do parecer anterior fecham.
 
 ## Gatilhos
 `R-SEGURANCA`: credenciais e papéis do banco, TLS ao banco, infraestrutura e acessos (grupo do motor de contêineres), dado pessoal em backup (LGPD).
 
 ## Achados
-- A1 (bloqueante) deploy/sql/papeis-producao.sql:11 · Branch saiu antes do #497: conflito add/add em docs/devops/105-implantacao-vm.md e a develop mantém 00_papeis_e_banco.sql (gerado) com senhas por -v e webhook/automacao/pesquisa LOGIN. Rebase, um documento só e o gerador emitindo \getenv e NOLOGIN.
-- A2 (recomendado) deploy/sql/papeis-producao.sql:11 · CREATE ROLE ... PASSWORD manda a senha em claro no comando e ela vai ao log do servidor se log_statement cobrir DDL: abrir o script com SET log_statement = 'none' na sessão do DBA ou criar sem senha e usar \password (hash no cliente).
-- A3 (recomendado) docs/devops/105-implantacao-vm.md:11 · No cliente do banco da stack, sslmode=require já verifica a cadeia e o nome (alias de verify-full); com CA privada a conexão falha e o compose não leva CA nem NODE_EXTRA_CA_CERTS. Pôr o volume da CA e a variável no compose e dizer que nunca se baixa o sslmode.
-- A4 (recomendado) docs/devops/105-implantacao-vm.md:23 · A7 do parecer anterior fecha em parte: falta pedir que, após restaurar backup, a eliminação a pedido (cfg_pessoa_eliminada) seja reaplicada antes de reabrir o painel, e retenção alinhada a ela.
-- A5 (recomendado) docs/devops/105-implantacao-vm.md:1 · A3 e A4 do parecer anterior seguem abertos: pedir ao Acelerato SELECT só em ACELERATO_CHAMADOS (por coluna da allow-list quando possível) e, no BusinessMap, conta de serviço só leitura restrita aos quadros, com rotação, no lugar da chave pessoal do dono.
-- A6 (recomendado) deploy/systemd/metricas-coleta-businessmap.service:11 · EnvironmentFile opcional (-): sem host.env as três coletas sobem o Compose de desenvolvimento (banco local, senhas padrão). Tornar obrigatório ou fixar COMPOSE_FILE na unidade, para falhar fechado.
-
-## Sondas
-- S1 · git merge-tree --write-tree --name-only origin/develop efe4fb86 · espera: sem conflito · obtido: CONFLICT (add/add) docs/devops/105-implantacao-vm.md e CONFLICT (content) CHANGELOG.md
-- S2 · git show origin/develop:deploy/sql/00_papeis_e_banco.sql (linhas 5 e 12-14) · espera: senhas por getenv e três papéis NOLOGIN · obtido: senhas por -v pwd_x=... e dspd_webhook, dspd_automacao, dspd_pesquisa com LOGIN PASSWORD
+- A1 (recomendado) docker/postgres/init/01-databases-papeis.sh:7 · Fora do caminho de produção: o init do banco local (desenvolvimento e homologação) e reparar-papeis.sh:15 ainda passam senhas por -v e criam webhook, automação e pesquisa com LOGIN. Só dado fictício; alinhar ao gerado (\getenv, NOLOGIN) quando mexerem no arquivo.
 
 ## Detalhe dos achados
-**Conferência A1 a A8 do parecer anterior.**
-- A1 (TLS): fechado. As cinco URLs levam `sslmode=${DB_SSLMODE:-require}` (`docker-compose.prod.yml:15,21,22,40,56`); conferi com `docker compose config` e valores fictícios: as cinco saem com `sslmode=require`. Na versão do cliente do banco travada no lockfile, `require` é tratado como `verify-full` (verifica cadeia e nome), o que é mais forte do que o documento diz; ver A3 deste parecer.
-- A2 (sem banco local nem senha padrão): fechado. Sem serviço postgres; `${VAR:?}` em `DB_HOST` e nos cinco `DSPD_PWD_*`; `docker compose config -q` sem variáveis falha com "defina DSPD_PWD_COLETOR". Portas só em `127.0.0.1` (`:26`, `:66`), conferido no config renderizado.
-- A3 (SELECT nomeado no Acelerato) e A4 (conta de serviço do BusinessMap): abertos, ver A5 deste parecer. O documento da branch não trata o item 11 e o da develop segue como estava.
-- A5 (senha fora da linha de comando): fechado em `papeis-producao.sql:5-9` por `\getenv` (variável não definida deixa a interpolação literal e o `ON_ERROR_STOP` aborta: falha fechada); a parte do log do servidor segue aberta (A2 deste parecer); e o roteiro da develop continua com `-v` (A1 deste parecer).
-- A6 (NOLOGIN): fechado em `papeis-producao.sql:18-20`, sem CONNECT a eles (`:26`); aberto na develop (A1).
-- A7 (backup): em parte (`105-implantacao-vm.md:23` pede cifrado, acesso restrito, retenção e restauração testada); falta a reaplicação da eliminação (A4).
-- A8 (grupo docker): fechado (`105-implantacao-vm.md:§4`): só o administrador e um substituto nomeado, contas de serviço fora, revisão a cada release. As unidades rodam como root (sem `User=`), sem conta de serviço no grupo.
+**Conferência do parecer anterior (255d0250).**
+- A1 (bloqueante, integração): fechado. `git merge-tree` de `origin/develop` (655029ad) com 9c3c2eba sem conflito; `papeis-producao.sql` removido; o gerador (`scripts/gerar-sql-migracoes.mjs:19-23,36-58`) emite `00_papeis_e_banco.sql` com `\getenv` para os cinco papéis de login (`dspd_migrador`, `dspd_coletor`, `dspd_api`, `dspd_ref`, `dspd_api_apontamento`), `NOLOGIN` sem senha para `dspd_webhook`, `dspd_automacao`, `dspd_pesquisa`, e CONNECT só aos cinco (`deploy/sql/00_papeis_e_banco.sql:10-29`). O `.sh` aplica o próprio SQL gerado no descartável (`gerar-sql-migracoes.sh:24`), então gerador e arquivo não divergem sem o CI acusar. Nenhuma ocorrência de `-v pwd`, `papeis-producao` nem `DB_SSLMODE` fora de docs de parecer e do init local (A1 acima). Variável ausente deixa `:'pwd_x'` literal e o `ON_ERROR_STOP` aborta antes de criar papel: falha fechada.
+- A2 (senha no log do servidor): fechado. `SET log_statement = 'none'` antes dos `CREATE ROLE` (`00_papeis_e_banco.sql:15`); o documento (`105-implantacao-vm.md:191`) dá a alternativa `\password` se o DBA não puder o `SET` (e o `ON_ERROR_STOP` para o script antes de qualquer `CREATE ROLE`).
+- A3 (TLS com CA privada): fechado. As seis URLs com `sslmode=verify-full` fixo (o `DB_SSLMODE` saiu, não há como baixar por variável); `NODE_EXTRA_CA_CERTS` e o PEM `${DB_CA_ARQUIVO:?}` somente leitura em `migrate`, `api`, `worker` e `coleta`. Conferido em `pg-connection-string@2.14.1` (lockfile): `verify-full` usa o repositório padrão de CAs do Node, que inclui `NODE_EXTRA_CA_CERTS`. Documento (`:210`) diz que nunca se baixa o modo.
+- A4 (eliminação após restaurar backup): fechado (`105-implantacao-vm.md:163`).
+- A5 (menor privilégio no BusinessMap e no Acelerato): fechado (`105-implantacao-vm.md:168`: conta de serviço só leitura limitada a `BUSINESSMAP_QUADROS_IDS` com rotação; SELECT só em `ACELERATO_CHAMADOS`, por coluna quando possível).
+- A6 (falha fechada nas unidades): fechado. As quatro unidades (`metricas-coleta-businessmap`, `metricas-coleta-acelerato`, `metricas-coleta-acelerato-releitura`, `metricas-referencias`) com `EnvironmentFile=` obrigatório e `COMPOSE_FILE=docker-compose.prod.yml` e `COMPOSE_ENV_FILES` fixos: sem os arquivos a unidade não sobe e nunca cai no Compose de desenvolvimento.
+- Informativo do parecer anterior (senha com caractere de URL): tratado (`105-implantacao-vm.md:15`, `.env.example`: só `openssl rand -hex 32`).
 
-**A1 (bloqueante).** Evidência: S1 e S2; documento da develop, item 4 da tabela e passo 1 da seção do DBA (cita `00_papeis_e_banco.sql` e `-v pwd_...`); gerador `scripts/gerar-sql-migracoes.mjs:19-20,35,39` (develop). Caminho: o DBA segue o documento integrado, passa oito senhas na linha de comando (histórico e lista de processos da máquina do DBA, legíveis por outro usuário dela) e cria três papéis com LOGIN e senha que ninguém usa nem gira; quem obtiver uma delas entra no banco com os GRANTs daquele papel. Critério mudou: A5 e A6 eram recomendações para antes de a VM receber dado real; esta entrega é a configuração de produção e declara fechá-las, e o estado integrado não as fecha (defeito provado por S1 e S2). Severidade: média. Correção mínima: rebase em `origin/develop`; um único `docs/devops/105-implantacao-vm.md` (o da develop com as seções novas desta branch, sem citar `-v`); o gerador emite `00_papeis_e_banco.sql` com `\getenv` para os cinco papéis de login e `NOLOGIN` sem senha para `dspd_webhook`, `dspd_automacao` e `dspd_pesquisa`, CONNECT só aos cinco (`dspd_migrador`, `dspd_coletor`, `dspd_api`, `dspd_ref`, `dspd_api_apontamento`), e `papeis-producao.sql` sai (ou vira o gerado, nunca os dois). O consolidado `deploy/sql/` precisa continuar regenerável (`OK: runner e SQL gerado produzem o mesmo esquema`). Esforço P. Dono: `devops-engineer`.
+**Conferência A1 a A8 de `docs/security/105-implantacao-vm.md`:** A1 (TLS), A2 (sem banco local nem senha padrão), A3 e A4 (acessos de terceiros), A5 (senha fora da linha de comando), A6 (NOLOGIN), A7 (backup cifrado, restrito, retenção e reaplicação da eliminação) e A8 (grupo `docker` restrito, `:212`) fechados no estado integrado.
 
-**A2.** Severidade baixa (o log do servidor é da empresa, acesso do DBA). Correção: `SET log_statement = 'none';` no topo da sessão (o DBA é superusuário ou tem CREATEROLE; se não puder, `\password <papel>` interativo após criar sem senha). Esforço P. Dono: `devops-engineer`.
+**Novo no delta, sem achado.** `metricas-referencias.service` roda os quatro `ref-sync-*` no contêiner `coleta`, que recebe o `coleta.env` inteiro; a `PG_REF_URL` vem do `environment` do Compose (prevalece sobre `env_file`), papel `dspd_ref`; a unidade avisa para nunca pôr a URL do migrador ou do coletor no `coleta.env`. `PESSOA_ELIMINADA_SAL` só como nome vazio no `.env.example`. Nenhum segredo nos arquivos do delta (busca por padrão de texto).
 
-**A3.** Severidade baixa: a falha é fechada (não conecta), o risco é o operador "consertar" com `DB_SSLMODE=disable` ou `no-verify`. Correção: no compose, `NODE_EXTRA_CA_CERTS: ${DB_CA_ARQUIVO:-}` e volume somente leitura do PEM em `migrate`, `api`, `worker` e `coleta`; no documento, que `require` já verifica o certificado e que o valor mínimo aceito é `require`. Esforço P. Dono: `devops-engineer`.
+**A1.** Evidência: `docker/postgres/init/01-databases-papeis.sh:7-9`, `docker/postgres/reparar-papeis.sh:15`. Caminho: só na máquina do desenvolvedor ou na homologação local (portas em 127.0.0.1, dado fictício); quem lê a lista de processos do contêiner já tem o banco. Severidade: informativa. Correção mínima: reaproveitar o padrão `\getenv` e NOLOGIN do gerado. Esforço P. Dono: `devops-engineer`.
 
-**A4.** Severidade baixa (LGPD: restaurar backup antigo traria de volta `pessoa_ref` e nome já eliminados). Correção: uma frase no item 3 do pedido ao DBA e no runbook de restauração. Esforço P. Dono: `devops-engineer`.
+**Inconsistências de texto (não segurança, ao `tech-lead`):** `105-implantacao-vm.md:55` diz que `PESSOA_ELIMINADA_SAL` não está em nenhum `.env.example` e `:145` mantém a lacuna do Apontamento; o `.env.example` desta branch já o traz.
 
-**A5.** Severidade baixa (menor privilégio em sistemas de terceiros). Correção: no item 11, (a) conta de serviço só leitura do BusinessMap limitada a `BUSINESSMAP_QUADROS_IDS`, rotação combinada; (b) SELECT só em `ACELERATO_CHAMADOS` (`server/src/modulos/acelerato/sql.ts:23`). Esforço P. Dono: `devops-engineer`.
-
-**A6.** Severidade baixa (o documento já manda conferir antes de ligar os timers; o Compose de desenvolvimento só expõe o banco em 127.0.0.1). Correção: `EnvironmentFile=/etc/metricas-dspd/host.env` sem `-` nas três unidades de coleta, ou `Environment=COMPOSE_FILE=docker-compose.prod.yml` nelas. Esforço P. Dono: `devops-engineer`.
-
-**Sem achado.** Nenhum segredo nos arquivos do diff (busca por padrão de texto): só nomes de variável e `/etc/metricas-dspd/*.env` com 600. `APONTAMENTO_NOMES` fixo em `0` (`docker-compose.prod.yml:23`). A coleta é o único serviço com `COLETA_ENV_FILE` e o volume de segredos somente leitura; `environment` prevalece sobre `env_file`, então o `coleta.env` não troca as URLs do banco. Senha com `@`, `/` ou `#` quebra a URL (não há codificação): informativo, o documento pode pedir senhas só com caracteres seguros para URL.
+## Sondas
+- S1 · git merge-tree --write-tree --name-only origin/develop 9c3c2eba · espera: sem conflito · obtido: só o id da árvore, sem CONFLICT
+- S2 · docker compose -f docker-compose.prod.yml config -q sem variáveis · espera: falha · obtido: required variable DSPD_PWD_MIGRADOR is missing a value: defina DSPD_PWD_MIGRADOR
+- S3 · o mesmo com valores fictícios, DB_CA_ARQUIVO e DB_SSLMODE=disable, --profile coleta · espera: verify-full em todas, CA só leitura, portas em 127.0.0.1 · obtido: seis URLs sslmode=verify-full (DB_SSLMODE ignorado), ca.pem read_only nos quatro serviços, 127.0.0.1:3000 e 127.0.0.1:8080
 
 ## Riscos aceitos e ferramentas
-Nenhum risco aceito. Suíte: sem PR, a suíte inteira fica para o CI do PR; este parecer não afirma CI verde e o brief não cita PQ do autor; as provas executadas aqui foram `docker compose config` (com e sem variáveis) e `git merge-tree` contra a develop. Varredura de segredos, de dependências, SAST e de imagem: ferramentas fora do PATH (lacuna); a busca por segredos foi por padrão de texto.
+Nenhum risco aceito. Suíte: sem PR, a suíte inteira fica para o CI; o pronto local do autor não rodou (fila). CI do head 9c3c2eba: ver o relatório ao Jarvis (este parecer não afirma CI verde). Varredura de segredos, de dependências, SAST e de imagem: ferramentas fora do PATH (lacuna); a busca por segredos foi por padrão de texto.
