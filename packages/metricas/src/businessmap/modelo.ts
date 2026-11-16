@@ -111,7 +111,8 @@ export interface ConfigBM {
   limite_wip_fluxo: Record<string, number>
   /** Base real (H-12): o limite vem das colunas do quadro e 0 = sem limite (o WIP aparece sem aderência). Ausente = regra anterior. */
   limite_wip_por_coluna?: boolean
-  limite_frentes: number
+  /** Nulo = sem limite vigente na base (nunca 0). */
+  limite_frentes: number | null
   sle: SlePublicado[]
   alocacao: AlocacaoAcordada[]
   objetivos: string[]

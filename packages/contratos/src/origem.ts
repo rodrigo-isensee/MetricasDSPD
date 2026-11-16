@@ -37,6 +37,9 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 105 (E7.4, O18 = c): entregas com e sem bug pelos vínculos do BusinessMap (pai e filho ou relacionado) projetados em `dim_card.origem_bug`.
   'O18',
   'EI_FL1',
+  // Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 lê `dim_card` (criado_em; story que não é Bug interno, a chegada do T4 e do O7; arquivados entram;
+  // excluídos e subtarefas ficam fora; sem pessoa nem `equipeResponsavel`); a base real tem 25 meses sem buraco (consulta tat-i). Abaixo de 20 demandas não publica.
+  'T11',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
   'BLOQUEADOS',
