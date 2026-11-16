@@ -10,6 +10,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - T3 e T7 (tela): sem acordado o cartão do T3 não mostra acordado nem desvio (antes aparecia "desvio 0 p.p.") e a leitura diz que mostra como a capacidade foi dividida, em vez de "menos de 20 itens entregues"; o T7 sem limite mostra o chip "Limite não definido" no lugar de "Sem meta numérica"; teste do mapa do servidor com o nome certo (nulo, não 0) (pedido 105, E7.98).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 - E5 (previsão de término): `frentesAdicionadasAposInicio` passa a usar a regra do T9 (frente criada depois do início do projeto, função única `frenteAdicionadaAposInicio`), não mais `adicionado_apos_inicio_pai`, que a base real nunca grava; projeto sem início não tem frente adicionada; o E5 segue fora do mapa de origem real (pedido 105, K-376, E7.163). K-374 (remover `registroProblema` da extensão do Acelerato) não foi feito: o S11 ainda lê `registroProblema` para a conversão, que espera o vínculo do D-15.
+- O17 (sustentação): o motivo da causa raiz é definitivo, por decisão do dono (16/11): o campo "Causa raiz" do Acelerato é texto livre, nunca entra na base (ADR 0020), e a causa raiz de incidente não é contada; sai o "aguardando o Registro de Problemas" (pedido 105, K-372).
+- Base de fallback do BusinessMap sem limite de frentes (`null`, não 0), com teste de que o T7 sai sem limite; o contrato não muda (pedido 105, K-375).
 
 ### Adicionado
 
