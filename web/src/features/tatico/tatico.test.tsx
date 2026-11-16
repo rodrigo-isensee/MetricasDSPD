@@ -125,7 +125,7 @@ const t3 = (st: 'ok' | 'insuficiente') => ({
 })
 
 describe('T3 alocação', () => {
-  it('E7.62: acordado ausente aparece como "não definido", nunca 0%', async () => {
+  it('E7.62: sem acordado não mostra acordado nem desvio, só a divisão realizada', async () => {
     const base = t3('ok')
     const naturezas = base.naturezas.map((n) => ({
       ...n,
@@ -134,8 +134,21 @@ describe('T3 alocação', () => {
     }))
     renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
     const el = await cartao('T3')
-    expect((await within(el).findAllByText(/acordado não definido/)).length).toBeGreaterThan(0)
+    expect((await within(el).findAllByText(/^realizado 51/)).length).toBeGreaterThan(0)
+    expect(within(el).queryByText(/acordado/)).not.toBeInTheDocument()
+    expect(within(el).queryByText(/desvio [+\d-]/i)).not.toBeInTheDocument()
+    expect(within(el).queryByText(/menos de 20 itens entregues/)).not.toBeInTheDocument()
+    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('como a capacidade foi dividida')
     expect(within(el).queryByText('Desvio acima de 10 p.p.')).not.toBeInTheDocument()
+  })
+  it('com menos de 20 itens e sem acordado, a lista mostra só a quantidade', async () => {
+    const base = t3('insuficiente')
+    const naturezas = base.naturezas.map((n) => ({ ...n, acordadoPct: null }))
+    renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
+    const el = await cartao('T3')
+    expect(await within(el).findByTestId('amostra-insuficiente-T3')).toBeInTheDocument()
+    expect(within(el).queryByText(/acordado/)).not.toBeInTheDocument()
+    expect(within(el).getAllByText(/^10 itens$/).length).toBe(3)
   })
   it('C1/C2: selo só acima de 10 p.p.; alternador com padrão Itens', async () => {
     renderizarApp('/tatico', new FonteFixa({ T3: t3('ok') }))
@@ -329,6 +342,8 @@ describe('T7 fluxo de frentes', () => {
     )
     const el = await cartao('T7')
     expect(await within(el).findByText('não definido')).toBeInTheDocument()
+    expect(within(el).getByText('Limite não definido')).toBeInTheDocument()
+    expect(within(el).queryByText('Sem meta numérica')).not.toBeInTheDocument()
     expect(within(el).queryByText('Acima do limite')).not.toBeInTheDocument()
     expect(within(el).queryByText('Dentro do limite')).not.toBeInTheDocument()
   })

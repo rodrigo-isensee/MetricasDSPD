@@ -1,5 +1,5 @@
 import { gzipSync } from 'node:zlib';
-import { METRICA_IDS, MOTIVO_S11_CONVERSAO_SEM_DADO_REAL } from '@metricas-dspd/contratos';
+import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import { businessmap, CALENDARIO_PADRAO } from '@metricas-dspd/metricas';
@@ -238,9 +238,9 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(s8.total.status).toBe('insuficiente');
     expect(s8.statusMeta).toBe('sem-referencia');
     const s11 = (await get(app, '/api/v1/metricas/S11')).json();
-    expect(s11.campoDisponivel).toBe(true); // pedido 105 (D6a): a avaliação é dado real; só a conversão fica sem fonte
-    expect(s11.conversao).toBeNull();
-    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL);
+    expect(s11.campoDisponivel).toBe(true); // pedido 105 (D6a): a avaliação é dado real
+    expect(s11.conversao).not.toBeNull(); // E7.101: a conversão sai do campo Avaliação de Problema, sem extensão
+    expect(s11.motivoConversao).toBeNull();
     const o17 = (await get(app, '/api/v1/metricas/O17')).json();
     expect(o17.porCausa).toBeNull();
     expect(o17.motivoCausaRaiz).toContain('texto livre');

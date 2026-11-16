@@ -2,17 +2,71 @@
   "versao": 1,
   "versao_criterio": {
     "dominio": "businessmap",
-    "descricao": "Fase de detecção do bug (O15) é a coluna em que estava o card da demanda (pai do bug) quando o bug foi criado, pela tabela coluna para fase aprovada pelo dono; só os bugs com pai na base entram",
-    "motivo": "Pedido 105, E7.5 (decisão do dono de 2026-11-15): tabela coluna_id para uma das cinco fases (347 colunas com movimento nos 7 quadros, análise docs/analises/105-o15-o18-o24.md, com D-1 a D-9 e P-1 a P-3 como propostos); pai já entregue na criação do bug é Produção; pai em backlog ou compromisso e pai Sprint ficam sem fase. Cada troca de linha é nova versão de critério. Afeta O15",
-    "referencia": "pedido 105, E7.5; docs/analises/105-o15-o18-o24.md (§2.2 e §2.3)",
-    "afeta": [
-      "O15"
-    ]
+    "descricao": "2026-11-16: coleta da causa raiz do bug do fluxo (campo 48 Causa Raiz, dropdown, 12 opções) para dim_card.causa_raiz; a causa raiz de incidente continua só no Acelerato, nunca misturada",
+    "motivo": "Pedido 105, E7.86 (decisão do dono de 2026-11-16): duas causas raiz separadas; a de bug interno vem do BusinessMap, field_id 48, lista fechada de 12 opções passada pelo dono; a descrição de Outros é texto livre e nunca entra na base; valor fora da lista vira desconhecido e é contado. Só coleta e projeção: nenhuma métrica ou cartão muda (afeta vazio). A fase de detecção do O15 (E7.5, 2026-11-15) segue como estava",
+    "referencia": "pedido 105, E7.86; plano docs do assistente plano-causa-raiz.md, lote L1",
+    "afeta": []
   },
   "schema": "dspd_bm",
   "tabela": "ref_dominio",
-  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio e foi preenchido com os nomes que o dono passou (P-097-9, pedido 099 de 12 e 13/11 e pedido 097 de 12/11; o quadro 35 fica fora até a P-097-10), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6). fase_deteccao_coluna: mapa coluna_id (codigo, só dígitos, a folha, nunca o nome da coluna) -> uma das 5 fases do briefing 4.4 (rotulo: Desenvolvimento, Revisão de código, Teste interno, Homologação do negócio, Produção); sem coluna repetida; coluna fora do mapa não tem fase (backlog e compromisso, descarte, fluxos fora das cinco fases); gravação em ref_dominio com campo fase_deteccao_coluna; o projetor usa a coluna do card pai na criação do bug e preenche dim_card.fase_deteccao sem sobrescrever a história (dim_card_versao).",
-  "campos": [],
+  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio e foi preenchido com os nomes que o dono passou (P-097-9, pedido 099 de 12 e 13/11 e pedido 097 de 12/11; o quadro 35 fica fora até a P-097-10), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6). fase_deteccao_coluna: mapa coluna_id (codigo, só dígitos, a folha, nunca o nome da coluna) -> uma das 5 fases do briefing 4.4 (rotulo: Desenvolvimento, Revisão de código, Teste interno, Homologação do negócio, Produção); sem coluna repetida; coluna fora do mapa não tem fase (backlog e compromisso, descarte, fluxos fora das cinco fases); gravação em ref_dominio com campo fase_deteccao_coluna; o projetor usa a coluna do card pai na criação do bug e preenche dim_card.fase_deteccao sem sobrescrever a história (dim_card_versao). Campo 48 (Causa Raiz, dropdown, coluna causa_raiz, pedido 105 E7.86): rotulo é o texto da opção como o dono passou e codigo é o código do projeto; a seleção pode vir em value ou em values[].value_id; só o código do domínio entra, e a descrição de Outros (texto livre) nunca é lida nem gravada.",
+  "campos": [
+    {
+      "field_id": "48",
+      "type": "dropdown",
+      "coluna": "causa_raiz",
+      "valores": [
+        {
+          "codigo": "requisito_mal_definido",
+          "rotulo": "Requisito mal definido"
+        },
+        {
+          "codigo": "requisito_alterado",
+          "rotulo": "Requisito alterado"
+        },
+        {
+          "codigo": "erro_logica_codificacao",
+          "rotulo": "Erro de lógica / codificação"
+        },
+        {
+          "codigo": "falha_integracao",
+          "rotulo": "Falha de integração"
+        },
+        {
+          "codigo": "dados_massa_teste",
+          "rotulo": "Dados / massa de teste"
+        },
+        {
+          "codigo": "configuracao_ambiente",
+          "rotulo": "Configuração de ambiente"
+        },
+        {
+          "codigo": "efeito_colateral",
+          "rotulo": "Efeito colateral"
+        },
+        {
+          "codigo": "dependencia_externa",
+          "rotulo": "Dependência externa"
+        },
+        {
+          "codigo": "teste_insuficiente",
+          "rotulo": "Teste insuficiente"
+        },
+        {
+          "codigo": "layout_interface",
+          "rotulo": "Layout / interface"
+        },
+        {
+          "codigo": "nao_e_bug",
+          "rotulo": "Não é bug"
+        },
+        {
+          "codigo": "outros",
+          "rotulo": "Outros"
+        }
+      ]
+    }
+  ],
   "motivo_bloqueio": [],
   "setores": [
     {

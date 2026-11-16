@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   fonteDaMetrica,
   MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
-  MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
   MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL,
   type FiltrosFluxo,
   type FiltrosSustentacao,
@@ -100,8 +99,8 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(s8.cobertura.n).toBe(0)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
     expect(s11.campoDisponivel).toBe(true) // pedido 105 (D6a): a avaliação é dado real
-    expect(s11.conversao).toBeNull()
-    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL)
+    expect(s11.conversao).not.toBeNull() // E7.101: a conversão sai do campo, com ou sem extensão
+    expect(s11.motivoConversao).toBeNull()
     expect(calcularMetrica('S11', FS, ctxMock).motivoConversao).toBeNull()
     const s12 = calcularMetrica('S12', FS, ctxSemExt)
     expect(s12.campoDisponivel).toBe(false)
