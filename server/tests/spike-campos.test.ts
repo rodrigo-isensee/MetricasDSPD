@@ -30,7 +30,7 @@ describe('acúmulo', () => {
     somarCard(ac, card(1, [dropdown(40, 7, 'Diretoria Alfa'), dropdown(41, 9, 'Gerência Um'), { field_id: 99, value: 'ignorado' }]));
     somarCard(ac, card(2, [dropdown(40, 7, 'Diretoria Alfa'), { field_id: 50, value: 'Receita' }]));
     somarCard(ac, card(2, [dropdown(40, 8, 'Repetido')])); // card repetido: ignorado
-    somarCard(ac, card(3, [{ field_id: 49, values: [] }]));
+    somarCard(ac, card(3, [{ field_id: 49, values: [] }, dropdown(51, 511, 'Responsável Fictício'), { field_id: 42, values: [{ value_id: 1, value: 'Pessoa Fictícia' }] }]));
     somarCard(ac, { sem: 'id' });
     expect(ac.cardsLidos.size).toBe(3);
     const c40 = ac.campos.get('40')!;
@@ -40,6 +40,8 @@ describe('acúmulo', () => {
     expect(ac.campos.get('50')!.opcoes.get('(escalar)')?.cards.size).toBe(1);
     expect(ac.campos.get('49')!.comEntrada.size).toBe(1);
     expect(ac.campos.get('49')!.preenchidos.size).toBe(0);
+    expect(ac.campos.get('51')!.opcoes.get('511')?.cards.size).toBe(1);
+    expect(ac.campos.has('42')).toBe(false); // 42 (Responsável CR) é pessoa: nunca entra
   });
   it('etiquetas: só as de sistema, com contagem de cards; aceita tag_ids em id ou objeto', () => {
     const ac = novoAcumulo();
@@ -136,11 +138,14 @@ describe('executarSpikeCampos', () => {
     expect(TETO_AMOSTRA).toBe(200);
     expect(f.pedidos.every((p) => p.metodo === 'GET' && p.apikey === KEY)).toBe(true);
     const cat = f.pedidos.filter((p) => p.caminho.startsWith('/customFields'));
-    expect(cat.map((p) => p.url)).toEqual(['40', '41', '48', '49', '50'].flatMap((i) => (i === '41' ? [`/customFields/${i}/allowedValues`, `/customFields/${i}/allowedValues?page=2`] : [`/customFields/${i}/allowedValues`]))); // sem consulta; só o 41 pagina
+    expect(cat.map((p) => p.url)).toEqual(['40', '41', '48', '49', '50', '51'].flatMap((i) => (i === '41' ? [`/customFields/${i}/allowedValues`, `/customFields/${i}/allowedValues?page=2`] : [`/customFields/${i}/allowedValues`]))); // sem consulta; só o 41 pagina
     expect(f.pedidos.map((p) => p.caminho).every((c) => c === '/cards' || c === '/tags' || CAMINHOS_CATALOGO.some((r) => r.test(c)))).toBe(true);
     expect(r.saida).toContain('Catálogo do campo 41: 3 opções.');
     expect(r.saida).toContain('Catálogo do campo 48: 2 opções.');
     expect(r.saida).toContain('Catálogo do campo 50: 2 opções.');
+    expect(r.saida).toContain('Catálogo do campo 51: 2 opções.');
+    expect(r.saida).not.toContain('campo 42');
+    expect(CAMINHOS_CATALOGO.some((r) => r.test('/customFields/42/allowedValues'))).toBe(false);
     expect(r.saida).toContain('Forma da resposta do campo 50:');
     expect(r.saida).toContain('$.data.config.choices.items[].value_id');
     const arq = join(saida, 'relatorio-campos-sistemas.md');

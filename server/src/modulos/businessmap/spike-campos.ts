@@ -13,11 +13,11 @@ import { desembrulhar, linhasDeForma, somarForma, type Forma } from './spike-for
 // Privacidade: o relatório leva rótulo de opção e de etiqueta (texto escrito por pessoas, pode ter nome) e por isso vai SÓ para um arquivo 0600
 // fora do clone, para o dono; o stdout leva apenas contagens e nunca rótulo. Nenhuma resposta bruta é gravada. Nada vai à base.
 
-export const CAMPOS_SPIKE = ['40', '41', '49', '50'] as const;
-/** Campos cujo catálogo de opções (`GET /customFields/{id}/allowedValues`) o spike lê (E7.179): os quatro acima e o 48 (Causa Raiz). */
-export const CAMPOS_CATALOGO = ['40', '41', '48', '49', '50'] as const;
-/** Lista de caminhos PRÓPRIA do spike (não entra na lista global do cliente): só esses cinco ids, sem consulta. */
-export const CAMINHOS_CATALOGO: readonly RegExp[] = [/^\/customFields\/(40|41|48|49|50)\/allowedValues$/];
+export const CAMPOS_SPIKE = ['40', '41', '49', '50', '51'] as const;
+/** Campos cujo catálogo de opções (`GET /customFields/{id}/allowedValues`) o spike lê (E7.179, E7.212): os cinco acima e o 48 (Causa Raiz). O 42 (Responsável CR) é pessoa e nunca entra. */
+export const CAMPOS_CATALOGO = ['40', '41', '48', '49', '50', '51'] as const;
+/** Lista de caminhos PRÓPRIA do spike (não entra na lista global do cliente): só esses seis ids, sem consulta. */
+export const CAMINHOS_CATALOGO: readonly RegExp[] = [/^\/customFields\/(40|41|48|49|50|51)\/allowedValues$/];
 export const TETO_AMOSTRA = 200;
 const POR_PAGINA = 100;
 const TETO_PAGINAS_CATALOGO = 5;
@@ -167,12 +167,12 @@ export function etiquetasDeSistema(catalogo: readonly unknown[], ac: AcumuloSpik
   return saida.sort((a, b) => a.rotulo.localeCompare(b.rotulo, 'pt') || Number(a.tagId) - Number(b.tagId));
 }
 
-const NOME_CAMPO: Record<string, string> = { '40': 'Diretoria', '41': 'Gerência', '49': 'Origem da Demanda', '50': 'Objetivo Estratégico' };
+const NOME_CAMPO: Record<string, string> = { '40': 'Diretoria', '41': 'Gerência', '49': 'Origem da Demanda', '50': 'Objetivo Estratégico', '51': 'Responsabilidade do Atraso' };
 
 /** Relatório completo, COM rótulo (só para o dono, arquivo fora do clone). */
 export function renderizarRelatorio(ac: AcumuloSpike, etiquetas: readonly EtiquetaSistema[], quadros: readonly number[], geradoEm: string, avisos: readonly string[], catalogos: ReadonlyMap<string, readonly OpcaoCatalogo[]> = new Map()): string {
   const linhas: string[] = [
-    '# Spike dos campos 40, 41, 49 e 50 e das etiquetas SISTEMA (E7.172, L0)',
+    '# Spike dos campos 40, 41, 49, 50 e 51 e das etiquetas SISTEMA (E7.172, L0)',
     '',
     `Gerado em ${geradoEm}. Quadros: ${quadros.join(', ')}. Amostra: até ${TETO_AMOSTRA} cards ativos por quadro; cards distintos lidos: ${ac.cardsLidos.size}. Só para o dono: tem rótulo escrito por pessoas, nunca vai à base nem ao repositório.`,
     '',
