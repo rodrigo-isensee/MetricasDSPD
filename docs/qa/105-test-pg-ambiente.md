@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-test-pg-ambiente
-commit: 0c44ef9448ecde1aba1f2ba2a2f2ba5f6816b0c6
+commit: 9edfaccf19e293243b026b2b6b13ec94c900205d
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -49,3 +49,6 @@ Delta lido por `forge-check parecer delta` (944aa74c..0c44ef94): `.env.example`,
 - Duas execuções seguidas (A e B): `0/0/0` entre e depois, sem sobra.
 - Docs: README, operacao-banco.md e carga-da-pesquisa conferem com o script.
 - Vermelho antes do verde: B é o equivalente (o script anterior usaria a URL do `.env`); não rodei o script anterior. Sem mutantes: não é pedido de controle do Forge.
+
+## Revalidação (volta 2, head 9edfaccf, escopo incremental)
+Delta lido por `forge-check parecer delta` (0c44ef94..9edfaccf): só `docs/architecture/adr/0014-stack-tecnica-do-back-end.md` (nota de revisão datada de 2026-11-16, seções Testes, CI e Histórico). Nenhum código, teste ou script mudou; nada rerrodado. Conferi a nota contra o que já observei: `scripts/test-pg.sh` sobe o descartável por execução com `trap` e `down -v`, decide `PG_TESTE_URL` só do ambiente (linhas 6 a 14), para com mensagem sem Docker (linha 23), e o job `banco` da CI (`ci.yml:103-134`) usa service container e `PG_TESTE_URL`. A nota diz o mesmo, inclusive o resíduo do `kill -9` e o comando de limpeza (A1). Sem achado novo; A1 e A2 seguem atendidos. A suíte inteira fica para o CI do PR (PQ do autor: 342 de 342 no head 0c44ef94); não afirmo CI verde.
