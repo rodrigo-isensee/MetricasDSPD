@@ -9,8 +9,8 @@ import { gerarBaseMock } from '@metricas-dspd/mock'
 import { gerarBaseBusinessMap } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { marcacoesNoPeriodo, VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR } from '../core/criterios'
-import { MOTIVO_SEM_LISTA_POR_FORNECEDOR } from './t10'
 import { calcularO19, calcularT10, type FatoBloqueio } from './index'
+import { MOTIVO_SEM_LISTA_POR_FORNECEDOR } from './t10'
 import { criarContextoBM } from './indice'
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
 
@@ -206,16 +206,17 @@ describe('O19: bloqueios por causa', () => {
 })
 
 describe('T10: tempo de terceiros (total esperando fornecedores, sem separar por fornecedor)', () => {
-  it('E7.77: entra só o bloqueio encerrado com o motivo Aguardando fornecedor; outro motivo e aberto ficam fora; fornecedor informado ou não é indiferente', () => {
+  it('E7.77: entra o bloqueio encerrado com motivo Aguardando fornecedor (14) ou Dependência Externa (11); outro motivo e aberto ficam fora; fornecedor informado ou não é indiferente', () => {
     const r = calcularT10(
       ctxDe(
         [card('A')],
         [
           ...muitos(10, 'Aguardando fornecedor', null),
-          ...muitos(10, 'Aguardando fornecedor', 'Fornecedor Beta'),
-          ...muitos(5, 'Bug identificado', 'Fornecedor Beta'), // outro motivo: fora, mesmo com fornecedor
-          ...muitos(4, 'Parada por repriorização de atividade', null),
+          ...muitos(10, 'Dependência Externa', 'Fornecedor Beta'),
+          ...muitos(5, 'Aguardando ação interna do time', 'Fornecedor Beta'), // outro motivo: fora, mesmo com fornecedor
+          ...muitos(4, 'Aguardando publicação GMUD', null),
           bloq('A', 'Aguardando fornecedor', null, null), // aberto: fora
+          bloq('A', 'Dependência Externa', null, null), // aberto: fora
         ],
       ),
       F,
@@ -227,6 +228,24 @@ describe('T10: tempo de terceiros (total esperando fornecedores, sem separar por
     expect(r.totalDiasUteis).toBe(20)
     expect(r.motivoSemFornecedores).toBe(MOTIVO_SEM_LISTA_POR_FORNECEDOR)
     expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
+  })
+
+  it('E7.264: os dois motivos de fornecedor somam; 11 sozinho com 19 não publica e 14 + 11 chegam a 20', () => {
+    const so11 = calcularT10(ctxDe([card('A')], muitos(19, 'Dependência Externa', null)), F)
+    expect(so11.esperaFornecedores?.duracao).toMatchObject({ status: 'insuficiente', n: 19 })
+    const soma = calcularT10(
+      ctxDe(
+        [card('A')],
+        [
+          ...muitos(19, 'Dependência Externa', null),
+          ...muitos(1, 'Aguardando fornecedor', null),
+          ...muitos(6, 'Bug identificado', null), // fora
+        ],
+      ),
+      F,
+    )
+    expect(soma.esperaFornecedores).toMatchObject({ bloqueios: 20, diasUteis: 20 })
+    expect(soma.esperaFornecedores?.duracao).toMatchObject({ status: 'ok', n: 20 })
   })
 
   it('fronteira: 19 não publica P50/P85 (contagem e soma saem); 20 publica', () => {
@@ -249,7 +268,7 @@ describe('T10: tempo de terceiros (total esperando fornecedores, sem separar por
   })
 
   it('sem nenhum bloqueio de fornecedor: total zero, amostra insuficiente, sem erro', () => {
-    const r = calcularT10(ctxDe([card('A')], muitos(30, 'Parada por repriorização de atividade', null)), F)
+    const r = calcularT10(ctxDe([card('A')], muitos(30, 'Aguardando publicação GMUD', null)), F)
     expect(r.esperaFornecedores).toMatchObject({ bloqueios: 0, diasUteis: 0 })
     expect(r.esperaFornecedores?.duracao).toMatchObject({ status: 'insuficiente', n: 0 })
     expect(r.totalDiasUteis).toBe(0)
@@ -322,6 +341,23 @@ describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () =>
     expect(r.motivos.every((m) => m.pctDoTotal.status === 'insuficiente')).toBe(true)
   })
 
+  it('T10 sobre o mock: total dos bloqueios encerrados de fornecedor, lista por fornecedor vazia; 12 meses não muda a janela dos percentis', () => {
+    const r = calcularT10(ctx, F)
+    const doFornecedor = calcularO19(ctx, F).motivos.filter(
+      (m) => m.motivo === 'Aguardando fornecedor' || m.motivo === 'Dependência Externa',
+    )
+    expect(r.fornecedores).toEqual([])
+    expect(r.esperaFornecedores?.bloqueios).toBe(doFornecedor.reduce((a, m) => a + m.bloqueios, 0))
+    expect(r.esperaFornecedores?.diasUteis).toBeCloseTo(
+      doFornecedor.reduce((a, m) => a + m.diasUteis, 0),
+      1,
+    )
+    const ano = calcularT10(ctx, { ...F, periodo: { tipo: '12m' } })
+    expect((ano.esperaFornecedores?.bloqueios ?? 0) >= (r.esperaFornecedores?.bloqueios ?? 0)).toBe(
+      true,
+    )
+    expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
+  })
 
   it('o aberto do O19 vem do gerador principal: o ajuste da fase 1 só fecha bloqueios novos', () => {
     const abertos = b.bm.bloqueios.filter((x) => x.fim === null).length

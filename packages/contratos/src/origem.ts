@@ -98,18 +98,19 @@ export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
   'A causa raiz do incidente é registrada em texto livre no Acelerato e por isso não é contada.'
 
+/** Pedido 105 (E7.214): dia em que a contagem da responsabilidade do atraso começa (campo 51 do BusinessMap, 2026-11-16), exibido como 16/11/2026. */
+export const O12_INICIO_RESPONSABILIDADE = '16/11/2026'
 /**
- * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
- * Frase em minúsculas sem ponto final, completada pelo componente.
+ * Pedido 105 (E7.214): motivo da parte de responsabilidade do O12 enquanto nenhum card vencido tem o campo 51 preenchido (0 cards hoje). Frase em minúsculas
+ * sem ponto final, completada pelo componente. Sem preenchimento a parte não é publicada: nunca 0 nem meta avaliada.
  */
-export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
-  'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (o prazo do card diz quando venceu, não de quem foi o atraso)'
+export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL = `aguardando o preenchimento do campo "Responsabilidade do Atraso" nos cards vencidos; a contagem começa em ${O12_INICIO_RESPONSABILIDADE}`
 /**
- * Pedido 099 (O12): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['O12', 'VISAO_GERAL']`, quando o campo de
- * responsabilidade do atraso existir no quadro e vier preenchido da fonte. Falso: o O12 publica `porResponsabilidade` e `vencidosCausaInterna`
- * `null` com o motivo, e `statusMeta = 'sem-referencia'`; nunca 0.
+ * Pedido 105 (E7.214): ligado, o campo "Responsabilidade do Atraso" (51, dropdown) é coletado pelo `value_id` em `responsabilidade_atraso`, e o O12 publica
+ * `porResponsabilidade` e `vencidosCausaInterna` assim que algum card vencido vem classificado; até lá segue `null` com o motivo e
+ * `statusMeta = 'sem-referencia'` (nunca 0). Versão de critério `afeta = ['O12', 'VISAO_GERAL']`.
  */
-export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
+export const RESPONSABILIDADE_ATRASO_COM_FONTE = true
 /**
  * Pedido 099 (A4, Q-099-4) e 105 (E7.102): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o tamanho vem do
  * `size` nativo do card pela régua de cada time (seis faixas); enquanto a régua aprovada não estiver carregada, nenhum card tem tamanho e a

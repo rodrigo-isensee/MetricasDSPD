@@ -8,6 +8,8 @@ OnFailure=metricas-coleta-falha@%n.service
 Type=oneshot
 WorkingDirectory=/opt/metricas-dspd
 # Segredos ficam no arquivo de ambiente do servico de coleta (COLETA_ENV_FILE do Compose), nunca nesta unidade.
-EnvironmentFile=-/etc/metricas-dspd/host.env
+Environment=COMPOSE_FILE=docker-compose.prod.yml
+Environment=COMPOSE_ENV_FILES=/etc/metricas-dspd/compose.env
+EnvironmentFile=/etc/metricas-dspd/host.env
 ExecStart=/usr/bin/docker compose --profile coleta run --rm coleta src/entradas/coleta-businessmap.ts incremental --projetar
 TimeoutStartSec=2h
