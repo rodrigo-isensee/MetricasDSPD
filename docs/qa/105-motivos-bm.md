@@ -42,7 +42,7 @@ Head testado: e0fb925f (o `Revisar-sha` do brief, fa1e83e6, é o pai; o E7.210 a
 
 - A1 (bloqueante) server/tests/dominio-businessmap.pg.test.ts:66 · `expect(esperadas).toBe(370)` não foi atualizado: com os 11 motivos do mapa são 381 linhas; o job `banco` do CI está vermelho (`expected 381 to be 370`). Corrigir para 381 (ou derivar do mapa).
 - A2 (bloqueante) docs/qa/evidencias/hash-base-fase-a.json:1 · o gerador do mock mudou (motivos do BusinessMap, `MOTIVOS_FORNECEDOR`), os hashes em `mock.test.ts` foram regravados (88a5c095, 733df187), mas a referência do gate não: o passo Gate do `build` falha. Regravar (`hash-base --salvar`, `docs/qa/gate-do-autor.md`) com a nota `hash-base-fase-a.nota.md`.
-- A3 (recomendado) packages/metricas/src/businessmap/t10.ts:13 · a decisão A do dono diz que o T10 conta os motivos 11 e 14, mas o T10 segue por `fornecedor` informado, "de qualquer motivo", e `MOTIVOS_FORNECEDOR` só é lido pelo mock; a versão de critério já marca T10. Confirmar se o consumo real fica no PR 487 (o pedido o põe depois deste) e registrar; senão, T10 não aplica a decisão.
+- A3 (recomendado) packages/metricas/src/businessmap/t10.ts:13 · a decisão A manda o T10 contar os motivos 11 e 14, mas ele segue por fornecedor informado, de qualquer motivo; MOTIVOS_FORNECEDOR só o mock lê. Confirmar se o consumo fica no PR 487 e registrar.
 - A4 (recomendado) packages/metricas/src/core/criterios.ts:142 · a descrição da versão de critério, o CHANGELOG, a nota do briefing e a `regra` de `businessmap-dominio.json` dizem "10 motivos, ids 1 a 3, 6, 7 e 9 a 13", mas o enum e o mapa têm 11 (com o id 14). Texto datado e publicado nos gráficos diverge do critério.
 
 ## Bugs
