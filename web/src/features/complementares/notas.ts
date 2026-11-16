@@ -263,7 +263,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'Quanto tempo o trabalho fica bloqueado esperando fornecedores e quantas vezes isso aconteceu.',
     comoSeCalcula:
-      'Bloqueios encerrados com o motivo "Aguardando fornecedor", somados sem separar por fornecedor: o nome do fornecedor fica em texto livre, que não entra na base. Contagem e dias úteis somados pelo período do painel; P50, P85 e P95 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais.',
+      'Bloqueios encerrados com os motivos "Dependência Externa" e "Aguardando fornecedor", somados sem separar por fornecedor: o nome do fornecedor fica em texto livre, que não entra na base. Contagem e dias úteis somados pelo período do painel; P50, P85 e P95 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais.',
     comoLer:
       'Uma linha só, com o total esperando fornecedores. Leia junto com os bloqueados agora e os acordos e vencidos (O12).',
     meta: 'Sem meta numérica.',
