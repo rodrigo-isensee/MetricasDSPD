@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-tamanho-regua
-commit: 0ccb21ef34646f49bb4e8085b38d053c77fb567b
+commit: 62254d39142a86cb56d89ec38615643fd8d623eb
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -66,3 +66,16 @@ Os testes novos caem sem a implementação e passam com ela.
 
 ## Acessibilidade e teclado
 Lista de texto semântica (`section` com `aria-label` por tipo, `ul/li`), sem controle novo, sem cor como único canal (cada faixa tem rótulo e texto). Sem violação nova esperada; o teste de acessibilidade automático roda no CI.
+
+## Revalidação (volta 1, cabeça 62254d39)
+parecer: aprovado. Delta de 0ccb21ef a 62254d39 lido por `forge-check parecer delta` (código, testes, contrato O8, CHANGELOG e docs de arquitetura).
+
+- A1 (M7) resolvido: o teste novo de workflow `fora` com `time_id` preenchido (normalizador-businessmap.test.ts) mata o mutante M7 (`time?.time_id ?? null` em normalizador.ts:341): 1 falha, morto.
+- A2 resolvido: nota em docs/contratos/metricas/O8.md diz que o exemplo é truncado e que a resposta traz sempre as seis faixas, "Sem tamanho" por último, faixa vazia com n 0 e mediana nula.
+- Delta novo: `size` 0 vira `size_sem_valor` (teste com 0 e '0'); contagem `reguaLinhasDescartadas` no relatório do bm:projetar (teste: 2 descartadas, 0 sem régua); textos R-1 a R-3 (nota sem tamanho na régua, nota da régua explica "Sem tamanho", legenda só traz "Sem tamanho" com n > 0). Contagem fora do ref-sync, sem comparar times.
+- Vermelho (à mão, código do delta voltado a 0ccb21ef, testes do head): normalizador 1 falha (size 0), projetor 1 falha (contagem), ramos.test.tsx 3 falham (R-1, R-3 e E7.128). Com o código do head tudo passa.
+- Execução local (só os meus cenários): server normalizador+projetor+dominio 193 passam; web ramos.test.tsx 34 passam.
+- CI: o run do head 62254d39 (43854476343) estava na fila ao fechar; sem check-run `bateria` do mesmo sha, não afirmo CI verde. A suíte inteira fica para o CI do PR.
+
+## Achados da revalidação
+- A3 (recomendado) CHANGELOG.md:8 · texto desatualizado: diz que o `bm:ref-sync` informa `reguaTimesDesconhecidos`, mas o código conta no relatório do `bm:projetar` como `reguaLinhasDescartadas`. Corrigir o nome e o comando.
