@@ -410,6 +410,10 @@ Plano: `docs/architecture/plano-sustentacao-no-operacional.md`. Decisão: [ADR 0
 ### S8: só incidentes com resposta (pedido 066, 2026-11-04)
 - Contrato igual (nenhum campo novo, removido ou com tipo diferente); muda só o valor. Na base real, informado = resposta `sim` ou `nao` no campo "Este problema já ocorreu nos últimos 90 dias?"; `sem_resposta` e sem valor ficam fora do denominador. `cobertura.n`, `meses[].informados` e `total.n` passam a contar os incidentes com resposta.
 - Abaixo de 20 incidentes com resposta, `total` e cada mês saem `insuficiente` (nunca 0%); `statusMeta` = `sem-referencia`.
+
+### S8: contagem dos sem resposta (pedido 105, E7.237, decisão A do dono, 16/11)
+- Confirma a regra acima e substitui de vez a D-10 (sem resposta = não reincidente). Campo novo **opcional** em `resultadoS8`: `semResposta` (inteiro maior ou igual a 0) = incidentes do período sem resposta no campo, fora do denominador (`cobertura.total - cobertura.n`; 0 sem extensão). Mudança compatível (política de mudança de contrato, §2). O cartão mostra "N incidentes sem resposta no campo". Hoje: 195 incidentes, 186 sem resposta, 9 "não": amostra insuficiente (menos de 20 respondidos).
+- Versão de critério `105:S8-so-respondidos` (domínio `acelerato`, `afeta: ['S8']`), gravada pelo `ac:ref-sync`; marca o gráfico.
 - Critério versionado (T2.6): `066:S8-com-resposta`, afeta o S8, aparece em `criterios`; a `056:D-10` fica como histórico.
 
 ## Painel operacional com dado real (F6 do plano 052, E2.69)

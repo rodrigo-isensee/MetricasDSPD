@@ -97,6 +97,7 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(s8.statusMeta).toBe('sem-referencia')
     expect(s8.meses.every((m) => m.reabertos === 0 && m.taxa.status === 'insuficiente')).toBe(true)
     expect(s8.cobertura.n).toBe(0)
+    expect(s8.semResposta).toBe(0)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
     expect(s11.campoDisponivel).toBe(true) // pedido 105 (D6a): a avaliação é dado real
     expect(s11.conversao).not.toBeNull() // E7.101: a conversão sai do campo, com ou sem extensão
@@ -368,6 +369,63 @@ describe('Sustentação: S8 e S9', () => {
       expect(m.taxa.n).toBe(m.informados)
     }
     expect(r.meses.some((m) => m.informados < m.encerrados)).toBe(true)
+  })
+
+  describe('S8: só incidentes com resposta (pedido 105, E7.237, decisão A do dono)', () => {
+    const incidentes = base.ac.chamados.filter((c) => c.natureza === 'incidente' && !c.excluido)
+    /** Deixa exatamente `alvo` incidentes do período com resposta (os demais sem resposta); o primeiro respondido é "sim". */
+    function comRespondidos(alvo: number) {
+      const respondidosIds = new Set<string>()
+      const reabertoDe: Record<string, string> = {}
+      const calcular = (ids: ReadonlySet<string>) => {
+        const ausente: Record<string, true> = {}
+        for (const c of incidentes) if (!ids.has(c.chamado_id)) ausente[c.chamado_id] = true
+        return acelerato.calcularS8(ctxMock.ac, FS, {
+          ...ext.ac,
+          reabertoDe,
+          reincidenteAusente: ausente,
+        })
+      }
+      let respondidos = 0
+      for (const c of incidentes) {
+        if (respondidos === alvo) break
+        const tentativa = new Set(respondidosIds).add(c.chamado_id)
+        const n = calcular(tentativa).cobertura.n
+        if (n > respondidos) {
+          if (respondidos === 0) reabertoDe[c.chamado_id] = c.chamado_id
+          respondidosIds.add(c.chamado_id)
+          respondidos = n
+        }
+      }
+      expect(respondidos).toBe(alvo)
+      return calcular(respondidosIds)
+    }
+
+    it('sem resposta sai do denominador e vem contado em semResposta (total menos n)', () => {
+      const r = comRespondidos(25)
+      expect(r.cobertura.n).toBe(25)
+      expect(r.total.n).toBe(25)
+      expect(r.total.k).toBe(1)
+      expect(r.semResposta).toBe(r.cobertura.total - 25)
+      expect(r.semResposta).toBeGreaterThan(0)
+    })
+
+    it('borda: 19 respondidos não publica; 20 publica', () => {
+      const r19 = comRespondidos(19)
+      expect(r19.total.status).toBe('insuficiente')
+      expect(r19.statusMeta).toBe('sem-referencia')
+      expect(r19.semResposta).toBe(r19.cobertura.total - 19)
+      const r20 = comRespondidos(20)
+      expect(r20.total.status).toBe('ok')
+      expect(r20.total.n).toBe(20)
+    })
+
+    it('ninguém respondido: nunca 0% e semResposta é o total; sem extensão semResposta é 0', () => {
+      const r0 = comRespondidos(0)
+      expect(r0.total.status).toBe('insuficiente')
+      expect(r0.semResposta).toBe(r0.cobertura.total)
+      expect(acelerato.calcularS8(ctxMock.ac, FS, undefined).semResposta).toBe(0)
+    })
   })
 
   it('S9: pendência sem motivo informado vira "Não classificado"', () => {
