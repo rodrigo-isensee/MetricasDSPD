@@ -474,7 +474,7 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
   });
 
-  it('S5: O19 real devolve os 8 motivos, "não classificado" por último; abaixo de 20 bloqueios por motivo sem percentil e sem percentual', async () => {
+  it('S5: O19 real devolve os 12 motivos, "não classificado" por último; abaixo de 20 bloqueios por motivo sem percentil e sem percentual', async () => {
     const { app } = await real();
     const r = await app.inject('/api/v1/metricas/O19');
     expect(r.statusCode).toBe(200);

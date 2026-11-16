@@ -3,6 +3,7 @@ import { CALENDARIO_PADRAO } from '../core/calendario'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { instanteDeIso } from '../core/calendario'
 import {
+  calcularE5,
   calcularEIBM,
   calcularO1,
   calcularO3,
@@ -260,7 +261,7 @@ describe('WIP (O1)', () => {
       [
         {
           card_id: 'W2',
-          motivo: 'Janela de mudança',
+          motivo: 'Aguardando publicação GMUD',
           coluna_em_que_bloqueou: 'Em desenvolvimento',
           fornecedor: null,
           inicio: instanteDeIso('2026-10-06T09:00-03:00', CALENDARIO_PADRAO),
@@ -277,7 +278,7 @@ describe('WIP (O1)', () => {
     expect(ctx.idx.marcosPorId.get('W2')?.colunaAtual).toBe('Em desenvolvimento')
     expect(calcularBloqueados(ctx, F).itens[0]).toMatchObject({
       cardId: 'W2',
-      motivo: 'Janela de mudança',
+      motivo: 'Aguardando publicação GMUD',
     })
   })
 })
@@ -458,8 +459,6 @@ describe('granularidades (T7, T9)', () => {
         trilha: [['Aguardando priorização', '2026-08-02T09:00-03:00']],
       },
     ])
-    const f3 = base.cards.find((c) => c.card_id === 'F3')
-    if (f3) f3.adicionado_apos_inicio_pai = true
     const ctx = criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO)
     const t9 = calcularT9(ctx, F)
     expect(t9.projetos[0]).toMatchObject({
@@ -475,6 +474,32 @@ describe('granularidades (T7, T9)', () => {
     const t7 = calcularT7(ctx, F)
     expect(t7.kpis.frentesEmAndamento).toBe(1)
     expect(t7.histograma.status).toBe('insuficiente')
+    // E5 usa a mesma regra do T9 (105, K-376): F3 criada depois do início do projeto é a única adicionada
+    // (o campo adicionado_apos_inicio_pai da base real nunca é gravado e não é lido).
+    const e5 = calcularE5(ctx, F)
+    expect(e5.projetos[0]).toMatchObject({ frentesRestantes: 2, frentesAdicionadasAposInicio: 1 })
+  })
+
+  it('E5 (105, K-376): projeto sem início não tem frente adicionada; a criada antes e ligada depois é original', () => {
+    const base = umaBase([
+      {
+        id: 'P1',
+        gran: 'projeto',
+        criado: '2026-06-01T09:00-03:00',
+        trilha: [['Pronto para desenvolver', '2026-06-01T09:00-03:00']],
+      },
+      {
+        id: 'F1',
+        gran: 'frente',
+        pai: 'P1',
+        criado: '2026-08-02T09:00-03:00',
+        trilha: [['Aguardando priorização', '2026-08-02T09:00-03:00']],
+      },
+    ])
+    const f1 = base.cards.find((c) => c.card_id === 'F1')
+    if (f1) f1.adicionado_apos_inicio_pai = true
+    const e5 = calcularE5(criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO), F)
+    expect(e5.projetos[0]).toMatchObject({ frentesRestantes: 1, frentesAdicionadasAposInicio: 0 })
   })
 })
 

@@ -85,6 +85,15 @@ describe('allow-list do card (stg_card, 4a, M-1)', () => {
   });
 });
 
+describe('E7.214: campo 51 (Responsabilidade do Atraso) casado pelo value_id (dados fictícios)', () => {
+  const D = new Map([['51', new Map([['137', 'Interno'], ['138', 'Solicitante'], ['139', 'Terceiro']])]]);
+  it('casa os três value_id com o código do contrato e manda o value_id fora do catálogo para desconhecido', () => {
+    expect(reduzirCamposCustomizados([{ field_id: 51, values: [{ value_id: 137, position: 1 }] }], D)).toEqual([{ field_id: '51', valor: 'Interno' }]);
+    expect(reduzirCamposCustomizados([{ field_id: '51', values: [{ value_id: '139' }] }], D)).toEqual([{ field_id: '51', valor: 'Terceiro' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 51, values: [{ value_id: 999 }] }], D)).toEqual([{ field_id: '51', valor: 'desconhecido' }]);
+  });
+});
+
 describe('E7.203: campos 48 e 49 casados pelo value_id (dados fictícios)', () => {
   const D = new Map([
     ['48', new Map([['114', 'configuracao_ambiente'], ['122', 'outros']])],

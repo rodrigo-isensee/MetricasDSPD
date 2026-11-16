@@ -116,6 +116,32 @@ describe('S1 com a nota da Q-099-5b (pedido 099)', () => {
   })
 })
 
+describe('S1 com a contagem de fora da matriz (pedido 105, E7.238)', () => {
+  it('mostra cada número no seu lugar: outras escalas e sem prazo', async () => {
+    const fonte = Object.create(fonteDeTeste, {
+      obter: {
+        value: async (id: string, ...resto: unknown[]) => {
+          const r = await (
+            fonteDeTeste.obter as (...a: unknown[]) => Promise<Record<string, unknown>>
+          )(id, ...resto)
+          const c = structuredClone(r)
+          if (id === 'S1') c.foraDaMatriz = { outrasEscalas: 7, semPrazo: 3 }
+          return c
+        },
+      },
+    }) as typeof fonteDeTeste
+    renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    await waitFor(
+      () =>
+        expect(within(s1).getByTestId('s1-fora-da-matriz')).toHaveTextContent(
+          'Fora da conta: 7 de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e 3 sem prazo.',
+        ),
+      { timeout: 8000 },
+    )
+  })
+})
+
 describe('S1 sem a contagem de fora da matriz (pedido 105, E7.238)', () => {
   it('resultado sem foraDaMatriz mostra só o aviso da escala P1 a P5, sem número', async () => {
     const fonte = Object.create(fonteDeTeste, {

@@ -107,6 +107,13 @@ describe('S1 só na escala P1 a P5 (pedido 105, E7.238)', () => {
     expect(p3.restauracao.n).toBe(32)
   })
 
+  it('as exceções de registro posterior contam só dentro da escala P (as de outras escalas já estão fora)', () => {
+    const b = baseDe(30, (i) => ({ escala_p: i >= 10, excecao_sla_registro_posterior: i < 14 }))
+    const r = calcularS1(criarContextoAC(b, HOJE, CALENDARIO_PADRAO), F)
+    expect(r.excecoesForaDaApuracao).toBe(4)
+    expect(r.foraDaMatriz?.outrasEscalas).toBe(10)
+  })
+
   it('sem a marca da escala (mock e base semeada) vale a escala P: nada fica fora além do sem prioridade', () => {
     const r = calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO), F)
     expect(r.foraDaMatriz).toEqual({ outrasEscalas: 0, semPrazo: 0 })
