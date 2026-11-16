@@ -92,9 +92,22 @@ describe('E7.86: causa raiz (field 48, dropdown) na fronteira', () => {
     expect(reduzirCamposCustomizados([{ field_id: 48, value: 'Erro de lógica / codificação' }], D)).toEqual([{ field_id: '48', valor: 'erro_logica_codificacao' }]);
   });
   it('forma `values[]` (value_id ou texto da opção)', () => {
-    const D2 = new Map([['48', new Map([['12', 'outros']])]]);
-    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12 }] }], D2)).toEqual([{ field_id: '48', valor: 'outros' }]);
+    // o arquivo real só gera chaves por rótulo (texto da opção): `value_id` sozinho não casa e vira `desconhecido` (contado); com o rótulo junto, casa
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12 }] }], D)).toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12, value: 'Outros' }] }], D)).toEqual([{ field_id: '48', valor: 'outros' }]);
     expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 99, value: 'Outros' }] }], D)).toEqual([{ field_id: '48', valor: 'outros' }]);
+  });
+  it('valor desconhecido com texto em comment, text ou description não vaza: sai só o código do domínio ou `desconhecido`', () => {
+    const extras = { comment: DESCRICAO, text: DESCRICAO, description: DESCRICAO, label: DESCRICAO };
+    const r = reduzirCamposCustomizados([
+      { field_id: 48, value: 'Opção que não existe', ...extras },
+      { field_id: 48, values: [{ value_id: 'sem-chave', ...extras }], ...extras },
+      { field_id: 48, value: 'Outros', ...extras },
+    ], D);
+    expect(r).toEqual([{ field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'outros' }]);
+    expect(JSON.stringify(r)).not.toContain(DESCRICAO);
+    const card = registroCard({ card_id: 1, custom_fields: [{ field_id: 48, value: 'Opção que não existe', ...extras }] }, D);
+    expect(JSON.stringify(card)).not.toContain(DESCRICAO);
   });
   it('values[] com itens escalares (string ou número) casam pelo domínio; item que não é chave (nulo, booleano, lista) e value_id ou value que não são chave são ignorados', () => {
     const D3 = new Map([['48', new Map([['12', 'outros'], ['Efeito colateral', 'efeito_colateral']])]]);
