@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-vm-recomendados
-commit: 3c8267ae348c82a635614f601527f25d36b4daee
+commit: 0fb2e35aaefb3eada16ab83a96768b74376f70b6
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-16
@@ -11,9 +11,17 @@ data: 2026-11-16
 # Review de devops: recomendados da VM (K-388, E7.341)
 
 ## Parecer
-Aprovado, sem achado bloqueante. Dois recomendados sobre o roteiro de operação.
+Aprovado, sem achado bloqueante. Revalidado no head 0fb2e35a pelo delta (`forge-check parecer delta`): A1 e A2 atendidos; nada novo bloqueia.
 
-## Achados
+## Revalidação (delta 3c8267ae..0fb2e35a)
+- A1 atendido · `docs/devops/105-implantacao-vm.md`, passo 0 do rollback: para os quatro timers (`metricas-coleta-businessmap`, `metricas-coleta-acelerato`, `metricas-coleta-acelerato-releitura`, `metricas-referencias`, que conferem com os `.timer` de `deploy/systemd/`), manda esperar a coleta em curso, e o passo 4 religa os mesmos quatro.
+- A2 atendido · o pós-deploy restringe o `systemctl start` manual à primeira implantação e, no redeploy, manda ler a próxima rodada em `systemctl list-timers` em vez de colidir com ela. Cobre o risco; parar os timers no redeploy era só uma das saídas.
+- `-f docker-compose.prod.yml` · todo `docker compose` do roteiro o traz (grep: zero ocorrência sem ele); o `export COMPOSE_FILE` saiu e `COMPOSE_ENV_FILES` ficou. As unidades systemd seguem fixando os dois.
+- `deploy/sql/00_papeis_e_banco.sql` e gerador · `\set ON_ERROR_STOP on` e os `SET` de log (`log_statement none`, `log_min_duration_statement -1`, `log_min_error_statement panic`) vêm antes do `\getenv` e de qualquer comando com senha: o log do servidor não registra a senha nem em erro de `CREATE ROLE` ou com `log_min_duration_statement=0`. `btrim` recusa senha só de espaços e a mensagem diz isso. O SQL regenerado bate com o template do `.mjs` (lido à mão; sem `psql` no PATH, não executado). Os `SET` pedem superusuário, que o DBA é.
+- `server/tests/papeis-sql-senhas-log.test.ts` · fora do domínio de devops, não revisado aqui; vale o PQ do autor e o CI do PR (não afirmado).
+- Observação, sem bloqueio: no redeploy, o `up -d` recria `api` e `worker` com os timers ligados; a coleta roda no contêiner `coleta`, separado, então o risco é baixo. Convém janela fora do horário das rodadas.
+
+## Achados (primeira passada, 3c8267ae; ambos fechados acima)
 - A1 (recomendado) docs/devops/105-implantacao-vm.md:244 · o rollback não para os timers de coleta antes de restaurar o banco; uma coleta agendada no meio grava em banco em reconstrução. Sugestão: passo 0 `systemctl stop 'metricas-*.timer'`, religar após a conferência do passo 4.
 - A2 (recomendado) docs/devops/105-implantacao-vm.md:232 · o pós-deploy diz "antes de ligar ou religar os timers", mas num redeploy eles já estão ligados e o `systemctl start` manual pode coincidir com a rodada agendada. Sugestão: parar os timers no redeploy e religar no fim.
 
