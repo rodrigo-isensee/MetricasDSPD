@@ -41,3 +41,34 @@ describe('redact do logger: o comentário do apontamento e o nome de pessoa nunc
     expect(saida).toContain('[redigido]');
   });
 });
+
+describe('redact do logger: user_id, autor, texto e anexos do primeiro toque nunca chegam ao log (105, ADR 0020 R6-7, R-T6)', () => {
+  const MARCADOR = 'MARCADOR-TOQUE-LOG-105';
+  it.each([
+    ['*.user_id', { revisao: { user_id: MARCADOR } }],
+    ['*.author', { comentario: { author: { type: 'external', value: `${MARCADOR}@exemplo.invalido` } } }],
+    ['*.text', { comentario: { text: MARCADOR } }],
+    ['*.attachments', { comentario: { attachments: [{ name: MARCADOR }] } }],
+    ['*.*.user_id', { lote: { item: { user_id: MARCADOR } } }],
+    ['*.*.author', { lote: { item: { author: { value: MARCADOR } } } }],
+    ['*.*.text', { lote: { item: { text: MARCADOR } } }],
+    ['*.*.attachments', { lote: { item: { attachments: [{ name: MARCADOR }] } } }],
+    ['dentro de uma lista: *.*.user_id', { itens: [{ user_id: MARCADOR }] }],
+    ['dentro de uma lista: *.*.author', { itens: [{ author: { type: MARCADOR, value: MARCADOR } }] }],
+    ['dentro de uma lista: *.*.text', { itens: [{ text: MARCADOR }] }],
+    ['dentro de uma lista: *.*.attachments', { itens: [{ attachments: [{ name: MARCADOR }] }] }],
+  ])('%s', (_caminho, obj) => {
+    const saida = registrar(obj);
+    expect(saida).not.toContain(MARCADOR);
+    expect(saida).toContain('[redigido]');
+  });
+});
+
+describe('redact do logger: a chave no topo do objeto de log também é redigida (105, A1 do parecer 105-o22-coleta)', () => {
+  const MARCADOR = 'MARCADOR-TOPO-LOG-105';
+  it.each(['user_id', 'author', 'text', 'attachments', 'comment', 'comentario', 'realname', 'responsavel_nome'])('%s no topo', (chave) => {
+    const saida = registrar({ [chave]: { valor: MARCADOR } });
+    expect(saida).not.toContain(MARCADOR);
+    expect(saida).toContain('[redigido]');
+  });
+});
