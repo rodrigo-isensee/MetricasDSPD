@@ -6,7 +6,7 @@ Pedido 105, E7.86. Referência do arquivo `businessmap-dominio.json` (versão de
 A coleta incremental só lê cards com `last_modified` depois da marca d'água (`coleta.ts`). Um bug antigo, sem alteração, não ganha a causa raiz por ela. E o `bm:projetar` sozinho reprojeta o staging que já existe, no qual o campo 48 foi descartado na fronteira. Por isso a sequência inclui a carga inicial, que revisita todos os cards, bugs antigos incluídos.
 
 ## Sequência
-1. Forma do valor (E7.203, resolvido): a API devolve só `values[].value_id`, sem rótulo; o arquivo guarda o `value_id` de cada opção (campo 48: 114 a 125; campo 49: 126 a 131) e o casamento é por ele. `bm:spike` só confere; `value_id` novo no BusinessMap cai em `desconhecido` até o dono atualizar o arquivo.
+1. Forma do valor (E7.203, resolvido): a API devolve só `values[].value_id`, sem rótulo; o arquivo guarda o `value_id` de cada opção (campo 48: 114 a 125; campo 49: 126 a 131; campo 51 Responsabilidade do Atraso, E7.214: 137 a 139) e o casamento é por ele. `bm:spike` só confere; `value_id` novo no BusinessMap cai em `desconhecido` até o dono atualizar o arquivo.
 2. Conferência da versão da E7.5: confira em `ref_versao_criterio` que a versão da fase de detecção (2026-11-15, O15 em `afeta`) já existe. Se a base nunca a sincronizou, a tabela de fases entra sem marcar o O15 (o histórico é append-only); registre isso antes de seguir.
 3. `bm:ref-sync`: grava o domínio do campo 48 (13 linhas em `ref_dominio`) e a versão de critério.
 4. `bm:coleta carga-inicial` (com `--projetar`, se o modo estiver em uso): reabre os cards e grava staging novo com o campo 48 reduzido ao código do domínio. Não sobrescreve histórico; arquivados e excluídos permanecem.

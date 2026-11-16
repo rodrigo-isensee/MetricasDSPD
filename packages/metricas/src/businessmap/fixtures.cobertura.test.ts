@@ -28,6 +28,7 @@ import {
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_O18_VINCULOS,
   VERSAO_CRITERIO_T11_DADO_REAL,
+  VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
   VERSOES_DA_BIBLIOTECA,
 } from '../core/criterios'
 import { blocosDe } from './blocos'
@@ -150,35 +151,54 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.itens).toEqual([])
   })
 
-  it('O12 (interruptor ligado, futuro): acordo vencido sem classificação do atraso conta como "não classificado"', () => {
+  it('O12 (E7.214): com o campo 51 vindo em parte dos vencidos, a divisão é publicada e o vencido sem classificação conta como "não classificado"', () => {
     const base = umaBase([
       entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
-      entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
+      entregue('V2', 0, 3, { dataAcordada: em(1, '13:00') }),
+      entregue('V3', 0, 1, { dataAcordada: em(5, '12:00') }),
     ])
-    const r = calcularO12(ctxDe(base), F, true)
-    expect(r.totais.acordos).toBe(2)
-    expect(r.totais.vencidos).toBe(1)
-    expect(r.totais.porResponsabilidade?.naoClassificado).toBe(1)
+    const com = {
+      ...base,
+      cards: base.cards.map((c) =>
+        c.card_id === 'V1' ? { ...c, responsabilidade_atraso: 'Terceiro' as const } : c,
+      ),
+    }
+    const r = calcularO12(ctxDe(com), F, true)
+    expect(r.totais.acordos).toBe(3)
+    expect(r.totais.vencidos).toBe(2)
+    expect(r.totais.porResponsabilidade).toEqual({
+      Interno: 0,
+      Solicitante: 0,
+      Terceiro: 1,
+      naoClassificado: 1,
+    })
     expect(r.vencidosCausaInterna).toBe(0)
     expect(r.motivoResponsabilidade).toBeNull()
     expect(r.statusMeta).toBe('dentro')
   })
 
-  it('O12 (C5-o12-zero-falso): sem o campo no quadro a responsabilidade sai nula com o motivo, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
+  it('O12 (E7.214, C5-o12-zero-falso): ligado, mas sem nenhum vencido com o campo 51 preenchido, a responsabilidade sai nula com o motivo da data de início, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
     const base = umaBase([
       entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
       entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
     ])
     const r = calcularO12(ctxDe(base), F)
-    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(true)
     expect(r.totais.acordos).toBe(2)
     expect(r.totais.vencidos).toBe(1)
     expect(r.totais.porResponsabilidade).toBeNull()
     expect(r.meses.every((m) => m.porResponsabilidade === null)).toBe(true)
     expect(r.vencidosCausaInterna).toBeNull()
     expect(r.motivoResponsabilidade).toBe(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL)
+    expect(r.motivoResponsabilidade).toContain('16/11/2026')
     expect(r.statusMeta).toBe('sem-referencia')
     expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
+  })
+
+  it('O12 (T2.6, E7.214): a versão de critério da responsabilidade do atraso marca O12 e Visão geral', () => {
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL)
+    expect(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL.afeta).toEqual(['O12', 'VISAO_GERAL'])
+    expect(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL.data).toBe('2026-11-16')
   })
 
   it('O12 (T2.6): a versão de critério do prazo do card marca O12 e Visão geral', () => {

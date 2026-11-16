@@ -48,23 +48,29 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   const versoes = async (c: pg.PoolClient, sha: string): Promise<number> =>
     Number((await c.query(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [referenciaDaVersaoBm(sha)])).rows[0].n);
 
-  it('o arquivo real (campo 48 Causa Raiz com 12 opções, mapa priority -> severidade) grava as linhas do arquivo (o campo e suas 12 opções, 6 setores, 4 de prioridade, as colunas da fase de detecção e o motivo de bloqueio), registra a versão de critério sem métrica afetada (E7.86 é só coleta e projeção) e repetir não grava mais nada', async () => {
+  it('o arquivo real (campos 48 Causa Raiz com 12 opções, 49 Origem da Demanda com 6 e 51 Responsabilidade do Atraso com 3, mapa priority -> severidade) grava as linhas do arquivo (o campo e suas 12 opções, 6 setores, 4 de prioridade, as colunas da fase de detecção e o motivo de bloqueio), registra a versão de critério sem métrica afetada (E7.86 é só coleta e projeção) e repetir não grava mais nada', async () => {
     await comoRef(async (pool, c) => {
       const real = lerDominioBm();
       const a = real.arquivo;
       expect(a.setores).toHaveLength(6);
       expect(a.prioridade_severidade).toHaveLength(4);
       expect(a.fase_deteccao_coluna.length).toBeGreaterThan(0);
-      expect(a.campos).toHaveLength(1);
+      expect(a.campos).toHaveLength(3);
       expect(a.campos[0]).toMatchObject({ field_id: '48', coluna: 'causa_raiz' });
       expect(a.campos[0]!.valores).toHaveLength(12);
+      expect(a.campos[1]).toMatchObject({ field_id: '49', coluna: 'origem_demanda' });
+      expect(a.campos[1]!.valores).toHaveLength(6);
+      expect(a.campos[2]).toMatchObject({ field_id: '51', coluna: 'responsabilidade_atraso' });
+      expect(a.campos[2]!.valores.map((v) => [v.value_id, v.codigo])).toEqual([['137', 'Interno'], ['138', 'Solicitante'], ['139', 'Terceiro']]);
       // cada campo grava 1 linha de campo_customizado e uma por opção
       const doCampo = a.campos.length + a.campos.reduce((n, c) => n + c.valores.length, 0);
-      expect(doCampo).toBe(13);
-      const esperadas = doCampo + a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length;
-      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 1, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
-      expect(esperadas).toBe(370);
-      expect((await linhas(c, 'campo_customizado')).map((l) => [l.codigo, l.rotulo])).toEqual([['48', 'causa_raiz']]);
+      expect(doCampo).toBe(24);
+      // E7.203: mais uma linha por opção na lista `valor_id_<coluna>` (value_id -> código).
+      const doValueId = a.campos.reduce((n, c) => n + c.valores.length, 0);
+      const esperadas = doCampo + doValueId + a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length;
+      expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 3, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
+      expect(esperadas).toBe(402);
+      expect((await linhas(c, 'campo_customizado')).map((l) => [l.codigo, l.rotulo])).toEqual([['48', 'causa_raiz'], ['49', 'origem_demanda'], ['51', 'responsabilidade_atraso']]);
       expect((await linhas(c, 'causa_raiz')).map((l) => l.codigo).sort()).toEqual(a.campos[0]!.valores.map((v) => v.codigo).sort());
       expect((await linhas(c, 'fase_deteccao_coluna')).length).toBe(a.fase_deteccao_coluna.length);
       expect((await linhas(c, 'prioridade_severidade')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([

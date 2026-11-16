@@ -4,6 +4,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ## [Não publicado]
 
+### Adicionado
+
+- O12 pela responsabilidade do atraso (pedido 105, E7.214): o campo 51 "Responsabilidade do Atraso" do BusinessMap (dropdown: 137 Interno, 138 Solicitante, 139 Terceiro) é coletado pelo `value_id` em `responsabilidade_atraso`, e `RESPONSABILIDADE_ATRASO_COM_FONTE` fica `true`. Hoje nenhum card vem preenchido: enquanto nenhum vencido tiver o campo, o O12 segue com `porResponsabilidade` e `vencidosCausaInterna` nulos, `statusMeta = "sem-referencia"` e o motivo "aguardando o preenchimento do campo ... a contagem começa em 16/11/2026" (nunca 0); com ao menos um vencido classificado a divisão é publicada, e o vencido sem campo conta como não classificado. O campo 42 (Responsável CR, pessoa) continua fora. Versão de critério `criterio-2026-11-16-o12-responsabilidade-dado-real` (`afeta` O12 e VISAO_GERAL); depois do merge o dono roda `bm:ref-sync` para gravar o domínio do campo 51.
+
 ### Corrigido
 
 - Coleta do BusinessMap: os campos 48 (Causa Raiz) e 49 (Origem da Demanda) casam pelo `value_id`, que é o que a API manda nos cards (sem rótulo); antes o 48 casava pelo rótulo e a carga viraria tudo desconhecido. O arquivo de domínio guarda o `value_id` de cada opção (12 no 48, 6 no 49), `value_id` fora do catálogo vira desconhecido e é contado, e `origem_demanda` passa a ser coletada para o O14 ("Demanda nova" é demanda de valor, não falha). Versão de critério de 2026-11-16 marca O14 e O17 (pedido 105, E7.203).
