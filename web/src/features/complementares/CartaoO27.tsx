@@ -17,7 +17,6 @@ const cabecalho = (c: Coluna): string => `${c.tipo} (${c.n === 0 ? 'nenhum bug' 
 /** As 3 maiores causas por n, com todas as empatadas no 3º lugar; causa com n = 0 nunca entra. A ordem das linhas não muda. */
 function tresMaiores(causas: readonly Causa[]): ReadonlySet<string> {
   const positivas = causas.filter((c) => c.n > 0).map((c) => c.n)
-  if (positivas.length === 0) return new Set()
   const corte = [...positivas].sort((a, b) => b - a)[Math.min(2, positivas.length - 1)] as number
   return new Set(causas.filter((c) => c.n > 0 && c.n >= corte).map((c) => c.causa))
 }
@@ -67,7 +66,7 @@ function ColunaTipo({ c }: { c: Coluna }) {
       >
         {cabecalho(c)}
       </h3>
-      {c.causas && c.comCausa >= MINIMO ? (
+      {c.causas ? (
         <>
           <ListaDeCausas causas={c.causas} />
           <p className="text-sm text-texto-2" data-testid="o27-base">

@@ -2,7 +2,9 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { CATALOGO_CARTOES, cartaoPorIdGlobal } from '@metricas-dspd/contratos'
-import { renderizarApp } from '@/test/helpers'
+import { ContextoPreferenciasPainel, type PreferenciasPainel } from '@/components/ui'
+import { renderizarApp, renderizarCartao } from '@/test/helpers'
+import { LeiaJunto } from './LeiaJunto'
 
 vi.setConfig({ testTimeout: 60000 })
 
@@ -154,5 +156,35 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     const leia = await screen.findByTestId('leia-junto-o15')
     expect(within(leia).queryByRole('link', { name: /O27/ })).not.toBeInTheDocument()
     expect(within(leia).getAllByRole('link')).toHaveLength(2)
+  })
+
+  it('um par de outra visão diz a visão e a fonte, e o link leva à Sustentação (nenhum cartão do núcleo aponta para lá hoje)', async () => {
+    const u = userEvent.setup()
+    const o15 = CATALOGO_CARTOES.find((c) => c.id === 'o15')
+    const painel = {
+      painel: 'operacional',
+      cartoes: [{ ...o15, leiaJunto: ['o17'] }],
+      estaOculto: () => false,
+      irParaComplementar: () => undefined,
+    } as unknown as PreferenciasPainel
+    const a = renderizarCartao(
+      <ContextoPreferenciasPainel.Provider value={painel}>
+        <LeiaJunto id="o15" />
+      </ContextoPreferenciasPainel.Provider>,
+      { url: '/operacional?cadencia=semanal' },
+    )
+    const link = await screen.findByRole('link', {
+      name: /O17 .*visão Sustentação, fonte Acelerato/,
+    })
+    expect(link).toHaveTextContent(
+      'O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato',
+    )
+    expect(link).toHaveAccessibleName(
+      /^O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato\. Abre Mais métricas da visão Sustentação\.$/,
+    )
+    expect(link).toHaveAttribute('href', '/operacional?cadencia=sustentacao#o17')
+    await u.click(link)
+    expect(a.roteador.state.location.search).toContain('cadencia=sustentacao')
+    expect(a.roteador.state.location.hash).toBe('#o17')
   })
 })
