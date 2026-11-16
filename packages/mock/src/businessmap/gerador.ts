@@ -6,7 +6,12 @@ import type {
   ResponsabilidadeAtraso,
   TipoCard,
 } from '@metricas-dspd/contratos'
-import { FASES_DETECCAO, MOTIVOS_BLOQUEIO, ORIGENS_DEMANDA } from '@metricas-dspd/contratos'
+import {
+  FASES_DETECCAO,
+  MOTIVOS_FORNECEDOR,
+  MOTIVOS_BLOQUEIO,
+  ORIGENS_DEMANDA,
+} from '@metricas-dspd/contratos'
 import {
   CALENDARIO_PADRAO as cal,
   dataIso,
@@ -138,6 +143,12 @@ export function gerarBaseBusinessMap(
   const rngOrf = derivar(cfg.semente, 'businessmap/orfaos')
   const rngBug = derivar(cfg.semente, 'businessmap/bugs')
   const rngBlq = derivar(cfg.semente, 'businessmap/bloqueios')
+  /** Motivo dos bloqueios sem fornecedor: sorteio à parte, para o fluxo de `rngBlq` (volume e datas) seguir o de antes dos motivos do BusinessMap. */
+  const rngMotivo = derivar(cfg.semente, 'businessmap/bloqueios-motivo')
+  const rngMotivoForn = derivar(cfg.semente, 'businessmap/bloqueios-motivo-fornecedor')
+  const MOTIVOS_SEM_FORNECEDOR = MOTIVOS_BLOQUEIO.filter(
+    (m) => !(MOTIVOS_FORNECEDOR as readonly string[]).includes(m),
+  )
 
   const cards: DimCard[] = []
   const transicoes: FatoTransicao[] = []
@@ -295,16 +306,19 @@ export function gerarBaseBusinessMap(
       const durH = lognormal(rngBlq, 8, 0.9)
       let fim: number | null = hU(ini, durH)
       if (fim > fimAtivo) fim = card.concluido_em !== null ? card.concluido_em : null
-      const motivo = escolha(rngBlq, MOTIVOS_BLOQUEIO) as MotivoBloqueio
+      // 2 de cada 7 sorteios vão ao motivo de fornecedor (como antes, com os 7 do briefing); os outros 5 caem num dos 9 restantes; o de fornecedor escolhe um dos 2
+      const emFornecedor = escolha(rngBlq, [true, false, false, false, false, false, true])
+      const motivo: MotivoBloqueio = emFornecedor
+        ? escolha(rngMotivoForn, MOTIVOS_FORNECEDOR)
+        : escolha(rngMotivo, MOTIVOS_SEM_FORNECEDOR)
       const coluna = colunaEm(ini)
       bloqueios.push({
         card_id: card.card_id,
         motivo,
         coluna_em_que_bloqueou: coluna,
-        fornecedor:
-          motivo === 'Aguardando fornecedor' || motivo === 'Aguardando licença ou contrato'
-            ? escolha(rngBlq, FORNECEDORES)
-            : null,
+        fornecedor: (MOTIVOS_FORNECEDOR as readonly string[]).includes(motivo)
+          ? escolha(rngBlq, FORNECEDORES)
+          : null,
         inicio: ini,
         fim,
         duracao_horas_uteis: fim === null ? null : horasUteisEntre(ini, fim, cal),

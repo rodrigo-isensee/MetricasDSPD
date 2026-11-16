@@ -98,14 +98,22 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
     await projetar();
     const antes = await eventos();
     expect(await fatos()).toEqual([['não classificado', H(62), 2], ['não classificado', null, null], ['não classificado', H(60), 0]]);
-    await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('motivo_bloqueio', '7', '2020-01-01', 'Janela de mudança', 0)`);
+    await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('motivo_bloqueio', '7', '2020-01-01', 'Aguardando publicação GMUD', 0)`);
     await dono.query(`INSERT INTO ${E.core}.ref_calendario (nome, offset_minutos) VALUES ('4b', 0)`);
     await dono.query(`INSERT INTO ${E.core}.ref_calendario_aplicacao (dominio, classe, vigente_de, calendario_id) SELECT 'businessmap', 'fluxo', '2020-01-01', calendario_id FROM ${E.core}.ref_calendario WHERE nome = '4b'`);
     await projetar();
     expect(await eventos()).toEqual(antes);
-    expect(await fatos()).toEqual([['Janela de mudança', H(62), 1], ['Janela de mudança', null, null], ['Janela de mudança', H(60), 0]]);
+    expect(await fatos()).toEqual([['Aguardando publicação GMUD', H(62), 1], ['Aguardando publicação GMUD', null, null], ['Aguardando publicação GMUD', H(60), 0]]);
     expect((await projetar()).fatosBloqueio.inseridos).toBe(0);
     expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.fato_bloqueio WHERE motivo <> ALL($1)`, [[...MOTIVOS_BLOQUEIO_PUBLICADOS]])).rows[0].n)).toBe(0);
+  });
+
+  it('E7.210: o id 14 do mapa projeta Aguardando fornecedor no fato_bloqueio', async () => {
+    const a = novoId();
+    await versao(a, 60, { is_blocked: true, block_reason: { reason_id: 14 } }); await versao(a, 62);
+    await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('motivo_bloqueio', '14', '2020-01-01', 'Aguardando fornecedor', 0)`);
+    await projetar();
+    expect((await dono.query(`SELECT motivo FROM ${E.bm}.fato_bloqueio WHERE card_id = $1`, [a])).rows.map((r) => r.motivo)).toEqual(['Aguardando fornecedor']);
   });
 
   it('CA-075-1 ponta a ponta (SEG-A3): label, comment e user_id do block_reason não chegam a nenhuma tabela, ao log nem à falha', async () => {

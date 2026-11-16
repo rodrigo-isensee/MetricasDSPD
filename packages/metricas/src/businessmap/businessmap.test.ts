@@ -261,7 +261,7 @@ describe('WIP (O1)', () => {
       [
         {
           card_id: 'W2',
-          motivo: 'Janela de mudança',
+          motivo: 'Aguardando publicação GMUD',
           coluna_em_que_bloqueou: 'Em desenvolvimento',
           fornecedor: null,
           inicio: instanteDeIso('2026-10-06T09:00-03:00', CALENDARIO_PADRAO),
@@ -278,7 +278,7 @@ describe('WIP (O1)', () => {
     expect(ctx.idx.marcosPorId.get('W2')?.colunaAtual).toBe('Em desenvolvimento')
     expect(calcularBloqueados(ctx, F).itens[0]).toMatchObject({
       cardId: 'W2',
-      motivo: 'Janela de mudança',
+      motivo: 'Aguardando publicação GMUD',
     })
   })
 })

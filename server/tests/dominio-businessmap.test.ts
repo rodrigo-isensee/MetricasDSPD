@@ -48,7 +48,7 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     expect(listas['valor_id_causa_raiz']).toHaveLength(12);
     expect(listas['valor_id_origem_demanda']![0]).toEqual({ codigo: '126', rotulo: 'Erro em entrega anterior' });
     expect(listas['origem_demanda']![0]).toEqual({ codigo: 'Erro em entrega anterior', rotulo: '1. Erro em entrega anterior' });
-    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17']);
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17', 'BLOQUEADOS', 'O2', 'O19', 'T10', 'T12']);
   });
 
   it('E7.203: value_id repetido ou não numérico no arquivo é recusado', () => {
@@ -74,9 +74,12 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     expect(lido.arquivo.prioridade_severidade).toEqual([
       { codigo: '1', rotulo: 'Crítica' }, { codigo: '2', rotulo: 'Alta' }, { codigo: '3', rotulo: 'Média' }, { codigo: '4', rotulo: 'Baixa' },
     ]);
-    // 105 (E7.102 e E7.203): uma versão de critério marca a régua de tamanho (O8) e os campos 48 e 49 pelo value_id (O14, O17)
-    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17']);
+    // 105 (E7.102, E7.203 e E7.184): uma versão de critério marca a régua de tamanho (O8), os campos 48 e 49 pelo value_id (O14, O17)
+    // e os 11 motivos de bloqueio do BusinessMap (BLOQUEADOS, O2, O19, T10, T12)
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17', 'BLOQUEADOS', 'O2', 'O19', 'T10', 'T12']);
     expect(lido.arquivo.versao_criterio.descricao).toContain('105:tamanho-pela-regua-do-time');
+    expect(lido.arquivo.versao_criterio.descricao).toContain('motivos de bloqueio');
+    expect(lido.arquivo.motivo_bloqueio.map((m) => m.codigo)).toEqual(['1', '2', '3', '6', '7', '9', '10', '11', '12', '13', '14']);
     expect(lido.sha256).toBe(createHash('sha256').update(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')).digest('hex'));
     expect(TIPOS_SELECAO_UNICA).toEqual(['dropdown']);
   });
