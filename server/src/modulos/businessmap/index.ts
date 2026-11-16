@@ -13,7 +13,7 @@ export {
 } from './referencia.js';
 export { lerConferencia } from './conferencia.js';
 export { coletarCards, codigoDe, inicioDaCarga, dominiosDaColeta, ErroColetaBm, ESTADOS, SOBREPOSICAO_S, VERSAO_COLETOR, type DepsColeta, type ModoColeta, type ResultadoColeta } from './coleta.js';
-export { analisarArgumentos, etapaReferencia, executarColeta, type ArgsColeta, type DepsComando, type ResultadoComando } from './coleta-comando.js';
+export { analisarArgumentos, AVISO_APONTAMENTO_SEM_SAL, etapaReferencia, executarColeta, type ArgsColeta, type DepsComando, type ResultadoComando } from './coleta-comando.js';
 export {
   analisarArgumentosProjetor, carregarReferencia, executarProjetor, projetarBusinessMap, TABELAS_LIMPAS_NA_RECONSTRUCAO, VERSAO_PROJETOR,
   type DepsProjecao, type ResultadoProjecao,
@@ -22,4 +22,7 @@ export { instanteDoBm, projetarCard, FUSO_PADRAO_BM } from './normalizador.js';
 export { projetarUsuarios, resolverResponsaveis, PRAZO_RELEITURA_DIAS, type ResultadoUsuarios } from './usuarios.js';
 export { indiceTipoDaColuna, resolverTipoDasTransicoes, type VersaoTipoColuna, type TipoDaColuna, type TransicaoLida } from './tipo-coluna.js';
 export * from './apontamento/index.js';
+export { coletarToque, TETO_TOQUE_POR_EXECUCAO, VERSAO_COLETOR_TOQUE, type DepsToque, type ModoToque, type ResumoToque } from './toque-coleta.js';
+export { analisarArgumentosToque, executarCargaToque } from './toque-comando.js';
+export { gravarLeitura, projetarToque } from './toque-gravacao.js';
 export { lerDominioBm, analisarDominioBm, sincronizarDominioBm, dominiosDeLinhas, motivosDeLinhas, type ResultadoDominioBm } from './dominio-businessmap.js';

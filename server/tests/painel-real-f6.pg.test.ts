@@ -1,4 +1,5 @@
 import { MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL } from '@metricas-dspd/contratos';
+import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import type pg from 'pg';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -109,7 +110,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
   it('(d) FL2, FL3 e Visão geral respondem "sem dado real" na base real, nunca o número do seed (que só o modo mock explícito lê)', async () => {
     const mock = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const real = await app();
-    for (const id of ['T1', 'T7', 'E1', 'E2', 'VISAO_GERAL', 'O26']) {
+    for (const id of ['T7', 'E1', 'E2', 'VISAO_GERAL', 'O26']) {
       const a = await mock.inject(`/api/v1/metricas/${id}`);
       const b = await real.inject(`/api/v1/metricas/${id}`);
       expect(a.statusCode, id).toBe(200);
@@ -118,6 +119,17 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
       expect(b.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });
       expect(b.body, id).not.toBe(a.body);
     }
+  }, 60_000);
+
+  it('(d1) T1 entrou no mapa real (origem.ts): responde dado real, com a faixa semPrioridade do mesmo universo (E7.100)', async () => {
+    const real = await app();
+    const b = await real.inject('/api/v1/metricas/T1');
+    expect(b.statusCode).toBe(200);
+    const j = b.json() as { estado?: string; base: { n: number }; semPrioridade: { n: number; total: number }; classes: { n: number }[] };
+    expect(j.estado).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T1.safeParse(j).success).toBe(true);
+    expect(j.base.n).toBeGreaterThan(0);
+    expect(j.semPrioridade.total).toBe(j.base.n + j.semPrioridade.n);
   }, 60_000);
 
   it('(d2) O8 (A4, Q-099-4): o tempo em execução é o da base real (não o do seed) e a divisão por tamanho segue a regra por tipo (K-359)', async () => {

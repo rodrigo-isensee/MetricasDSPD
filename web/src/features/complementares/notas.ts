@@ -54,7 +54,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   O6: {
     oQueE: 'O quanto o prazo varia: a razão entre o P85 e o P50 do tempo de ciclo.',
     comoSeCalcula:
-      'P85 ÷ P50 do tempo de ciclo, por classe de serviço, na janela de percentis. Só com 20 itens ou mais.',
+      'P85 ÷ P50 do tempo de ciclo, por prioridade (Crítica, Alta, Média e Baixa), na janela de percentis. Só com 20 itens ou mais.',
     comoLer: 'Razão próxima de 1 é previsível; acima de 2,5 o prazo varia demais.',
     meta: 'Referência do briefing: abaixo de 2,5.',
     cuidados: 'Use junto com O3 e O8. Não compara times.',
@@ -116,11 +116,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   T6: {
     oQueE: 'Uma previsão de prazo ou de quantidade de itens a partir da vazão semanal real.',
     comoSeCalcula:
-      'Simulação de Monte Carlo sobre a vazão semanal de uma classe de serviço na janela de percentis. Mostra P50, P85 e P95; só com 20 itens ou mais.',
+      'Simulação de Monte Carlo sobre a vazão semanal de uma prioridade na janela de percentis. Mostra P50, P85 e P95; só com 20 itens ou mais.',
     comoLer: 'Para um compromisso externo use o P85. O P50 é uma chance de meio a meio.',
     meta: 'Compromisso externo no P85.',
     cuidados:
-      'Vale se o escopo não crescer. Uma classe por vez; stories de classes diferentes não se misturam.',
+      'Vale se o escopo não crescer. Uma prioridade por vez; stories de prioridades diferentes não se misturam. Cartão sem prioridade fica fora e é contado à parte.',
   },
   T8: {
     oQueE: 'O que a sprint entregou do que comprometeu, o que sobrou e o que entrou depois.',
@@ -235,9 +235,9 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'Quantos pedidos começaram antes de outros mais antigos e quanto esperaram os que foram ultrapassados.',
     comoSeCalcula:
-      'Só classe Padrão, mesmo tipo, na fila de cada equipe. Um início é "fora de ordem" se havia um pedido mais antigo ainda não iniciado. Espera: dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Percentual só com 20 inícios; P50 e P85 só com 20 ultrapassados no tipo. A classe vem da etiqueta do cartão; cartão sem etiqueta, ou com duas classes, não entra no cálculo.',
+      'Só a prioridade Média, mesmo tipo, na fila de cada equipe. Um início é "fora de ordem" se havia um pedido mais antigo ainda não iniciado. Espera: dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Percentual só com 20 inícios; P50 e P85 só com 20 ultrapassados no tipo. A prioridade é a do cartão no BusinessMap; cartão sem prioridade não entra no cálculo e é contado à parte.',
     comoLer:
-      'A ordem de chegada é a política da classe Padrão. Urgente, Prioritário e Prazo fixo têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
+      'A ordem de chegada vale para a prioridade Média. Crítica, Alta e Baixa têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
     meta: 'Sem meta numérica.',
     cuidados: 'Não aponta quem escolheu o que começar.',
   },
@@ -294,7 +294,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   T12: {
     oQueE: 'Quanto das demandas de cada área precisou de ida e volta antes de começar.',
     comoSeCalcula:
-      '"Ida e volta" é o bloqueio com motivo "Falta de informação no chamado" antes do início, ou o retorno do card da coluna de compromisso para o backlog. Por área solicitante, em ordem de volume. Percentual só com 20 demandas ou mais na área; abaixo, "k de n".',
+      '"Ida e volta" é o bloqueio com o motivo de ida e volta antes do início, ou o retorno do card da coluna de compromisso para o backlog. Por área solicitante, em ordem de volume. Percentual só com 20 demandas ou mais na área; abaixo, "k de n".',
     comoLer:
       'Mede a clareza do pedido que chega, para combinar com a área o que um pedido precisa trazer. Não é nota da área.',
     meta: 'Sem meta numérica.',

@@ -19,7 +19,12 @@ export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/boards\/\d+$/,
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
+  // Pedido 105 (O22, ADR 0020 R6-2): a lista de revisões do card (consulta própria CONSULTA_REVISOES, só `page`); o detalhe `/revisions/{n}` (card inteiro) continua fora.
+  // `/cards/{id}/comments` (o spike F1 o usa) tem consulta vazia própria (CONSULTA_VAZIA): nenhum parâmetro é aceito.
   /^\/cards\/\d+\/(revisions|comments)$/,
+  // Pedido 105 (O22, ADR 0020 R6-2, B7a): comentários em lote, só GET, com `card_ids` obrigatório (até 200) e `page` (CONSULTA_COMENTARIOS). A rota não tem
+  // `fields`: texto, anexos, autor e tipo chegam em memória e são cortados na fronteira por `CAMPOS_TOQUE` (allow-list.ts) antes de qualquer gravação ou log.
+  /^\/cards\/comments$/,
   // Pedido 059 (K-193, ADR 0025 item 1): do worklog, SÓ `/loggedTime`, com consulta própria (CONSULTA_WORKLOG). `/loggedTime/history`
   // (403 para a chave do dono no spike), `/loggedTimeCategories` (`category_id` nulo) e `/loggedTime/{id}` ficam fora da lista.
   /^\/loggedTime$/,
@@ -88,6 +93,23 @@ export const CONSULTA_WORKLOG: Readonly<Record<string, RegExp>> = {
   logged_to: DATA,
 };
 
+/**
+ * Pedido 105 (O22, ADR 0020 R6-2, A1 do parecer de segurança): `/cards/comments` aceita só `card_ids` (1 a 200 ids, obrigatório) e `page`.
+ * Sem `card_ids` a rota devolveria texto e autor (inclusive e-mail externo) dos comentários da conta inteira.
+ */
+export const CONSULTA_COMENTARIOS: Readonly<Record<string, RegExp>> = {
+  card_ids: LISTA_IDS,
+  page: /^\d{1,5}$/,
+};
+
+/** Pedido 105 (O22, ADR 0020 R6-2, A1 do parecer): a lista de revisões de um card aceita só `page`; filtro de quadro, de data ou `card_ids` é recusado antes da rede. */
+export const CONSULTA_REVISOES: Readonly<Record<string, RegExp>> = {
+  page: /^\d{1,5}$/,
+};
+
+/** Pedido 105 (O22, A3 do parecer 105-o22-coleta): os comentários de um card (`/cards/{id}/comments`, usado pelo spike F1) não aceitam parâmetro algum; qualquer um é recusado antes da rede. */
+export const CONSULTA_VAZIA: Readonly<Record<string, RegExp>> = {};
+
 /** Tamanho máximo de `user_ids` por chamada (o mesmo limite de `LISTA_IDS`). */
 export const LOTE_USER_IDS = 200;
 
@@ -110,6 +132,8 @@ export type TipoErroHttp =
   | 'http'
   | 'formato'
   | 'limite-paginas'
+  // Pedido 105 (O22, A3 do review do B7a): teto de páginas de UMA leitura do toque (a lista de um card ou o lote de comentários); não é o teto da execução (`limite-paginas`).
+  | 'limite-paginas-leitura'
   | 'limite-bytes'
   | 'limite-requisicoes';
 
@@ -240,7 +264,13 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
         ? CONSULTA_WORKLOG
         : caminho === '/cards'
           ? { ...CONSULTA_PERMITIDA, ...CONSULTA_CARDS }
-          : CONSULTA_PERMITIDA;
+          : caminho === '/cards/comments'
+            ? CONSULTA_COMENTARIOS
+            : /^\/cards\/\d+\/revisions$/.test(caminho)
+              ? CONSULTA_REVISOES
+              : /^\/cards\/\d+\/comments$/.test(caminho)
+                ? CONSULTA_VAZIA
+                : CONSULTA_PERMITIDA;
     const params = new URLSearchParams();
     for (const [nome, bruto] of Object.entries(consulta)) {
       const valor = String(bruto);
@@ -255,6 +285,10 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     // `/loggedTime` sem `card_ids` devolveria o worklog da conta inteira (minimização, ADR 0025 item 2); sem `fields`, campos fora da lista.
     if (caminho === '/loggedTime' && !(params.has('card_ids') && params.has('fields'))) {
       throw new ErroBusinessMap('consulta', '/loggedTime exige card_ids e fields fixo');
+    }
+    // `/cards/comments` sem `card_ids` devolveria os comentários da conta inteira (minimização, como o `/loggedTime`).
+    if (caminho === '/cards/comments' && !params.has('card_ids')) {
+      throw new ErroBusinessMap('consulta', '/cards/comments exige card_ids');
     }
     const q = params.toString();
     return `${base.origin}${prefixo}${caminho}${q === '' ? '' : `?${q}`}`;

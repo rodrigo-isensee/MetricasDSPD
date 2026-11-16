@@ -4,6 +4,7 @@ import { comTravaDaFonte } from '../../plataforma/db/trava.js';
 import type { ClienteHttp } from '../../plataforma/http.js';
 import { coletarCards, ErroColetaBm, inicioDaCarga, type ModoColeta, type ResultadoColeta } from './coleta.js';
 import type { ResultadoApontamento } from './apontamento/coleta.js';
+import type { ResumoToque } from './toque-coleta.js';
 import type { Conferencia } from './conferencia.js';
 import { projetarBusinessMap, type ResultadoProjecao } from './projetor.js';
 import {
@@ -71,6 +72,13 @@ export interface DepsComando {
    * Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão; o pool do coletor chega por argumento, o mesmo da coleta.
    */
   etapaApontamento?: (poolColetor: PoolLike) => Promise<ResultadoApontamento>;
+  /**
+   * Pedido 105 (O22, ADR 0020 R6-9): etapa do primeiro toque, depois dos cards e da projeção, sob a MESMA trava da fonte e com teto de chamadas próprio. Só roda no
+   * incremental com `--projetar` (o conjunto vem de `dim_card`) e se a coleta de cards não falhou. Falha conhecida dela vai em `toque.falha` por código.
+   */
+  etapaToque?: (poolColetor: PoolLike) => Promise<ResumoToque>;
+  /** Saída do aviso para o operador (a entrada liga ao log e ao stderr); recebe só texto fixo. */
+  avisar?: (mensagem: string) => void;
 }
 
 /**
@@ -93,7 +101,14 @@ export function etapaReferencia(
 /** Executa a coleta sob a trava da fonte; sem a trava, recusa (outra coleta do BusinessMap está rodando). */
 /** A etapa do worklog não pôde rodar: só o código (`sem-marca`, `dicionario`, `configuracao`...), nunca a mensagem. Os cards já estão gravados. */
 export interface FalhaEtapaApontamento { falha: string }
-export type ResultadoComando = ResultadoColeta & { projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | FalhaEtapaApontamento | null };
+export type ResultadoComando = ResultadoColeta & {
+  projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | FalhaEtapaApontamento | null; toque: ResumoToque | FalhaEtapaApontamento | null;
+  /** Avisos fixos da execução (só códigos, nunca valor de segredo). K-382: `apontamento-sem-sal` = etapa do Apontamento pulada por falta de `PESSOA_ELIMINADA_SAL`. */
+  avisos: string[];
+};
+
+export const AVISO_APONTAMENTO_SEM_SAL = 'apontamento-sem-sal';
+export const MENSAGEM_APONTAMENTO_SEM_SAL = 'etapa do Apontamento PULADA: PESSOA_ELIMINADA_SAL ausente (mínimo 32 bytes); o Apontamento fica sem dado até configurá-la';
 
 export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<ResultadoComando> {
   if (d.quadros.length === 0) throw new ErroColetaBm('configuracao', 'BUSINESSMAP_QUADROS_IDS vazio');
@@ -122,7 +137,22 @@ export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<
         apontamento = { falha: e.codigo };
       }
     }
-    return { ...coleta, projecao, apontamento };
+    // K-382: o Apontamento era esperado (incremental com --projetar, cards ok) e a etapa não existe por falta do sal: avisa em vez de sumir calada
+    const avisos: string[] = [];
+    if (args.modo === 'incremental' && args.projetar === true && coleta.estado !== 'falha' && d.etapaApontamento === undefined && d.sal === undefined) {
+      avisos.push(AVISO_APONTAMENTO_SEM_SAL);
+      d.avisar?.(MENSAGEM_APONTAMENTO_SEM_SAL);
+    }
+    let toque: ResumoToque | FalhaEtapaApontamento | null = null;
+    if (args.modo === 'incremental' && args.projetar === true && coleta.estado !== 'falha' && d.etapaToque !== undefined) {
+      try {
+        toque = await d.etapaToque(d.poolColetor);
+      } catch (e) {
+        if (!(e instanceof ErroColetaBm)) throw e;
+        toque = { falha: e.codigo };
+      }
+    }
+    return { ...coleta, projecao, apontamento, toque, avisos };
   });
   if (!r.executou) throw new ErroColetaBm('trava', 'outra coleta do BusinessMap em andamento');
   return r.valor;

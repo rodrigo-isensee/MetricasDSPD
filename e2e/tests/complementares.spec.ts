@@ -14,6 +14,9 @@ const PAINEIS = [
   { rota: '/operacional?cadencia=sustentacao', n: 6, ids: ['O17', 'S8', 'S9', 'S10', 'S11', 'S12'] },
 ] as const
 
+// Total de complementares do Operacional (visão semanal), lido da tabela acima: o cartão novo muda um só lugar.
+const N_OPERACIONAL = PAINEIS[0].n
+
 const TELAS = [
   { nome: '1280', width: 1280, height: 800 },
   { nome: '375', width: 375, height: 812 },
@@ -101,7 +104,7 @@ for (const tela of TELAS) {
       await page.goto('/preferencias')
       await expect(page.getByRole('heading', { level: 1, name: 'Preferências de métricas' })).toBeVisible()
       await expect(page.getByTestId('contador-sustentacao')).toContainText('6 de 6 complementares')
-      await expect(page.getByTestId('contador-operacional')).toContainText('14 de 14 complementares')
+      await expect(page.getByTestId('contador-operacional')).toContainText(`${N_OPERACIONAL} de ${N_OPERACIONAL} complementares`)
       await expect(page.getByTestId('grupo-sustentacao').getByRole('group', { name: 'Complementares' })).toBeVisible()
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
@@ -174,7 +177,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await painel.ir('/operacional?cadencia=semanal')
     await page.getByTestId('mais-metricas').locator('summary').click()
     await page.getByTestId('metrica-O6').getByRole('button', { name: 'Ocultar esta métrica O6' }).click()
-    await expect(page.getByText(/· 13 complementares/)).toBeVisible()
+    await expect(page.getByText(new RegExp(`· ${N_OPERACIONAL - 1} complementares`))).toBeVisible()
     await expect(page.getByTestId('leia-junto-o3').getByRole('link', { name: /O6/ })).toHaveCount(0)
   })
 

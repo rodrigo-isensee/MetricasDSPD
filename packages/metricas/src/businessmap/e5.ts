@@ -6,12 +6,19 @@ import { criarPrng, preverTermino } from '../core/montecarlo'
 import { ordenarNeutro } from '../core/ordenar'
 import { amostraBM } from './amostra'
 import { SEMENTE_PREVISAO, vazaoSemanal } from './apoio'
-import { baseAmostral, criterios, janelaPercentis, periodoDe, selecionar } from './comum'
+import {
+  baseAmostral,
+  criterios,
+  frenteAdicionadaAposInicio,
+  janelaPercentis,
+  periodoDe,
+  selecionar,
+} from './comum'
 import type { ContextoBM } from './indice'
 
 /**
  * E5: previsão de término de projeto (Monte Carlo, T2.5) pela vazão semanal de FRENTES concluídas
- * na janela, para as frentes restantes. Mostra sempre as frentes adicionadas depois do início (T9).
+ * na janela, para as frentes restantes. Mostra sempre as frentes adicionadas depois do início, pela regra do T9 (`frenteAdicionadaAposInicio`).
  */
 export function calcularE5(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE5 {
   const periodo = periodoDe(ctx, f)
@@ -33,7 +40,9 @@ export function calcularE5(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE5 {
         projetoId: p.card.card_id,
         projeto: p.card.titulo,
         frentesRestantes: restantes,
-        frentesAdicionadasAposInicio: fs.filter((m) => m.card.adicionado_apos_inicio_pai).length,
+        frentesAdicionadasAposInicio: fs.filter((m) =>
+          frenteAdicionadaAposInicio(m.card, p.card.iniciado_em),
+        ).length,
         previsao:
           restantes > 0
             ? preverTermino(amostra, restantes, 'semana', { prng: criarPrng(SEMENTE_PREVISAO) })

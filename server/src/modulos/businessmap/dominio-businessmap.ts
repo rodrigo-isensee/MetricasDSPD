@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { FASES_DETECCAO, METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, type FaseDeteccao, type MotivoBloqueio } from '@metricas-dspd/contratos';
+import { FASES_DETECCAO, METRICA_IDS, MOTIVOS_BLOQUEIO, SEVERIDADES, TAMANHOS_REGUA, type FaseDeteccao, type MotivoBloqueio } from '@metricas-dspd/contratos';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { CAMPO_SETOR_QUADRO, CODIGO_QUADRO, ErroDominio, planejarDominio, rotuloDeSetorSeguro, textoSeguro, type LinhaVigente } from '../referencia/index.js';
 import { CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
+import type { ReguaTamanho } from './normalizador.js';
 
 /**
  * Mapa `field_id` -> coluna de `dim_card` e domínios dos campos customizados do BusinessMap, carregados do arquivo versionado
@@ -38,6 +39,14 @@ export const CAMPO_FASE_DETECCAO_COLUNA = 'fase_deteccao_coluna';
  * `rotulo` = código do domínio da opção. Sem coluna nova nem GRANT novo; `varchar(40)` comporta o prefixo mais a maior coluna.
  */
 export const PREFIXO_VALOR_ID = 'valor_id_';
+/**
+ * Valor de `ref_dominio.campo` da régua de tamanho por time (pedido 105, E7.102): `codigo` = `<time_id>:<size>` (o id do time da carga inicial dos times, nunca o nome; o `size` nativo do card, com
+ * ponto para meio ponto, sem zero à esquerda nem à direita), `rotulo` = uma das seis faixas de `TAMANHOS_REGUA`. Valor de size fora da régua, card sem size e time sem régua ficam sem
+ * tamanho, contados, nunca M por omissão. A primeira carga e cada troca de linha são versão de critério (`afeta = ['O8']`) e pedem nova aprovação do dono.
+ */
+export const CAMPO_TAMANHO_REGUA = 'tamanho_regua';
+/** `<time_id>:<size>`: id de 1 a 10 dígitos sem zero à esquerda; size inteiro sem zero à esquerda (ou 0) com fração opcional de até 3 casas sem zero à direita. */
+export const CODIGO_TAMANHO_REGUA = /^[1-9]\d{0,9}:(?:0|[1-9]\d{0,3})(?:\.\d{0,2}[1-9])?$/;
 
 /**
  * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Pedido 105 (E7.86): o diagnóstico (`bm:diagnostico`, 2026-11-16) mostrou o
@@ -64,11 +73,14 @@ const criarCampo = (tipos: readonly string[]) =>
 // Só as 4 severidades do contrato; `priority` do BusinessMap é inteiro positivo sem zeros à esquerda (código de 1 a 3 dígitos; o mapa usa 1 a 4).
 const valorPrioridade = z.object({ codigo: z.string().regex(/^[1-9]\d{0,2}$/), rotulo: z.enum(SEVERIDADES) }).strict();
 
-// Só os 7 do briefing: nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
+// Só os motivos do BusinessMap (decisão B, 2026-11-16): nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
 const valorMotivo = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(MOTIVOS_BLOQUEIO) }).strict();
 
 // Pedido 105 (E7.5): `coluna_id` (só dígitos) -> uma das 5 fases do briefing 4.4; nunca texto livre.
 const valorFaseColuna = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(FASES_DETECCAO) }).strict();
+
+// Pedido 105 (E7.102): `<time_id>:<size>` -> uma das 6 faixas; nunca texto livre.
+const valorTamanhoRegua = z.object({ codigo: z.string().regex(CODIGO_TAMANHO_REGUA), rotulo: z.enum(TAMANHOS_REGUA) }).strict();
 
 // L10a do 097 (E7): quadro (codigo, só dígitos) -> setor (rotulo, sem sobrenome do responsável). Rótulo com o padrão de sobrenome é recusado.
 const valorSetor = z
@@ -93,9 +105,15 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
     setores: z.array(valorSetor).max(50).default([]),
     prioridade_severidade: z.array(valorPrioridade).max(20).default([]),
     fase_deteccao_coluna: z.array(valorFaseColuna).max(2000).default([]),
+    tamanho_regua: z.array(valorTamanhoRegua).max(1000).default([]),
   })
   .strict()
   .superRefine((d, ctx) => {
+    const chavesDaRegua = new Set<string>();
+    for (const [i, t] of d.tamanho_regua.entries()) {
+      if (chavesDaRegua.has(t.codigo)) ctx.addIssue({ code: 'custom', path: ['tamanho_regua', i, 'codigo'], message: 'chave repetida' });
+      chavesDaRegua.add(t.codigo);
+    }
     const prioridades = new Set<string>();
     for (const [i, p] of d.prioridade_severidade.entries()) {
       if (prioridades.has(p.codigo)) ctx.addIssue({ code: 'custom', path: ['prioridade_severidade', i, 'codigo'], message: 'priority repetido' });
@@ -186,6 +204,7 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
   listas[CAMPO_SETOR_QUADRO] = a.setores;
   listas[CAMPO_PRIORIDADE_SEVERIDADE] = a.prioridade_severidade;
   listas[CAMPO_FASE_DETECCAO_COLUNA] = a.fase_deteccao_coluna;
+  listas[CAMPO_TAMANHO_REGUA] = a.tamanho_regua;
   return listas;
 }
 
@@ -293,7 +312,7 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
 }
 
 /**
- * Leitura do mapa para o projetor (lote 4b), com a desconfiança do banco: só `reason_id` numérico e rótulo entre os 7 do briefing; `reason_id` ligado a
+ * Leitura do mapa para o projetor (lote 4b), com a desconfiança do banco: só `reason_id` numérico e rótulo entre os motivos do BusinessMap; `reason_id` ligado a
  * dois motivos é ignorado. Sem entrada, o motivo fica sem mapa e a tela mostra "não classificado". Nenhuma tradução no código: o mapa só vem do arquivo.
  */
 export function motivosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, MotivoBloqueio> {
@@ -340,4 +359,26 @@ export function fasesDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, F
   const mapa = new Map<string, FaseDeteccao>();
   for (const [id, f] of por) if (f !== null) mapa.set(id, f);
   return mapa;
+}
+
+/**
+ * Leitura da régua de tamanho para o projetor (pedido 105, E7.102), com a desconfiança do banco: só código `<time_id>:<size>` na forma canônica e rótulo entre as 6 faixas;
+ * chave ligada a duas faixas é ignorada (sem tamanho, nunca uma das duas). `times` é o conjunto de times que têm ao menos uma linha válida: time fora dele é "sem régua". Sem entrada
+ * nenhum card tem tamanho. Nenhuma tradução no código: a régua só vem do arquivo.
+ */
+export function reguaDeLinhas(linhas: readonly LinhaRefDominio[]): ReguaTamanho {
+  const validos = TAMANHOS_REGUA as readonly string[];
+  const por = new Map<string, string | null>();
+  for (const l of linhas) {
+    if (l.campo !== CAMPO_TAMANHO_REGUA || !CODIGO_TAMANHO_REGUA.test(l.codigo) || !validos.includes(l.rotulo)) continue;
+    por.set(l.codigo, por.has(l.codigo) && por.get(l.codigo) !== l.rotulo ? null : l.rotulo);
+  }
+  const faixas = new Map<string, string>();
+  const times = new Set<string>();
+  for (const [chave, faixa] of por) {
+    if (faixa === null) continue;
+    faixas.set(chave, faixa);
+    times.add(chave.slice(0, chave.indexOf(':')));
+  }
+  return { faixas, times };
 }

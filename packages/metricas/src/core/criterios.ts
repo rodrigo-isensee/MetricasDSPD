@@ -136,6 +136,15 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
 }
 
+/** Pedido 105 (E7.184, decisão B do dono, 2026-11-16): motivos de bloqueio do BusinessMap no lugar dos 7 do briefing. */
+export const VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-motivos-bloqueio-bm',
+  data: '2026-11-16',
+  descricao:
+    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (11 motivos, ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; o fornecedor do T10 são os motivos "Aguardando fornecedor" e "Dependência Externa"',
+  afeta: ['BLOQUEADOS', 'O2', 'O19', 'T10', 'T12'],
+}
+
 /** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
 export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-10-tendencia-fluxo-dado-real',
@@ -296,6 +305,19 @@ export const VERSAO_CRITERIO_T11_DADO_REAL: VersaoCriterio = {
 }
 
 /**
+ * Pedido 105 (E7.214): o O12 passa a dividir os vencidos pela responsabilidade do atraso lida do campo 51 do BusinessMap ("Responsabilidade do Atraso",
+ * casado pelo value_id); a parte só é publicada quando algum card vencido vem classificado, e a contagem começa em 16/11/2026. A Visão geral entra porque o
+ * alerta de vencidos por causa interna volta a poder ser gerado. Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-16-o12-responsabilidade-dado-real',
+  data: '2026-11-16',
+  descricao:
+    'O12 passou a dividir os vencidos pela responsabilidade do atraso (campo Responsabilidade do Atraso do BusinessMap: Interno, Solicitante, Terceiro); a divisão só é publicada quando algum card vencido vem classificado, e a contagem começa em 16/11/2026',
+  afeta: ['O12', 'VISAO_GERAL'],
+}
+
+/**
  * Pedido 105 (E7.218, O27 do dono de 2026-11-16): nasce o cartão "Causa raiz dos bugs" (BusinessMap, campo 48), distinto do O17 do Acelerato.
  * Entram os bugs (Bug interno e Defeito em produção) fechados, concluídos ou descartados, nas 12 semanas; "Não é bug" e "Outros" contam como causa;
  * sem causa fica de fora do denominador; cada tipo só publica a distribuição com 20 bugs com causa ou mais. Data provisória (a do PR): o dono confirma
@@ -320,6 +342,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
@@ -334,6 +357,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O18_VINCULOS,
   VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
   VERSAO_CRITERIO_T11_DADO_REAL,
+  VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
   VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG,
 ]
 

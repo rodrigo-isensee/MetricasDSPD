@@ -3,6 +3,7 @@ import { useMetrica } from '@/data'
 import { fmtData, fmtInteiro, fmtPct } from '@/lib/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
 import { Leia, LinkO15 } from './comuns'
+import { LeiaJunto } from './LeiaJunto'
 
 type Coluna = ResultadoO27['porTipo'][number]
 type Causa = NonNullable<Coluna['causas']>[number]
@@ -14,10 +15,15 @@ const bugs = (n: number): string => `${fmtInteiro(n)} ${n === 1 ? 'bug' : 'bugs'
 
 const cabecalho = (c: Coluna): string => `${c.tipo} (${c.n === 0 ? 'nenhum bug' : bugs(c.n)})`
 
+/** Rótulo do destaque pelo número real de linhas destacadas (empate no 3º lugar passa de 3). */
+const rotuloMaiores = (k: number): string =>
+  k === 1 ? 'Maior causa' : k <= 3 ? `${k} maiores` : `${k} maiores (empate no 3º lugar)`
+
 /** As 3 maiores causas por n, com todas as empatadas no 3º lugar; causa com n = 0 nunca entra. A ordem das linhas não muda. */
 function tresMaiores(causas: readonly Causa[]): ReadonlySet<string> {
   const positivas = causas.filter((c) => c.n > 0).map((c) => c.n)
-  const corte = [...positivas].sort((a, b) => b - a)[Math.min(2, positivas.length - 1)] as number
+  const corte = [...positivas].sort((a, b) => b - a)[Math.min(2, positivas.length - 1)]
+  if (corte === undefined) return new Set()
   return new Set(causas.filter((c) => c.n > 0 && c.n >= corte).map((c) => c.causa))
 }
 
@@ -35,7 +41,7 @@ function ListaDeCausas({ causas }: { causas: readonly Causa[] }) {
                 {fmtInteiro(c.n)} ({fmtPct(c.pct, 0)})
                 {destaque && (
                   <span className="ml-2 font-semibold text-acento" data-testid="o27-maior">
-                    3 maiores
+                    {rotuloMaiores(maiores.size)}
                   </span>
                 )}
               </span>
@@ -112,10 +118,10 @@ export function CartaoO27({ filtros }: { filtros: FiltrosFluxo }) {
             </div>
             <p className="text-sm text-texto-2">Por sistema: {r.motivoPorSistema}.</p>
             <Leia>
-              Leia junto com <LinkO15 />, Estoque e idade de bugs (O16) e, na visão Sustentação
-              (Acelerato), Causa raiz e concentração (O17).
+              O O15 é cartão do núcleo, no mesmo painel: <LinkO15 />.
             </Leia>
-            {marca && <p className="text-xs text-texto-2">Critério desde {fmtData(marca.data)}.</p>}
+            <LeiaJunto id="o27" />
+            {marca && <p className="text-sm text-texto-2">Critério desde {fmtData(marca.data)}.</p>}
           </div>
         )
       }}

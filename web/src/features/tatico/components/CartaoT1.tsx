@@ -1,6 +1,13 @@
-import { CLASSES_SERVICO, type FiltrosFluxo } from '@metricas-dspd/contratos'
+import { NIVEIS_PRIORIDADE_BM, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
-import { CartaoMetrica, SeletorLocal, TabelaDados, useCartaoVisivel } from '@/components/ui'
+import {
+  CartaoMetrica,
+  maioriaSemPrioridade,
+  SemPrioridade,
+  SeletorLocal,
+  TabelaDados,
+  useCartaoVisivel,
+} from '@/components/ui'
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { fmtDiasUteis, fmtInteiro, fmtPct, textoJanela } from '@/lib/formatar'
@@ -22,13 +29,13 @@ const DONOS = {
   Execução: 'Time de execução',
   Homologação: 'Validação do negócio',
 } as const
-const VALORES = CLASSES_SERVICO.map(slug)
+const VALORES = NIVEIS_PRIORIDADE_BM.map(slug)
 
 export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
   const t4Visivel = useCartaoVisivel('t4')
   const q = useMetrica('T1', filtros)
   const d = q.dados
-  const [aba, setAba] = useParametroLocal('t1', VALORES, 'padrao')
+  const [aba, setAba] = useParametroLocal('t1', VALORES, 'media')
   const classes = d?.classes ?? []
   const publicadas = classes.flatMap((c) =>
     c.estatistica.status === 'ok' ? [{ c, e: c.estatistica }] : [],
@@ -38,9 +45,11 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
   const atual = sel ?? publicadas[0]
   const janela = d?.janelaPercentis
   const leitura = sel
-    ? `Para a classe ${sel.c.classe}, a mediana do lead time é ${fmtDiasUteis(sel.e.valor.total.p50)}; ${fmtDiasUteis(sel.e.valor.blocos.fila)} de fila (mediana), ${fmtPct(sel.e.valor.fracaoFilaPct)} do tempo antes de a equipe assumir o pedido.`
+    ? `Para a prioridade ${sel.c.classe}, a mediana do lead time é ${fmtDiasUteis(sel.e.valor.total.p50)}; ${fmtDiasUteis(sel.e.valor.blocos.fila)} de fila (mediana), ${fmtPct(sel.e.valor.fracaoFilaPct)} do tempo antes de a equipe assumir o pedido.`
     : publicadas.length === 0 && d
-      ? 'Nenhuma classe tem amostra suficiente para publicar o lead time.'
+      ? maioriaSemPrioridade(d.semPrioridade)
+        ? 'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente para publicar o lead time.'
+        : 'Nenhuma prioridade tem amostra suficiente para publicar o lead time.'
       : undefined
   return (
     <CartaoMetrica
@@ -54,7 +63,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
         <div className="flex flex-col gap-3">
           {publicadas.length > 0 && (
             <Barras
-              descricao="Lead time por classe de serviço: mediana de cada bloco"
+              descricao="Lead time por prioridade: mediana de cada bloco"
               orientacao="horizontal"
               modo="empilhado"
               unidade="dias úteis"
@@ -90,7 +99,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
           {publicadas.length > 0 && (
             <SeletorLocal
               codigo="t1"
-              rotulo="Classe de serviço para o detalhe"
+              rotulo="Prioridade para o detalhe"
               valor={slug((atual as NonNullable<typeof atual>).c.classe)}
               onChange={setAba}
               itens={publicadas.map(({ c }) => ({
@@ -101,7 +110,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
             >
               {atual && (
                 <TabelaDados
-                  legenda={`Decomposição do lead time, classe ${atual.c.classe}`}
+                  legenda={`Decomposição do lead time, prioridade ${atual.c.classe}`}
                   colunas={[
                     { chave: 'bloco', titulo: 'Bloco' },
                     { chave: 'mediana', titulo: 'Mediana', alinhar: 'direita' },
@@ -116,6 +125,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
               )}
             </SeletorLocal>
           )}
+          <SemPrioridade {...d.semPrioridade} universo="entregues" codigo="T1" />
           <p className="text-sm text-texto-2">
             As medianas dos blocos e a mediana do total são medidas separadas; uma não é a soma da
             outra. Janela de percentis: {textoJanela(d.janelaPercentis)}.

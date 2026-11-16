@@ -266,10 +266,10 @@ const CLASSIFICADORES: Partial<Record<ChaveSegmentacao, Classificador>> = {
     de: (c: { tipo: string }) => c.tipo,
     rotulos: ['tipo', 'rotulo'],
   },
-  'classe-servico': {
+  'prioridade-bm': {
     dominio: 'businessmap',
     gran: 'story',
-    de: (c: { classe_servico: string }) => c.classe_servico,
+    de: (c: { prioridade: string | null }) => c.prioridade,
     rotulos: ['classe', 'rotulo'],
   },
   'tipo-projeto': {

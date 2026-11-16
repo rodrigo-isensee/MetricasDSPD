@@ -37,6 +37,13 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(new Date(c.data_acordada!).toISOString()).toBe('2026-10-05T20:00:00.000Z'); // 17:00 -03:00
     expect(cardDe({ ...cardNulo, quadro_id: 'q1', coluna_atual_id: 'cx' }, nomes).coluna_atual).toBe('cx');
   });
+  it('pedido 105 (E7.100): a prioridade do painel é a coluna severidade já projetada; nula e fora dos quatro níveis ficam sem prioridade, nunca Média', () => {
+    for (const nivel of ['Crítica', 'Alta', 'Média', 'Baixa']) expect(cardDe({ ...cardNulo, severidade: nivel }, new Map()).prioridade).toBe(nivel);
+    expect(cardDe({ ...cardNulo, severidade: null }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: 'Urgente' }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: '' }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: 'Alta' }, new Map())).toMatchObject({ severidade: 'Alta', prioridade: 'Alta' });
+  });
   it('transição: quadro da linha, do card ou desconhecido; sem coluna de origem', () => {
     const nomes = nomesDeColuna([col('q1', 'c1', 'Fila'), col('q1', 'c2', 'Feito')]);
     const base = { card_id: 'c1', tipo_coluna: 'fila', direcao: 'avanco', ocorrido_em: T.getTime(), coluna_destino_id: 'c2' };
@@ -54,9 +61,9 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(bloqueioDe({ ...b, card_id: 'zz' }, nomes, quadros).coluna_em_que_bloqueou).toBe('c1');
   });
   it('bloqueioDe: motivo desconhecido, vazio, nulo ou com marcador de pessoa sai "não classificado"; motivo do domínio passa', () => {
-    const b = { card_id: 'c1', motivo: 'Janela de mudança', coluna_em_que_bloqueou: null, fornecedor: null, inicio: T, fim: null, duracao_horas_uteis: null };
+    const b = { card_id: 'c1', motivo: 'Aguardando publicação GMUD', coluna_em_que_bloqueou: null, fornecedor: null, inicio: T, fim: null, duracao_horas_uteis: null };
     const de = (motivo: string | null) => bloqueioDe({ ...b, motivo }, new Map(), new Map()).motivo;
-    expect(de('Janela de mudança')).toBe('Janela de mudança');
+    expect(de('Aguardando publicação GMUD')).toBe('Aguardando publicação GMUD');
     for (const m of ['Fornecedor', '', null, 'MARCADOR-PESSOA-075']) expect(de(m)).toBe('não classificado');
   });
   it('colunas sem tipo ou sem papel conhecido não entram (o papel não se infere)', () => {

@@ -167,7 +167,7 @@ describe('O5 eficiência de fluxo', () => {
   it('separa execução, fila e bloqueio: a soma das horas é o ciclo', () => {
     const bloqueios: FatoBloqueio[] = Array.from({ length: 25 }, (_, i) => ({
       card_id: `C${i}`,
-      motivo: 'Aguardando fornecedor',
+      motivo: 'Dependência Externa',
       coluna_em_que_bloqueou: 'Em revisão',
       fornecedor: null,
       inicio: Date.parse('2026-09-03T08:00-03:00'),
@@ -234,7 +234,16 @@ describe('O6 previsibilidade e O8 tamanho', () => {
     const r = calcularMetrica('O8', F, { bm: com, ac: ctxMock.ac })
     expect(r.motivoPorTamanho).toBeNull()
     const t = r.tipos[0]
-    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual(['M', 'Sem tamanho'])
+    // 105 (E7.102): as seis faixas sempre, depois "Sem tamanho" (aqui com entregas)
+    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual([
+      'PP',
+      'P',
+      'M',
+      'G',
+      'GG',
+      'XG',
+      'Sem tamanho',
+    ])
     expect(t?.porTamanho?.find((x) => x.tamanho === 'M')?.mediana).not.toBeNull()
     expect(t?.porTamanho?.find((x) => x.tamanho === 'Sem tamanho')?.mediana).toBeNull()
   })

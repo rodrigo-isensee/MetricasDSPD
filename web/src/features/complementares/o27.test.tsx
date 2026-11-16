@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { CAUSAS_RAIZ_BUG } from '@metricas-dspd/contratos'
+import { CATALOGO_CARTOES, CAUSAS_RAIZ_BUG } from '@metricas-dspd/contratos'
+import { ContextoPreferenciasPainel, type PreferenciasPainel } from '@/components/ui'
 import { FILTROS_FLUXO, COMUM, FonteFixa } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
 import { CartaoO27 } from './CartaoO27'
@@ -43,10 +44,20 @@ const dto = (porTipo: unknown[], criterios: Criterios = COMUM.criterios) => ({
   motivoPorSistema: 'aguardando o campo Sistema afetado no BusinessMap',
 })
 
+const painelOperacional = {
+  painel: 'operacional',
+  cartoes: CATALOGO_CARTOES.filter((c) => c.painel === 'operacional'),
+  estaOculto: () => false,
+  irParaComplementar: () => undefined,
+} as unknown as PreferenciasPainel
+
 async function abrir(porTipo: unknown[], criterios?: Criterios) {
-  renderizarCartao(<CartaoO27 filtros={FILTROS_FLUXO} />, {
-    fonte: new FonteFixa({ O27: dto(porTipo, criterios) }),
-  })
+  renderizarCartao(
+    <ContextoPreferenciasPainel.Provider value={painelOperacional}>
+      <CartaoO27 filtros={FILTROS_FLUXO} />
+    </ContextoPreferenciasPainel.Provider>,
+    { fonte: new FonteFixa({ O27: dto(porTipo, criterios) }) },
+  )
   const cartao = await screen.findByTestId('metrica-O27')
   await waitFor(() => expect(cartao).toHaveAttribute('data-estado', 'ok'))
   return cartao
@@ -113,7 +124,44 @@ describe('O27 Causa raiz dos bugs', () => {
       coluna('Defeito em produção', PRODUCAO, 0),
     ])
     const col = within(screen.getByTestId('o27-coluna-interno'))
-    expect(col.getAllByTestId('o27-maior')).toHaveLength(4)
+    const marcas = col.getAllByTestId('o27-maior')
+    expect(marcas).toHaveLength(4)
+    for (const m of marcas) expect(m).toHaveTextContent('4 maiores (empate no 3º lugar)')
+    expect(col.queryByText('3 maiores')).not.toBeInTheDocument()
+  })
+
+  it('rotula o destaque pelo número real: 3 maiores sem empate, maior causa quando só uma tem bug', async () => {
+    await abrir([
+      coluna('Bug interno', INTERNO, 7),
+      coluna('Defeito em produção', [0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0),
+    ])
+    for (const m of within(screen.getByTestId('o27-coluna-interno')).getAllByTestId('o27-maior'))
+      expect(m).toHaveTextContent(/^3 maiores$/)
+    const so = within(screen.getByTestId('o27-coluna-producao')).getAllByTestId('o27-maior')
+    expect(so).toHaveLength(1)
+    expect(so[0]).toHaveTextContent('Maior causa')
+  })
+
+  it('sem nenhuma causa com bug, nada é destacado', async () => {
+    await abrir([coluna('Bug interno', [], 0), coluna('Defeito em produção', [], 0)])
+    expect(screen.queryByTestId('o27-maior')).not.toBeInTheDocument()
+  })
+
+  it('leia junto pelo catálogo: links para O15, O16 e O17 dentro do cartão', async () => {
+    const cartao = await abrir([
+      coluna('Bug interno', INTERNO, 7),
+      coluna('Defeito em produção', PRODUCAO, 0),
+    ])
+    const o15 = within(cartao).getByRole('link', { name: 'Onde os bugs são encontrados (O15)' })
+    expect(o15).toHaveAttribute('href', '#o15')
+    const leia = within(cartao).getByTestId('leia-junto-o27')
+    const links = within(leia).getAllByRole('link')
+    expect(links.map((a) => a.textContent)).toEqual([
+      'O16 Estoque e idade de bugs',
+      'O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato',
+    ])
+    expect(links[0]).toHaveAttribute('href', expect.stringContaining('#o16'))
+    expect(links[1]).toHaveAttribute('href', expect.stringContaining('#o17'))
   })
 
   it('mostra "Causa não informada" fora da distribuição, inclusive com 0 (CA-4)', async () => {

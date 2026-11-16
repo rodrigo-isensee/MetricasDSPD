@@ -2924,13 +2924,17 @@
                                   {
                                     "type": "string",
                                     "enum": [
+                                      "Aguardando ação interna do time",
+                                      "Aguardando outro setor/equipe",
+                                      "Bug identificado",
+                                      "Parada por repriorização de atividade",
+                                      "Aguardando publicação GMUD",
+                                      "Dependências das Áreas - Unifique",
+                                      "Dependências outro time Dev",
+                                      "Dependência Externa",
+                                      "Dependência do próprio time",
+                                      "Não conformidade",
                                       "Aguardando fornecedor",
-                                      "Aguardando validação do negócio",
-                                      "Aguardando ambiente ou infraestrutura",
-                                      "Dependência de outra demanda",
-                                      "Falta de informação no chamado",
-                                      "Janela de mudança",
-                                      "Aguardando licença ou contrato",
                                       "não classificado"
                                     ]
                                   },
@@ -3538,13 +3542,17 @@
                               "motivo": {
                                 "type": "string",
                                 "enum": [
+                                  "Aguardando ação interna do time",
+                                  "Aguardando outro setor/equipe",
+                                  "Bug identificado",
+                                  "Parada por repriorização de atividade",
+                                  "Aguardando publicação GMUD",
+                                  "Dependências das Áreas - Unifique",
+                                  "Dependências outro time Dev",
+                                  "Dependência Externa",
+                                  "Dependência do próprio time",
+                                  "Não conformidade",
                                   "Aguardando fornecedor",
-                                  "Aguardando validação do negócio",
-                                  "Aguardando ambiente ou infraestrutura",
-                                  "Dependência de outra demanda",
-                                  "Falta de informação no chamado",
-                                  "Janela de mudança",
-                                  "Aguardando licença ou contrato",
                                   "não classificado"
                                 ]
                               },
@@ -10739,6 +10747,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "alvoMax": {
                           "type": "number"
                         },
@@ -10750,10 +10774,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -10910,6 +10934,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "alvoMax",
                         "classes"
                       ],
@@ -11502,9 +11527,12 @@
                                         "tamanho": {
                                           "type": "string",
                                           "enum": [
+                                            "PP",
                                             "P",
                                             "M",
                                             "G",
+                                            "GG",
+                                            "XG",
                                             "Sem tamanho"
                                           ]
                                         },
@@ -14516,13 +14544,17 @@
                               "motivo": {
                                 "type": "string",
                                 "enum": [
+                                  "Aguardando ação interna do time",
+                                  "Aguardando outro setor/equipe",
+                                  "Bug identificado",
+                                  "Parada por repriorização de atividade",
+                                  "Aguardando publicação GMUD",
+                                  "Dependências das Áreas - Unifique",
+                                  "Dependências outro time Dev",
+                                  "Dependência Externa",
+                                  "Dependência do próprio time",
+                                  "Não conformidade",
                                   "Aguardando fornecedor",
-                                  "Aguardando validação do negócio",
-                                  "Aguardando ambiente ou infraestrutura",
-                                  "Dependência de outra demanda",
-                                  "Falta de informação no chamado",
-                                  "Janela de mudança",
-                                  "Aguardando licença ou contrato",
                                   "não classificado"
                                 ]
                               },
@@ -17103,6 +17135,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "inicios": {
                           "oneOf": [
                             {
@@ -17402,6 +17450,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "inicios",
                         "meses",
                         "marcacoes",
@@ -19842,6 +19891,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19850,10 +19915,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -20039,6 +20104,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -20464,6 +20530,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -20472,10 +20554,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "sle": {
@@ -20639,6 +20721,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -21545,6 +21628,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -21553,10 +21652,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -21825,6 +21924,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -24356,6 +24456,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "entradas": {
                           "type": "object",
                           "properties": {
@@ -24386,10 +24502,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -24748,6 +24864,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "entradas",
                         "classes"
                       ],

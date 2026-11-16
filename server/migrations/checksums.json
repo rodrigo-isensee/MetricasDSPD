@@ -36,5 +36,6 @@
   "0035_ac_previsao_retorno_booleano": "6082cd4b2f56d2256b895fe9a8e3e4931ddc9bac1b24dd412b710e822183cfdc",
   "0036_ac_alvo_prioridade_unidade": "b5f73459f01899f9b90e5beeecc2e57ea4f888051af5565529ca999d728b2e66",
   "0037_ac_alvo_prioridade_exibicao": "f178a5167224abb7ddea6bdde976cfe2e3f3c8664b129c0353405b8debce02d4",
-  "0038_ac_dim_chamado_fluxo": "e04d08d709e4bf294cb0dec19eeaca837304d531accc42fec43a2c7cdc2797a2"
+  "0038_ac_dim_chamado_fluxo": "e04d08d709e4bf294cb0dec19eeaca837304d531accc42fec43a2c7cdc2797a2",
+  "0039_bm_toque_primeiro": "9a1535b7cbc395e455fa800536624ed17932ad6e5dcf1f9ad82cb7cb2eec7f67"
 }

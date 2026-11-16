@@ -8,9 +8,11 @@ import type {
   ClasseServico,
   FaseDeteccao,
   Granularidade,
+  NivelPrioridadeBM,
   MotivoBloqueioPublicado,
   OrigemDemanda,
   ResponsabilidadeAtraso,
+  TamanhoRegua,
   TipoCard,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
@@ -19,6 +21,7 @@ export interface DimCard {
   card_id: string
   titulo: string // extensão (fictício; a UI mostra código e título)
   tipo: TipoCard
+  /** Coluna legada (etiquetas); o painel não a lê mais desde o pedido 105 (E7.100): a separação é pela `prioridade`. */
   classe_servico: ClasseServico
   sistema: string
   area_solicitante: string
@@ -32,7 +35,7 @@ export interface DimCard {
   arquivado_em: number | null
   motivo_descarte: string | null
   responsaveis: string[]
-  tamanho_declarado: 'P' | 'M' | 'G' | null
+  tamanho_declarado: TamanhoRegua | null // 105 (E7.102): a faixa da régua do time do card, a partir do `size` nativo; nulo = sem tamanho
   // extensões 4.4 / necessidades do núcleo
   granularidade: Granularidade
   equipe: string
@@ -44,7 +47,12 @@ export interface DimCard {
   responsabilidade_atraso: ResponsabilidadeAtraso | null
   origem_demanda: OrigemDemanda | null
   fase_deteccao: FaseDeteccao | null
-  severidade: 'Crítica' | 'Alta' | 'Média' | 'Baixa' | null
+  severidade: NivelPrioridadeBM | null
+  /**
+   * Pedido 105 (E7.100): prioridade nativa do BusinessMap (a mesma projeção da `severidade`, lida da coluna `dim_card.severidade`).
+   * Nula = card sem prioridade: fica fora da separação por nível e é contado à parte, nunca Média por omissão. Estado atual do card.
+   */
+  prioridade: NivelPrioridadeBM | null
   origem_bug: string | null
   /** Causa raiz do bug (campo 48 do BusinessMap, código do domínio `CAUSAS_RAIZ_BUG`); `null` = não informada ou valor fora do domínio. Só o código, nunca a descrição de "Outros". */
   causa_raiz: string | null
@@ -103,7 +111,8 @@ export interface AlocacaoAcordada {
 }
 
 export interface SlePublicado {
-  classe: ClasseServico
+  /** Nível da prioridade nativa do BusinessMap (E7.100). */
+  classe: NivelPrioridadeBM
   dias_uteis: number | null // null = sem SLE publicado para a classe
   publicado_em: string
 }
