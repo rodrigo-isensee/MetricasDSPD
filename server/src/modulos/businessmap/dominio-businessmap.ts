@@ -35,10 +35,10 @@ export const CAMPO_PRIORIDADE_SEVERIDADE = 'prioridade_severidade';
 export const CAMPO_FASE_DETECCAO_COLUNA = 'fase_deteccao_coluna';
 
 /**
- * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Vazia até o diagnóstico (P-L2-1) mostrar os
- * tipos reais; o PR que preencher o arquivo preenche esta constante, com parecer de segurança. Vazia, toda carga com campo é recusada.
+ * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Pedido 105 (E7.86): o diagnóstico (`bm:diagnostico`, 2026-11-16) mostrou o
+ * campo 48 "Causa Raiz" como `dropdown`; só esse tipo é aceito, com parecer de segurança. Campo de outro tipo é recusado na carga do arquivo.
  */
-export const TIPOS_SELECAO_UNICA: readonly string[] = [];
+export const TIPOS_SELECAO_UNICA: readonly string[] = ['dropdown'];
 
 const ID_CAMPO = /^\d{1,10}$/;
 // Mesma regra de `textoSeguro` para o código lido do banco: sem controle, invisível, separador de linha nem arroba.

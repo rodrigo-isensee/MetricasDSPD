@@ -85,6 +85,34 @@ describe('allow-list do card (stg_card, 4a, M-1)', () => {
   });
 });
 
+describe('E7.86: causa raiz (field 48, dropdown) na fronteira', () => {
+  const D = new Map([['48', new Map([['Erro de lógica / codificação', 'erro_logica_codificacao'], ['Outros', 'outros']])]]);
+  const DESCRICAO = 'descricao-livre-de-outros-ZZ-NUNCA';
+  it('forma escalar `value` (texto da opção)', () => {
+    expect(reduzirCamposCustomizados([{ field_id: 48, value: 'Erro de lógica / codificação' }], D)).toEqual([{ field_id: '48', valor: 'erro_logica_codificacao' }]);
+  });
+  it('forma `values[]` (value_id ou texto da opção)', () => {
+    const D2 = new Map([['48', new Map([['12', 'outros']])]]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 12 }] }], D2)).toEqual([{ field_id: '48', valor: 'outros' }]);
+    expect(reduzirCamposCustomizados([{ field_id: 48, values: [{ value_id: 99, value: 'Outros' }] }], D)).toEqual([{ field_id: '48', valor: 'outros' }]);
+  });
+  it('a descrição de Outros e qualquer texto extra são descartados; valor fora da lista vira desconhecido, nunca o texto', () => {
+    const r = reduzirCamposCustomizados([
+      { field_id: 48, value: 'Outros', comment: DESCRICAO, text: DESCRICAO, values: [{ value_id: 1, description: DESCRICAO }] },
+      { field_id: 48, value: DESCRICAO },
+      { field_id: 48, values: [{ value_id: 77, description: DESCRICAO }] },
+      { field_id: 48 },
+    ], D);
+    expect(r).toEqual([
+      { field_id: '48', valor: 'outros' }, { field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'desconhecido' }, { field_id: '48', valor: 'desconhecido' },
+    ]);
+    expect(JSON.stringify(r)).not.toContain(DESCRICAO);
+    const card = registroCard({ card_id: 1, custom_fields: [{ field_id: 48, value: DESCRICAO }, { field_id: 40, value: 'x' }] }, D);
+    expect(JSON.stringify(card)).not.toContain(DESCRICAO);
+    expect(card.custom_fields).toEqual([{ field_id: '48', valor: 'desconhecido' }]);
+  });
+});
+
 describe('campos customizados (4d, B-5)', () => {
   it('campo fora da lista de referência não entra; valor fora do domínio grava `desconhecido`, nunca o texto', () => {
     const r = registroCard(CARD_API, DOMINIOS);
