@@ -11516,9 +11516,12 @@
                                         "tamanho": {
                                           "type": "string",
                                           "enum": [
+                                            "PP",
                                             "P",
                                             "M",
                                             "G",
+                                            "GG",
+                                            "XG",
                                             "Sem tamanho"
                                           ]
                                         },

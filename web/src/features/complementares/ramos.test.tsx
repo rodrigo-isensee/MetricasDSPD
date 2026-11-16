@@ -23,13 +23,17 @@ import { CartaoO17, CartaoS10, CartaoS12, CartaoS8, CartaoS9 } from './sustentac
 
 vi.setConfig({ testTimeout: 45000 })
 
-const categoriasDaBarras = vi.hoisted(() => ({ chamadas: [] as string[][] }))
+const categoriasDaBarras = vi.hoisted(() => ({
+  chamadas: [] as string[][],
+  series: [] as string[][],
+}))
 vi.mock('@/components/charts/Barras', async (original) => {
   const m = await original<typeof import('@/components/charts/Barras')>()
   return {
     ...m,
     Barras: (p: Parameters<typeof m.Barras>[0]) => {
       categoriasDaBarras.chamadas.push(p.categorias.map((c) => c.rotulo))
+      categoriasDaBarras.series.push(p.series.map((x) => x.chave))
       return m.Barras(p)
     },
   }
@@ -370,7 +374,7 @@ describe('ramos dos componentes complementares', () => {
     expect(nota.tagName).toBe('P')
     expect(nota.closest('svg')).toBeNull()
     expect(nota).toHaveTextContent(
-      /^Sem divisão por tamanho: .+\. Nenhum card concluído desse tipo, no período, tem tamanho declarado no quadro\. A mediana e o P85 dele estão na tabela acima\.$/,
+      /^Sem divisão por tamanho: .+\. Nenhum card concluído desse tipo, no período, tem tamanho na régua do time\. A mediana e o P85 dele estão na tabela acima\.$/,
     )
     expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
     const tipo = nota.textContent.match(/tamanho: (.+?)\./)![1]!
@@ -389,6 +393,86 @@ describe('ramos dos componentes complementares', () => {
       /^Sem divisão por tamanho: [^,]+, [^,]+?\. Nenhum card concluído desses tipos/,
     )
     expect(nota.textContent.replace('P85', '')).not.toMatch(/\d|%|zero/i)
+  })
+
+  const SEIS = ['PP', 'P', 'M', 'G', 'GG', 'XG']
+  const comFaixas = (faixas: Qualquer[]) =>
+    new FonteAjustada({
+      O8: (r: Qualquer) => {
+        r.motivoPorTamanho = null
+        r.tipos.forEach((t: Qualquer) => {
+          t.estatistica = {
+            status: 'ok',
+            n: 30,
+            valor: { mediana: 4, media: 5, p85: 9, acimaP85AnteriorPct: null },
+            janela: r.base.janela,
+          }
+          t.porTamanho = faixas
+        })
+      },
+    })
+
+  it('O8 mostra as seis faixas na ordem, faixa vazia com "sem entregas neste tamanho" e nunca 0 (E7.128)', async () => {
+    const faixas = [
+      { tamanho: 'PP', n: 0, mediana: null },
+      { tamanho: 'P', n: 25, mediana: 2 },
+      { tamanho: 'M', n: 0, mediana: null },
+      { tamanho: 'G', n: 7, mediana: null },
+      { tamanho: 'GG', n: 40, mediana: 6 },
+      { tamanho: 'XG', n: 0, mediana: null },
+    ]
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comFaixas(faixas) })
+    const el = await screen.findByTestId('metrica-O8')
+    const bloco = (await within(el).findAllByTestId(/^faixas-O8-/))[0]!
+    const itens = within(bloco).getAllByRole('listitem')
+    expect(itens.map((i) => i.textContent.split(':')[0])).toEqual(SEIS)
+    expect(itens[0]).toHaveTextContent('PP: sem entregas neste tamanho')
+    expect(itens[1]).toHaveTextContent('P: mediana')
+    expect(itens[3]).toHaveTextContent('G: amostra insuficiente (7 de 20 itens mínimos)')
+    expect(itens[5]).toHaveTextContent('XG: sem entregas neste tamanho')
+    expect(bloco.textContent).not.toMatch(/: 0\b/)
+    expect(within(el).getByTestId('nota-O8-regua')).toHaveTextContent(
+      'Cada time tem a sua régua de tamanho, convertida para as seis faixas',
+    )
+    expect(within(el).getByTestId('nota-O8-regua')).toHaveTextContent(
+      'Cards de times sem régua, ou sem tamanho registrado, ficam em Sem tamanho.',
+    )
+  })
+
+  it('O8 com "Sem tamanho" mostra a faixa por último; faixa ausente da resposta sai como sem entregas', async () => {
+    const faixas = [
+      { tamanho: 'P', n: 25, mediana: 2 },
+      { tamanho: 'Sem tamanho', n: 3, mediana: null },
+    ]
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comFaixas(faixas) })
+    const el = await screen.findByTestId('metrica-O8')
+    const bloco = (await within(el).findAllByTestId(/^faixas-O8-/))[0]!
+    const itens = within(bloco).getAllByRole('listitem')
+    expect(itens.map((i) => i.textContent.split(':')[0])).toEqual([...SEIS, 'Sem tamanho'])
+    expect(itens[0]).toHaveTextContent('PP: sem entregas neste tamanho')
+    expect(itens[6]).toHaveTextContent('Sem tamanho: amostra insuficiente (3 de 20')
+  })
+
+  it('O8: a legenda do gráfico só traz "Sem tamanho" quando há card nessa faixa (R-3)', async () => {
+    categoriasDaBarras.series.length = 0
+    const a = renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, {
+      fonte: comFaixas([
+        { tamanho: 'P', n: 25, mediana: 2 },
+        { tamanho: 'Sem tamanho', n: 0, mediana: null },
+      ]),
+    })
+    await screen.findAllByTestId(/^faixas-O8-/)
+    expect(categoriasDaBarras.series.at(-1)).toEqual(SEIS)
+    a.unmount()
+    categoriasDaBarras.series.length = 0
+    renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, {
+      fonte: comFaixas([
+        { tamanho: 'P', n: 25, mediana: 2 },
+        { tamanho: 'Sem tamanho', n: 3, mediana: null },
+      ]),
+    })
+    await screen.findAllByTestId(/^faixas-O8-/)
+    expect(categoriasDaBarras.series.at(-1)).toEqual([...SEIS, 'Sem tamanho'])
   })
 
   it('O8 com todos os tipos com tamanho não mostra a nota (CA-6)', async () => {

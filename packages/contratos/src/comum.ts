@@ -103,6 +103,10 @@ export const FASES_DETECCAO = [
 ] as const
 export type FaseDeteccao = (typeof FASES_DETECCAO)[number]
 
+/** Pedido 105 (E7.102): as seis faixas de tamanho da régua de cada time, da menor para a maior; a ordem é a do O8 (decisão do dono, 16/11). */
+export const TAMANHOS_REGUA = ['PP', 'P', 'M', 'G', 'GG', 'XG'] as const
+export type TamanhoRegua = (typeof TAMANHOS_REGUA)[number]
+
 export const MOTIVOS_BLOQUEIO = [
   'Aguardando fornecedor',
   'Aguardando validação do negócio',

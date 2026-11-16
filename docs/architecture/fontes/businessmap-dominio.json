@@ -2,14 +2,16 @@
   "versao": 1,
   "versao_criterio": {
     "dominio": "businessmap",
-    "descricao": "2026-11-16: coleta da causa raiz do bug do fluxo (campo 48 Causa Raiz, dropdown, 12 opções) para dim_card.causa_raiz; a causa raiz de incidente continua só no Acelerato, nunca misturada",
-    "motivo": "Pedido 105, E7.86 (decisão do dono de 2026-11-16): duas causas raiz separadas; a de bug interno vem do BusinessMap, field_id 48, lista fechada de 12 opções passada pelo dono; a descrição de Outros é texto livre e nunca entra na base; valor fora da lista vira desconhecido e é contado. Só coleta e projeção: nenhuma métrica ou cartão muda (afeta vazio). A fase de detecção do O15 (E7.5, 2026-11-15) segue como estava",
-    "referencia": "pedido 105, E7.86; plano docs do assistente plano-causa-raiz.md, lote L1",
-    "afeta": []
+    "descricao": "105:tamanho-pela-regua-do-time: o tamanho do card (PP, P, M, G, GG, XG) vem do campo nativo size pela régua do time do card; card sem size, size fora da régua ou time sem régua fica sem tamanho; o O8 divide o tempo em execução pelas seis faixas",
+    "motivo": "Pedido 105, E7.102 (decisões do dono de 2026-11-16: campo nativo size, régua por time, faixas PP, P, M, G, GG e XG, régua dos 7 times aprovada); a régua é fixa e só muda com nova aprovação do dono e nova versão de critério; os demais times ficam sem tamanho registrado. Afeta O8; o campo 48 Causa Raiz (E7.86, afeta vazio) já estava na develop e segue sem métrica afetada",
+    "referencia": "pedido 105, E7.102; plano de tamanho, seção 2a (63 linhas time_id:size); ADR 0016",
+    "afeta": [
+      "O8"
+    ]
   },
   "schema": "dspd_bm",
   "tabela": "ref_dominio",
-  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio e foi preenchido com os nomes que o dono passou (P-097-9, pedido 099 de 12 e 13/11 e pedido 097 de 12/11; o quadro 35 fica fora até a P-097-10), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6). fase_deteccao_coluna: mapa coluna_id (codigo, só dígitos, a folha, nunca o nome da coluna) -> uma das 5 fases do briefing 4.4 (rotulo: Desenvolvimento, Revisão de código, Teste interno, Homologação do negócio, Produção); sem coluna repetida; coluna fora do mapa não tem fase (backlog e compromisso, descarte, fluxos fora das cinco fases); gravação em ref_dominio com campo fase_deteccao_coluna; o projetor usa a coluna do card pai na criação do bug e preenche dim_card.fase_deteccao sem sobrescrever a história (dim_card_versao). Campo 48 (Causa Raiz, dropdown, coluna causa_raiz, pedido 105 E7.86): rotulo é o texto da opção como o dono passou e codigo é o código do projeto; a seleção pode vir em value ou em values[].value_id; só o código do domínio entra, e a descrição de Outros (texto livre) nunca é lida nem gravada.",
+  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre. setores: mapa quadro_id (codigo, só dígitos) -> nome do setor SEM o sobrenome do responsável (rotulo; recusado se terminar em hífen e maiúsculas); sem quadro nem rótulo repetido; o nome do quadro no BusinessMap nunca é lido; nasce vazio e foi preenchido com os nomes que o dono passou (P-097-9, pedido 099 de 12 e 13/11 e pedido 097 de 12/11; o quadro 35 fica fora até a P-097-10), em PR próprio com parecer de segurança; gravação em ref_dominio com campo setor_quadro; prioridade_severidade: mapa priority do card (codigo, inteiro de 1 a 3 dígitos sem zero à esquerda) -> severidade (rotulo, uma de Crítica, Alta, Média, Baixa); codigo 1 Critical, 2 High, 3 Average, 4 Low, escala decrescente (OpenAPI v2 do BusinessMap); priority nulo = sem severidade (Q-099-33, recomendação A); valor fora do mapa é recusado e contado, nunca vira Low. versao_criterio.afeta: métricas marcadas nos gráficos (T2.6). fase_deteccao_coluna: mapa coluna_id (codigo, só dígitos, a folha, nunca o nome da coluna) -> uma das 5 fases do briefing 4.4 (rotulo: Desenvolvimento, Revisão de código, Teste interno, Homologação do negócio, Produção); sem coluna repetida; coluna fora do mapa não tem fase (backlog e compromisso, descarte, fluxos fora das cinco fases); gravação em ref_dominio com campo fase_deteccao_coluna; o projetor usa a coluna do card pai na criação do bug e preenche dim_card.fase_deteccao sem sobrescrever a história (dim_card_versao). tamanho_regua: régua de tamanho por time; codigo = time_id:size (time_id de ref_time, size nativo do card, meio ponto com ponto, sem zero à esquerda nem à direita), rotulo = uma das 6 faixas (PP, P, M, G, GG, XG); sem chave repetida; gravação em ref_dominio com campo tamanho_regua; o projetor grava dim_card.tamanho_declarado pela régua do time do card, sem tamanho (nulo, contado) para card sem size, size fora da régua ou time sem régua, nunca M por omissão, sem sobrescrever a história (dim_card_versao). Campo 48 (Causa Raiz, dropdown, coluna causa_raiz, pedido 105 E7.86): rotulo é o texto da opção como o dono passou e codigo é o código do projeto; a seleção pode vir em value ou em values[].value_id; só o código do domínio entra, e a descrição de Outros (texto livre) nunca é lida nem gravada.",
   "campos": [
     {
       "field_id": "48",
@@ -1500,6 +1502,260 @@
     {
       "codigo": "3174",
       "rotulo": "Homologação do negócio"
+    }
+  ],
+  "tamanho_regua": [
+    {
+      "codigo": "26:0.5",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "26:1",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "26:1.5",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "26:2",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "26:2.5",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:3",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:4",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:5",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:6",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:8",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:9",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:10",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:12",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:13",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:14",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:20",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:21",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:36",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "26:64",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "38:1",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "38:2",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "38:3",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "38:5",
+      "rotulo": "M"
+    },
+    {
+      "codigo": "38:8",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "38:13",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "38:21",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "42:1",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "42:2",
+      "rotulo": "G"
+    },
+    {
+      "codigo": "42:3",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "42:4",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "42:5",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "42:6",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "6:1",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "6:2",
+      "rotulo": "M"
+    },
+    {
+      "codigo": "6:3",
+      "rotulo": "G"
+    },
+    {
+      "codigo": "6:5",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "6:8",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "6:13",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "6:21",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "5:1",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "5:2",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "5:3",
+      "rotulo": "M"
+    },
+    {
+      "codigo": "5:5",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "5:8",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "5:13",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "18:1",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "18:2",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "18:3",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "18:5",
+      "rotulo": "M"
+    },
+    {
+      "codigo": "18:8",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "18:13",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "14:0.5",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "14:1",
+      "rotulo": "PP"
+    },
+    {
+      "codigo": "14:2",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "14:2.5",
+      "rotulo": "P"
+    },
+    {
+      "codigo": "14:3",
+      "rotulo": "M"
+    },
+    {
+      "codigo": "14:4",
+      "rotulo": "G"
+    },
+    {
+      "codigo": "14:5",
+      "rotulo": "GG"
+    },
+    {
+      "codigo": "14:6",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "14:7",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "14:10",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "14:15",
+      "rotulo": "XG"
+    },
+    {
+      "codigo": "14:20",
+      "rotulo": "XG"
     }
   ]
 }
