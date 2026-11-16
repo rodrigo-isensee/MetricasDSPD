@@ -6,22 +6,26 @@ import type { ContextoBM, MarcosCard } from './indice'
 
 /**
  * Motivos do bloqueio que contam como "ida e volta" na entrada (D-8 = A). O motivo do briefing ("Falta de informação no chamado") deixou de existir
- * na decisão B do dono (2026-11-16, pedido 105 E7.184) e nenhum dos 10 motivos do BusinessMap foi apontado como equivalente: PERGUNTA ABERTA ao dono.
- * Vazio de propósito: o critério (a) não conta nenhum bloqueio (nada é inferido) e só o (b) vale. Os testes do mecanismo (a) adicionam um motivo aqui.
+ * na decisão B do dono (2026-11-16, pedido 105 E7.184) e nenhum dos 11 motivos do BusinessMap foi apontado como equivalente: PERGUNTA ABERTA ao dono.
+ * Vazio de propósito: o critério (a) não conta nenhum bloqueio (nada é inferido) e só o (b) vale. Os testes do mecanismo (a) passam o motivo de teste por parâmetro.
  */
-export const MOTIVOS_IDA_E_VOLTA: Set<MotivoBloqueio> = new Set()
+export const MOTIVOS_IDA_E_VOLTA: ReadonlySet<MotivoBloqueio> = new Set<MotivoBloqueio>()
 
 /**
  * D-8 = A, os dois critérios com OU (o card que tem os dois conta uma vez só):
  * (a) bloqueio com o motivo de ida e volta (hoje indefinido, ver `MOTIVOS_IDA_E_VOLTA`) que começou antes do início (ou o card nunca iniciou);
  * (b) retorno da coluna de papel `compromisso` para a de papel `backlog`.
  */
-export function teveIdaEVolta(ctx: ContextoBM, m: MarcosCard): boolean {
+export function teveIdaEVolta(
+  ctx: ContextoBM,
+  m: MarcosCard,
+  motivos: ReadonlySet<MotivoBloqueio> = MOTIVOS_IDA_E_VOLTA,
+): boolean {
   const id = m.card.card_id
   const porBloqueio = (ctx.idx.bloqueiosPorCard.get(id) ?? []).some(
     (b) =>
       b.motivo !== 'não classificado' &&
-      MOTIVOS_IDA_E_VOLTA.has(b.motivo) &&
+      motivos.has(b.motivo) &&
       (m.inicio === null || b.inicio < m.inicio),
   )
   if (porBloqueio) return true
@@ -39,12 +43,16 @@ export function teveIdaEVolta(ctx: ContextoBM, m: MarcosCard): boolean {
  * O percentual só sai com n >= 20 (total e por área; abaixo, "k de n"), pela biblioteca. A linha é a área
  * solicitante (dimensão permitida), nunca a equipe do DSPD nem pessoa.
  */
-export function calcularT12(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT12 {
+export function calcularT12(
+  ctx: ContextoBM,
+  f: FiltrosFluxo,
+  motivos: ReadonlySet<MotivoBloqueio> = MOTIVOS_IDA_E_VOLTA,
+): ResultadoT12 {
   const periodo = periodoDe(ctx, f)
   const itens = selecionar(ctx, f, 'story')
     .filter(ehDemanda)
     .filter((m) => dentro(ctx, m.card.criado_em, periodo))
-    .map((m) => ({ area: m.card.area_solicitante, ida: teveIdaEVolta(ctx, m) }))
+    .map((m) => ({ area: m.card.area_solicitante, ida: teveIdaEVolta(ctx, m, motivos) }))
   const porArea = new Map<string, { k: number; n: number }>()
   for (const i of itens) {
     const a = porArea.get(i.area) ?? { k: 0, n: 0 }

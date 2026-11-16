@@ -6,7 +6,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Corrigido
 
-- Bloqueios (O2, O19, BLOQUEADOS, T10, T12): os motivos passam a ser os 10 habilitados no BusinessMap (ids 1 a 3, 6, 7 e 9 a 13), no lugar dos 7 do briefing; id sem mapa ou nulo segue "não classificado"; o motivo de fornecedor do T10 é "Dependência Externa". Versão de critério `criterio-2026-11-16-motivos-bloqueio-bm` (pedido 105, decisão B do dono, E7.184).
+- Bloqueios (O2, O19, BLOQUEADOS, T10, T12): os motivos passam a ser os 11 habilitados no BusinessMap (ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; id sem mapa ou nulo segue "não classificado"; os motivos de fornecedor do T10 são "Aguardando fornecedor" e "Dependência Externa". Versão de critério `criterio-2026-11-16-motivos-bloqueio-bm` (pedido 105, decisão B do dono, E7.184).
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - T3 e T7 (tela): sem acordado o cartão do T3 não mostra acordado nem desvio (antes aparecia "desvio 0 p.p.") e a leitura diz que mostra como a capacidade foi dividida, em vez de "menos de 20 itens entregues"; o T7 sem limite mostra o chip "Limite não definido" no lugar de "Sem meta numérica"; teste do mapa do servidor com o nome certo (nulo, não 0) (pedido 105, E7.98).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).

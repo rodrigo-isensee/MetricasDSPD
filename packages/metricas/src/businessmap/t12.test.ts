@@ -1,19 +1,20 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { describe, expect, it } from 'vitest'
+import type { FiltrosFluxo, MotivoBloqueio } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
-import { calcularT12, type FatoBloqueio } from './index'
+import { calcularT12 as calcularT12Base, type FatoBloqueio } from './index'
 import { dentro, ehDemanda, periodoDe, selecionar } from './comum'
 import { criarContextoBM, type MarcosCard } from './indice'
-import { MOTIVOS_IDA_E_VOLTA, teveIdaEVolta } from './t12'
+import { teveIdaEVolta as teveIdaEVoltaBase } from './t12'
+import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
 
 // Pedido 105 (E7.184): o motivo de ida e volta do briefing deixou de existir e o dono ainda não apontou o equivalente; em produção o conjunto é vazio.
 // Estes testes exercitam o mecanismo do critério (a) com um motivo de teste, só enquanto rodam.
 const MOTIVO_IDA_E_VOLTA = 'Aguardando outro setor/equipe' as const
-beforeAll(() => MOTIVOS_IDA_E_VOLTA.add(MOTIVO_IDA_E_VOLTA))
-afterAll(() => MOTIVOS_IDA_E_VOLTA.delete(MOTIVO_IDA_E_VOLTA))
-import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
+const COM_MOTIVO = new Set<MotivoBloqueio>([MOTIVO_IDA_E_VOLTA])
+const calcularT12: typeof calcularT12Base = (ctx, f, motivos = COM_MOTIVO) => calcularT12Base(ctx, f, motivos)
+const teveIdaEVolta: typeof teveIdaEVoltaBase = (ctx, m, motivos = COM_MOTIVO) => teveIdaEVoltaBase(ctx, m, motivos)
 
 const F: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
 const t = (iso: string) => instanteDeIso(iso, CALENDARIO_PADRAO)
@@ -88,22 +89,17 @@ describe('T12: qualidade da entrada por área (D-8 = A)', () => {
   })
 
   it('E7.184: sem motivo de ida e volta definido pelo dono, bloqueio de qualquer motivo do BusinessMap não conta (nada é inferido)', () => {
-    MOTIVOS_IDA_E_VOLTA.delete(MOTIVO_IDA_E_VOLTA)
-    try {
-      const r = calcularT12(
-        ctxDe(
-          [naoIniciado('A'), naoIniciado('B')],
-          [
-            bloqueio('A', '2026-09-20T09:00:00-03:00'),
-            bloqueio('B', '2026-09-20T09:00:00-03:00', 'Dependência Externa'),
-          ],
-        ),
-        F,
-      )
-      expect(r.total).toMatchObject({ k: 0, n: 2 })
-    } finally {
-      MOTIVOS_IDA_E_VOLTA.add(MOTIVO_IDA_E_VOLTA)
-    }
+    const r = calcularT12Base(
+      ctxDe(
+        [naoIniciado('A'), naoIniciado('B')],
+        [
+          bloqueio('A', '2026-09-20T09:00:00-03:00'),
+          bloqueio('B', '2026-09-20T09:00:00-03:00', 'Dependência Externa'),
+        ],
+      ),
+      F,
+    )
+    expect(r.total).toMatchObject({ k: 0, n: 2 })
   })
 
   it('CA-39 (b): retorno da coluna de compromisso para o backlog conta; outro retorno, não', () => {

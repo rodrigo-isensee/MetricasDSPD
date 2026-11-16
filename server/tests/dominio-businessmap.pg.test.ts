@@ -63,7 +63,7 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
       expect(doCampo).toBe(13);
       const esperadas = doCampo + a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length;
       expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 1, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
-      expect(esperadas).toBe(370);
+      expect(esperadas).toBe(381);
       expect((await linhas(c, 'campo_customizado')).map((l) => [l.codigo, l.rotulo])).toEqual([['48', 'causa_raiz']]);
       expect((await linhas(c, 'causa_raiz')).map((l) => l.codigo).sort()).toEqual(a.campos[0]!.valores.map((v) => v.codigo).sort());
       expect((await linhas(c, 'fase_deteccao_coluna')).length).toBe(a.fase_deteccao_coluna.length);

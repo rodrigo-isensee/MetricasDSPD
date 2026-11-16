@@ -139,7 +139,7 @@ export const VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM: VersaoCriterio = {
   id: 'criterio-2026-11-16-motivos-bloqueio-bm',
   data: '2026-11-16',
   descricao:
-    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (10 motivos, ids 1 a 3, 6, 7 e 9 a 13), no lugar dos 7 do briefing; o fornecedor do T10 é o motivo "Dependência Externa"',
+    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (11 motivos, ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; o fornecedor do T10 são os motivos "Aguardando fornecedor" e "Dependência Externa"',
   afeta: ['BLOQUEADOS', 'O2', 'O19', 'T10', 'T12'],
 }
 
