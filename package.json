@@ -35,7 +35,7 @@
     "coleta": "bash scripts/coleta.sh",
     "demo:dado-real": "bash scripts/demo-dado-real.sh",
     "consultas:098-099": "bash scripts/consultas-leitura-098-099.sh",
-    "test:pg": "bash scripts/suite-unica.sh bash scripts/test-pg.sh",
+    "test:pg": "METRICAS_DSPD_SUITE_GRUPO=pg bash scripts/suite-unica.sh bash scripts/test-pg.sh",
     "db:limpar-testes": "bash scripts/db.sh limpar-testes",
     "dev:full": "bash scripts/dev.sh",
     "stack:up": "docker compose up -d --build --wait",
