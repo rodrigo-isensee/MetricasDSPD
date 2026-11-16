@@ -348,7 +348,10 @@ describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () =>
     )
     expect(r.fornecedores).toEqual([])
     expect(r.esperaFornecedores?.bloqueios).toBe(doFornecedor.reduce((a, m) => a + m.bloqueios, 0))
-    expect(r.esperaFornecedores?.diasUteis).toBeCloseTo(doFornecedor.reduce((a, m) => a + m.diasUteis, 0), 1)
+    expect(r.esperaFornecedores?.diasUteis).toBeCloseTo(
+      doFornecedor.reduce((a, m) => a + m.diasUteis, 0),
+      1,
+    )
     const ano = calcularT10(ctx, { ...F, periodo: { tipo: '12m' } })
     expect((ano.esperaFornecedores?.bloqueios ?? 0) >= (r.esperaFornecedores?.bloqueios ?? 0)).toBe(
       true,
