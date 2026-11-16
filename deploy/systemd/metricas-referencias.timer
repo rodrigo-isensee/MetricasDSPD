@@ -1,0 +1,10 @@
+[Unit]
+Description=Metricas DSPD: agenda semanal das referencias (domingo 05:00 Brasilia)
+
+[Timer]
+# Antes da coleta das 06:00, para o incremental ja ler as referencias do dia.
+OnCalendar=Sun *-*-* 05:00:00 America/Sao_Paulo
+Persistent=true
+
+[Install]
+WantedBy=timers.target
