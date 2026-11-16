@@ -216,14 +216,14 @@ export function severidadeDaPrioridade(valor: unknown, mapa: ReadonlyMap<string,
 }
 /**
  * Pedido 105 (E7.102): tamanho do card = faixa (PP, P, M, G, GG, XG) da régua do time do card para o `size` nativo. O `size` vem do staging (já na allow-list); o time é o
- * do workflow do card no dia do evento (a mesma resolução da equipe). Sem `size`, `size` fora da régua e time sem régua: `null` (sem tamanho) com a nota respectiva (`size_sem_valor`,
+ * do workflow do card no dia do evento (a mesma resolução da equipe). Sem `size` (nulo, vazio ou 0), `size` fora da régua e time sem régua: `null` (sem tamanho) com a nota respectiva (`size_sem_valor`,
  * `size_fora_da_regua`, `time_sem_regua`; só contagem, nunca o valor); nunca M por omissão. Régua vazia ou ausente: `null` sem nota (nada foi aprovado ainda).
  * O `size` vale só se for número finito não negativo (ou texto numérico na mesma forma); `1.50` e `1.5` são a mesma chave.
  */
 export function tamanhoPelaRegua(size: unknown, timeId: number | null, regua: ReguaTamanho | undefined, notas: string[]): string | null {
   if (regua === undefined || regua.faixas.size === 0) return null;
   const numero = typeof size === 'number' ? size : typeof size === 'string' && /^\d{1,4}(\.\d{1,3})?$/.test(size) ? Number(size) : NaN;
-  if (size === null || size === undefined || size === '') { notas.push('size_sem_valor'); return null; }
+  if (size === null || size === undefined || size === '' || numero === 0) { notas.push('size_sem_valor'); return null; }
   if (timeId === null || !regua.times.has(String(timeId))) { notas.push('time_sem_regua'); return null; }
   const faixa = Number.isFinite(numero) && numero >= 0 ? regua.faixas.get(`${timeId}:${numero}`) : undefined;
   if (faixa === undefined) notas.push('size_fora_da_regua');

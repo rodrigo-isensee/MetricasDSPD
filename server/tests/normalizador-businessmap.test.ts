@@ -469,14 +469,14 @@ describe('105: tamanho_declarado pela régua do time do card (size nativo)', () 
     if (faixa !== null) expect(p.notas.filter((n) => n.startsWith('size_') || n === 'time_sem_regua')).toEqual([]);
   });
 
-  it('card sem size (ausente, nulo ou vazio) fica sem tamanho, com a nota size_sem_valor; nunca M por omissão', () => {
-    for (const p of [proj(card(), [], {}, COM_REGUA), tam(null), tam(undefined), tam('')]) {
+  it('card sem size (ausente, nulo, vazio ou 0) fica sem tamanho, com a nota size_sem_valor; nunca M por omissão', () => {
+    for (const p of [proj(card(), [], {}, COM_REGUA), tam(null), tam(undefined), tam(''), tam(0), tam('0')]) {
       expect(p.dim.tamanho_declarado).toBeNull();
       expect(p.notas.filter((n) => n === 'size_sem_valor')).toHaveLength(1);
     }
   });
 
-  it.each([[0], [4], [21], [-1], [2.5], ['M'], ['dois'], [true], [{}], [NaN], [Infinity], ['1e3']])('size %j fora da régua fica sem tamanho, com uma nota (nunca encaixa no vizinho)', (size) => {
+  it.each([[4], [21], [-1], [2.5], ['M'], ['dois'], [true], [{}], [NaN], [Infinity], ['1e3']])('size %j fora da régua fica sem tamanho, com uma nota (nunca encaixa no vizinho)', (size) => {
     const p = tam(size);
     expect(p.dim.tamanho_declarado).toBeNull();
     expect(p.notas.filter((n) => n === 'size_fora_da_regua')).toHaveLength(1);
@@ -492,6 +492,13 @@ describe('105: tamanho_declarado pela régua do time do card (size nativo)', () 
     const semTime = tam(3, { workflow_id: 'inexistente' });
     expect(semTime.dim.tamanho_declarado).toBeNull();
     expect(semTime.notas).toContain('time_sem_regua');
+  });
+
+  it('workflow de situação fora com time_id preenchido (dado fora da invariante) não recebe tamanho: o time só vale com situacao time', () => {
+    const ref: Referencia = { ...COM_REGUA, timesDoWorkflow: agrupar([{ ...V, workflow_id: WF_FORA, time_id: 1, situacao: 'fora' }], (t) => t.workflow_id) };
+    const p = proj(card({ size: 3, workflow_id: WF_FORA }), [tr('21', '2026-05-20T10:00:00Z', { workflow: WF_FORA })], {}, ref);
+    expect(p.dim.tamanho_declarado).toBeNull();
+    expect(p.notas).toContain('time_sem_regua');
   });
 
   it('a régua é por time: o mesmo size dá faixas diferentes (ou nenhuma) em times diferentes', () => {

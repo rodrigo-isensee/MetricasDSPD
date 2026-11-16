@@ -174,6 +174,9 @@ export function CartaoO8({ filtros }: P) {
     ? ok.flatMap((t) => (t.porTamanho != null ? [{ ...t, faixas: t.porTamanho }] : []))
     : []
   const semTamanho = divide ? ok.filter((t) => t.porTamanho == null) : []
+  const temSemTamanho = comTamanho.some((t) =>
+    t.faixas.some((f) => f.tamanho === 'Sem tamanho' && f.n > 0),
+  )
   return (
     <CartaoComplementar
       id="O8"
@@ -244,7 +247,7 @@ export function CartaoO8({ filtros }: P) {
                   (t.porTamanho ?? []).map((p) => [p.tamanho, p.mediana]),
                 ),
               }))}
-              series={FAIXAS_O8.map((t) => ({
+              series={FAIXAS_O8.filter((t) => t !== 'Sem tamanho' || temSemTamanho).map((t) => ({
                 chave: t,
                 rotulo: t === 'Sem tamanho' ? t : `Tamanho ${t}`,
               }))}
@@ -254,7 +257,8 @@ export function CartaoO8({ filtros }: P) {
             <>
               <p className="text-sm text-texto-2" data-testid="nota-O8-regua">
                 Cada time tem a sua régua de tamanho, convertida para as seis faixas (PP, P, M, G,
-                GG e XG). Os tamanhos aparecem somados, sem comparar times.
+                GG e XG). Os tamanhos aparecem somados, sem comparar times. Cards de times sem
+                régua, ou sem tamanho registrado, ficam em Sem tamanho.
               </p>
               {comTamanho.map((t) => (
                 <FaixasPorTamanho key={t.tipo} tipo={t.tipo} faixas={t.faixas} />
@@ -265,7 +269,7 @@ export function CartaoO8({ filtros }: P) {
             <p className="text-sm text-texto" data-testid="nota-O8-sem-tamanho">
               Sem divisão por tamanho: {semTamanho.map((t) => t.tipo).join(', ')}. Nenhum card
               concluído {semTamanho.length === 1 ? 'desse tipo' : 'desses tipos'}, no período, tem
-              tamanho declarado no quadro. A mediana e o P85{' '}
+              tamanho na régua do time. A mediana e o P85{' '}
               {semTamanho.length === 1 ? 'dele estão' : 'deles estão'} na tabela acima.
             </p>
           )}

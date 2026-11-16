@@ -5,6 +5,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Corrigido
+- O8 por tamanho (pedido 105, volta do review, QA, segurança e UX): `size` 0 conta como sem valor (nota `size_sem_valor`); o `bm:ref-sync` informa quantas linhas da régua são de time inexistente em `ref_time` (`reguaTimesDesconhecidos`, só a contagem); a nota "Sem divisão por tamanho" não diz mais que falta tamanho no quadro (diz que não há tamanho na régua do time), a nota da régua explica "Sem tamanho" e a legenda do gráfico só traz "Sem tamanho" quando há card nessa faixa; documentação de arquitetura com as seis faixas pela régua do time.
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 

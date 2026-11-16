@@ -58,6 +58,8 @@ export interface ResultadoProjecao {
   responsaveisGravados: number;
   /** 105: bugs cuja fase de detecção mudou (primeira carga ou troca de linha da tabela) e foi gravada. */
   fasesDeteccaoGravadas: number;
+  /** 105 (segurança A1): linhas da régua de tamanho ignoradas por time inexistente em `ref_time` (só a contagem; nunca o time nem o valor). */
+  reguaLinhasDescartadas: number;
 }
 
 type Valor = string | number | boolean | Date | readonly string[] | null;
@@ -73,7 +75,8 @@ export function reguaSoDeTimesDaReferencia(r: ReguaTamanho, existentes: Readonly
 }
 
 /** Referência inteira (todas as vigências) em memória: as tabelas são pequenas (ADR 0016). */
-export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<Referencia> {
+/** `reguaLinhasDescartadas` (105, segurança A1): linhas válidas da régua ignoradas por time inexistente na referência de times; só a contagem, para o relatório da projeção. */
+export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<Referencia & { reguaLinhasDescartadas: number }> {
   // uma conexão só, dentro da transação: as leituras são em série
   const colunas = await linhas<LinhaColuna>(db, `SELECT quadro_id, coluna_id, workflow_id, section, eh_descarte, papel, tipo_coluna, ordem, motivo, vigente_de, vigente_ate FROM ${S.bm}.ref_coluna`);
   const workflows = await linhas<LinhaWorkflow>(db, `SELECT quadro_id, workflow_id, nivel, vigente_de, vigente_ate FROM ${S.bm}.ref_workflow`);
@@ -88,6 +91,8 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
   const fases = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_FASE_DETECCAO_COLUNA]);
   // 105 (E7.102): régua de tamanho por time (`<time_id>:<size>` -> faixa), vigente, validada de novo; sem linhas, nenhum card tem tamanho
   const regua = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_TAMANHO_REGUA]);
+  const reguaLida = reguaDeLinhas(regua);
+  const reguaTamanho = reguaSoDeTimesDaReferencia(reguaLida, new Set(times.map((t) => String(t.time_id))));
   return {
     colunas: agrupar(colunas, (c) => `${c.quadro_id}|${c.coluna_id}`),
     workflows: agrupar(workflows, (w) => `${w.quadro_id}|${w.workflow_id}`),
@@ -97,7 +102,8 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
     camposLista: colunasDosCampos(campos),
     prioridades: prioridadesDeLinhas(prioridades),
     fasesDeteccao: fasesDeLinhas(fases),
-    reguaTamanho: reguaSoDeTimesDaReferencia(reguaDeLinhas(regua), new Set(times.map((t) => String(t.time_id)))),
+    reguaTamanho,
+    reguaLinhasDescartadas: reguaLida.faixas.size - reguaTamanho.faixas.size,
   };
 }
 
@@ -359,10 +365,11 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
     const coletaId = Number(ctl.rows[0]!.coleta_id);
     const acc: ResultadoProjecao = {
       coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, bloqueios: { lidos: 0, inseridos: 0 }, fatosBloqueio: { lidos: 0, inseridos: 0 }, notas: {},
-      responsaveisGravados: 0, fasesDeteccaoGravadas: 0,
+      responsaveisGravados: 0, fasesDeteccaoGravadas: 0, reguaLinhasDescartadas: 0,
     };
     if (d.reconstruir === true) for (const t of TABELAS_LIMPAS_NA_RECONSTRUCAO) await db.query(`DELETE FROM ${S.bm}.${t}`);
     const ref = await carregarReferencia(db, S);
+    acc.reguaLinhasDescartadas = ref.reguaLinhasDescartadas;
     const ctx = await contextoDoFato(db, S);
     let depois = '';
     for (;;) {
