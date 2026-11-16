@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-vm-producao
-commit: d9f8bb9b
+commit: 6aa86177
 parecer: aprovado
 resultado: aprovado
 escopo: incremental
@@ -48,6 +48,16 @@ A especificação desta etapa é o brief e o documento de implantação; não h�
 - A1 (recomendado): resolvido. O `enable --now` (linha 106) e a linha 169 trazem os 4 timers; `metricas-referencias.timer` existe e é `Sun 05:00 America/Sao_Paulo`; a LACUNA da linha 146 já cita o timer. Observação menor, não bloqueia: o `list-timers 'metricas-coleta-*'` da linha 106 não lista `metricas-referencias.timer` (nome fora do padrão).
 - A3 (recomendado): resolvido. Linhas 55 e 145 dizem que consta no `.env.example`; `.env.example:46` traz `PESSOA_ELIMINADA_SAL=`.
 - A4 (recomendado): aberto, fora da volta 2 (`deploy/sql/00_papeis_e_banco.sql` e o gerador não mudaram). Recuperável pelo roteiro do §6. Vira cartão (`R-QA`), sem bloquear.
+
+## Revalidação (volta 3, head 6aa86177)
+
+`forge-check parecer delta` (intervalo d9f8bb9b..6aa86177): `delta: nenhum arquivo do domínio mudou`. A volta 3 mexeu só em `docs/devops/105-implantacao-vm.md` (3 linhas), lido no diff e conferido contra o código. Sem PR: não afirmo CI verde; não rerrodei o PQ do autor.
+
+- Linha 187 (colunas de pessoa de `dspd_api_apontamento`): confere. `9000_grants.sql:403` dá `pessoa_ref` em `fato_apontamento`; `:411` dá `(pessoa_ref, responsavel_nome)` em `dim_responsavel`; o GRANT de `apt_pessoa_time(pessoa_ref, vigencia_ate)` também está no arquivo. `usuarios.ts:92,95` grava `responsavel_nome = u.nome`, então "nome real em claro" é verdade. O sal só alimenta o HMAC-SHA256 do `user_id` na lista `cfg_pessoa_eliminada` (`supressao.ts:7,13`); a eliminação a pedido apaga a linha de `dim_responsavel` e anula `pessoa_ref` no fato (`eliminacao.ts:89,90`). A redação nova bate com os quatro arquivos. A frase "com o nome eliminado pelo sal" da volta 2, que passou pelo QA e estava errada, saiu.
+- Linha 146: sem contradição. `metricas-referencias.service` tem as quatro `ExecStart` (`ref-sync-businessmap`, `-ac`, `-calendario`, `-apontamento`); a ressalva de `bm:criterios-classe-servico` (papel migrador, manual) e da carga inicial bate com `runbook-coleta-diaria.md:19`, e a ADR 0022 item 4 trata só da carga inicial manual, como o texto diz.
+- Linha 106: `list-timers 'metricas-*'` alcança os quatro timers; a nota sobre o padrão `metricas-coleta-*` está certa. A observação menor da volta 2 está resolvida.
+- `forge-check docs`: rc 0.
+- A4 segue aberto, fora desta volta (`00_papeis_e_banco.sql` não mudou); vira cartão (`R-QA`).
 
 ## Achados
 
