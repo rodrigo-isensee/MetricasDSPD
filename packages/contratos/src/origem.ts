@@ -103,10 +103,10 @@ export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
 
 /**
  * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. A base não liga o chamado ao Registro de Problema; a conversão não é
- * publicada como 0. Texto provisório, revisado pela UX. Frase em minúsculas sem ponto final, completada pelo componente.
+ * publicada como 0. Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
  */
 export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
-  'aguardando o vínculo do chamado com o Registro de Problema'
+  'Aguardando o vínculo do chamado com o Registro de Problema.'
 /** Pedido 099 (L18, E3.298): motivo do S1 sem `ref_alvo_prioridade` carregada; nenhum prazo é presumido. */
 export const MOTIVO_ALVOS_NAO_CARREGADOS =
   'alvos de prazo por prioridade não carregados (ref_alvo_prioridade); o dono roda o ac:ref-sync'
