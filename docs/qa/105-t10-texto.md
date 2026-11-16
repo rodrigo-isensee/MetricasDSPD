@@ -18,7 +18,7 @@ data: 2026-11-16
 Obrigações nomeadas (fecha o A1 do parecer 105-t10-motivos): CA-1 o "Como se calcula" cita os dois motivos que o cálculo soma; CA-2 a leitura do cartão cita os dois; CA-3 o aviso de vazio cita os dois; CA-4 o texto confere com `MOTIVOS_FORNECEDOR` (`packages/contratos/src/comum.ts:127`: Aguardando fornecedor e Dependência Externa); CA-5 nenhum outro teste ou texto fica com a frase antiga.
 
 ## Achados
-- A1 (bloqueante) e2e/tests-api/tatico-011-lote2.spec.ts:139 · asserção exata `toHaveText` com o texto antigo do aviso de vazio ("Nenhum bloqueio com o motivo "Aguardando fornecedor" foi encerrado no período."); o head mudou o texto (taticas.tsx:77), então o TT desse cenário falha. Atualizar para "…com os motivos "Dependência Externa" ou "Aguardando fornecedor"…" (react-frontend).
+- A1 (bloqueante) e2e/tests-api/tatico-011-lote2.spec.ts:139 · `toHaveText` exato com a frase antiga do aviso de vazio; o head mudou o texto (taticas.tsx:77) e o cenário falha. Trocar por "com os motivos "Dependência Externa" ou "Aguardando fornecedor"" (react-frontend).
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
