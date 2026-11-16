@@ -3,18 +3,26 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-campos-value-id
-commit: 2ddd243d863336f154c1f245dd53b1d2f264706c
+commit: 86591ab36dfc97fb25bc45d14b50e0854d1f5bad
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: campos 48 e 49 do BusinessMap casados pelo value_id, E7.203 (review E7.207, revalidação E7.223)
+# Code review: campos 48 e 49 do BusinessMap casados pelo value_id, E7.203 (review E7.207, revalidações E7.223 e E7.226)
 
 Branch `feature/105-campos-value-id` contra `develop` (base `2a4dc3b9`), head `2ddd243d` (volta 1). Primeira passada no head `ad04bc37`: 9 arquivos, 113 linhas de código e teste (fora o JSON de domínio, `.md` e CHANGELOG), abaixo do teto de 150; um comportamento: o casamento das listas 48 e 49 pelo `value_id`.
 
 ## Parecer
-**Aprovado** no head `2ddd243d`. O A1 está corrigido e o job `banco` do CI passa; o A2 foi atendido. O A3 é recomendado e não bloqueia.
+**Aprovado** no head `86591ab3` (merge da develop, E7.225), como já estava em `2ddd243d`. O A1 está corrigido e o job `banco` do CI passa; o A2 foi atendido. O A3 é recomendado e não bloqueia. A resolução do merge não traz achado novo.
+
+## Revalidação depois do merge da develop (E7.226, delta lido)
+`forge-check parecer delta docs/reviews/105-campos-value-id.md`: intervalo `2ddd243d..86591ab3`, sem o que veio da base. No domínio entram 7 arquivos: CHANGELOG.md, businessmap-dominio.json, dominio-businessmap.ts, mapa.ts e os testes dominio-businessmap(.pg).test.ts e metricas.mapa.test.ts. Li a resolução pelo `git show --cc 86591ab3`, que mostra só as linhas em que o merge diverge dos dois pais.
+- CHANGELOG.md, dominio-businessmap.ts e mapa.ts: os dois lados ficam inteiros e lado a lado. No mapa.ts, `origemDeFalha` (O14) e `nivelDePrioridade` (E7.100) convivem, e o import junta `ORIGENS_DEMANDA` com `NIVEIS_PRIORIDADE_BM`. `listasDoArquivo` grava as listas `valor_id_<coluna>` por campo e a `tamanho_regua` no fim. O comportamento de nenhum dos dois lados muda.
+- businessmap-dominio.json: muda de verdade. Fica uma só versão de critério, com `afeta` `['O8','O14','O17']` e a descrição que começa por `105:tamanho-pela-regua-do-time`. Assim a marca da régua (O8) continua e a do value_id (O14, O17) se soma, sem apagar nenhuma das duas (T2.6). Concordo: a referência da versão é o sha256 do arquivo, então duas versões separadas pediriam dois arquivos. O arquivo lido tem 63 linhas da régua e 2 campos.
+- Testes: as contas batem. 395 do value_id + 63 da régua = 458 inseridas. As métricas da versão no pg ficam `['O14','O17','O8']` (ordenado) e o `afeta` do arquivo `['O8','O14','O17']` aparece nos dois testes unitários. A lista `campo = ANY` do dublê ganha `valor_id_area_solicitante` e `tamanho_regua`, na ordem em que `listasDoArquivo` grava.
+- Os mutantes das linhas 139 e 289 não estão no delta e valem como estão.
+- CI do head `86591ab3`: no run 43892580569 (push), `banco` passa em 2m16s, e também `rapida`, `build`, `seguranca`, `openapi` e `imagem`. No run 43892851278 (pull_request), `banco` termina com `success`. Não rodei a suíte.
 
 ## Achados
 - A1 (bloqueante) server/tests/dominio-businessmap.pg.test.ts:58 · corrigido em `2ddd243d`: o teste pg do arquivo real esperava só o campo 48. Agora afirma 2 campos, 38 linhas de campo, 395 inseridas, `campo_customizado` com 48 e 49, as linhas `valor_id_<coluna>` (código = `value_id`, rótulo = código, vigentes) e `afeta` `['O14','O17']`.
