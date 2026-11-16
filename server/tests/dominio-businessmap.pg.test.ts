@@ -48,7 +48,7 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   const versoes = async (c: pg.PoolClient, sha: string): Promise<number> =>
     Number((await c.query(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [referenciaDaVersaoBm(sha)])).rows[0].n);
 
-  it('o arquivo real (campos 48 Causa Raiz com 12 opções e 49 Origem da Demanda com 6, com as listas valor_id_*, mapa priority -> severidade) grava as linhas do arquivo (os 2 campos, suas opções e os value_id, 6 setores, 4 de prioridade, as colunas da fase de detecção, as 63 linhas da régua de tamanho e o motivo de bloqueio), registra a versão de critério com as métricas afetadas O8, O14 e O17 (E7.102 e E7.203 chegam juntas) e repetir não grava mais nada', async () => {
+  it('o arquivo real (campos 48 Causa Raiz com 12 opções e 49 Origem da Demanda com 6, com as listas valor_id_*, mapa priority -> severidade) grava as linhas do arquivo (os 2 campos, suas opções e os value_id, 6 setores, 4 de prioridade, as colunas da fase de detecção, as 63 linhas da régua de tamanho e os 11 motivos de bloqueio), registra a versão de critério com as métricas afetadas O8, O14, O17, BLOQUEADOS, O2, O19, T10 e T12 (E7.102, E7.203 e E7.184 chegam juntas) e repetir não grava mais nada', async () => {
     await comoRef(async (pool, c) => {
       const real = lerDominioBm();
       const a = real.arquivo;
@@ -66,7 +66,7 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
       expect(doCampo).toBe(38);
       const esperadas = doCampo + a.setores.length + a.prioridade_severidade.length + a.fase_deteccao_coluna.length + a.motivo_bloqueio.length + a.tamanho_regua.length;
       expect(await sincronizarDominioBm(pool, S, real, D1, AGORA)).toMatchObject({ campos: 2, inseridas: esperadas, fechadas: 0, versaoRegistrada: true });
-      expect(esperadas).toBe(458);
+      expect(esperadas).toBe(469);
       expect((await linhas(c, 'campo_customizado')).map((l) => [l.codigo, l.rotulo])).toEqual([['48', 'causa_raiz'], ['49', 'origem_demanda']]);
       for (const campo of a.campos) {
         expect((await linhas(c, campo.coluna)).map((l) => l.codigo).sort()).toEqual(campo.valores.map((v) => v.codigo).sort());
@@ -97,7 +97,7 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
       const metricas = (await c.query(
         `SELECT m.metrica_id FROM ${S.core}.ref_versao_criterio v JOIN ${S.core}.ref_versao_criterio_metrica m USING (versao_id) WHERE v.referencia = $1`,
         [referenciaDaVersaoBm(real.sha256)])).rows.map((r) => r.metrica_id);
-      expect(metricas.sort()).toEqual(['O14', 'O17', 'O8']);
+      expect(metricas.sort()).toEqual(['BLOQUEADOS', 'O14', 'O17', 'O19', 'O2', 'O8', 'T10', 'T12']);
       expect(await sincronizarDominioBm(pool, S, real, D2, AGORA)).toMatchObject({ inseridas: 0, fechadas: 0, versaoRegistrada: false });
       expect(await versoes(c, real.sha256)).toBe(1);
     });
@@ -106,9 +106,9 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   it('o campo novo motivo_bloqueio grava o mapa em ref_dominio e a leitura do projetor o devolve; mudar o mapa fecha a vigência', async () => {
     const t = (m: unknown[], x: string): string => JSON.stringify({ ...JSON.parse(texto([], x)), motivo_bloqueio: m });
     await comoRef(async (pool, c) => {
-      const r1 = await sincronizarDominioBm(pool, S, analisarDominioBm(t([{ codigo: '9', rotulo: 'Janela de mudança' }], 'm1')), D1, AGORA);
+      const r1 = await sincronizarDominioBm(pool, S, analisarDominioBm(t([{ codigo: '9', rotulo: 'Aguardando publicação GMUD' }], 'm1')), D1, AGORA);
       expect(r1).toMatchObject({ inseridas: 1, versaoRegistrada: true });
-      expect((await linhas(c, 'motivo_bloqueio')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([['9', 'Janela de mudança', null]]);
+      expect((await linhas(c, 'motivo_bloqueio')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([['9', 'Aguardando publicação GMUD', null]]);
       const r2 = await sincronizarDominioBm(pool, S, analisarDominioBm(t([], 'm2')), D2, AGORA);
       expect(r2).toMatchObject({ inseridas: 0, fechadas: 1 });
       expect((await linhas(c, 'motivo_bloqueio'))[0]?.vigente_ate).toBe(D2);
