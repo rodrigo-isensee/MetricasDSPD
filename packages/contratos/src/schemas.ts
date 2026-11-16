@@ -1051,7 +1051,7 @@ export const resultadoO16 = z.object({
 
 /**
  * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
- * Contagem, sem mínimo. Causa raiz: sem dado real até o Registro de Problemas ter vínculo ao incidente (pedido 099, B' da Q-099-7).
+ * Contagem, sem mínimo. Causa raiz: não é contada, é texto livre no Acelerato (ADR 0020; decisão do dono de 16/11, pedido 105, K-372).
  */
 export const resultadoO17 = z.object({
   ...comum,
