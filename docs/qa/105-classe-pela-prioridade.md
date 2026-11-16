@@ -3,49 +3,43 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-classe-pela-prioridade
-commit: 8ec2598ede86bccdf3de8fbf8538fe2f8aa1d0a1
-parecer: reprovado
-escopo: completo
+commit: d3795d736e7f4340a8cf6ceb1cdec3c632e8ecc3
+parecer: aprovado
+escopo: incremental
 bugs_criticos: 0
-bugs_altos: 3
+bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
 data: 2026-11-16
 ---
-# QA: 105 classe pela prioridade nativa do BusinessMap (E7.100 e E7.161)
+# QA: 105 classe pela prioridade nativa do BusinessMap (E7.100 e E7.161), revalidação da volta 1
 
-Diff de três pontos contra `develop` (74 arquivos). Sem especificação de UX nova: as obrigações são as decisões do dono de 16/11 (campo de urgência do BM, "leitura 2", D-T2, nula, P-1, P-3, P-4, P-5, P-7) e o plano `plano-prioridade.md` (fora do repositório, em `/home/rodrigoisensee/pedidos-assistente/`; critério de parada: minimo-20, nulo-media, t4-agregado). O head revisado é `8ec2598e` (back-end `44e8d62d` mais a tela).
+Revalidação do delta `8ec2598e..0b4afd15` (`forge-check parecer delta`, sem o que veio da `develop`). Obrigações: as decisões do dono de 16/11 (campo de urgência do BM, leitura 2, D-T2, nula, P-1, P-3, P-4, P-5, P-7) e o plano `plano-prioridade.md` (fora do repositório). Cabeça de código `d3795d73` (volta 1 do autor, hash regravado e e2e atualizado por mim); cabeça do CI `0b4afd15`, que só soma pareceres de review sobre ela.
 
 ## Achados
-- A1 (bloqueante) server/tests/painel-real-f6.pg.test.ts:112 · CI `banco` vermelho no head: o teste (d) ainda espera `sem-dado-real` para T1, que agora é real (P-7). Trocar T1 por métrica ainda sem dado (como o `.test.ts` fez, T3).
-- A2 (bloqueante) packages/mock/src/mock.test.ts:1 · CI `build`/gate: hash da base mock mudou (hashBase b6a3c384 para ef67b23e; hashBusinessMap 8d47d431 para 1f3e6fd7) e `docs/qa/evidencias/hash-base-fase-a.json` e `.nota.md` não foram atualizados com a razão.
-- A3 (bloqueante) packages/mock/src/businessmap/gerador.ts:1 · CI `testes`/cobertura: `packages/mock` caiu a 99,86% de branches (743/744); o limite é 100%. Cobrir o ramo novo ou removê-lo.
+Nenhum aberto. Os da rodada anterior:
+- A1 (resolvido) server/tests/painel-real-f6.pg.test.ts:124 · `.pg` agora afirma T1 real com `semPrioridade.total = base.n + semPrioridade.n` (d1); check `banco` verde.
+- A2 (resolvido) docs/qa/evidencias/hash-base-fase-a.json:1 · regravado por mim pelo gate do e2e (hashBase b6a3c384 para ef67b23e; hashBusinessMap 8d47d431 para 1f3e6fd7; Acelerato intacto), com a razão em `.nota.md`, commit `fcd3a117`; check `build` verde.
+- A3 (resolvido) packages/mock · cobertura de branches em 744/744 (100%) local e check `testes` verde.
+- A4 (novo, resolvido por mim) e2e/tests/b12-fluxo.spec.ts:326 · o e2e TAT-02/03 e TAT-06 ainda afirmavam a frase antiga e reprovaram no CI do head `fa07f541`; reescritos para a faixa nova com N de M e exigindo N maior que 0 (commit `d3795d73`).
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| T1, T2, T4, T6 e O6 separam por Crítica, Alta, Média e Baixa | `prioridade.test.ts` (biblioteca); `painel-real-f6.test.ts` (API, base real) | 19 insuficiente e 20 ok em cada nível | passou local (metricas 53 arquivos, 1401 testes) |
-| Card sem prioridade na faixa "Sem prioridade", contada, nunca Média | `prioridade.test.ts`; `painel-real-f6.test.ts` (nula e valor fora do mapa contam 9) | nula e "Urgente" fora do mapa | passou local |
-| O24 usa só a fila da Média | `o24.test.ts`; `painel-real-f6.test.ts` ("inícios da prioridade Média") | Alta e nula fora da fila | passou local |
-| T4 uma linha por nível, sem total | `prioridade.test.ts`; `painel-real-f6.test.ts` (chaves exatas) | sem agregado | passou local |
-| T1, T2, T4, T6 no mapa real; base real nunca lê o seed | `painel-real-f6.test.ts` (leituras fora do seed = 0); `.pg` (d) | T1 sai de "sem dado" | `.pg` REPROVADO (A1) |
-| T2: SLE do nível e "SLE não definido" (D-T2) | `painel-real-f6.test.ts` (Média publica 5 dias; Alta e Crítica null) | prazo não definido | passou local |
-| Tela e contrato | testes de web e contratos | n/a | verde no CI (`rapida`, `openapi`, `seguranca`) |
-| Bateria completa do head | check-run `CI` do sha `8ec2598e` (run 43860935030) | n/a | VERMELHO: `build` (gate), `testes` (cobertura), `banco` (.pg) |
-| `plano-prioridade.md` | existe fora do repositório; nenhuma cópia versionada na branch | n/a | só registro: o brief o cita, o repositório não o contém |
+| T1, T2, T4, T6 e O6 separam por Crítica, Alta, Média e Baixa | `prioridade.test.ts`; `painel-real-f6.test.ts` | 19 insuficiente e 20 ok | passou (CI e local) |
+| Faixa Sem prioridade com N de M (P%), universo e frase de campo vazio; nunca Média | `prioridade.test.ts` (`{n:7,total:85}`); `painel-real-f6.test.ts` (`{n:9,total:87}`); e2e TAT-02/03 e TAT-06 | nula e valor fora do mapa; semPrioridade maior que 0 exigido na tela e na API (T4 `n > 0`) | passou |
+| T4 conta cartões distintos (A4 do review) | `prioridade.test.ts` ("sem prioridade que chegou e foi entregue conta 1, não 2") | cartão que chega e é entregue | passou |
+| Contrato `semPrioridade { n, total }` com fotografias e openapi | `contratos` (`origem.test.ts`, `tambem.test.ts`), snapshots T1/T2/T4/T6/O6/O24, check `openapi` | chaves exatas, total maior ou igual a n | passou (CI) |
+| O24 usa só a fila da Média | `o24.test.ts`; `painel-real-f6.test.ts` | Alta e nula fora da fila | passou |
+| T1 real na base real, nunca lê o seed | `painel-real-f6.pg.test.ts` (d, d1) | T1 sai de "sem dado" | passou (`banco` verde) |
+| T2: SLE do nível, "SLE não definido" (D-T2) | `painel-real-f6.test.ts` | prazo não definido | passou |
+| Cobertura do mock em 100% | `packages/mock` (`--coverage`): 744/744 branches, 261 testes | limite 100% | passou |
+| Hash da base mock | `hash-base-fase-a.json` e gate do e2e | mudança intencional registrada | passou (`build`); `--comparar` também OK após o merge da develop |
+| Parecer da UX versionado | `docs/ux/` no delta (`a22b428c`) | n/a | presente |
+| Bateria completa do head | check-run `CI` do sha `0b4afd15`, run 43877746733 | n/a | verde: build, testes, banco, openapi, seguranca, rapida, filtro, imagem, e2e-parte 1/2 e 2/2, e2e |
 
-## Mutação no diff (pedida pelo brief)
-Rodei 12 mutantes à mão, um por vez, na árvore descartável, e restaurei cada um (`git status` limpo ao fim). Os testes que deveriam cair, caíram: todos morreram.
-
-| Mutante | Resultado |
-|---|---|
-| nula virando Média: T1, T4, O24 e leitura em `mapa.ts` (4) | morreu (3, 2, 18 e 3 testes falharam) |
-| nível com 19 publicando (`MINIMO_AMOSTRA` 20 para 19) | morreu (63 testes) |
-| níveis somados: T1, T2, O6, T6 (4) | morreu (5, 4, 5 e 3) |
-| O24 lendo a fila Alta: varredura e seleção (2) | morreu (23 e 20) |
-| faixa Sem prioridade do T1 não contada | morreu (3) |
-
-Vermelho antes do verde: `forge-testes --vermelho` não existe neste repositório (projeto, não Forge); a prova foi a mutação acima, que dá o vermelho de cada regra nova sobre o código do head.
+## Vermelho antes do verde
+Projeto, não Forge: `forge-testes --vermelho` não se aplica. Provas observadas: (1) o e2e TAT-02/03 e TAT-06 falhou no CI do head `fa07f541` (run 43874169191, `Timeout: 5000ms`, texto da faixa nova no cartão), e passou com as assertões novas (local, `2 passed`, e CI `0b4afd15`); (2) o gate de hash reprovou o head `d4c535de` (run 43872330381, `difere em hashBase, hashBusinessMap`) e passou com a referência regravada. A mutação da rodada anterior (12 mutantes mortos, nula virando Média, 19 publicando, níveis somados, O24 na fila Alta, faixa não contada) segue válida: o delta de código da volta só soma a contagem distinta do T4 e a faixa com total, cobertas pelos testes acima.
 
 ## Resultado
-Reprovado por A1, A2 e A3: o CI do head está vermelho em três jobs, e o pedido exige o check-run `bateria` verde do mesmo sha. A lógica da prioridade está provada pelos testes locais e pelos mutantes; nada na regra de negócio reprovou. Na revalidação, reler o run do novo head e `forge-check parecer delta docs/qa/105-classe-pela-prioridade.md`.
+Aprovado. Os quatro achados estão resolvidos, o check-run do mesmo sha está verde e o caso com `semPrioridade` maior que 0 está provado na biblioteca, na API e na tela. Nenhum bug aberto.
