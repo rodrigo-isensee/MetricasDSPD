@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-test-pg-ambiente
-commit: 944aa74c86daea77411965377cc82f9c528f13b9
+commit: 0c44ef9448ecde1aba1f2ba2a2f2ba5f6816b0c6
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -15,8 +15,8 @@ data: 2026-11-16
 # QA: K-392 (test:pg com Postgres descartável)
 
 ## Achados
-- A1 (recomendado) scripts/test-pg.sh:23 · SIGKILL (kill -9) ou queda do host não roda o trap: sobra 1 contêiner, 1 volume e 1 rede metricasdspd-teste-<id>. Reproduzido; limpei à mão. Registrar em operacao-banco.md o comando de limpeza (docker compose -p <projeto> down -v).
-- A2 (recomendado) docs/engineering/operacao-banco.md:102 · O ponto do autor procede: local sobe banco próprio, a CI (job db) usa o compartilhado do ADR 0014. A seção nova cobre só o lado local; falta dizer que a divergência é deliberada e a CI segue pelo PG_TESTE_URL.
+- A1 (recomendado) scripts/test-pg.sh:23 · SIGKILL (kill -9) ou queda do host não roda o trap: sobra 1 contêiner, 1 volume e 1 rede metricasdspd-teste-<id>. Atendido na volta 1: operacao-banco.md, README e o cabeçalho do script trazem o comando de limpeza.
+- A2 (recomendado) docs/engineering/operacao-banco.md:102 · Divergência local (banco próprio) × CI (compartilhado, ADR 0014). Atendido na volta 1: o texto diz que a CI não passa pelo script e segue pelo banco do próprio job.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
@@ -26,15 +26,26 @@ data: 2026-11-16
 | Idem quando interrompida | SIGINT durante o vitest, SIGTERM durante o vitest, SIGINT durante o `up --wait` | interrupção em 3 pontos | passou: 0/0/0 depois, 0 vitest órfão |
 | Interrompida na fila (sem ter subido nada) | SIGINT enquanto `suite-unica` espera a trava | espera na fila | passou: nada criado |
 | Não toca o banco de desenvolvimento | `docker ps` ao fim | isolamento | passou: metricasdspd-postgres-1 segue healthy |
-| Suíte completa passa sem .env | 2 execuções | n/a | passou: 342 de 342 (50 arquivos) nas duas |
-| Com PG_TESTE_URL usa a URL e não sobe nada | leitura (test-pg.sh:19) | CI | não executado aqui (sem a URL de CI); a CI do PR prova |
-| SIGKILL | `kill -9` do grupo | morte sem trap | resíduo, ver A1 |
+| Suíte completa passa sem .env | 2 execuções (head 944aa74c); PQ do autor no head 0c44ef94: 342 de 342 | n/a | passou |
+| Com PG_TESTE_URL no ambiente usa a URL e não sobe nada | volta 1, execução C | CI | passou |
+| .env copiado do exemplo sobe o descartável | volta 1, execuções A e B | .env com a variável comentada e ativa | passou |
+| PG_TESTE_URL só no .env é descartada | volta 1, execução B | regressão do bug original | passou |
+| HUP derruba o descartável | volta 1, execução D | SIGHUP | passou |
+| SIGKILL | `kill -9` do grupo | morte sem trap | resíduo inevitável; documentado (A1) |
 
 ## Cenários e resultado real
-- Ambiente: worktree desanexada em 944aa74c, Docker local, sem .env. Contagem por nome contendo `teste`, pois outros agentes mexem em volumes alheios na mesma estação (o total de volumes variou de 19 para 28 sem relação com esta branch).
+- Ambiente (1ª passada): worktree desanexada em 944aa74c, Docker local, sem .env. Contagem por nome contendo `teste`, pois outros agentes mexem em volumes alheios na mesma estação.
 - Execução 1 e 2 pela fila única (`pnpm run test:pg`, suite-unica.sh): rc=0, `Test Files 50 passed (50)`, `Tests 342 passed (342)`, 122 s de vitest cada. Antes e depois: `ctn=0 vol=0 net=0`.
-- Interrupção, por `scripts/test-pg.sh` direto (a fila estava ocupada por outras suítes por mais de 10 min; o trap é do test-pg.sh, a fila só envolve): SIGINT 8 s depois de o contêiner existir, `depois: ctn=0 vol=0 net=0`; SIGTERM 12 s depois, idem; SIGINT 0 s (durante o `up --wait`), idem. `processos vitest restantes: 0` em todas.
-- SIGINT na fila: a execução foi interrompida esperando a trava; nada foi criado (0/0/0).
-- SIGKILL: `depois: ctn=1 vol=1 net=1` (metricasdspd-teste-6c7b5c73). Inevitável para trap em bash; recomendação A1.
-- Vermelho antes do verde e mutação: sem teste novo (a entrega é script e doc); a prova é a observação acima. O parecer não afirma CI verde: não há PR; a suíte inteira fica para o CI do PR (PQ do autor: 342 de 342, confirmado aqui duas vezes).
-- Diff conferido: só scripts/test-pg.sh e docs/engineering/operacao-banco.md.
+- Interrupção, por `scripts/test-pg.sh` direto: SIGINT 8 s depois de o contêiner existir, `depois: ctn=0 vol=0 net=0`; SIGTERM 12 s depois, idem; SIGINT durante o `up --wait`, idem. `processos vitest restantes: 0` em todas.
+- SIGKILL: `depois: ctn=1 vol=1 net=1` (metricasdspd-teste-6c7b5c73). Inevitável para trap em bash.
+- Vermelho antes do verde e mutação: sem teste novo (a entrega é script e doc); a prova é a observação. O parecer não afirma CI verde: não há PR; a suíte inteira fica para o CI do PR.
+
+## Revalidação (volta 1, head 0c44ef94, escopo incremental)
+Delta lido por `forge-check parecer delta` (944aa74c..0c44ef94): `.env.example`, `README.md`, `carga-da-pesquisa-de-percepcao.md`, `operacao-banco.md`, `scripts/test-pg.sh`. Ambiente: worktree desanexada em 0c44ef94, Docker local. Não li o `.env` real: criei um `.env` descartável com `cp .env.example .env` na worktree (ignorado pelo git) e o removi no fim. Para provar a decisão do script sem gastar a fila e 122 s de vitest, o `pnpm` foi trocado por um stub no PATH que imprime `PG_TESTE_URL` e quantos contêineres `metricasdspd-teste` estão no ar. A suíte completa (342 de 342) é o PQ do autor, não rerrodada neste head; a CI do PR decide.
+- A) `.env` copiado do exemplo (variável comentada), sem `PG_TESTE_URL` no ambiente: sobe o descartável (`metricasdspd-teste-0bf15c53`, porta 38071), o stub vê a URL do descartável e 1 contêiner no ar; ao fim `ctn=0 vol=0 net=0`.
+- B) `.env` com `PG_TESTE_URL=postgres://x:y@127.0.0.1:1/morto` ativa (a regressão do bug original), sem a variável no ambiente: o valor do `.env` é descartado e o descartável sobe (`metricasdspd-teste-a644dfbd`); `0/0/0` ao fim.
+- C) `PG_TESTE_URL` no ambiente, com o mesmo `.env` ativo: o stub recebe a URL do ambiente, `projeto=<nenhum>`, 0 contêineres no ar, nada criado (`0/0/0`).
+- D) SIGHUP enviado só ao pid do script, com o contêiner no ar (`ctn=1 vol=1 net=1`): o bash adia o trap até o filho em primeiro plano (`sleep 30` do stub) terminar; ao terminar, o trap rodou e deixou `ctn=0 vol=0 net=0`, sem script restante. Em terminal real o HUP vai ao grupo inteiro.
+- Duas execuções seguidas (A e B): `0/0/0` entre e depois, sem sobra.
+- Docs: README, operacao-banco.md e carga-da-pesquisa conferem com o script.
+- Vermelho antes do verde: B é o equivalente (o script anterior usaria a URL do `.env`); não rodei o script anterior. Sem mutantes: não é pedido de controle do Forge.
