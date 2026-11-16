@@ -673,7 +673,7 @@ export function CartaoO24({ filtros }: P) {
                 Nenhum pedido ultrapassado no período.
               </AvisoInfo>
             )}
-            <SemPrioridade n={r.semPrioridade.n} codigo="O24" />
+            <SemPrioridade {...r.semPrioridade} universo="inícios no período" codigo="O24" />
             <Leia>O cartão mostra o custo de passar na frente, não um erro.</Leia>
             <LeiaJunto id="o24" />
           </div>

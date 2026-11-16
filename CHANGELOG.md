@@ -180,6 +180,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Contrato (pedido 099, D2): S5 e S6 reescritos (#462): a faixa `Outro` entra em `motivos` (motivo preenchido sem par no domínio, separada de `naoInformado`) e entram `foraDoFluxo` e `notas`; o S3 real também traz a nota `s7-nao-igual-vazio`.
 - Migração 0038 (pedido 105): `dim_chamado.fluxo` (fluxo do PROC do chamado), nulo até a reprojeção; roda no `db:migrate` (#469). Veja "Ações do dono na base real depois da release 105".
 - Contrato (pedido 105, E7.100): em T1, T2, T4, T6 e O6, `classes[].classe` passa a `Crítica`, `Alta`, `Média` ou `Baixa` (`NIVEIS_PRIORIDADE_BM`; saem Urgente, Prioritário, Prazo fixo e Padrão) e `semPrioridade: { n }` é obrigatório; no O24, `semPrioridade` também é obrigatório. Sem convivência, como a L22 a; aceite pela política de mudança (`docs/contratos/politica-de-mudanca.md`). `config.sle[].classe` guarda o nível.
+- Contrato (pedido 105, E7.177, volta 1 do PR 490): `semPrioridade` passa a `{ n, total }` (obrigatório) em T1, T2, T4, T6, O6 e O24, para a faixa dizer "N de M (P%)"; no T4 `n` conta cartões distintos (antes somava chegada e entrega, e um cartão entregue contava 2). Faixa na tela com o universo na frase, destaque a partir de 20%, explicação de que o cartão foi trabalhado e a frase "A maior parte dos cartões deste recorte está sem prioridade" nas leituras de T1, T2 e O6.
 
 ### Mudanças de critério de cálculo
 

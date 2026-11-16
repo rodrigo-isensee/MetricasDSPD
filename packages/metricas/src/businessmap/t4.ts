@@ -32,20 +32,13 @@ export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
   const cards = selecionar(ctx, f, 'story').filter(ehDemanda)
   const semanas = semanasEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia)
   let total = 0
-  const nDe = (xs: typeof cards): number => {
-    const chegadas = xs.map((m) => diaLocal(m.entrada, ctx.cal))
-    const saidas = xs
-      .filter((m) => m.entrega !== null)
-      .map((m) => diaLocal(m.entrega as number, ctx.cal))
-    return semanas
-      .filter((s) => !s.emAndamento)
-      .reduce(
-        (soma, s) =>
-          soma +
-          chegadas.filter((d) => d >= s.inicioDia && d <= s.fimDia).length +
-          saidas.filter((d) => d >= s.inicioDia && d <= s.fimDia).length,
-        0,
-      )
+  // Cartões distintos com chegada ou entrega em semana completa (cartão entregue na janela não conta 2, A4).
+  const cartoesDe = (xs: typeof cards): number => {
+    const completas = semanas.filter((s) => !s.emAndamento)
+    const na = (t: number | null): boolean =>
+      t !== null &&
+      ((d) => completas.some((s) => d >= s.inicioDia && d <= s.fimDia))(diaLocal(t, ctx.cal))
+    return xs.filter((m) => na(m.entrada) || na(m.entrega)).length
   }
   const classes = NIVEIS_PRIORIDADE_BM.map((classe) => {
     const xs = cards.filter((m) => m.card.prioridade === classe)
@@ -108,7 +101,7 @@ export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
   return {
     base: baseAmostral(total, 'chegadas e entregas', periodo),
     criterios: criterios('T4', periodo, periodo, ctx),
-    semPrioridade: { n: nDe(semPrioridadeDe(cards)) },
+    semPrioridade: { n: cartoesDe(semPrioridadeDe(cards)), total: cartoesDe(cards) },
     classes,
   }
 }

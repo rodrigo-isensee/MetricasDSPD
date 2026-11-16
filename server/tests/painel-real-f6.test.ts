@@ -723,11 +723,11 @@ describe('pedido 105 (E7.100): classe pela prioridade nativa na base real', () =
     for (const id of ['T1', 'T2', 'T6', 'O6'] as const) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
-      const j = r.json() as { classes: { classe: string; n: number; estatistica?: { status: string } }[]; semPrioridade: { n: number }; base: { n: number } };
+      const j = r.json() as { classes: { classe: string; n: number; estatistica?: { status: string } }[]; semPrioridade: { n: number; total: number }; base: { n: number } };
       expect(SCHEMAS_RESULTADO[id].safeParse(j).success, id).toBe(true);
       const c = porNivel(j);
       expect([c.Crítica!.n, c.Alta!.n, c.Média!.n, c.Baixa!.n], id).toEqual([19, 20, 20, 19]);
-      expect(j.semPrioridade, id).toEqual({ n: 9 });
+      expect(j.semPrioridade, id).toEqual({ n: 9, total: 87 });
       expect(j.base.n, id).toBe(78);
       if (id !== 'T2' && id !== 'T6') {
         expect([c.Crítica!, c.Alta!, c.Média!, c.Baixa!].map((x) => x.estatistica!.status), id).toEqual(['insuficiente', 'ok', 'ok', 'insuficiente']);
@@ -746,18 +746,20 @@ describe('pedido 105 (E7.100): classe pela prioridade nativa na base real', () =
 
   it('T4: uma linha por nível, sem total agregado, com a prioridade nula contada à parte', async () => {
     const { app } = await montar({ cards, entregues: true });
-    const j = (await app.inject('/api/v1/metricas/T4')).json() as { classes: { classe: string; n: number }[]; semPrioridade: { n: number } } & Record<string, unknown>;
+    const j = (await app.inject('/api/v1/metricas/T4')).json() as { classes: { classe: string; n: number }[]; semPrioridade: { n: number; total: number } } & Record<string, unknown>;
     expect(j.classes.map((c) => c.classe)).toEqual(['Crítica', 'Alta', 'Média', 'Baixa']);
     expect(j.semPrioridade.n).toBeGreaterThan(0);
+    expect(j.semPrioridade.total).toBeGreaterThanOrEqual(j.semPrioridade.n);
     expect(Object.keys(j).sort()).toEqual(['base', 'classes', 'criterios', 'semPrioridade']);
   }, 60_000);
 
   it('O24: só a fila da prioridade Média; a nula fica fora e contada', async () => {
     const { app } = await montar({ cards });
-    const j = (await app.inject('/api/v1/metricas/O24')).json() as { base: { n: number; unidade: string }; semPrioridade: { n: number } };
+    const j = (await app.inject('/api/v1/metricas/O24')).json() as { base: { n: number; unidade: string }; semPrioridade: { n: number; total: number } };
     expect(j.base.unidade).toBe('inícios da prioridade Média');
     expect(j.base.n).toBe(20);
-    expect(j.semPrioridade).toEqual({ n: 9 });
+    expect(j.semPrioridade.n).toBe(9);
+    expect(j.semPrioridade.total).toBeGreaterThanOrEqual(9 + 20);
   }, 60_000);
 });
 

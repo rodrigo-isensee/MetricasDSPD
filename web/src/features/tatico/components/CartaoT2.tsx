@@ -1,6 +1,6 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras, MapaCalor } from '@/components/charts'
-import { CartaoMetrica, SemPrioridade, StatusMeta } from '@/components/ui'
+import { CartaoMetrica, maioriaSemPrioridade, SemPrioridade, StatusMeta } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDiasUteis, fmtInteiro, fmtPct } from '@/lib/formatar'
 import { META_ADERENCIA_SLE_PCT } from '@metricas-dspd/contratos'
@@ -21,7 +21,9 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
   const leitura = publicadas.length
     ? publicadas.map(({ c, t }) => `${c.classe}: ${fmtPct(t.pct, 1)} dentro do SLE.`).join(' ')
     : d
-      ? 'Nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.'
+      ? maioriaSemPrioridade(d.semPrioridade)
+        ? 'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.'
+        : 'Nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.'
       : undefined
   return (
     <CartaoMetrica
@@ -82,7 +84,7 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
               </li>
             ))}
           </ul>
-          <SemPrioridade n={d.semPrioridade.n} codigo="T2" />
+          <SemPrioridade {...d.semPrioridade} universo="entregues" codigo="T2" />
           {comSle.length > 0 && (
             <MapaCalor
               descricao="Estouros do SLE por etapa de maior duração (contagem de itens)"

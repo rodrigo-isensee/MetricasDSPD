@@ -372,8 +372,8 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         {
           "metrica": "T4",
           "codigo": "T4",
-          "valor": 3,
-          "de": 3,
+          "valor": 4,
+          "de": 4,
           "base": {"n":1160,"unidade":"chegadas e entregas"},
           "status": "fora",
           "amostra": null

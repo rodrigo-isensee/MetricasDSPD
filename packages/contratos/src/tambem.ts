@@ -133,7 +133,7 @@ export const resultadoO21 = fechado({
 export const resultadoO24 = fechado({
   ...comum,
   /** Inícios do período de cards sem prioridade: ficam fora da fila (nunca Média por omissão) e são contados aqui. */
-  semPrioridade: fechado({ n: z.number() }),
+  semPrioridade: fechado({ n: z.number(), total: z.number() }),
   inicios: taxaSchema,
   meses: z.array(
     fechado({

@@ -44,11 +44,12 @@ export function calcularT6(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT6 {
       })),
     }
   }).filter((c) => c.n > 0 || cards.some((m) => m.card.prioridade === c.classe))
+  const semPrioridade = vazaoSemanal(ctx, semPrioridadeDe(cards), j).total
   return {
     base: baseAmostral(total, 'itens concluídos', janela),
     criterios: criterios('T6', periodo, janela, ctx),
     janelaPercentis: janela,
-    semPrioridade: { n: vazaoSemanal(ctx, semPrioridadeDe(cards), j).total },
+    semPrioridade: { n: semPrioridade, total: total + semPrioridade },
     entradas: { itens: [...ENTRADAS_T6.itens], semanas: [...ENTRADAS_T6.semanas] },
     classes,
   }

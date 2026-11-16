@@ -10741,10 +10741,14 @@
                           "properties": {
                             "n": {
                               "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
                             }
                           },
                           "required": [
-                            "n"
+                            "n",
+                            "total"
                           ],
                           "additionalProperties": false
                         },
@@ -17118,10 +17122,14 @@
                           "properties": {
                             "n": {
                               "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
                             }
                           },
                           "required": [
-                            "n"
+                            "n",
+                            "total"
                           ],
                           "additionalProperties": false
                         },
@@ -19352,10 +19360,14 @@
                           "properties": {
                             "n": {
                               "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
                             }
                           },
                           "required": [
-                            "n"
+                            "n",
+                            "total"
                           ],
                           "additionalProperties": false
                         },
@@ -19987,10 +19999,14 @@
                           "properties": {
                             "n": {
                               "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
                             }
                           },
                           "required": [
-                            "n"
+                            "n",
+                            "total"
                           ],
                           "additionalProperties": false
                         },
@@ -21081,10 +21097,14 @@
                           "properties": {
                             "n": {
                               "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
                             }
                           },
                           "required": [
-                            "n"
+                            "n",
+                            "total"
                           ],
                           "additionalProperties": false
                         },
@@ -23900,10 +23920,14 @@
                           "properties": {
                             "n": {
                               "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
                             }
                           },
                           "required": [
-                            "n"
+                            "n",
+                            "total"
                           ],
                           "additionalProperties": false
                         },

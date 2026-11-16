@@ -61,7 +61,7 @@ describe('E7.100: separação pela prioridade nativa do BusinessMap', () => {
     expect(c.Alta!.estatistica.status).toBe('ok')
     expect(c.Média!.estatistica.status).toBe('ok')
     expect(c.Baixa!.estatistica.status).toBe('insuficiente')
-    expect(r.semPrioridade).toEqual({ n: 7 })
+    expect(r.semPrioridade).toEqual({ n: 7, total: 85 }) // universo = 78 com prioridade + 7
     expect(r.base.n).toBe(78) // os 7 sem prioridade não entram, nem somados a nível nenhum
     expect(SCHEMAS_RESULTADO.T1.safeParse(r).success).toBe(true)
   })
@@ -81,7 +81,7 @@ describe('E7.100: separação pela prioridade nativa do BusinessMap', () => {
     expect(c.Média!.sle).toEqual({ diasUteis: 5, publicadoEm: '2026-06-15' })
     expect(c.Crítica!.sle).toBeNull()
     expect(c.Alta!.sle).toBeNull() // sem SLE publicado para a Alta: "SLE não definido"
-    expect(r.semPrioridade).toEqual({ n: 7 })
+    expect(r.semPrioridade).toEqual({ n: 7, total: 85 })
     expect(SCHEMAS_RESULTADO.T2.safeParse(r).success).toBe(true)
   })
 
@@ -98,7 +98,7 @@ describe('E7.100: separação pela prioridade nativa do BusinessMap', () => {
     expect(c.Crítica!.estatistica.status).toBe('insuficiente')
     expect(c.Alta!.estatistica.status).toBe('ok')
     expect(c.Baixa!.estatistica.status).toBe('insuficiente')
-    expect(r.semPrioridade).toEqual({ n: 7 })
+    expect(r.semPrioridade).toEqual({ n: 7, total: 85 }) // cartões distintos: 78 com prioridade + 7
     expect(Object.keys(r).sort()).toEqual(['base', 'classes', 'criterios', 'semPrioridade'])
     expect(
       r.classes.some((x) => !(NIVEIS_PRIORIDADE_BM as readonly string[]).includes(x.classe)),
@@ -106,11 +106,17 @@ describe('E7.100: separação pela prioridade nativa do BusinessMap', () => {
     expect(SCHEMAS_RESULTADO.T4.safeParse(r).success).toBe(true)
   })
 
+  it('T4: cartão sem prioridade que chegou e foi entregue conta 1, não 2 (A4)', () => {
+    const r = calcularT4(ctxDe(entregues(7, null)), F)
+    expect(r.semPrioridade).toEqual({ n: 7, total: 7 })
+    expect(r.semPrioridade.n).toBeGreaterThan(0)
+  })
+
   it('T6: n por nível (itens entregues na janela), sem prioridade fora e contada', () => {
     const r = calcularT6(ctxDe(mistura(entregues)), F)
     const c = porNivel(r.classes)
     expect([c.Crítica!.n, c.Alta!.n, c.Média!.n, c.Baixa!.n]).toEqual([19, 20, 20, 19])
-    expect(r.semPrioridade).toEqual({ n: 7 })
+    expect(r.semPrioridade).toEqual({ n: 7, total: 85 })
     expect(r.base.n).toBe(78)
     expect(SCHEMAS_RESULTADO.T6.safeParse(r).success).toBe(true)
   })
@@ -123,7 +129,7 @@ describe('E7.100: separação pela prioridade nativa do BusinessMap', () => {
     expect(r.classes.map((c) => c.classe)).toEqual(['Crítica', 'Alta'])
     expect(r.classes[0]!.estatistica.status).toBe('insuficiente')
     expect(r.classes[1]!.estatistica.status).toBe('ok')
-    expect(r.semPrioridade).toEqual({ n: 7 })
+    expect(r.semPrioridade).toEqual({ n: 7, total: 46 })
     expect(r.base.n).toBe(39)
     expect(SCHEMAS_RESULTADO.O6.safeParse(r).success).toBe(true)
   })

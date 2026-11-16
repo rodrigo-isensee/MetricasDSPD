@@ -2,6 +2,7 @@ import { NIVEIS_PRIORIDADE_BM, type FiltrosFluxo } from '@metricas-dspd/contrato
 import { Barras } from '@/components/charts'
 import {
   CartaoMetrica,
+  maioriaSemPrioridade,
   SemPrioridade,
   SeletorLocal,
   TabelaDados,
@@ -46,7 +47,9 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
   const leitura = sel
     ? `Para a prioridade ${sel.c.classe}, a mediana do lead time é ${fmtDiasUteis(sel.e.valor.total.p50)}; ${fmtDiasUteis(sel.e.valor.blocos.fila)} de fila (mediana), ${fmtPct(sel.e.valor.fracaoFilaPct)} do tempo antes de a equipe assumir o pedido.`
     : publicadas.length === 0 && d
-      ? 'Nenhuma prioridade tem amostra suficiente para publicar o lead time.'
+      ? maioriaSemPrioridade(d.semPrioridade)
+        ? 'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente para publicar o lead time.'
+        : 'Nenhuma prioridade tem amostra suficiente para publicar o lead time.'
       : undefined
   return (
     <CartaoMetrica
@@ -122,7 +125,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
               )}
             </SeletorLocal>
           )}
-          <SemPrioridade n={d.semPrioridade.n} codigo="T1" />
+          <SemPrioridade {...d.semPrioridade} universo="entregues" codigo="T1" />
           <p className="text-sm text-texto-2">
             As medianas dos blocos e a mediana do total são medidas separadas; uma não é a soma da
             outra. Janela de percentis: {textoJanela(d.janelaPercentis)}.

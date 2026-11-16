@@ -279,4 +279,11 @@ describe('O7: saldo acumulado (F4)', () => {
     expect(total(dias[0]!, dias[13]!)).toBe(somaDiaria)
     expect(total(dias[0]!, dias[6]!) + total(dias[7]!, dias[13]!)).toBe(somaDiaria)
   })
+
+  it('prioridade do card: bug com severidade tem a prioridade igual à severidade (uma coluna só); os demais vêm da classe', () => {
+    const comSeveridade = base.bm.cards.filter((c) => c.severidade !== null)
+    expect(comSeveridade.length).toBeGreaterThan(0)
+    expect(comSeveridade.every((c) => c.prioridade === c.severidade)).toBe(true)
+    expect(base.bm.cards.some((c) => c.severidade === null && c.prioridade === null)).toBe(true)
+  })
 })

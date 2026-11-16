@@ -50,11 +50,12 @@ export function calcularO6(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO6 {
           : ('sem-referencia' as const),
     }
   }).filter((c) => c.n > 0)
+  const semPrioridade = naJanela(semPrioridadeDe(cards)).length
   return {
     base: baseAmostral(total, 'itens concluídos', janela),
     criterios: criterios('O6', periodo, janela, ctx),
     janelaPercentis: janela,
-    semPrioridade: { n: naJanela(semPrioridadeDe(cards)).length },
+    semPrioridade: { n: semPrioridade, total: total + semPrioridade },
     alvoMax: META_PREVISIBILIDADE_MAX,
     classes,
   }

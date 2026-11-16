@@ -82,6 +82,12 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
               }
             })}
           />
+          <SemPrioridade
+            {...d.semPrioridade}
+            universo="cartões com chegada ou entrega no período"
+            codigo="T4"
+            complemento="A chegada total é maior que a soma das prioridades acima."
+          />
           <SeletorLocal
             codigo="t4"
             rotulo="Prioridade (uma por vez)"
@@ -115,7 +121,6 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
               <AmostraInsuficiente n={sel.estatistica.n} codigo="T4" oQue="Razão e faixas" />
             ) : null}
           </SeletorLocal>
-          <SemPrioridade n={d.semPrioridade.n} codigo="T4" />
           <p className="text-sm">
             <a className="alvo text-acento underline" href="#t1">
               Veja o lead time (T1)

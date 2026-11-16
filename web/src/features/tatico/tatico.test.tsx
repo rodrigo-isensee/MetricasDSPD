@@ -17,7 +17,7 @@ const blocos = { fila: 22, espera: 4, execucao: 9, homologacao: 3 }
 const t1 = {
   ...COMUM,
   janelaPercentis: JANELA,
-  semPrioridade: { n: 445 },
+  semPrioridade: { n: 445, total: 900 },
   classes: [
     { classe: 'Crítica', n: 12, estatistica: insuf(12) },
     {
@@ -35,6 +35,19 @@ const t1 = {
 }
 
 describe('T1 lead time por prioridade', () => {
+  it('B1: sem nenhuma prioridade publicável e a faixa sendo a maioria, a leitura diz que a maior parte está sem prioridade', async () => {
+    const dto = {
+      ...t1,
+      semPrioridade: { n: 60, total: 100 },
+      classes: [{ classe: 'Alta', n: 5, estatistica: insuf(5) }],
+    }
+    renderizarApp('/tatico', new FonteFixa({ T1: dto }))
+    const el = await cartao('T1')
+    expect(await within(el).findByTestId('leitura-T1')).toHaveTextContent(
+      'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente',
+    )
+  })
+
   it('A1/A2/A3: blocos e P85 por prioridade, n<20 sem barra, n=20 publica, só papéis como donos', async () => {
     renderizarApp('/tatico', new FonteFixa({ T1: t1 }))
     const el = await cartao('T1')
@@ -53,9 +66,10 @@ describe('T1 lead time por prioridade', () => {
     expect(within(tab).getByText(/Média \(P85 do total: 60 dias úteis\)/)).toBeInTheDocument()
     expect(within(tab).queryByText(/Crítica/)).not.toBeInTheDocument()
     expect(el).toHaveTextContent('Leia junto com Demanda × capacidade (T4)')
-    expect(within(el).getByTestId('sem-prioridade-T1')).toHaveTextContent(
-      'Sem prioridade: 445 cartões ficaram fora da separação por prioridade.',
-    )
+    const faixa = within(el).getByTestId('sem-prioridade-T1')
+    expect(faixa).toHaveTextContent('Sem prioridade (BusinessMap): 445 de 900 entregues (49%).')
+    expect(faixa).toHaveTextContent('só não têm prioridade preenchida no BusinessMap')
+    expect(faixa).toHaveAttribute('data-destaque', 'sim') // 49% >= 20%: destaque com ícone e texto
     expect(el).not.toHaveTextContent(/etiqueta|classe de serviço/i)
   })
 })
@@ -71,7 +85,7 @@ const classeT2 = (classe: string, k: number, n: number, status: 'dentro' | 'fora
 const t2 = {
   ...COMUM,
   janelaPercentis: JANELA,
-  semPrioridade: { n: 1 },
+  semPrioridade: { n: 1, total: 120 },
   classes: [
     classeT2('Média', 54, 64, 'fora'),
     classeT2('Alta', 55, 64, 'dentro'),
@@ -95,6 +109,15 @@ const t2 = {
 }
 
 describe('T2 aderência ao SLE', () => {
+  it('B1: sem nenhuma prioridade publicável e a faixa sendo a maioria, a leitura diz que a maior parte está sem prioridade', async () => {
+    const dto = { ...t2, semPrioridade: { n: 60, total: 100 }, classes: [] }
+    renderizarApp('/tatico', new FonteFixa({ T2: dto }))
+    const el = await cartao('T2')
+    expect(await within(el).findByTestId('leitura-T2')).toHaveTextContent(
+      'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem amostra suficiente',
+    )
+  })
+
   it('B1/B2/B3', async () => {
     renderizarApp('/tatico', new FonteFixa({ T2: t2 }))
     const el = await cartao('T2')
@@ -111,9 +134,9 @@ describe('T2 aderência ao SLE', () => {
     expect(padrao).toHaveTextContent('publicado em 02/03/2026')
     const mapa = within(el).getByRole('region', { name: /Estouros do SLE/ })
     expect(within(mapa).getByRole('row', { name: /Média/ })).toHaveTextContent('10')
-    expect(within(el).getByTestId('sem-prioridade-T2')).toHaveTextContent(
-      'Sem prioridade: 1 cartão ficou fora da separação por prioridade.',
-    )
+    const faixa = within(el).getByTestId('sem-prioridade-T2')
+    expect(faixa).toHaveTextContent('Sem prioridade (BusinessMap): 1 de 120 entregues (1%).')
+    expect(faixa).toHaveAttribute('data-destaque', 'nao')
   })
 })
 
@@ -167,7 +190,7 @@ const faixa = (m: number) => ({ min: 1, max: 20, mediana: m, media: m })
 const semanas = [{ semana: '2026-09-28', emAndamento: false, chegada: 5, vazao: 4 }]
 const t4 = {
   ...COMUM,
-  semPrioridade: { n: 0 },
+  semPrioridade: { n: 0, total: 80 },
   classes: [
     {
       classe: 'Média',
@@ -230,9 +253,16 @@ describe('T4 demanda x capacidade', () => {
       'A fila cresce: chegam mais itens do que saem',
     )
     expect(el).not.toHaveTextContent(/semanas para zerar fila/i)
-    expect(within(el).getByTestId('sem-prioridade-T4')).toHaveTextContent(
-      'Sem prioridade: 0 cartões',
+    const faixa = within(el).getByTestId('sem-prioridade-T4')
+    expect(faixa).toHaveTextContent(
+      'Sem prioridade (BusinessMap): 0 de 80 cartões com chegada ou entrega no período (0%).',
     )
+    expect(faixa).toHaveTextContent('A chegada total é maior que a soma das prioridades acima.')
+    // a faixa vem logo depois da tabela de razão (M2), não depois do seletor
+    expect(
+      within(el).getByTestId('tabela-T4-classes').compareDocumentPosition(faixa) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 })
 

@@ -113,7 +113,7 @@ describe('O24: ordem de chegada', () => {
       expect(passa.base.n, prioridade).toBe(1)
       expect(passa.inicios, prioridade).toMatchObject({ k: 0, n: 1 })
       expect(passa.custo.porTipo, prioridade).toEqual([])
-      expect(passa.semPrioridade, prioridade).toEqual({ n: 0 })
+      expect(passa.semPrioridade, prioridade).toEqual({ n: 0, total: 2 })
       // o mais antigo é de outra prioridade e espera: não conta como ultrapassado
       const espera = calcularO24(ctxDe([card('a', C1, I2, { prioridade }), card('b', C2, I1)]), F)
       expect(espera.inicios, prioridade).toMatchObject({ k: 0, n: 1 })
@@ -128,13 +128,13 @@ describe('O24: ordem de chegada', () => {
     )
     expect(passa.base.n).toBe(1)
     expect(passa.inicios).toMatchObject({ k: 0, n: 1 })
-    expect(passa.semPrioridade).toEqual({ n: 1 })
+    expect(passa.semPrioridade).toEqual({ n: 1, total: 2 })
     const espera = calcularO24(
       ctxDe([card('a', C1, I2, { prioridade: null }), card('b', C2, I1)]),
       F,
     )
     expect(espera.inicios).toMatchObject({ k: 0, n: 1 })
-    expect(espera.semPrioridade).toEqual({ n: 1 })
+    expect(espera.semPrioridade).toEqual({ n: 1, total: 2 })
     expect(passa.base.unidade).toBe('inícios da prioridade Média')
   })
 

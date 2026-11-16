@@ -4,6 +4,7 @@ import { Barras, marcaDoTipo } from '@/components/charts'
 import {
   AmostraInsuficiente,
   EstadoSemDadoReal,
+  maioriaSemPrioridade,
   SemPrioridade,
   SeletorLocal,
   TabelaDados,
@@ -95,7 +96,9 @@ export function CartaoO6({ filtros }: P) {
         d
           ? primeiro
             ? `Prioridade ${primeiro.classe}: P85 ÷ P50 = ${fmtNumero(primeiro.razao, 1)} (P50 ${fmtDiasUteis(primeiro.p50)}, P85 ${fmtDiasUteis(primeiro.p85)}).`
-            : 'Nenhuma prioridade tem 20 itens: a razão não é publicada.'
+            : maioriaSemPrioridade(d.semPrioridade)
+              ? 'A maior parte dos cartões deste recorte está sem prioridade; nenhuma prioridade tem 20 itens e a razão não é publicada.'
+              : 'Nenhuma prioridade tem 20 itens: a razão não é publicada.'
           : undefined
       }
     >
@@ -120,7 +123,7 @@ export function CartaoO6({ filtros }: P) {
           {ok.length > 0 && (
             <ListaInsuficientes itens={faltam.map((c) => ({ rotulo: c.classe, n: c.n }))} />
           )}
-          <SemPrioridade n={r.semPrioridade.n} codigo="O6" />
+          <SemPrioridade {...r.semPrioridade} universo="itens entregues" codigo="O6" />
           <Leia>Referência do briefing, não meta de pessoa. Leia com O3 e O8.</Leia>
         </div>
       )}

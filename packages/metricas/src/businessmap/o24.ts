@@ -103,9 +103,8 @@ export function calcularO24(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO24 {
   )
   const iniciados = iniciadosDeStory.filter((m) => m.card.prioridade === 'Média')
   const noPeriodo = iniciados.filter((m) => dentro(ctx, m.inicio, periodo))
-  const semPrioridade = semPrioridadeDe(iniciadosDeStory).filter((m) =>
-    dentro(ctx, m.inicio, periodo),
-  ).length
+  const iniciosNoPeriodo = iniciadosDeStory.filter((m) => dentro(ctx, m.inicio, periodo))
+  const semPrioridade = semPrioridadeDe(iniciosNoPeriodo).length
   const fora = (m: MarcosCard): boolean => (passagens.get(m.card.card_id) as Passagem).foraDeOrdem
   const meses = mesesEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia).map(
     (b) => {
@@ -129,7 +128,7 @@ export function calcularO24(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO24 {
   return {
     base: baseAmostral(noPeriodo.length, 'inícios da prioridade Média', periodo),
     criterios: crit,
-    semPrioridade: { n: semPrioridade },
+    semPrioridade: { n: semPrioridade, total: iniciosNoPeriodo.length },
     inicios: taxa(noPeriodo.filter(fora).length, noPeriodo.length),
     meses,
     marcacoes: crit.serie,

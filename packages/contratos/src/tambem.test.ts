@@ -75,7 +75,7 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
   },
   O24: {
     ...comum,
-    semPrioridade: { n: 4 },
+    semPrioridade: { n: 4, total: 40 },
     inicios: taxaOk,
     meses: [{ mes: '2026-09', emOrdem: 10, foraDeOrdem: 3, emAndamento: false }],
     marcacoes: [marcacao],

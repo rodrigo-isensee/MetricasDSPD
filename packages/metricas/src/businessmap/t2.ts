@@ -74,7 +74,10 @@ export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
     base: baseAmostral(total, 'demandas entregues', janela),
     criterios: criterios('T2', periodo, janela, ctx),
     janelaPercentis: janela,
-    semPrioridade: { n: semPrioridadeDe(cards).length },
+    semPrioridade: {
+      n: semPrioridadeDe(cards).length,
+      total: total + semPrioridadeDe(cards).length,
+    },
     classes,
   }
 }

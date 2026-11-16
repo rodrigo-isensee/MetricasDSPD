@@ -52,15 +52,14 @@ export function calcularT1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT1 {
       }),
     }
   })
+  const semPrioridade = semPrioridadeDe(cards)
+    .map((m) => blocosDe(ctx, m))
+    .filter((b) => b !== null).length
   return {
     base: baseAmostral(total, 'demandas entregues', janela),
     criterios: criterios('T1', periodo, janela, ctx),
     janelaPercentis: janela,
-    semPrioridade: {
-      n: semPrioridadeDe(cards)
-        .map((m) => blocosDe(ctx, m))
-        .filter((b) => b !== null).length,
-    },
+    semPrioridade: { n: semPrioridade, total: total + semPrioridade },
     classes,
   }
 }

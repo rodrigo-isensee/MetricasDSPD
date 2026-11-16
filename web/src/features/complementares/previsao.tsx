@@ -96,7 +96,7 @@ export function CartaoT6({ filtros }: P) {
                   />
                 </>
               )}
-              <SemPrioridade n={r.semPrioridade.n} codigo="T6" />
+              <SemPrioridade {...r.semPrioridade} universo="itens entregues" codigo="T6" />
               <Leia>
                 O P50 é uma chance de meio a meio. A previsão vale se o escopo não crescer; uma
                 prioridade por vez.

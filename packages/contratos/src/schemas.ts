@@ -50,7 +50,11 @@ const tipo = z.enum(TIPOS_CARD)
 /** Nível da prioridade nativa do BusinessMap (a chave `classe` dos resultados guarda o nível; um só ponto troca o domínio). */
 const classe = z.enum(NIVEIS_PRIORIDADE_BM)
 /** Cards sem prioridade (priority nula no BusinessMap): ficam fora da separação por nível e são contados aqui, nunca somados a um nível. */
-const semPrioridade = z.object({ n: z.number() })
+const semPrioridade = z.object({
+  n: z.number(),
+  /** Universo da mesma contagem (cartões com e sem prioridade), para a faixa dizer "N de M". */
+  total: z.number(),
+})
 const prioridade = z.enum(PRIORIDADES)
 
 /** Campos presentes em todo resultado. */
