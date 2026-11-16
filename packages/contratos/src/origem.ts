@@ -84,11 +84,11 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 
 /**
- * Pedido 099 (B' da Q-099-7): motivo da parte por causa raiz do O17. A causa raiz é do Registro de Problemas e a base não tem o
- * vínculo ao incidente; a causa aparente não serve no lugar dela.
+ * Pedido 105 (K-372, decisão do dono de 16/11): motivo definitivo da parte por causa raiz do O17. O campo "Causa raiz" do fluxo de
+ * Problemas do Acelerato é texto livre, que nunca entra na base (ADR 0020); a causa raiz de incidente não é contada.
  */
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
-  'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
+  'A causa raiz do incidente é registrada em texto livre no Acelerato e por isso não é contada.'
 
 /**
  * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.

@@ -6,7 +6,7 @@ import { expect, rodarAxe, test } from '../fixtures/base'
 // por isso a resposta do O17 é fornecida aqui, com o formato do contrato resultados/O17 (base real: porCausa nulo).
 const ROTA = '/operacional?cadencia=sustentacao'
 const URL_O17 = /\/api\/v1\/metricas\/O17(\?.*)?$/
-const MOTIVO = 'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
+const MOTIVO = 'A causa raiz do incidente é registrada em texto livre no Acelerato e por isso não é contada.'
 const JANELA = { inicio: '2026-04-10', fim: '2026-10-09' }
 const SISTEMAS = [
   { sistema: 'Protheus - Compras', n: 300 },
@@ -56,7 +56,7 @@ for (const tema of ['claro', 'escuro'] as const) {
       await expect(cartao.getByRole('heading', { level: 4, name: 'Por causa raiz' })).toBeVisible()
       await expect(cartao.getByRole('heading', { level: 4, name: 'Por sistema' })).toBeVisible()
       await expect(cartao).toContainText('Sem dado real')
-      await expect(cartao).toContainText('Registro de Problemas')
+      await expect(cartao).toContainText('texto livre')
       await expect(cartao).toContainText('Protheus - Compras')
       await expect(cartao).not.toContainText('Metabase')
       await expect(cartao.getByTestId('selo-ficticio')).toHaveCount(0)
@@ -72,7 +72,7 @@ for (const tema of ['claro', 'escuro'] as const) {
       const cartao = await abrirO17(page, tema, 'com-causa')
       await expect(cartao.getByRole('heading', { level: 4, name: 'Por causa raiz' })).toBeVisible()
       await expect(cartao.getByRole('heading', { level: 4, name: 'Por sistema' })).toBeVisible()
-      await expect(cartao).toContainText('A causa raiz vem do Registro de Problemas; a lista de causas é uma proposta do time.')
+      await expect(cartao).toContainText('A lista de causas é uma proposta do time.')
       await expect(cartao).not.toContainText('Sem dado real')
       await expect(cartao).not.toContainText('Metabase')
       const r = await rodarAxe(page, { incluir: '[data-testid="metrica-O17"]' })
