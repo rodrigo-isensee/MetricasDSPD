@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
-import { AmostraInsuficiente, SeletorLocal, TabelaDados } from '@/components/ui'
+import { AmostraInsuficiente, SemPrioridade, SeletorLocal, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtInteiro, fmtPct, fmtTrimestre, plural, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
@@ -17,7 +17,7 @@ const periodos = (n: number, g: 'dia' | 'semana') =>
 
 type Pct = { p50: number; p85: number; p95: number }
 
-/** T6: previsão probabilística por classe de serviço (Monte Carlo sobre a vazão semanal). */
+/** T6: previsão probabilística por prioridade (Monte Carlo sobre a vazão semanal). */
 export function CartaoT6({ filtros }: P) {
   const q = useMetrica('T6', filtros)
   const [classe, setClasse] = useState<string | null>(null)
@@ -42,7 +42,7 @@ export function CartaoT6({ filtros }: P) {
         atual && (
           <SeletorLocal
             codigo="T6"
-            rotulo="Classe de serviço"
+            rotulo="Prioridade"
             valor={atual.classe}
             onChange={setClasse}
             itens={r.classes.map((c) => ({
@@ -59,7 +59,7 @@ export function CartaoT6({ filtros }: P) {
                 <>
                   <TabelaDados
                     codigo="T6-termino"
-                    legenda={`Quando terminam N itens da classe ${atual.classe} (P50, P85 e P95)`}
+                    legenda={`Quando terminam N itens de prioridade ${atual.classe} (P50, P85 e P95)`}
                     colunas={[
                       { chave: 'n', titulo: 'Itens a terminar' },
                       { chave: 'p50', titulo: 'P50', alinhar: 'direita' },
@@ -75,7 +75,7 @@ export function CartaoT6({ filtros }: P) {
                   />
                   <TabelaDados
                     codigo="T6-itens"
-                    legenda={`Quantos itens da classe ${atual.classe} cabem em N semanas (P50, P85 e P95)`}
+                    legenda={`Quantos itens de prioridade ${atual.classe} cabem em N semanas (P50, P85 e P95)`}
                     colunas={[
                       { chave: 's', titulo: 'Semanas disponíveis' },
                       { chave: 'p50', titulo: 'P50', alinhar: 'direita' },
@@ -96,9 +96,10 @@ export function CartaoT6({ filtros }: P) {
                   />
                 </>
               )}
+              <SemPrioridade n={r.semPrioridade.n} codigo="T6" />
               <Leia>
                 O P50 é uma chance de meio a meio. A previsão vale se o escopo não crescer; uma
-                classe por vez.
+                prioridade por vez.
               </Leia>
             </div>
           </SeletorLocal>

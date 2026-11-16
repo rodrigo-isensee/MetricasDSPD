@@ -17,41 +17,46 @@ const blocos = { fila: 22, espera: 4, execucao: 9, homologacao: 3 }
 const t1 = {
   ...COMUM,
   janelaPercentis: JANELA,
+  semPrioridade: { n: 445 },
   classes: [
-    { classe: 'Urgente', n: 12, estatistica: insuf(12) },
+    { classe: 'Crítica', n: 12, estatistica: insuf(12) },
     {
-      classe: 'Padrão',
+      classe: 'Média',
       n: 64,
       estatistica: ok(64, { blocos, total: { p50: 38, p85: 60, p95: 80 }, fracaoFilaPct: 58 }),
     },
     {
-      classe: 'Prazo fixo',
+      classe: 'Alta',
       n: 20,
       estatistica: ok(20, { blocos, total: { p50: 30, p85: 50, p95: 70 }, fracaoFilaPct: 40 }),
     },
-    { classe: 'Prioritário', n: 5, estatistica: insuf(5) },
+    { classe: 'Baixa', n: 5, estatistica: insuf(5) },
   ],
 }
 
-describe('T1 lead time por classe', () => {
-  it('A1/A2/A3: blocos e P85 por classe, n<20 sem barra, n=20 publica, só papéis como donos', async () => {
+describe('T1 lead time por prioridade', () => {
+  it('A1/A2/A3: blocos e P85 por prioridade, n<20 sem barra, n=20 publica, só papéis como donos', async () => {
     renderizarApp('/tatico', new FonteFixa({ T1: t1 }))
     const el = await cartao('T1')
-    expect(await within(el).findByTestId('amostra-insuficiente-T1-urgente')).toHaveTextContent(
+    expect(await within(el).findByTestId('amostra-insuficiente-T1-critica')).toHaveTextContent(
       'Amostra insuficiente (12 de 20 itens mínimos)',
     )
-    expect(within(el).getByTestId('amostra-insuficiente-T1-prioritario')).toBeInTheDocument()
+    expect(within(el).getByTestId('amostra-insuficiente-T1-baixa')).toBeInTheDocument()
     expect(within(el).getByTestId('leitura-T1')).toHaveTextContent(
       'mediana do lead time é 38 dias úteis',
     )
-    expect(within(el).getByRole('tab', { name: /Prazo fixo/ })).toBeInTheDocument()
+    expect(within(el).getByRole('tab', { name: /Alta/ })).toBeInTheDocument()
     expect(within(el).getByText('Validação do negócio')).toBeInTheDocument()
     // a soma das medianas (38) só aparece como mediana do total quando for o P50 real; nunca como "soma"
     await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
     const tab = within(el).getByTestId('tabela-T1')
-    expect(within(tab).getByText(/Padrão \(P85 do total: 60 dias úteis\)/)).toBeInTheDocument()
-    expect(within(tab).queryByText(/Urgente/)).not.toBeInTheDocument()
+    expect(within(tab).getByText(/Média \(P85 do total: 60 dias úteis\)/)).toBeInTheDocument()
+    expect(within(tab).queryByText(/Crítica/)).not.toBeInTheDocument()
     expect(el).toHaveTextContent('Leia junto com Demanda × capacidade (T4)')
+    expect(within(el).getByTestId('sem-prioridade-T1')).toHaveTextContent(
+      'Sem prioridade: 445 cartões ficaram fora da separação por prioridade.',
+    )
+    expect(el).not.toHaveTextContent(/etiqueta|classe de serviço/i)
   })
 })
 
@@ -66,11 +71,12 @@ const classeT2 = (classe: string, k: number, n: number, status: 'dentro' | 'fora
 const t2 = {
   ...COMUM,
   janelaPercentis: JANELA,
+  semPrioridade: { n: 1 },
   classes: [
-    classeT2('Padrão', 54, 64, 'fora'),
-    classeT2('Prazo fixo', 55, 64, 'dentro'),
+    classeT2('Média', 54, 64, 'fora'),
+    classeT2('Alta', 55, 64, 'dentro'),
     {
-      classe: 'Urgente',
+      classe: 'Crítica',
       sle: null,
       n: 10,
       dentroDoSle: { status: 'insuficiente' as const, k: 8, n: 10, minimo: 20 as const },
@@ -78,7 +84,7 @@ const t2 = {
       estouros: { total: 0, porEtapa: [] },
     },
     {
-      classe: 'Prioritário',
+      classe: 'Baixa',
       sle: null,
       n: 30,
       dentroDoSle: null,
@@ -92,19 +98,22 @@ describe('T2 aderência ao SLE', () => {
   it('B1/B2/B3', async () => {
     renderizarApp('/tatico', new FonteFixa({ T2: t2 }))
     const el = await cartao('T2')
-    const padrao = await within(el).findByTestId('t2-Padrão')
+    const padrao = await within(el).findByTestId('t2-Média')
     expect(padrao).toHaveTextContent('84,4%')
     expect(padrao).toHaveTextContent('Fora da meta')
-    expect(within(el).getByTestId('t2-Prazo fixo')).toHaveTextContent('Dentro da meta')
-    expect(within(el).getByTestId('t2-Prioritário')).toHaveTextContent(
-      'SLE ainda não publicado para esta classe.',
+    expect(within(el).getByTestId('t2-Alta')).toHaveTextContent('Dentro da meta')
+    expect(within(el).getByTestId('t2-Baixa')).toHaveTextContent(
+      'SLE ainda não definido para esta prioridade.',
     )
-    expect(within(el).getByTestId('t2-Urgente')).toHaveTextContent(
+    expect(within(el).getByTestId('t2-Crítica')).toHaveTextContent(
       'Amostra insuficiente (10 de 20 itens mínimos). SLE: não publicado.',
     )
     expect(padrao).toHaveTextContent('publicado em 02/03/2026')
     const mapa = within(el).getByRole('region', { name: /Estouros do SLE/ })
-    expect(within(mapa).getByRole('row', { name: /Padrão/ })).toHaveTextContent('10')
+    expect(within(mapa).getByRole('row', { name: /Média/ })).toHaveTextContent('10')
+    expect(within(el).getByTestId('sem-prioridade-T2')).toHaveTextContent(
+      'Sem prioridade: 1 cartão ficou fora da separação por prioridade.',
+    )
   })
 })
 
@@ -158,9 +167,10 @@ const faixa = (m: number) => ({ min: 1, max: 20, mediana: m, media: m })
 const semanas = [{ semana: '2026-09-28', emAndamento: false, chegada: 5, vazao: 4 }]
 const t4 = {
   ...COMUM,
+  semPrioridade: { n: 0 },
   classes: [
     {
-      classe: 'Padrão',
+      classe: 'Média',
       n: 100,
       estatistica: ok(100, {
         chegada: faixa(11),
@@ -176,7 +186,7 @@ const t4 = {
       semanas,
     },
     {
-      classe: 'Urgente',
+      classe: 'Crítica',
       n: 16,
       estatistica: insuf(16),
       statusMeta: 'sem-referencia' as const,
@@ -184,7 +194,7 @@ const t4 = {
       semanas: [{ semana: '2026-09-28', emAndamento: false, chegada: 9, vazao: 7 }],
     },
     {
-      classe: 'Prazo fixo',
+      classe: 'Alta',
       n: 40,
       estatistica: ok(40, {
         chegada: faixa(0),
@@ -203,16 +213,16 @@ const t4 = {
 }
 
 describe('T4 demanda x capacidade', () => {
-  it('D1/D2: sempre por classe, razão indefinida sem chegada, contagens abaixo de 20', async () => {
+  it('D1/D2: sempre por prioridade, razão indefinida sem chegada, contagens abaixo de 20', async () => {
     renderizarApp('/tatico', new FonteFixa({ T4: t4 }))
     const el = await cartao('T4')
     const tab = await within(el).findByTestId('tabela-T4-classes')
     expect(
-      within(within(tab).getByRole('row', { name: /Padrão/ })).getByText('1,01'),
+      within(within(tab).getByRole('row', { name: /Média/ })).getByText('1,01'),
     ).toBeInTheDocument()
-    expect(within(tab).getByRole('row', { name: /Prazo fixo/ })).toHaveTextContent('Indefinida')
-    expect(within(tab).getByRole('row', { name: /Urgente/ })).toHaveTextContent('Chegadas: 9')
-    expect(within(tab).getByRole('row', { name: /Urgente/ })).toHaveTextContent(
+    expect(within(tab).getByRole('row', { name: /Alta/ })).toHaveTextContent('Indefinida')
+    expect(within(tab).getByRole('row', { name: /Crítica/ })).toHaveTextContent('Chegadas: 9')
+    expect(within(tab).getByRole('row', { name: /Crítica/ })).toHaveTextContent(
       '16 de 20 itens mínimos',
     )
     expect(within(tab).queryByRole('row', { name: /Total|Todas/ })).not.toBeInTheDocument()
@@ -220,6 +230,9 @@ describe('T4 demanda x capacidade', () => {
       'A fila cresce: chegam mais itens do que saem',
     )
     expect(el).not.toHaveTextContent(/semanas para zerar fila/i)
+    expect(within(el).getByTestId('sem-prioridade-T4')).toHaveTextContent(
+      'Sem prioridade: 0 cartões',
+    )
   })
 })
 

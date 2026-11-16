@@ -5,16 +5,19 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ## [Não publicado]
 
 ### Corrigido
+
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 
 ### Adicionado
+
 - S1 e S2: o texto do "registro posterior" vira linguagem simples (chamado registrado depois que o atendimento já aconteceu; pela regra fica de fora, mas hoje o Acelerato não traz essa marca e nenhum chamado é excluído por esse motivo) e o MTTR diz "pendente ou em validação", como o cálculo já faz; sem mudar cálculo (pedido 105, E3.48).
 - O15 (cartão): nota `o15-fora` com os bugs fora da conta, leitura por caso (percentuais indisponíveis, fases sem contagem), fase de contagem nula sem barra e com traço na tabela, gráfico omitido quando todas as fases são nulas, linha das fases sem contagem e nota metodológica com a fase de detecção; sem mudar contrato (pedido 105, E7.12, `docs/ux/105-o15-cartao.md`).
 - S11 (Avaliação de Problema) com dado real pela Decisão 18b do dono (pedido 099): no fluxo do PROC conta o campo nativo "Avaliação de Problema" preenchido, nos fluxos antigo e intermediário a passagem pela etapa "Causa Raiz", valendo o fluxo do chamado; o contorno passa pelo de-para do motivo de encerramento (antes "Contorno Aplicado" real não entrava); chamado sem fluxo ou com fluxo múltiplo fica fora e é contado em `semFluxo` (P-S11-1 aberta ao dono); a conversão em Registro de Problema sai nula com `motivoConversao`, nunca 0 de 0; contrato muda sem convivência (`conversao` anulável, `semFluxo` e `motivoConversao` obrigatórios); versão de critério `105:S11-avaliacao-18b`, gravada pelo `ac:ref-sync`; S11 no mapa de origem real; abaixo de 20 segue insuficiente (pedido 105, D6a, E6.28).
 - S11 (tela): a conversão em Registro de Problema nula aparece como "sem dado real" com o motivo, nunca 0; os chamados fora do cálculo por falta de fluxo (`semFluxo`) aparecem em nota; S11 sai da lista de cartões sem dado real e a nota do cartão acompanha; hashes do mock regravados (pedido 105, D6b, E6.30).
 - Acelerato: novo comando `ac:reprojetar-fluxo` preenche `dim_chamado.fluxo` (D2) dos chamados já projetados que ficaram com fluxo nulo, reaplicando a regra existente às etapas do staging, em lotes e numa transação só, com a credencial do migrador; só preenche coluna nula (nunca troca valor existente), fluxo múltiplo e chamado sem etapa seguem nulos, repetir não muda nada e a execução fica em `ctl_coleta`; sem isso S5, S6 e S7 seguiam sem dado real nos chamados antigos (pedido 105, E6.16).
 - O15 (cartão): com nenhum bug com fase e ao menos um fora da conta (`base.n` = 0 e `bugsSemFase` > 0) o cartão deixa de cair no estado vazio e mostra a nota `o15-fora` e a leitura "Nenhum bug com fase de detecção no período"; as demais métricas seguem como estão (pedido 105, K-365, E7.30).
+- Telas de T1, T2, T4, T6, O6 e O24 pela prioridade nativa do BusinessMap: rótulos, abas e notas passam de classe de serviço (Urgente, Prioritário, Prazo fixo, Padrão) para prioridade (Crítica, Alta, Média, Baixa); a faixa "Sem prioridade" mostra quantos cartões ficaram fora da separação; o O24 mostra a fila da prioridade Média; a nota do T2 diz que o SLE fica não definido até o dono aprovar os prazos; nenhum aviso de etiquetas sobra na tela; o cálculo não muda (pedido 105, E7.161).
 - O15 (Onde os bugs são encontrados) com dado real: a fase de detecção do bug é a coluna do card da demanda (pai do bug) quando o bug foi criado, pela tabela coluna para fase aprovada pelo dono (347 colunas, `fase_deteccao_coluna` em `businessmap-dominio.json`, projetada em `dim_card.fase_deteccao` sem sobrescrever a história); só os bugs com pai na base entram, com `bugsSemFase` para a nota de quantos ficaram fora, e cada fase só publica a contagem com 20 bugs ou mais (`fases[].contagem` nulo abaixo disso); versão de critério `criterio-2026-11-15-o15-fase-dado-real`; O15 no mapa de origem real. O dono roda `bm:ref-sync` e `bm:projetar` depois do merge (pedido 105, E7.5).
 - O8: o tipo sem tamanho declarado sai do gráfico por tamanho e entra numa nota de texto abaixo dele ("Sem divisão por tamanho: ..."), sem número novo; a tabela, o cálculo e o contrato não mudam (pedido 105, K-361, E3.9).
 - Recomendados do O21, O16 e O8 resolvidos: comentário de origem e linha da API sem "mock" para o O21, testes `.pg` do O16 e do O8 sem laço vazio e com o ramo conferido, contrato do O8 exige o motivo só quando nenhum tipo publica `porTamanho`; o cálculo não muda (pedido 105, K-348, K-352, K-353).
@@ -97,6 +100,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Coleta do BusinessMap (pedido 105, E7.100): `severidade` sai de `COLUNAS_LISTA`; a coluna vem só do `priority` nativo do card pelo mapa `prioridade_severidade`, e um campo customizado não a alimenta mais (uma fonte por coluna).
 
 ### Corrigido
+
 - Aba Apontamento (pedido 097, K-341, decisão do dono de 2026-11-14): no cartão Horas por projeto, a linha sem projeto ("Sem iniciativa") sai do gráfico e das dez vagas dos maiores e aparece como linha própria depois de "Demais" e do botão "Ver todos", com as horas dela, fora de "de N", "Mostrando todos os N projetos", "Ver todos os N" e "Demais N" e fora da região rolável; a frase de leitura não a escolhe e o achado de concentração diz à parte quantas horas ficaram sem projeto (`horasSemProjeto`). CA-33 e CA-34 atualizados na especificação de UX.
 - Painéis: no cartão recolhido em erro, o foco volta ao Expandir depois do Tentar de novo, e cada Tentar de novo leva o título do cartão no nome acessível (pedido 097, K-344, B-2 e B-3).
 - Sustentação: a pausa do SLA da S1 normaliza a etapa Pendente como a S9 (caixa e espaços), e a asserção do p50 da S9 deixa de passar calada (pedido 099, K-350).
@@ -178,6 +182,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Contrato (pedido 105, E7.100): em T1, T2, T4, T6 e O6, `classes[].classe` passa a `Crítica`, `Alta`, `Média` ou `Baixa` (`NIVEIS_PRIORIDADE_BM`; saem Urgente, Prioritário, Prazo fixo e Padrão) e `semPrioridade: { n }` é obrigatório; no O24, `semPrioridade` também é obrigatório. Sem convivência, como a L22 a; aceite pela política de mudança (`docs/contratos/politica-de-mudanca.md`). `config.sle[].classe` guarda o nível.
 
 ### Mudanças de critério de cálculo
+
 - Classe de serviço pelas etiquetas do card (`105:classe-por-etiqueta`, `afeta` O6, O24, T1, T2, T4 e T6): Intangível deixa de ser classe e a classe vem da etiqueta, sem etiqueta = sem classe. O dono registra a versão com `bm:criterios-classe-servico <data da primeira coleta com etiquetas>`; a carga das etiquetas nos cards já coletados exige uma releitura (`bm:coleta carga-inicial --projetar`), porque a coleta incremental não relê card parado (pedido 105, E7.3).
 - 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
 - 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
@@ -206,6 +211,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Grupo `producao` do Dependabot (#411): `mariadb` 3.5.4 para 3.5.5 (driver do MySQL do Acelerato; correções de escape sob big5, gbk, sjis e cp932 e no `Pool.escape()`, e conexão com charset não suportado passa a ser recusada; o coletor não define charset e fica no utf8mb4 padrão) e `@tanstack/react-query` 5.105.3 para 5.107.1 (só a correção de laço de renderização com erro de seletor). No lockfile, `@babel/runtime` 7.29.13, `lilconfig` 3.1.5 e `ws` 8.22.2 (via `puppeteer-core`). Sem quebra de comportamento nas notas de versão e sem ação do dono.
 
 ### Alterado
+
 - Classes de serviço (mudança de contrato em "Mudanças que quebram"): o mock passa a gerar Prioritário (hash da base mock regravado: 61ce1180) e o cartão T2 deixa o texto de "cota fixa de capacidade" (pedido 105, E7.3).
 
 ### Ações do dono na base real depois da release 103

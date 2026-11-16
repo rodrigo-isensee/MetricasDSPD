@@ -1,8 +1,9 @@
-import { CLASSES_SERVICO, type FiltrosFluxo } from '@metricas-dspd/contratos'
+import { NIVEIS_PRIORIDADE_BM, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SerieLinhas } from '@/components/charts'
 import {
   AmostraInsuficiente,
   CartaoMetrica,
+  SemPrioridade,
   SeletorLocal,
   StatusMeta,
   TabelaDados,
@@ -14,12 +15,12 @@ import { NOTAS_TATICO } from '../notas'
 import { propsCartao, slug } from '@/features/painel/propsCartao'
 import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
-const VALORES = CLASSES_SERVICO.map(slug)
+const VALORES = NIVEIS_PRIORIDADE_BM.map(slug)
 
 export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('T4', filtros)
   const d = q.dados
-  const [aba, setAba] = useParametroLocal('t4', VALORES, 'padrao')
+  const [aba, setAba] = useParametroLocal('t4', VALORES, 'media')
   const classes = d?.classes ?? []
   const sel = classes.find((c) => slug(c.classe) === aba)
   const e = sel?.estatistica
@@ -41,9 +42,9 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
         <div className="flex flex-col gap-3">
           <TabelaDados
             codigo="T4-classes"
-            legenda="Demanda × capacidade por classe de serviço (itens por semana)"
+            legenda="Demanda × capacidade por prioridade (itens por semana)"
             colunas={[
-              { chave: 'classe', titulo: 'Classe' },
+              { chave: 'classe', titulo: 'Prioridade' },
               { chave: 'chegada', titulo: 'Chegada por semana' },
               { chave: 'vazao', titulo: 'Vazão por semana' },
               { chave: 'razao', titulo: 'Razão chegada/vazão', alinhar: 'direita' },
@@ -83,8 +84,8 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
           />
           <SeletorLocal
             codigo="t4"
-            rotulo="Classe de serviço (uma por vez)"
-            valor={sel ? aba : 'padrao'}
+            rotulo="Prioridade (uma por vez)"
+            valor={sel ? aba : 'media'}
             onChange={setAba}
             itens={classes.map((c) => ({
               valor: slug(c.classe),
@@ -94,7 +95,7 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
           >
             {sel && sel.estatistica.status === 'ok' ? (
               <SerieLinhas
-                descricao={`Chegada e vazão por semana, classe ${sel.classe}`}
+                descricao={`Chegada e vazão por semana, prioridade ${sel.classe}`}
                 unidade="itens por semana"
                 formatarX={fmtDataCurta}
                 pontos={sel.semanas.map((w) => ({
@@ -114,6 +115,7 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
               <AmostraInsuficiente n={sel.estatistica.n} codigo="T4" oQue="Razão e faixas" />
             ) : null}
           </SeletorLocal>
+          <SemPrioridade n={d.semPrioridade.n} codigo="T4" />
           <p className="text-sm">
             <a className="alvo text-acento underline" href="#t1">
               Veja o lead time (T1)

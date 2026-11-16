@@ -430,6 +430,7 @@ describe('O22 Primeiro toque', () => {
 describe('O24 Ordem de chegada', () => {
   const dto = (inicios: unknown, porTipo: unknown[]) => ({
     ...base(64, 'inícios'),
+    semPrioridade: { n: 317 },
     inicios,
     meses: [
       { mes: '2026-08', emOrdem: 20, foraDeOrdem: 8, emAndamento: false },
@@ -440,7 +441,7 @@ describe('O24 Ordem de chegada', () => {
     grupo: 'equipe-tipo-padrao',
   })
 
-  it('destaque, custo dos ultrapassados e a nota fixa da classe Padrão', async () => {
+  it('destaque, custo dos ultrapassados e a fila da prioridade Média e a contagem sem prioridade', async () => {
     const el = await abrir(
       'O24',
       <CartaoO24 filtros={FILTROS_FLUXO} />,
@@ -461,6 +462,9 @@ describe('O24 Ordem de chegada', () => {
     )
     expect(el).toHaveTextContent('O cartão mostra o custo de passar na frente, não um erro.')
     expect(el.textContent).not.toMatch(/dias a mais/i)
+    expect(within(el).getByTestId('sem-prioridade-O24')).toHaveTextContent(
+      'Sem prioridade: 317 cartões ficaram fora da separação por prioridade.',
+    )
   })
 
   it('menos de 20 inícios e menos de 20 ultrapassados: "k de n" e amostra insuficiente', async () => {
@@ -797,6 +801,7 @@ describe('ramos de borda dos complementares operacionais', () => {
       new FonteFixa({
         O24: {
           ...base(10, 'inícios'),
+          semPrioridade: { n: 0 },
           inicios: zero,
           meses: [{ mes: '2026-09', emOrdem: 1, foraDeOrdem: 0, emAndamento: false }],
           marcacoes: [],

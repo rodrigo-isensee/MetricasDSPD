@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { TIPOS_CARD, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras, marcaDoTipo } from '@/components/charts'
-import { AmostraInsuficiente, EstadoSemDadoReal, SeletorLocal, TabelaDados } from '@/components/ui'
+import {
+  AmostraInsuficiente,
+  EstadoSemDadoReal,
+  SemPrioridade,
+  SeletorLocal,
+  TabelaDados,
+} from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro, fmtMes, fmtNumero, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
@@ -69,7 +75,7 @@ export function CartaoO5({ filtros }: P) {
   )
 }
 
-/** O6: previsibilidade (P85 ÷ P50) por classe de serviço, com a referência do briefing. */
+/** O6: previsibilidade (P85 ÷ P50) por prioridade, com a referência do briefing. */
 export function CartaoO6({ filtros }: P) {
   const q = useMetrica('O6', filtros)
   const d = q.dados
@@ -88,8 +94,8 @@ export function CartaoO6({ filtros }: P) {
       leitura={
         d
           ? primeiro
-            ? `Classe ${primeiro.classe}: P85 ÷ P50 = ${fmtNumero(primeiro.razao, 1)} (P50 ${fmtDiasUteis(primeiro.p50)}, P85 ${fmtDiasUteis(primeiro.p85)}).`
-            : 'Nenhuma classe tem 20 itens: a razão não é publicada.'
+            ? `Prioridade ${primeiro.classe}: P85 ÷ P50 = ${fmtNumero(primeiro.razao, 1)} (P50 ${fmtDiasUteis(primeiro.p50)}, P85 ${fmtDiasUteis(primeiro.p85)}).`
+            : 'Nenhuma prioridade tem 20 itens: a razão não é publicada.'
           : undefined
       }
     >
@@ -97,7 +103,7 @@ export function CartaoO6({ filtros }: P) {
         <div className="flex flex-col gap-3">
           {ok.length > 0 && (
             <Barras
-              descricao="Razão P85 ÷ P50 do tempo de ciclo, por classe de serviço"
+              descricao="Razão P85 ÷ P50 do tempo de ciclo, por prioridade"
               unidade="P85 ÷ P50"
               formatar={(v) => fmtNumero(v, 1)}
               semLegenda
@@ -114,6 +120,7 @@ export function CartaoO6({ filtros }: P) {
           {ok.length > 0 && (
             <ListaInsuficientes itens={faltam.map((c) => ({ rotulo: c.classe, n: c.n }))} />
           )}
+          <SemPrioridade n={r.semPrioridade.n} codigo="O6" />
           <Leia>Referência do briefing, não meta de pessoa. Leia com O3 e O8.</Leia>
         </div>
       )}
