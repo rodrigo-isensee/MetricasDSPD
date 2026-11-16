@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-classe-pela-prioridade
-commit: d4c535de1b916b6552f7ddb727e3e5defa8cc579
+commit: 1e3f1bf2907bfff30eb7411107e2e3402e2f35dd
 parecer: reprovado
 revisor: tech-lead
 data: 2026-11-16
@@ -20,6 +20,8 @@ data: 2026-11-16
 - **A5 resolvido.** `SemPrioridade.tsx` diz "Sem prioridade (BusinessMap): N de M <universo> (P%)", explica o campo vazio e destaca a partir de 20% com ícone, borda e texto (não só cor). Cada cartão passa o próprio universo; com `total = 0` cai em "N <universo>" sem divisão por zero. Parecer da UX versionado em `docs/ux/105-revisao-prioridade.md`.
 - **Universos conferidos.** T1, T2 e T6: `total = base + sem prioridade` do mesmo filtro (entregues na janela). O6: 39 + 7 = 46 no teste. O24: `iniciosNoPeriodo` é o filtro comum, e `n` e `total` saem dele (`o24.ts:106`).
 - **Contrato (politica-de-mudanca §5): aceite ratificado.** `semPrioridade` ganha `total: number` obrigatório em T1, T2, T4, O6, T6 e O24 (`schemas.ts:53`, `tambem.ts`). O objeto `semPrioridade` nasce neste mesmo PR e nunca foi à `develop`, então nenhum consumidor publicado quebra; é mudança compatível sem impacto estrutural, aprovada pelo tech-lead no review. `openapi.json`, `docs/api/metricas.md`, `docs/contratos/metricas/*.md` e as fotografias `snapshots/resultados/*.json` acompanham; job `openapi` verde.
+
+- **Cabeça nova `1e3f1bf2`** (chegou durante a revisão): merge da `develop` (O8 por tamanho, `cc2b7535`) com conflito resolvido em `allow-list.ts`, `normalizador.ts`, `projetor.ts` e `fluxo.tsx`. Lido o diff combinado: as duas saídas convivem (`severidade` e `tamanho_declarado` fora de `COLUNAS_LISTA`, ambas no `projetarCard` e em `COLUNAS_DIM`; imports de `SemPrioridade` e da régua juntos). Correto. Mock e `hash-base-fase-a.json` não mudam, então o A2 segue igual. CI dessa cabeça (runs `43873680248` e `43873689111`) em andamento na hora do parecer.
 
 ## Suíte (CI do head, citado e não rerrodado)
 Run `43872330381` (push, `d4c535de`): **vermelho**. `build` em failure (A2); `e2e` e `perf` pulados; `testes`, `banco`, `openapi`, `seguranca`, `imagem`, `filtro` e `rapida` verdes.
