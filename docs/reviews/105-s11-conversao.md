@@ -4,7 +4,7 @@ contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s11-conversao
 commit: 3b9ead5097ab321a2cb566febd0715f3ebe9de2a
-parecer: aprovado
+parecer: reprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
@@ -20,12 +20,16 @@ data: 2026-11-16
 - **Critério registrado (T2.6).** `105:S11-conversao-avaliacao` em `CRITERIOS_ACELERATO` (`criterios-acelerato.ts:48-53`, `metricas: ['S11']`), com linha em "Mudanças de critério de cálculo" do CHANGELOG; CT-49 atualizado para as sete entradas.
 - **Cartão.** `sustentacao.tsx:303-310` mostra a nota "Conversão pela decisão registrada no chamado, não pelo vínculo" quando a conversão existe, mais a contagem de `foraDaConversao`; `notas.ts` atualizado. Texto é da UX revisar.
 - **Testes.** `s11-18b.test.ts`: proporção com "Não aplicável" só no divisor, 0 de 20 publica 0%, fronteira 19/20, sem avaliação fora do divisor, fluxo antigo fora e contado com o "Aberto" dele ignorado, sem fluxo fora. `painel-real-f6.test.ts` cobre a rota real (insuficiente com 11 e fronteira 20). Rodado: `vitest run src/acelerato/s11-18b.test.ts` em `packages/metricas`, 13 passaram. Mutantes: (1) tirei o filtro `regraDe === 'campo'` do denominador: 1 teste falhou (morto); (2) troquei `=== 'Aberto'` por `!== null`: 6 falharam (morto). Fonte restaurada, árvore limpa.
-- Suíte: não rerrodada; vale o CI do head (runs `43843842467` push e `43844204718` pull_request) e o PQ do autor. Este parecer não afirma CI verde.
+- Suíte: não rerrodada. CI do head `3b9ead50`, run `43843842467` (push): job `testes` vermelho em `pnpm run cobertura`, "web cobertura: ERROR: Coverage for branches (99.94%) does not meet global threshold (100%)"; os demais jobs verdes. Ver A1.
 - Commit: Conventional Commits em português, escopo e pedido no assunto.
 
 ## Achados
-- A1 (recomendado) packages/metricas/src/acelerato/extensao.ts:16 · `ExtensaoAC.registroProblema` ficou sem leitor (o S11 era o único); o campo segue montado em `packages/mock/src/complementares.ts:77` e `server/src/modulos/metricas/mapa.ts:226`. Remover em PR próprio, cuidando dos hashes do mock (o sorteio do `bernoulli` consome a semente).
-- A2 (recomendado) server/tests/criterios-acelerato.test.ts:10 · o título diz "as sete entradas" mas a lista do parêntese não cita a conversão do S11; acrescentar "e a conversão do S11".
+- A1 (bloqueante) web/src/features/complementares/sustentacao.tsx:303 · CI do head vermelho: ramos do web 99,94% contra 100% (run 43843842467); os ramos novos do cartão S11 (linhas 303-307) não têm teste no web. Ver "Correção do A1".
+- A2 (recomendado) packages/metricas/src/acelerato/extensao.ts:16 · `ExtensaoAC.registroProblema` ficou sem leitor (o S11 era o único); o campo segue montado em `packages/mock/src/complementares.ts:77` e `server/src/modulos/metricas/mapa.ts:226`. Remover em PR próprio, cuidando dos hashes do mock (o sorteio do `bernoulli` consome a semente).
+- A3 (recomendado) server/tests/criterios-acelerato.test.ts:10 · o título diz "as sete entradas" mas a lista do parêntese não cita a conversão do S11; acrescentar "e a conversão do S11".
+
+## Correção do A1
+Nenhum teste em `web/src` cita `foraDaConversao` nem a nota "pelo vínculo". Os ramos sem teste: `r.conversao !== null`, `foraDaConversao > 0` e os dois `?? 0`. O teste do cartão S11 afirma a nota com a conversão publicada, a frase de `foraDaConversao` com valor maior que 0 e a ausência dela com 0 e sem o campo (resultado antigo). Se um `?? 0` ficar inalcançável, simplifique o código em vez de cobrir.
 
 ## Riscos e pendências fora do review
 - O denominador conta as avaliações de todos os chamados fechados do período com regra `campo`, não só os do escopo P1/P2/contorno; é o comportamento anterior e bate com "avaliações registradas" da decisão. Se o dono quiser só o escopo, é pergunta ao dono, não ajuste no código.
