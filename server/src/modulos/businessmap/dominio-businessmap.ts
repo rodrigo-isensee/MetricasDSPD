@@ -210,11 +210,11 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
 
 export const referenciaDaVersaoBm = (sha256: string): string => `069:ref-bm-campos:${sha256}`;
 
-/** `recusados`: campos que mudaram e já têm vigência aberta na data (K-383); só o nome do campo e a mensagem fixa, nunca valor. */
+/** `recusados`: campos que mudaram e foram recusados, por data anterior à última vigência ou por vigência já aberta na data (K-383); só o nome do campo e a mensagem fixa, nunca valor. */
 export interface ResultadoDominioBm { sha256: string; campos: number; inseridas: number; fechadas: number; versaoRegistrada: boolean; recusados: { campo: string; mensagem: string }[] }
 
 /**
- * Lê as vigentes, planeja e grava numa transação só, por campo (K-383): campo igual fica como está; campo novo ou mudado grava; campo mudado que já tem vigência aberta na data é recusado sozinho (mesma mensagem, listado em `recusados`) e os outros gravam; só INSERT de vigência nova e UPDATE de `vigente_ate`. Sem diferença nada é
+ * Lê as vigentes, planeja e grava numa transação só, por campo (K-383): campo igual fica como está; campo novo ou mudado grava; campo mudado recusado sozinho, por data anterior à última vigência do campo ou por vigência já aberta na data (mesma mensagem, listado em `recusados`) e os outros gravam; só INSERT de vigência nova e UPDATE de `vigente_ate`. Sem diferença nada é
  * gravado; com diferença registra a versão de critério (T2.6, domínio `businessmap`) com o hash do arquivo, uma vez por hash. As métricas afetadas
  * são as de `versao_criterio.afeta` do arquivo (decisão de negócio, escrita no PR que muda o arquivo); sem `afeta` a versão não marca métrica.
  */

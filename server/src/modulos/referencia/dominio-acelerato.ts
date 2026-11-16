@@ -112,6 +112,7 @@ export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campo
  * Código novo abre vigência; rótulo diferente fecha a anterior e abre a nova; código que saiu da lista só fecha.
  * Só a ordem diferente não muda nada (a posição não altera o significado da lista), exceto nas listas de `CAMPOS_COM_ORDEM`, em que a posição é o dado.
  * Data menor que a última vigência do campo é recusada quando o campo muda: sem períodos sobrepostos nem versão T2.6 com data passada.
+ * Na recusa por campo (`porCampo`, bm:ref-sync, K-383) valem os dois motivos: data anterior à última vigência e vigência já aberta na data.
  */
 export function planejarDominio(
   arquivo: { dominios: Partial<Record<string, Item[]>> }, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
@@ -142,7 +143,7 @@ export function planejarDominio(
       recusa = `ref_dominio ${campo}: já existe vigência aberta em ${hoje} para o mesmo código; repita depois dessa data`;
     }
     if (recusa === undefined) { inserir.push(...ins); fechar.push(...fec); continue; }
-    // Padrão (Acelerato): tudo ou nada. Por campo (bm:ref-sync, K-383): só o campo que mudou e já tem vigência aberta hoje é recusado; os outros gravam.
+    // Padrão (Acelerato): tudo ou nada. Por campo (bm:ref-sync, K-383): só o campo que mudou e foi recusado (data anterior à última vigência do campo ou vigência já aberta hoje) fica de fora; os outros gravam.
     if (!opcoes.porCampo) throw new ErroDominio('vigencia', recusa);
     recusados.push({ campo, mensagem: recusa });
   }
