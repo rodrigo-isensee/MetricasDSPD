@@ -124,6 +124,9 @@ export function mapaDeTagsDeClasse(tags: readonly unknown[]): MapaTagsDeClasse {
   return mapa;
 }
 
+/** O24: o card veio com ao menos uma etiqueta em `tag_ids` (só decide uma contagem; nada do conteúdo é guardado). */
+export const cardTemEtiqueta = (card: unknown): boolean => ehObjeto(card) && Array.isArray(card.tag_ids) && card.tag_ids.length > 0;
+
 /**
  * 4i: classes das etiquetas do card, sem repetição e na ordem de `CLASSES_SERVICO` (hash estável). `tagIds` que não é lista = `undefined`
  * ("não lido": a chave não entra). Elemento que não é id (número ou texto de dígitos) ou objeto com `tag_id` é descartado; id fora do mapa
