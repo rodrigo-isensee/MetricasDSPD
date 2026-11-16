@@ -215,4 +215,31 @@ describe('coleta: catálogo de etiquetas antes dos cards (4i)', () => {
     await coletarCards(m.deps, carga);
     expect(m.banco.estado.contagens.some((c) => c.entidade === 'tags_teto_paginas')).toBe(false);
   });
+  it('O24: a coleta registra tags_classe_no_mapa e cards_com_etiqueta (só números), sem aviso quando há classe', async () => {
+    const m = await montar([card(1, { tag_ids: [1] }), card(2, { tag_ids: [] }), card(3)], { '/tags': { data: TAGS } });
+    const r = await coletarCards(m.deps, carga);
+    expect(r.estado).toBe('sucesso');
+    const por = (e: string) => m.banco.estado.contagens.filter((c) => c.entidade === e);
+    expect(por('tags_classe_no_mapa')).toEqual([{ entidade: 'tags_classe_no_mapa', lidos: 5, inseridos: 0, jaExistentes: 0, falhas: 0 }]);
+    expect(por('cards_com_etiqueta')).toEqual([{ entidade: 'cards_com_etiqueta', lidos: 1, inseridos: 0, jaExistentes: 0, falhas: 0 }]);
+    expect(por('aviso_mapa_classe_vazio')).toEqual([]);
+  });
+
+  it('O24: mapa vazio registra o aviso (sem rótulo) e a coleta segue com sucesso', async () => {
+    const m = await montar([card(1, { tag_ids: [5] })], { '/tags': { data: [{ tag_id: 5, label: 'Tema' }] } });
+    const r = await coletarCards(m.deps, carga);
+    expect(r.estado).toBe('sucesso');
+    const por = (e: string) => m.banco.estado.contagens.filter((c) => c.entidade === e);
+    expect(por('tags_classe_no_mapa')[0]!.lidos).toBe(0);
+    expect(por('aviso_mapa_classe_vazio')).toEqual([{ entidade: 'aviso_mapa_classe_vazio', lidos: 0, inseridos: 0, jaExistentes: 0, falhas: 1 }]);
+    expect(por('cards_com_etiqueta')[0]!.lidos).toBe(1);
+    expect(m.banco.estado.falhas).toEqual([]);
+    expect(JSON.stringify(m.banco.estado.contagens)).not.toContain('Tema');
+  });
+
+  it('O24: falha do /tags não registra contagem de etiqueta', async () => {
+    const m = await montar([card(1, { tag_ids: [1] })], {}, { tags: 403 });
+    await coletarCards(m.deps, carga);
+    expect(m.banco.estado.contagens.some((c) => c.entidade === 'cards_com_etiqueta' || c.entidade === 'tags_classe_no_mapa')).toBe(false);
+  });
 });
