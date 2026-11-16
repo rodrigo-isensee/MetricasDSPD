@@ -95,18 +95,25 @@ export const FASES_DETECCAO = [
 ] as const
 export type FaseDeteccao = (typeof FASES_DETECCAO)[number]
 
+/** Motivos habilitados no BusinessMap (decisão B do dono, 2026-11-16): no lugar dos 7 do briefing. Ids 5 e 8 (code review) ficam fora. */
 export const MOTIVOS_BLOQUEIO = [
-  'Aguardando fornecedor',
-  'Aguardando validação do negócio',
-  'Aguardando ambiente ou infraestrutura',
-  'Dependência de outra demanda',
-  'Falta de informação no chamado',
-  'Janela de mudança',
-  'Aguardando licença ou contrato',
+  'Aguardando ação interna do time',
+  'Aguardando outro setor/equipe',
+  'Bug identificado',
+  'Parada por repriorização de atividade',
+  'Aguardando publicação GMUD',
+  'Dependências das Áreas - Unifique',
+  'Dependências outro time Dev',
+  'Dependência Externa',
+  'Dependência do próprio time',
+  'Não conformidade',
 ] as const
 export type MotivoBloqueio = (typeof MOTIVOS_BLOQUEIO)[number]
 
-/** Motivo sem mapa para os 7 do briefing (P-075-3); texto exato da UX 075 §1. */
+/** Motivo de fornecedor (T10): constante única, nunca o texto repetido. */
+export const MOTIVO_FORNECEDOR = 'Dependência Externa' as const satisfies MotivoBloqueio
+
+/** Motivo sem mapa (id sem entrada ou nulo, P-075-3); texto exato da UX 075 §1. */
 export const MOTIVO_NAO_CLASSIFICADO = 'não classificado' as const
 export const MOTIVOS_BLOQUEIO_PUBLICADOS = [...MOTIVOS_BLOQUEIO, MOTIVO_NAO_CLASSIFICADO] as const
 export type MotivoBloqueioPublicado = (typeof MOTIVOS_BLOQUEIO_PUBLICADOS)[number]

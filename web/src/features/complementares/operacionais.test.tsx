@@ -74,14 +74,14 @@ describe('O19 Bloqueios por causa', () => {
     ...base(40, 'bloqueios'),
     motivos: [
       motivo(
-        'Aguardando fornecedor',
+        'Dependência Externa',
         8,
         12,
         { status: 'insuficiente', bloqueios: 8, diasUteis: 12, totalDiasUteis: 100, minimo: 20 },
         insuf(8),
       ),
       motivo(
-        'Aguardando validação do negócio',
+        'Aguardando ação interna do time',
         30,
         64,
         { status: 'ok', bloqueios: 30, diasUteis: 64, totalDiasUteis: 100, pct: 64 },
@@ -99,14 +99,14 @@ describe('O19 Bloqueios por causa', () => {
       new FonteFixa({ O19: dto() }),
     )
     expect(el).toHaveTextContent(
-      'Aguardando validação do negócio somou 64 dias úteis de bloqueio no período, 64% do total.',
+      'Aguardando ação interna do time somou 64 dias úteis de bloqueio no período, 64% do total.',
     )
     const linhas = within(within(el).getByTestId('tabela-O19')).getAllByRole('row').slice(1)
     expect(linhas[0]).toHaveTextContent(
-      /Aguardando validação do negócio\s*30\s*64\s*64%\s*P50 2 · P85 6 dias úteis/,
+      /Aguardando ação interna do time\s*30\s*64\s*64%\s*P50 2 · P85 6 dias úteis/,
     )
     expect(linhas[1]).toHaveTextContent(
-      /Aguardando fornecedor\s*8\s*12\s*— menos de 20 bloqueios\s*— amostra insuficiente/,
+      /Dependência Externa\s*8\s*12\s*— menos de 20 bloqueios\s*— amostra insuficiente/,
     )
     expect(within(el).getByTestId('o19-abertos')).toHaveTextContent(
       '3 bloqueios ainda abertos não entram na soma',
@@ -709,7 +709,7 @@ describe('ramos de borda dos complementares operacionais', () => {
           ...base(25, 'bloqueios'),
           motivos: [
             {
-              motivo: 'Aguardando fornecedor',
+              motivo: 'Dependência Externa',
               bloqueios: 8,
               diasUteis: 12,
               pctDoTotal: {
@@ -727,9 +727,7 @@ describe('ramos de borda dos complementares operacionais', () => {
         },
       }),
     )
-    expect(el).toHaveTextContent(
-      'Aguardando fornecedor somou 12 dias úteis de bloqueio no período.',
-    )
+    expect(el).toHaveTextContent('Dependência Externa somou 12 dias úteis de bloqueio no período.')
   })
 
   it('O20: agrupamento por coluna e destaque de faixa que não está na lista usam o texto de coluna e a chave', async () => {

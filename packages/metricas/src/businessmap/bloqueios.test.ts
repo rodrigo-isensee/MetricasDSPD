@@ -60,28 +60,28 @@ const muitos = (
   Array.from({ length: n }, () => bloq('A', motivo, fornecedor, '2026-09-21T10:00:00-03:00', dias))
 
 describe('O19: bloqueios por causa', () => {
-  it('devolve os 8 motivos publicados ("não classificado" por último), com soma e contagem sempre e P50/P85 só com 20 ou mais', () => {
+  it('devolve os 11 motivos publicados ("não classificado" por último), com soma e contagem sempre e P50/P85 só com 20 ou mais', () => {
     const r = calcularO19(
       ctxDe(
         [card('A')],
         [
-          ...muitos(20, 'Janela de mudança', null, 2),
-          ...muitos(3, 'Aguardando fornecedor', 'Fornecedor Alfa', 4),
+          ...muitos(20, 'Aguardando publicação GMUD', null, 2),
+          ...muitos(3, 'Dependência Externa', 'Fornecedor Alfa', 4),
         ],
       ),
       F,
     )
     expect(r.motivos.map((m) => m.motivo)).toEqual([...MOTIVOS_BLOQUEIO_PUBLICADOS])
-    expect(r.motivos).toHaveLength(8)
-    expect(r.motivos[7]!.motivo).toBe('não classificado')
-    const janela = r.motivos.find((m) => m.motivo === 'Janela de mudança')
+    expect(r.motivos).toHaveLength(11)
+    expect(r.motivos[10]!.motivo).toBe('não classificado')
+    const janela = r.motivos.find((m) => m.motivo === 'Aguardando publicação GMUD')
     expect(janela).toMatchObject({ bloqueios: 20, diasUteis: 40 })
     expect(janela?.duracao).toMatchObject({
       status: 'ok',
       n: 20,
       valor: { p50: 2, p85: 2, p95: 2 },
     })
-    const forn = r.motivos.find((m) => m.motivo === 'Aguardando fornecedor')
+    const forn = r.motivos.find((m) => m.motivo === 'Dependência Externa')
     expect(forn).toMatchObject({ bloqueios: 3, diasUteis: 12 })
     expect(forn?.duracao).toMatchObject({ status: 'insuficiente', n: 3, minimo: 20 })
     expect(forn?.duracao).not.toHaveProperty('valor')
@@ -97,14 +97,14 @@ describe('O19: bloqueios por causa', () => {
       ctxDe(
         [card('A')],
         [
-          ...muitos(20, 'Janela de mudança', null, 1),
-          bloq('A', 'Aguardando validação do negócio', null, '2026-09-21T10:00:00-03:00', 100),
+          ...muitos(20, 'Aguardando publicação GMUD', null, 1),
+          bloq('A', 'Aguardando ação interna do time', null, '2026-09-21T10:00:00-03:00', 100),
         ],
       ),
       F,
     )
-    const janela = r.motivos.find((m) => m.motivo === 'Janela de mudança')!
-    const valid = r.motivos.find((m) => m.motivo === 'Aguardando validação do negócio')!
+    const janela = r.motivos.find((m) => m.motivo === 'Aguardando publicação GMUD')!
+    const valid = r.motivos.find((m) => m.motivo === 'Aguardando ação interna do time')!
     expect(janela.pctDoTotal).toMatchObject({
       status: 'ok',
       bloqueios: 20,
@@ -129,22 +129,27 @@ describe('O19: bloqueios por causa', () => {
     const r = calcularO19(
       ctxDe(
         [card('A')],
-        [...muitos(19, 'Janela de mudança', null), ...muitos(20, 'Aguardando fornecedor', null, 2)],
+        [
+          ...muitos(19, 'Aguardando publicação GMUD', null),
+          ...muitos(20, 'Dependência Externa', null, 2),
+        ],
       ),
       F,
     )
     const m = (x: string) => r.motivos.find((y) => y.motivo === x)!.pctDoTotal
-    expect(m('Janela de mudança')).toMatchObject({ status: 'insuficiente', bloqueios: 19 })
-    expect(JSON.stringify(m('Janela de mudança'))).not.toContain('pct')
-    expect(m('Aguardando fornecedor')).toMatchObject({ status: 'ok', bloqueios: 20 })
+    expect(m('Aguardando publicação GMUD')).toMatchObject({ status: 'insuficiente', bloqueios: 19 })
+    expect(JSON.stringify(m('Aguardando publicação GMUD'))).not.toContain('pct')
+    expect(m('Dependência Externa')).toMatchObject({ status: 'ok', bloqueios: 20 })
     const pcts = r.motivos.flatMap((x) => (x.pctDoTotal.status === 'ok' ? [x.pctDoTotal.pct] : []))
     expect(pcts.every((v) => v >= 0 && v <= 100)).toBe(true)
   })
 
   it('O19-pct = B: 20 bloqueios sem nenhum dia útil (total zero) publicam 0%, sem dividir por zero', () => {
-    const r = calcularO19(ctxDe([card('A')], muitos(20, 'Janela de mudança', null, 0)), F)
+    const r = calcularO19(ctxDe([card('A')], muitos(20, 'Aguardando publicação GMUD', null, 0)), F)
     expect(r.totalDiasUteis).toBe(0)
-    expect(r.motivos.find((x) => x.motivo === 'Janela de mudança')?.pctDoTotal).toMatchObject({
+    expect(
+      r.motivos.find((x) => x.motivo === 'Aguardando publicação GMUD')?.pctDoTotal,
+    ).toMatchObject({
       status: 'ok',
       pct: 0,
     })
@@ -165,10 +170,10 @@ describe('O19: bloqueios por causa', () => {
       ctxDe(
         [card('A'), card('F', { gran: 'frente' })],
         [
-          bloq('A', 'Janela de mudança', null, null),
-          bloq('A', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00'),
-          bloq('A', 'Janela de mudança', null, '2026-05-04T10:00:00-03:00'), // fora do período
-          bloq('F', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00'), // frente nunca entra
+          bloq('A', 'Aguardando publicação GMUD', null, null),
+          bloq('A', 'Aguardando publicação GMUD', null, '2026-09-21T10:00:00-03:00'),
+          bloq('A', 'Aguardando publicação GMUD', null, '2026-05-04T10:00:00-03:00'), // fora do período
+          bloq('F', 'Aguardando publicação GMUD', null, '2026-09-21T10:00:00-03:00'), // frente nunca entra
         ],
       ),
       F,
@@ -184,16 +189,16 @@ describe('O19: bloqueios por causa', () => {
       card('B', { equipe: 'Equipe B', sistema: 'Outro', tipo: 'Bug interno' }),
     ]
     const bl = [
-      bloq('A', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00'),
-      bloq('B', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00'),
+      bloq('A', 'Aguardando publicação GMUD', null, '2026-09-21T10:00:00-03:00'),
+      bloq('B', 'Aguardando publicação GMUD', null, '2026-09-21T10:00:00-03:00'),
     ]
     expect(calcularO19(ctxDe(cards, bl), F).base.n).toBe(2)
     expect(calcularO19(ctxDe(cards, bl), { ...F, tipo: ['Bug interno'] }).base.n).toBe(1)
   })
 
-  it('base vazia: oito motivos zerados, sem erro', () => {
+  it('base vazia: onze motivos zerados, sem erro', () => {
     const r = calcularO19(ctxDe([card('A')], []), F)
-    expect(r.motivos).toHaveLength(8)
+    expect(r.motivos).toHaveLength(11)
     expect(r.totalDiasUteis).toBe(0)
     expect(r.abertosForaDaSoma).toBe(0)
   })
@@ -205,13 +210,13 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
       ctxDe(
         [card('A')],
         [
-          ...muitos(10, 'Aguardando fornecedor', 'Fornecedor Beta'),
-          ...muitos(10, 'Aguardando licença ou contrato', 'Fornecedor Beta'),
-          ...muitos(2, 'Janela de mudança', 'Fornecedor Beta'), // qualquer motivo da lista fechada
-          ...muitos(5, 'Aguardando fornecedor', null), // falha de preenchimento: fora
-          ...muitos(2, 'Aguardando fornecedor', ''),
-          ...muitos(2, 'Aguardando fornecedor', '   '),
-          bloq('A', 'Aguardando fornecedor', 'Fornecedor Beta', null), // aberto: fora
+          ...muitos(10, 'Dependência Externa', 'Fornecedor Beta'),
+          ...muitos(10, 'Dependências das Áreas - Unifique', 'Fornecedor Beta'),
+          ...muitos(2, 'Aguardando publicação GMUD', 'Fornecedor Beta'), // qualquer motivo da lista fechada
+          ...muitos(5, 'Dependência Externa', null), // falha de preenchimento: fora
+          ...muitos(2, 'Dependência Externa', ''),
+          ...muitos(2, 'Dependência Externa', '   '),
+          bloq('A', 'Dependência Externa', 'Fornecedor Beta', null), // aberto: fora
         ],
       ),
       F,
@@ -226,10 +231,10 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
 
   it('B11-001: o fornecedor e agrupado pelo nome normalizado e exibe a grafia mais frequente do grupo', () => {
     const bl = [
-      ...muitos(12, 'Aguardando fornecedor', 'Fornecedor Alfa'),
-      ...muitos(5, 'Aguardando fornecedor', 'fornecedor alfa'),
-      ...muitos(4, 'Aguardando fornecedor', '  FORNECEDOR   ALFA '),
-      ...muitos(3, 'Aguardando fornecedor', 'Fornecedor Beta'),
+      ...muitos(12, 'Dependência Externa', 'Fornecedor Alfa'),
+      ...muitos(5, 'Dependência Externa', 'fornecedor alfa'),
+      ...muitos(4, 'Dependência Externa', '  FORNECEDOR   ALFA '),
+      ...muitos(3, 'Dependência Externa', 'Fornecedor Beta'),
     ]
     const r = calcularT10(ctxDe([card('A')], bl), F)
     expect(r.fornecedores.map((x) => [x.fornecedor, x.bloqueios])).toEqual([
@@ -246,8 +251,8 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
 
   it('B11-001: no empate de grafias aparece a primeira em ordem neutra (ALFA antes de Alfa)', () => {
     const bl = [
-      ...muitos(10, 'Aguardando fornecedor', 'ALFA'),
-      ...muitos(10, 'Aguardando fornecedor', 'Alfa'),
+      ...muitos(10, 'Dependência Externa', 'ALFA'),
+      ...muitos(10, 'Dependência Externa', 'Alfa'),
     ]
     for (const ordem of [bl, [...bl].reverse()]) {
       const r = calcularT10(ctxDe([card('A')], ordem), F)
@@ -257,9 +262,9 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
 
   it('CA-11: ordem alfabética, independente da ordem de entrada', () => {
     const bl = [
-      ...muitos(1, 'Aguardando fornecedor', 'Fornecedor Gama'),
-      ...muitos(1, 'Aguardando fornecedor', 'Fornecedor Alfa'),
-      ...muitos(30, 'Aguardando fornecedor', 'Fornecedor Beta'),
+      ...muitos(1, 'Dependência Externa', 'Fornecedor Gama'),
+      ...muitos(1, 'Dependência Externa', 'Fornecedor Alfa'),
+      ...muitos(30, 'Dependência Externa', 'Fornecedor Beta'),
     ]
     const a = calcularT10(ctxDe([card('A')], bl), F)
     const b = calcularT10(ctxDe([card('A')], [...bl].reverse()), F)
@@ -273,8 +278,8 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
       ctxDe(
         [card('A')],
         [
-          ...muitos(19, 'Aguardando fornecedor', 'Fornecedor Alfa', 3),
-          ...muitos(20, 'Aguardando fornecedor', 'Fornecedor Beta', 3),
+          ...muitos(19, 'Dependência Externa', 'Fornecedor Alfa', 3),
+          ...muitos(20, 'Dependência Externa', 'Fornecedor Beta', 3),
         ],
       ),
       F,
@@ -292,7 +297,7 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
 
   it('CA-36: sem prazo contratado e sem status em nenhum nível do resultado', () => {
     const r = calcularT10(
-      ctxDe([card('A')], muitos(25, 'Aguardando fornecedor', 'Fornecedor Alfa')),
+      ctxDe([card('A')], muitos(25, 'Dependência Externa', 'Fornecedor Alfa')),
       F,
     )
     const chaves = new Set<string>()
@@ -345,7 +350,7 @@ describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () =>
     const equipe = [...new Set(ctx.idx.marcos.map((m) => m.slugEquipe))].sort().slice(0, 1)
     const r = calcularO19(ctx, { ...F, equipe })
     expect(r.base.n).toBe(30)
-    expect(r.motivos.map((m) => m.bloqueios)).toEqual([3, 3, 7, 0, 15, 0, 2, 0])
+    expect(r.motivos.map((m) => m.bloqueios)).toEqual([4, 8, 1, 2, 1, 3, 0, 5, 3, 3, 0])
     expect(r.motivos.every((m) => m.duracao.status === 'insuficiente')).toBe(true)
     // O19-pct = B: o mínimo é sobre os bloqueios da causa (nenhuma chega a 20), então o percentual não sai
     expect(r.motivos.every((m) => m.pctDoTotal.status === 'insuficiente')).toBe(true)
@@ -409,23 +414,23 @@ describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
 
   it('O19: bloqueio no dia 84 entra na amostra e o do dia 85 fica fora, embora conte no período de 12 meses', () => {
     const dentroDaJanela = calcularO19(
-      ctxDe([card('A')], noDia('2026-07-18', 20, 'Janela de mudança', null)),
+      ctxDe([card('A')], noDia('2026-07-18', 20, 'Aguardando publicação GMUD', null)),
       F12M,
     )
-    const m = dentroDaJanela.motivos.find((x) => x.motivo === 'Janela de mudança')
+    const m = dentroDaJanela.motivos.find((x) => x.motivo === 'Aguardando publicação GMUD')
     expect(m?.duracao).toMatchObject({ status: 'ok', n: 20, janela: { inicio: '2026-07-18' } })
 
     const foraDaJanela = calcularO19(
       ctxDe(
         [card('A')],
         [
-          ...noDia('2026-07-18', 19, 'Janela de mudança', null),
-          ...noDia('2026-07-17', 1, 'Janela de mudança', null),
+          ...noDia('2026-07-18', 19, 'Aguardando publicação GMUD', null),
+          ...noDia('2026-07-17', 1, 'Aguardando publicação GMUD', null),
         ],
       ),
       F12M,
     )
-    const f = foraDaJanela.motivos.find((x) => x.motivo === 'Janela de mudança')
+    const f = foraDaJanela.motivos.find((x) => x.motivo === 'Aguardando publicação GMUD')
     expect(f).toMatchObject({ bloqueios: 20, pctDoTotal: { status: 'ok', bloqueios: 20 } })
     expect(f?.duracao).toMatchObject({ status: 'insuficiente', n: 19 })
   })
@@ -435,9 +440,9 @@ describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
       ctxDe(
         [card('A')],
         [
-          ...noDia('2026-07-18', 20, 'Aguardando fornecedor', 'Fornecedor Alfa'),
-          ...noDia('2026-07-18', 19, 'Aguardando fornecedor', 'Fornecedor Beta'),
-          ...noDia('2026-07-17', 1, 'Aguardando fornecedor', 'Fornecedor Beta'),
+          ...noDia('2026-07-18', 20, 'Dependência Externa', 'Fornecedor Alfa'),
+          ...noDia('2026-07-18', 19, 'Dependência Externa', 'Fornecedor Beta'),
+          ...noDia('2026-07-17', 1, 'Dependência Externa', 'Fornecedor Beta'),
         ],
       ),
       F12M,
@@ -451,8 +456,8 @@ describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
       ctxDe(
         [card('A')],
         [
-          ...noDia('2026-05-04', 3, 'Aguardando fornecedor', 'Fornecedor Gama'),
-          ...noDia('2026-07-18', 1, 'Aguardando fornecedor', 'Fornecedor Alfa'),
+          ...noDia('2026-05-04', 3, 'Dependência Externa', 'Fornecedor Gama'),
+          ...noDia('2026-07-18', 1, 'Dependência Externa', 'Fornecedor Alfa'),
         ],
       ),
       F12M,
@@ -465,7 +470,7 @@ describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
 })
 
 describe('L3: marcação de critério cruzando o período (O19 e T10)', () => {
-  const bl = muitos(2, 'Aguardando fornecedor', 'Fornecedor Alfa')
+  const bl = muitos(2, 'Dependência Externa', 'Fornecedor Alfa')
   it('O19: a série traz as versões do período e a janela traz as da janela', () => {
     const r = calcularO19(comCriterio([card('A')], bl, 'O19'), F4S)
     expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-meio'])
@@ -483,11 +488,11 @@ describe('B3-2: bloqueio que atravessa o fim do período', () => {
     // Período custom até 2026-09-10; o bloqueio vai de 09-08 a 09-21 (passa do fim) e outro começa só depois do corte.
     const fim = (dia: string) => instanteDeIso(`${dia}T10:00:00-03:00`, CALENDARIO_PADRAO)
     const atravessa: FatoBloqueio = {
-      ...bloq('A', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00', 1),
+      ...bloq('A', 'Aguardando publicação GMUD', null, '2026-09-21T10:00:00-03:00', 1),
       inicio: fim('2026-09-08'),
     }
     const depois: FatoBloqueio = {
-      ...bloq('A', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00', 1),
+      ...bloq('A', 'Aguardando publicação GMUD', null, '2026-09-21T10:00:00-03:00', 1),
       inicio: fim('2026-09-15'),
     }
     const r = calcularO19(ctxDe([card('A')], [atravessa, depois]), {

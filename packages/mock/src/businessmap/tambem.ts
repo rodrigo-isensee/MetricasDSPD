@@ -48,8 +48,8 @@ export const PARAMETROS_TAMBEM = {
   ] as readonly (readonly [string, number])[],
   /** O19: motivos que passam a ter poucos bloqueios e a chance de mudar de motivo. */
   motivosRaros: [
-    ['Dependência de outra demanda', 0.8],
-    ['Janela de mudança', 0.8],
+    ['Dependências outro time Dev', 0.8],
+    ['Aguardando publicação GMUD', 0.8],
   ] as readonly (readonly [MotivoBloqueio, number])[],
   /** O25: cards abertos com motivo de descarte e sem descarte (aviso de preenchimento). */
   avisos: 3,
@@ -276,7 +276,7 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
           const emColuna = trs.filter((t) => t.timestamp <= ini).pop() as FatoTransicao
           bloqueios.push({
             card_id: c.card_id,
-            motivo: 'Falta de informação no chamado',
+            motivo: 'Aguardando outro setor/equipe',
             coluna_em_que_bloqueou: emColuna.coluna_destino,
             fornecedor: null,
             inicio: ini,
@@ -316,9 +316,9 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
     motivo: () => {
       const r = derivar(semente, 'businessmap/tambem:motivo')
       const destinos: readonly MotivoBloqueio[] = [
-        'Aguardando validação do negócio',
-        'Aguardando ambiente ou infraestrutura',
-        'Falta de informação no chamado',
+        'Aguardando ação interna do time',
+        'Aguardando outro setor/equipe',
+        'Bug identificado',
       ]
       for (const b of bloqueios) {
         const raro = P.motivosRaros.find(([m]) => m === b.motivo)

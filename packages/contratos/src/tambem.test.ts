@@ -36,7 +36,7 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
     ...comum,
     motivos: [
       {
-        motivo: 'Aguardando fornecedor',
+        motivo: 'Dependência Externa',
         bloqueios: 3,
         diasUteis: 12,
         pctDoTotal: {

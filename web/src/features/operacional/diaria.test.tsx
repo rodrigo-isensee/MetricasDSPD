@@ -121,7 +121,7 @@ describe('O2 idade (B1 a B3)', () => {
     item('C', {
       idadeDiasUteis: 12,
       situacao: 'entre-p85-p95',
-      bloqueioMotivo: 'Aguardando fornecedor',
+      bloqueioMotivo: 'Dependência Externa',
     }),
   ]
   it('B3: ordem do mais velho ao mais novo, sinalização acima do P95, sem coluna de pessoa; ordena por "Sem mover há"', async () => {
@@ -137,7 +137,7 @@ describe('O2 idade (B1 a B3)', () => {
         .map((r) => r.textContent.slice(0, 8))
     expect(nomes()).toEqual(['B Titulo', 'C Titulo', 'A Titulo'].map((x) => x.slice(0, 8)))
     expect(lista).toHaveTextContent('Acima do P95 do tipo')
-    expect(lista).toHaveTextContent('Aguardando fornecedor')
+    expect(lista).toHaveTextContent('Dependência Externa')
     expect(lista).not.toHaveTextContent(SEM_PESSOA)
     await userEvent.click(within(lista).getByRole('button', { name: 'Sem mover há' }))
     expect(within(lista).getAllByRole('row')[1]).toHaveTextContent('A Titulo')
@@ -175,16 +175,16 @@ describe('Bloqueados agora (E1)', () => {
         BLOQUEADOS: {
           ...COMUM,
           base: { n: 2, unidade: 'itens bloqueados', janela: J },
-          itens: [b('1', 2, 'Janela de mudança'), b('2', 6, 'Aguardando fornecedor')],
+          itens: [b('1', 2, 'Aguardando publicação GMUD'), b('2', 6, 'Dependência Externa')],
         },
       }),
     )
     const el = await cartao('BLOQUEADOS')
     expect(within(el).getByTestId('leitura-BLOQUEADOS')).toHaveTextContent(
-      '2 itens estão bloqueados. O mais antigo está bloqueado há 6 dias úteis por "Aguardando fornecedor"',
+      '2 itens estão bloqueados. O mais antigo está bloqueado há 6 dias úteis por "Dependência Externa"',
     )
     const linhas = within(el).getAllByRole('row').slice(1)
-    expect(linhas[0]).toHaveTextContent('Aguardando fornecedor')
+    expect(linhas[0]).toHaveTextContent('Dependência Externa')
     expect(el).not.toHaveTextContent(SEM_PESSOA)
   })
   it('zero bloqueados é sucesso: "Nenhum item bloqueado hoje."', async () => {

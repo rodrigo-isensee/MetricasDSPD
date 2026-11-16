@@ -379,7 +379,7 @@ describe('índice, estado e blocos: dados incompletos', () => {
     const base = umaBase([entregue('K', 0, 2)])
     const bloqueio: FatoBloqueio = {
       card_id: 'K',
-      motivo: 'Aguardando fornecedor',
+      motivo: 'Dependência Externa',
       coluna_em_que_bloqueou: 'Em desenvolvimento',
       fornecedor: null,
       inicio: base.transicoes[2]?.timestamp ?? 0,

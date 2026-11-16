@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { lerDominioBm, analisarDominioBm, listasDoArquivo, motivosDeLinhas } from '../src/modulos/businessmap/dominio-businessmap.js';
 import { ErroDominio } from '../src/modulos/referencia/dominio-acelerato.js';
 
-// Lote 3 do pedido 075 (K-204; CA-075-3). Os 7 motivos estão escritos AQUI, não importados do contrato.
+// Lote 3 do pedido 075 (K-204; CA-075-3). Os motivos estão escritos AQUI, não importados do contrato.
+// Pedido 105 (E7.184): os 10 do BusinessMap no lugar dos 7 do briefing (o nome SETE ficou; a lista tem 10).
 const SETE = [
-  'Aguardando fornecedor', 'Aguardando validação do negócio', 'Aguardando ambiente ou infraestrutura', 'Dependência de outra demanda',
-  'Falta de informação no chamado', 'Janela de mudança', 'Aguardando licença ou contrato',
+  'Aguardando ação interna do time', 'Aguardando outro setor/equipe', 'Bug identificado', 'Parada por repriorização de atividade',
+  'Aguardando publicação GMUD', 'Dependências das Áreas - Unifique', 'Dependências outro time Dev', 'Dependência Externa',
+  'Dependência do próprio time', 'Não conformidade',
 ];
 const arquivo = (motivo_bloqueio?: unknown): string => JSON.stringify({
   versao: 1,
@@ -18,10 +20,11 @@ const recusa = (m: unknown): string => {
 };
 
 describe('bm:ref-sync: domínio motivo_bloqueio (mapa das pessoas, P-075-3)', () => {
-  it('o arquivo real nasce com o mapa vazio e carrega zero linhas', () => {
+  it('o arquivo real traz o mapa dos 10 motivos habilitados do BusinessMap (ids 1 a 3, 6, 7 e 9 a 13; 5 e 8 fora) e todos passam pelo schema', () => {
     const lido = lerDominioBm();
-    expect(lido.arquivo.motivo_bloqueio).toEqual([]);
-    expect(listasDoArquivo(lido.arquivo).motivo_bloqueio).toEqual([]);
+    expect(lido.arquivo.motivo_bloqueio.map((m) => m.codigo)).toEqual(['1', '2', '3', '6', '7', '9', '10', '11', '12', '13']);
+    expect(lido.arquivo.motivo_bloqueio.find((m) => m.codigo === '11')?.rotulo).toBe('Dependência Externa');
+    expect(listasDoArquivo(lido.arquivo).motivo_bloqueio).toHaveLength(10);
   });
 
   it('aceita os 7 motivos, vários reason_id para o mesmo motivo, e vira a lista motivo_bloqueio', () => {

@@ -59,7 +59,7 @@ export function transicaoDe(l: LinhaTransicao, nomes: NomesColuna, quadros: Map<
   };
 }
 
-/** Defesa de leitura (controle 2, 075): motivo fora dos 7 do domínio vira "não classificado"; o texto lido nunca sai. */
+/** Defesa de leitura (controle 2, 075): motivo fora do domínio do BusinessMap vira "não classificado"; o texto lido nunca sai. */
 const motivoPublicado = (v: string | null): FatoBloqueio['motivo'] =>
   (MOTIVOS_BLOQUEIO as readonly string[]).includes(v ?? '') ? (v as FatoBloqueio['motivo']) : MOTIVO_NAO_CLASSIFICADO;
 

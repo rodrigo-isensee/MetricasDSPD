@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
@@ -6,7 +6,13 @@ import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { calcularT12, type FatoBloqueio } from './index'
 import { dentro, ehDemanda, periodoDe, selecionar } from './comum'
 import { criarContextoBM, type MarcosCard } from './indice'
-import { MOTIVO_IDA_E_VOLTA, teveIdaEVolta } from './t12'
+import { MOTIVOS_IDA_E_VOLTA, teveIdaEVolta } from './t12'
+
+// Pedido 105 (E7.184): o motivo de ida e volta do briefing deixou de existir e o dono ainda não apontou o equivalente; em produção o conjunto é vazio.
+// Estes testes exercitam o mecanismo do critério (a) com um motivo de teste, só enquanto rodam.
+const MOTIVO_IDA_E_VOLTA = 'Aguardando outro setor/equipe' as const
+beforeAll(() => MOTIVOS_IDA_E_VOLTA.add(MOTIVO_IDA_E_VOLTA))
+afterAll(() => MOTIVOS_IDA_E_VOLTA.delete(MOTIVO_IDA_E_VOLTA))
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
 
 const F: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
@@ -36,7 +42,7 @@ const naoIniciado = (id: string, extra: Partial<EspecCard> = {}): EspecCard => (
   ],
   ...extra,
 })
-const bloqueio = (cardId: string, inicioIso: string, motivo = 'Falta de informação no chamado') =>
+const bloqueio = (cardId: string, inicioIso: string, motivo: string = MOTIVO_IDA_E_VOLTA) =>
   ({
     card_id: cardId,
     motivo,
@@ -57,7 +63,7 @@ describe('T12: qualidade da entrada por área (D-8 = A)', () => {
         [
           bloqueio('A', '2026-08-04T09:00:00-03:00'), // antes do início (05/08)
           bloqueio('B', '2026-08-10T09:00:00-03:00'), // depois do início
-          bloqueio('C', '2026-08-04T09:00:00-03:00', 'Janela de mudança'), // outro motivo
+          bloqueio('C', '2026-08-04T09:00:00-03:00', 'Bug identificado'), // outro motivo
         ],
       ),
       F,
@@ -73,12 +79,31 @@ describe('T12: qualidade da entrada por área (D-8 = A)', () => {
         [naoIniciado('A'), naoIniciado('B')],
         [
           bloqueio('A', '2026-09-20T09:00:00-03:00'),
-          bloqueio('B', '2026-09-20T09:00:00-03:00', 'Janela de mudança'),
+          bloqueio('B', '2026-09-20T09:00:00-03:00', 'Bug identificado'),
         ],
       ),
       F,
     )
     expect(r.total).toMatchObject({ k: 1, n: 2 })
+  })
+
+  it('E7.184: sem motivo de ida e volta definido pelo dono, bloqueio de qualquer motivo do BusinessMap não conta (nada é inferido)', () => {
+    MOTIVOS_IDA_E_VOLTA.delete(MOTIVO_IDA_E_VOLTA)
+    try {
+      const r = calcularT12(
+        ctxDe(
+          [naoIniciado('A'), naoIniciado('B')],
+          [
+            bloqueio('A', '2026-09-20T09:00:00-03:00'),
+            bloqueio('B', '2026-09-20T09:00:00-03:00', 'Dependência Externa'),
+          ],
+        ),
+        F,
+      )
+      expect(r.total).toMatchObject({ k: 0, n: 2 })
+    } finally {
+      MOTIVOS_IDA_E_VOLTA.add(MOTIVO_IDA_E_VOLTA)
+    }
   })
 
   it('CA-39 (b): retorno da coluna de compromisso para o backlog conta; outro retorno, não', () => {

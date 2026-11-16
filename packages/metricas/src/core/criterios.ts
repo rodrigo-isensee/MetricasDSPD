@@ -134,6 +134,15 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
 }
 
+/** Pedido 105 (E7.184, decisão B do dono, 2026-11-16): motivos de bloqueio do BusinessMap no lugar dos 7 do briefing. */
+export const VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-motivos-bloqueio-bm',
+  data: '2026-11-16',
+  descricao:
+    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (10 motivos, ids 1 a 3, 6, 7 e 9 a 13), no lugar dos 7 do briefing; o fornecedor do T10 é o motivo "Dependência Externa"',
+  afeta: ['BLOQUEADOS', 'O2', 'O19', 'T10', 'T12'],
+}
+
 /** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
 export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-10-tendencia-fluxo-dado-real',
@@ -304,6 +313,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,

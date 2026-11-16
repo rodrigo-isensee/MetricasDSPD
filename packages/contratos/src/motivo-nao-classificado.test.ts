@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  MOTIVO_FORNECEDOR,
   MOTIVOS_BLOQUEIO,
   MOTIVOS_BLOQUEIO_PUBLICADOS,
   MOTIVO_NAO_CLASSIFICADO,
@@ -19,13 +20,14 @@ const motivoDeO19 = resultadoO19.shape.motivos.element.shape.motivo
 const CAMPOS = { BLOQUEADOS: motivoDeBloqueados, O2: motivoDeO2, O19: motivoDeO19 }
 
 describe('motivo "não classificado" (075 L1a)', () => {
-  it('o texto é exatamente o da UX e o publicado tem 8 valores (os 7 do briefing + 1)', () => {
+  it('o texto é exatamente o da UX e o publicado tem 11 valores (os 10 do BusinessMap + 1)', () => {
     expect(MOTIVO_NAO_CLASSIFICADO).toBe('não classificado')
-    expect(MOTIVOS_BLOQUEIO).toHaveLength(7)
+    expect(MOTIVOS_BLOQUEIO).toHaveLength(10)
+    expect(MOTIVO_FORNECEDOR).toBe('Dependência Externa')
     expect(MOTIVOS_BLOQUEIO_PUBLICADOS).toEqual([...MOTIVOS_BLOQUEIO, 'não classificado'])
   })
 
-  it.each(Object.entries(CAMPOS))('%s aceita os 8 valores e recusa um nono', (_nome, campo) => {
+  it.each(Object.entries(CAMPOS))('%s aceita os 11 valores e recusa um a mais', (_nome, campo) => {
     for (const m of MOTIVOS_BLOQUEIO_PUBLICADOS) expect(campo.safeParse(m).success, m).toBe(true)
     expect(campo.safeParse('outro motivo').success).toBe(false)
     expect(campo.safeParse('Não classificado').success).toBe(false)

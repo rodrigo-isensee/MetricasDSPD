@@ -4,18 +4,25 @@ import { ordenarNeutro } from '../core/ordenar'
 import { baseAmostral, criterios, dentro, ehDemanda, periodoDe, selecionar } from './comum'
 import type { ContextoBM, MarcosCard } from './indice'
 
-/** Motivo do bloqueio que conta como "ida e volta" na entrada (D-8 = A). */
-export const MOTIVO_IDA_E_VOLTA: MotivoBloqueio = 'Falta de informação no chamado'
+/**
+ * Motivos do bloqueio que contam como "ida e volta" na entrada (D-8 = A). O motivo do briefing ("Falta de informação no chamado") deixou de existir
+ * na decisão B do dono (2026-11-16, pedido 105 E7.184) e nenhum dos 10 motivos do BusinessMap foi apontado como equivalente: PERGUNTA ABERTA ao dono.
+ * Vazio de propósito: o critério (a) não conta nenhum bloqueio (nada é inferido) e só o (b) vale. Os testes do mecanismo (a) adicionam um motivo aqui.
+ */
+export const MOTIVOS_IDA_E_VOLTA: Set<MotivoBloqueio> = new Set()
 
 /**
  * D-8 = A, os dois critérios com OU (o card que tem os dois conta uma vez só):
- * (a) bloqueio com motivo "Falta de informação no chamado" que começou antes do início (ou o card nunca iniciou);
+ * (a) bloqueio com o motivo de ida e volta (hoje indefinido, ver `MOTIVOS_IDA_E_VOLTA`) que começou antes do início (ou o card nunca iniciou);
  * (b) retorno da coluna de papel `compromisso` para a de papel `backlog`.
  */
 export function teveIdaEVolta(ctx: ContextoBM, m: MarcosCard): boolean {
   const id = m.card.card_id
   const porBloqueio = (ctx.idx.bloqueiosPorCard.get(id) ?? []).some(
-    (b) => b.motivo === MOTIVO_IDA_E_VOLTA && (m.inicio === null || b.inicio < m.inicio),
+    (b) =>
+      b.motivo !== 'não classificado' &&
+      MOTIVOS_IDA_E_VOLTA.has(b.motivo) &&
+      (m.inicio === null || b.inicio < m.inicio),
   )
   if (porBloqueio) return true
   return (ctx.idx.transicoesPorCard.get(id) ?? []).some(

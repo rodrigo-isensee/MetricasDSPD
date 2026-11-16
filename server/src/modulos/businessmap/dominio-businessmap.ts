@@ -58,7 +58,7 @@ const criarCampo = (tipos: readonly string[]) =>
 // Só as 4 severidades do contrato; `priority` do BusinessMap é inteiro positivo sem zeros à esquerda (código de 1 a 3 dígitos; o mapa usa 1 a 4).
 const valorPrioridade = z.object({ codigo: z.string().regex(/^[1-9]\d{0,2}$/), rotulo: z.enum(SEVERIDADES) }).strict();
 
-// Só os 7 do briefing: nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
+// Só os motivos do BusinessMap (decisão B, 2026-11-16): nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
 const valorMotivo = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(MOTIVOS_BLOQUEIO) }).strict();
 
 // Pedido 105 (E7.5): `coluna_id` (só dígitos) -> uma das 5 fases do briefing 4.4; nunca texto livre.
@@ -264,7 +264,7 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
 }
 
 /**
- * Leitura do mapa para o projetor (lote 4b), com a desconfiança do banco: só `reason_id` numérico e rótulo entre os 7 do briefing; `reason_id` ligado a
+ * Leitura do mapa para o projetor (lote 4b), com a desconfiança do banco: só `reason_id` numérico e rótulo entre os motivos do BusinessMap; `reason_id` ligado a
  * dois motivos é ignorado. Sem entrada, o motivo fica sem mapa e a tela mostra "não classificado". Nenhuma tradução no código: o mapa só vem do arquivo.
  */
 export function motivosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, MotivoBloqueio> {

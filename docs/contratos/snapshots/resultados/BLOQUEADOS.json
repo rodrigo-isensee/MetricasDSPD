@@ -153,13 +153,16 @@
           "motivo": {
             "type": "string",
             "enum": [
-              "Aguardando fornecedor",
-              "Aguardando validação do negócio",
-              "Aguardando ambiente ou infraestrutura",
-              "Dependência de outra demanda",
-              "Falta de informação no chamado",
-              "Janela de mudança",
-              "Aguardando licença ou contrato",
+              "Aguardando ação interna do time",
+              "Aguardando outro setor/equipe",
+              "Bug identificado",
+              "Parada por repriorização de atividade",
+              "Aguardando publicação GMUD",
+              "Dependências das Áreas - Unifique",
+              "Dependências outro time Dev",
+              "Dependência Externa",
+              "Dependência do próprio time",
+              "Não conformidade",
               "não classificado"
             ]
           },

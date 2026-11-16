@@ -84,9 +84,9 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
   it('o campo novo motivo_bloqueio grava o mapa em ref_dominio e a leitura do projetor o devolve; mudar o mapa fecha a vigência', async () => {
     const t = (m: unknown[], x: string): string => JSON.stringify({ ...JSON.parse(texto([], x)), motivo_bloqueio: m });
     await comoRef(async (pool, c) => {
-      const r1 = await sincronizarDominioBm(pool, S, analisarDominioBm(t([{ codigo: '9', rotulo: 'Janela de mudança' }], 'm1')), D1, AGORA);
+      const r1 = await sincronizarDominioBm(pool, S, analisarDominioBm(t([{ codigo: '9', rotulo: 'Aguardando publicação GMUD' }], 'm1')), D1, AGORA);
       expect(r1).toMatchObject({ inseridas: 1, versaoRegistrada: true });
-      expect((await linhas(c, 'motivo_bloqueio')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([['9', 'Janela de mudança', null]]);
+      expect((await linhas(c, 'motivo_bloqueio')).map((l) => [l.codigo, l.rotulo, l.vigente_ate])).toEqual([['9', 'Aguardando publicação GMUD', null]]);
       const r2 = await sincronizarDominioBm(pool, S, analisarDominioBm(t([], 'm2')), D2, AGORA);
       expect(r2).toMatchObject({ inseridas: 0, fechadas: 1 });
       expect((await linhas(c, 'motivo_bloqueio'))[0]?.vigente_ate).toBe(D2);

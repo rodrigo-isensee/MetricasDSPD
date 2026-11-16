@@ -84,7 +84,7 @@ describe('O2: bloqueio no gráfico e na tabela (achados 3 a 6)', () => {
 
   it('achados 3 e 4: com item bloqueado, a legenda traz o anel e a forma da situação segue', async () => {
     const c = await abrirO2((r) => {
-      marcar(r, 'Aguardando fornecedor')
+      marcar(r, 'Dependência Externa')
       for (const i of r.itens as Q[]) {
         i.situacao = 'acima-p95'
         i.tipo = r.tipoSugerido ?? r.tipos[0].tipo
