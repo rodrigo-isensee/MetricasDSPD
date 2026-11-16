@@ -210,10 +210,11 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
 
 export const referenciaDaVersaoBm = (sha256: string): string => `069:ref-bm-campos:${sha256}`;
 
-export interface ResultadoDominioBm { sha256: string; campos: number; inseridas: number; fechadas: number; versaoRegistrada: boolean }
+/** `recusados`: campos que mudaram e já têm vigência aberta na data (K-383); só o nome do campo e a mensagem fixa, nunca valor. */
+export interface ResultadoDominioBm { sha256: string; campos: number; inseridas: number; fechadas: number; versaoRegistrada: boolean; recusados: { campo: string; mensagem: string }[] }
 
 /**
- * Lê as vigentes, planeja e grava numa transação só (tudo ou nada); só INSERT de vigência nova e UPDATE de `vigente_ate`. Sem diferença nada é
+ * Lê as vigentes, planeja e grava numa transação só, por campo (K-383): campo igual fica como está; campo novo ou mudado grava; campo mudado que já tem vigência aberta na data é recusado sozinho (mesma mensagem, listado em `recusados`) e os outros gravam; só INSERT de vigência nova e UPDATE de `vigente_ate`. Sem diferença nada é
  * gravado; com diferença registra a versão de critério (T2.6, domínio `businessmap`) com o hash do arquivo, uma vez por hash. As métricas afetadas
  * são as de `versao_criterio.afeta` do arquivo (decisão de negócio, escrita no PR que muda o arquivo); sem `afeta` a versão não marca métrica.
  */
@@ -225,7 +226,7 @@ export async function sincronizarDominioBm(pool: PoolLike, S: Esquemas, lido: Do
       `SELECT campo, codigo, rotulo, vigente_de FROM ${S.bm}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[])`, [campos])).rows;
     const ultimas = (await db.query<{ campo: string; ultima: string }>(
       `SELECT campo, max(greatest(vigente_de, coalesce(vigente_ate, vigente_de)))::text AS ultima FROM ${S.bm}.ref_dominio WHERE campo = ANY($1::text[]) GROUP BY campo`, [campos])).rows;
-    const plano = planejarDominio({ dominios: listas }, vigentes, hoje, new Map(ultimas.map((u) => [u.campo, u.ultima])));
+    const plano = planejarDominio({ dominios: listas }, vigentes, hoje, new Map(ultimas.map((u) => [u.campo, u.ultima])), { porCampo: true });
     for (const f of plano.fechar) {
       await db.query(`UPDATE ${S.bm}.ref_dominio SET vigente_ate = $1 WHERE vigente_ate IS NULL AND campo = $2 AND codigo = $3`, [hoje, f.campo, f.codigo]);
     }
@@ -248,7 +249,7 @@ export async function sincronizarDominioBm(pool: PoolLike, S: Esquemas, lido: Do
         versaoRegistrada = true;
       }
     }
-    return { sha256: lido.sha256, campos: lido.arquivo.campos.length, inseridas: plano.inserir.length, fechadas: plano.fechar.length, versaoRegistrada };
+    return { sha256: lido.sha256, campos: lido.arquivo.campos.length, inseridas: plano.inserir.length, fechadas: plano.fechar.length, versaoRegistrada, recusados: plano.recusados };
   });
 }
 

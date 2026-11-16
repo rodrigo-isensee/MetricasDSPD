@@ -242,7 +242,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
   it('arquivo novo: insere campo_customizado e o domínio, só em dspd_bm, e registra a versão de critério com o hash', async () => {
     const d = criarDublePg((c) => (c.texto.includes('FROM dspd_core.ref_versao_criterio') ? [] : []));
     const r = await sincronizarDominioBm(d.pool, S, lido, HOJE, AGORA);
-    expect(r).toEqual({ sha256: lido.sha256, campos: 1, inseridas: 2, fechadas: 0, versaoRegistrada: true });
+    expect(r).toEqual({ sha256: lido.sha256, campos: 1, inseridas: 2, fechadas: 0, versaoRegistrada: true, recusados: [] });
     const sql = d.chamadas.map((c) => c.texto);
     expect(sql.filter((t) => t.startsWith('INSERT INTO dspd_bm.ref_dominio'))).toHaveLength(2);
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
@@ -267,7 +267,47 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(await sincronizarDominioBm(d.pool, S, vazio, HOJE, AGORA)).toMatchObject({ inseridas: 0, fechadas: 1, campos: 0 });
     expect(d.chamadas.filter((c) => c.texto.startsWith('UPDATE dspd_bm.ref_dominio SET vigente_ate')).map((c) => c.valores)).toEqual([[HOJE, 'campo_customizado', '7']]);
     const retro = criarDublePg((c) => (c.texto.startsWith('SELECT campo, codigo, rotulo, vigente_de') ? vigentes : c.texto.includes('max(greatest') ? [{ campo: 'campo_customizado', ultima: '2026-11-10' }] : []));
-    await expect(sincronizarDominioBm(retro.pool, S, vazio, HOJE, AGORA)).rejects.toBeInstanceOf(ErroDominio);
+    const r = await sincronizarDominioBm(retro.pool, S, vazio, HOJE, AGORA);
+    expect(r).toMatchObject({ inseridas: 0, fechadas: 0, versaoRegistrada: false });
+    expect(r.recusados.map((x) => x.campo)).toEqual(['campo_customizado']);
+    expect(retro.chamadas.some((c) => /^(INSERT|UPDATE)/.test(c.texto))).toBe(false);
+  });
+
+  describe('K-383: grava por campo, append-only', () => {
+    const SEL = 'SELECT campo, codigo, rotulo, vigente_de';
+    const mapa = { campo: 'campo_customizado', codigo: '7', rotulo: 'area_solicitante' };
+    const valor = (rotulo: string, vigente_de: string) => ({ campo: 'area_solicitante', codigo: 'a1', rotulo, vigente_de });
+    const escritas = (d: ReturnType<typeof criarDublePg>) => d.chamadas.filter((c) => /^(INSERT INTO dspd_bm|UPDATE)/.test(c.texto));
+
+    it('campo igual ao vigente é pulado: sem nova vigência e sem erro, mesmo com vigência aberta hoje', async () => {
+      const d = criarDublePg((c) => (c.texto.startsWith(SEL) ? [{ ...mapa, vigente_de: HOJE }, valor('Area Um', HOJE)] : []));
+      expect(await sincronizarDominioBm(d.pool, S, lido, HOJE, AGORA)).toMatchObject({ inseridas: 0, fechadas: 0, versaoRegistrada: false, recusados: [] });
+      expect(escritas(d)).toEqual([]);
+    });
+
+    it('campo novo é gravado ao lado de campo igual', async () => {
+      const d = criarDublePg((c) => (c.texto.startsWith(SEL) ? [{ ...mapa, vigente_de: HOJE }] : []));
+      const r = await sincronizarDominioBm(d.pool, S, lido, HOJE, AGORA);
+      expect(r).toMatchObject({ inseridas: 1, fechadas: 0, versaoRegistrada: true, recusados: [] });
+      expect(escritas(d).map((c) => c.valores)).toEqual([['area_solicitante', 'a1', HOJE, 'Area Um', 0]]);
+    });
+
+    it('campo mudado com vigência aberta hoje é recusado com a mesma mensagem, sozinho: o outro campo mudado grava', async () => {
+      const lido3 = analisarDominioBm(arquivo([campo({ valores: [{ codigo: 'a1', rotulo: 'Area Um nova' }] })], { setores: [{ codigo: '5', rotulo: 'Novo' }] }), TIPOS_DO_TESTE);
+      const vigentes = [{ ...mapa, vigente_de: '2026-11-01' }, valor('Area Um', HOJE), { campo: 'setor_quadro', codigo: '5', rotulo: 'Antigo', vigente_de: '2026-11-01' }];
+      const d = criarDublePg((c) => (c.texto.startsWith(SEL) ? vigentes : []));
+      const r = await sincronizarDominioBm(d.pool, S, lido3, HOJE, AGORA);
+      expect(r.recusados).toEqual([{ campo: 'area_solicitante', mensagem: `ref_dominio area_solicitante: já existe vigência aberta em ${HOJE} para o mesmo código; repita depois dessa data` }]);
+      expect(escritas(d).filter((c) => c.texto.startsWith('UPDATE')).map((c) => c.valores)).toEqual([[HOJE, 'setor_quadro', '5']]);
+      expect(escritas(d).filter((c) => c.texto.includes('INSERT INTO dspd_bm')).map((c) => c.valores[0])).toEqual(['setor_quadro']);
+      expect(r.versaoRegistrada).toBe(true);
+    });
+
+    it('nunca apaga: nenhuma carga emite DELETE ou TRUNCATE', async () => {
+      const d = criarDublePg((c) => (c.texto.startsWith(SEL) ? [valor('Antigo', HOJE)] : []));
+      await sincronizarDominioBm(d.pool, S, lido, HOJE, AGORA);
+      expect(d.chamadas.map((c) => c.texto).join('\n')).not.toMatch(/DELETE|TRUNCATE/);
+    });
   });
 });
 

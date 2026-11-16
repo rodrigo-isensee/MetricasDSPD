@@ -104,7 +104,8 @@ export interface Insercao { campo: string; codigo: string; rotulo: string; ordem
 export interface Fechamento { campo: string; codigo: string }
 /** Última data de vigência já registrada por campo (a maior entre `vigente_de` e `vigente_ate`). */
 export type UltimaVigencia = ReadonlyMap<string, string>;
-export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campos: number; inicial: boolean }
+export interface RecusaDominio { campo: string; mensagem: string }
+export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campos: number; inicial: boolean; recusados: RecusaDominio[] }
 
 /**
  * Compara o arquivo com as linhas vigentes dos campos que o arquivo traz. Campo ausente do arquivo não é tocado.
@@ -114,34 +115,38 @@ export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campo
  */
 export function planejarDominio(
   arquivo: { dominios: Partial<Record<string, Item[]>> }, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
+  opcoes: { porCampo?: boolean } = {},
 ): PlanoDominio {
   const inserir: Insercao[] = [];
   const fechar: Fechamento[] = [];
+  const recusados: RecusaDominio[] = [];
   const campos = listasDe(arquivo.dominios);
   for (const [campo, itens] of campos) {
-    const antes = inserir.length + fechar.length;
+    const ins: Insercao[] = [];
+    const fec: Fechamento[] = [];
     const atuais = new Map(vigentes.filter((v) => v.campo === campo).map((v) => [v.codigo, v]));
     const desejados = new Set<string>();
     for (const [ordem, item] of itens.entries()) {
       desejados.add(item.codigo);
       const atual = atuais.get(item.codigo);
       if (atual?.rotulo === item.rotulo && (!CAMPOS_COM_ORDEM.includes(campo) || atual.ordem === ordem)) continue;
-      if (atual !== undefined) fechar.push({ campo, codigo: item.codigo });
-      inserir.push({ campo, codigo: item.codigo, rotulo: item.rotulo, ordem });
+      if (atual !== undefined) fec.push({ campo, codigo: item.codigo });
+      ins.push({ campo, codigo: item.codigo, rotulo: item.rotulo, ordem });
     }
-    for (const codigo of atuais.keys()) if (!desejados.has(codigo)) fechar.push({ campo, codigo });
+    for (const codigo of atuais.keys()) if (!desejados.has(codigo)) fec.push({ campo, codigo });
+    let recusa: string | undefined;
     const ultimo = ultima.get(campo);
-    if (ultimo !== undefined && hoje < ultimo && inserir.length + fechar.length > antes) {
-      throw new ErroDominio('vigencia', `ref_dominio ${campo}: a data ${hoje} é anterior à última vigência do campo (${ultimo}); use essa data ou uma posterior`);
+    if (ultimo !== undefined && hoje < ultimo && ins.length + fec.length > 0) {
+      recusa = `ref_dominio ${campo}: a data ${hoje} é anterior à última vigência do campo (${ultimo}); use essa data ou uma posterior`;
+    } else if (fec.some((f) => atuais.get(f.codigo)!.vigente_de >= hoje)) {
+      recusa = `ref_dominio ${campo}: já existe vigência aberta em ${hoje} para o mesmo código; repita depois dessa data`;
     }
+    if (recusa === undefined) { inserir.push(...ins); fechar.push(...fec); continue; }
+    // Padrão (Acelerato): tudo ou nada. Por campo (bm:ref-sync, K-383): só o campo que mudou e já tem vigência aberta hoje é recusado; os outros gravam.
+    if (!opcoes.porCampo) throw new ErroDominio('vigencia', recusa);
+    recusados.push({ campo, mensagem: recusa });
   }
-  for (const f of fechar) {
-    const atual = vigentes.find((v) => v.campo === f.campo && v.codigo === f.codigo)!;
-    if (atual.vigente_de >= hoje) {
-      throw new ErroDominio('vigencia', `ref_dominio ${f.campo}: já existe vigência aberta em ${hoje} para o mesmo código; repita depois dessa data`);
-    }
-  }
-  return { inserir, fechar, campos: campos.length, inicial: vigentes.length === 0 };
+  return { inserir, fechar, campos: campos.length, inicial: vigentes.length === 0, recusados };
 }
 
 export interface ResultadoDominio {
