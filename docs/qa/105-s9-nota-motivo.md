@@ -17,7 +17,6 @@ data: 2026-11-16
 Obrigação: decisão D5b (A) do dono: o cartão do S9 avisa que o motivo da Pendente não é preenchido no Acelerato e por isso aparece como Não classificado. Diff `57989aa0..235e3acb`: só `notas.ts` (texto), `notas.test.ts` (1 teste) e `CHANGELOG.md`. Cálculo, contrato e base não mudam.
 
 ## Achados
-Nenhum.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
