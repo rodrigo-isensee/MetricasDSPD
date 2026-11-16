@@ -18,7 +18,11 @@ export const NOTAS_EI: Record<'FL1' | 'FL2' | 'FL3' | 'SUST', TextoNota> = {
   FL3: BASE,
   SUST: {
     ...BASE,
+    oQueE:
+      'A fração do tempo do chamado fechado que ficou parada em espera, fora do trabalho do time (fila inicial, solicitante, fornecedor, janela de mudança, validação e pendência).',
+    comoSeCalcula:
+      'Visão do cliente: soma do tempo de todas as etapas do chamado, sem as etapas finais (Concluído, Encerramento, Causa Raiz e Revisão). Visão do time: a do cliente menos as esperas (Pendente, Aguardando Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança e Validação, as mesmas que pausam o SLA) e a fila inicial (Novo, Novo Atendimento, Em triagem e Aguardando Atribuição). Índice = (cliente − time) ÷ cliente, sobre as medianas da mesma janela, por prioridade. Com menos de 20 chamados na prioridade, nenhuma das duas visões é publicada.',
     cuidados:
-      'Em Sustentação o tempo de vida inclui esperas do solicitante e de outros times, e vem de outra fonte (Acelerato): não compare com os níveis do BusinessMap. Horas úteis, por prioridade.',
+      'Aguardando Equipe Interna, Aprovação, Mudança e Data Acordada ainda não foram classificadas: contam como tempo do time, então o índice sai conservador (menor), e o tempo nelas é informado à parte. Vem de outra fonte (Acelerato): não compare com os níveis do BusinessMap. Horas úteis, por prioridade.',
   },
 }

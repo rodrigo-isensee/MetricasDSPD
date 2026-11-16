@@ -51,6 +51,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão do dono (pedido 105, E7.101, 16/11): conversão pela decisão registrada no chamado, não pelo vínculo com o Registro de Problema. "Não aplicável e com justificativa" fica só no denominador; fluxos antigos ficam fora e são contados. Antes a conversão saía nula. Afeta S11.',
     metricas: ['S11'],
   },
+  {
+    referencia: '105:EI_SUST',
+    descricao: 'EI_SUST com dado real pelo tempo por etapa: cliente = soma do tempo das etapas, fora as finais; time = cliente menos as esperas da D5a e a fila inicial; etapas não decididas contadas',
+    motivo: 'Decisões do dono (pedido 105, E7.243): P-EI-1 B (time = total menos as esperas da D5a, as que pausam o SLA do S1), P-EI-2 A (Concluído, Encerramento, Causa Raiz e Revisão fora das duas visões, contadas); suposição P-EI-3 (a fila inicial conta como espera invisível). Antes a métrica não era publicada. Afeta EI_SUST.',
+    metricas: ['EI_SUST'],
+  },
 ];
 
 /**
