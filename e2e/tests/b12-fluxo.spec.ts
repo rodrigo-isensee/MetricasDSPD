@@ -324,7 +324,7 @@ test.describe('K-007 Tático', () => {
     await painel.esperarPronto()
     await expect(painel.cartao('T1').raiz).toContainText('Baixa')
     await expect(painel.cartao('T1').raiz).toContainText(
-      /Sem prioridade: \d+ cartões? (ficou|ficaram) fora/,
+      /Sem prioridade \(BusinessMap\): [1-9]\d* de \d+ entregues \(\d+%\)/,
     )
     await painel
       .cartao('T1')
@@ -360,7 +360,9 @@ test.describe('K-007 Tático', () => {
     const t4 = painel.cartao('T4')
     await t4.esperarPronto()
     await expect(t4.raiz).toContainText('A fila cresce: chegam mais itens do que saem')
-    await expect(t4.raiz).toContainText(/16 de 20 itens mínimos|\d+ de 20 itens mínimos/)
+    await expect(t4.raiz).toContainText(
+      /Sem prioridade \(BusinessMap\): [1-9]\d* de \d+ cartões com chegada ou entrega no período \(\d+%\)/,
+    )
   })
 
   test('TAT-08 T5: sistemas insuficientes listados com base e filtro Sistema não afeta', async ({
