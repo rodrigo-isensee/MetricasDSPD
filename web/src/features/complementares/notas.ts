@@ -163,7 +163,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Horas úteis na etapa Pendente (P50, P85 e P95 por motivo) e retornos até a previsão ÷ pendências com previsão.',
     comoLer: 'Mostra onde o chamado espera por alguém de fora da sustentação.',
     meta: SEM_ALVO,
-    cuidados: 'Motivos com menos de 20 pendências não publicam percentis.',
+    cuidados:
+      'Motivos com menos de 20 pendências não publicam percentis. O motivo da pendência não está sendo preenchido no Acelerato; por isso aparece como Não classificado.',
   },
   S10: {
     oQueE: 'Quanto o chamado espera entre a escalação e o aceite por alguém.',

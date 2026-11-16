@@ -15,6 +15,10 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - O17 (sustentação): o motivo da causa raiz é definitivo, por decisão do dono (16/11): o campo "Causa raiz" do Acelerato é texto livre, nunca entra na base (ADR 0020), e a causa raiz de incidente não é contada; sai o "aguardando o Registro de Problemas" (pedido 105, K-372).
 - Base de fallback do BusinessMap sem limite de frentes (`null`, não 0), com teste de que o T7 sai sem limite; o contrato não muda (pedido 105, K-375).
 
+### Alterado
+
+- S9 (sustentação): o cartão avisa que o motivo da pendência não está sendo preenchido no Acelerato e por isso aparece como Não classificado; cálculo e contrato não mudam (pedido 105, E7.254).
+
 ### Adicionado
 
 - O22 (primeiro toque), base e carga (B7b, pedido 105, E7.194): migração `0039_bm_toque_primeiro` (`stg_toque_instante`, `ctl_toque_leitura`, `dim_card.primeiro_toque_em` e `toque_situacao`, tarefa `carga_toque`), gravação dos eventos e do controle na mesma transação por card, projeção que sobrevive à reconstrução do `dim_card`, comando `bm:carga-toque` (retomável por card, com janela e resumo só de contagens, e `--amostra` para o portão de carga) e etapa do incremental com teto de chamadas. A API lê só as duas colunas novas de `dim_card`; as tabelas do toque ficam fora da API e do papel da aba Apontamento. O motivo `comentario_invalido` separa o `comment_id` fora da forma do `created_at` inválido, e o teto de 50 páginas de uma leitura divide o lote de comentários em vez de parar a execução.
