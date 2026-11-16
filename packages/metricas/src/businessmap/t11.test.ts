@@ -5,6 +5,7 @@ import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO } from '../core/criterios'
 import {
   calcularT11,
+  entradasSazonaisDeCards,
   EXTENSAO_TAMBEM_BM_VAZIA,
   type EntradaSazonal,
   type ExtensaoTambemBM,
@@ -189,5 +190,92 @@ describe('T11 sazonalidade da chegada', () => {
 
   it('nasceu depois do descarte nativo: nenhuma das duas versões do descarte o marca (B11b)', () => {
     expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO).toContain('T11')
+  })
+})
+
+describe('T11 com dado real (pedido 105, E7.64)', () => {
+  const real = (n: number): ExtensaoTambemBM => ({
+    ...extDe(
+      Array.from({ length: n }, (_, i) =>
+        entrada(`2026-03-${String((i % 27) + 1).padStart(2, '0')}`),
+      ),
+    ),
+    dadoReal: true,
+  })
+
+  it('fronteira 19 e 20: com 19 demandas na janela não publica; com 20 publica', () => {
+    const com19 = calcularT11(ctxDe(), F, real(19))
+    expect(com19.anos).toEqual([])
+    expect(com19.mediaMensal).toBeNull()
+    expect(com19.mesesComDado).toBe(0)
+    expect(com19.base.n).toBe(19)
+    expect(SCHEMAS_RESULTADO.T11.safeParse(com19).success).toBe(true)
+    const com20 = calcularT11(ctxDe(), F, real(20))
+    expect(com20.base.n).toBe(20)
+    expect(celula(com20, 2026, 3)?.entradas).toBe(20)
+    expect(com20.mediaMensal).not.toBeNull()
+  })
+
+  it('o mínimo vale depois dos filtros; sem a marca de dado real (mock) segue publicando contagens pequenas', () => {
+    const ext = real(25)
+    ext.entradasSazonais[0] = { ...ext.entradasSazonais[0]!, equipe: 'Equipe B' }
+    expect(calcularT11(ctxDe(), { ...F, equipe: ['equipe-b'] }, ext).anos).toEqual([])
+    expect(calcularT11(ctxDe(), F, extDe(real(3).entradasSazonais)).anos.length).toBeGreaterThan(0)
+  })
+
+  it('entradasSazonaisDeCards: só story que não é Bug interno; arquivado e excluído entram; subtarefa, frente e projeto não; nenhum campo de pessoa', () => {
+    const base = umaBase([])
+    const molde = {
+      ...(base.cards[0] ?? {
+        card_id: 'X',
+        titulo: '',
+        tipo: 'Melhoria',
+        classe_servico: 'Padrão',
+        sistema: 'Protheus',
+        area_solicitante: '',
+        fornecedor: null,
+        objetivo_estrategico: null,
+        card_pai: null,
+        criado_em: 1,
+        comprometido_em: null,
+        iniciado_em: null,
+        concluido_em: null,
+        arquivado_em: null,
+        motivo_descarte: null,
+        responsaveis: [],
+        tamanho_declarado: null,
+        granularidade: 'story',
+        equipe: 'Equipe A',
+        quadro_id: '35',
+        coluna_atual: null,
+        excluido_em: null,
+        eh_subtarefa: false,
+        data_acordada: null,
+        responsabilidade_atraso: null,
+        origem_demanda: null,
+        fase_deteccao: null,
+        severidade: null,
+        origem_bug: null,
+        adicionado_apos_inicio_pai: false,
+      }),
+    } as unknown as Parameters<typeof entradasSazonaisDeCards>[0][number]
+    const c = (id: string, extra: object) => ({ ...molde, card_id: id, ...extra }) as typeof molde
+    const r = entradasSazonaisDeCards([
+      c('a', { tipo: 'Melhoria', granularidade: 'story', criado_em: 10 }),
+      c('b', { tipo: 'Bug interno', granularidade: 'story' }),
+      c('c', { tipo: 'Melhoria', granularidade: 'story', arquivado_em: 5, criado_em: 11 }),
+      c('d', { tipo: 'Melhoria', granularidade: 'story', excluido_em: 5, criado_em: 12 }),
+      c('e', { tipo: 'Melhoria', granularidade: 'story', eh_subtarefa: true }),
+      c('f', { tipo: 'Melhoria', granularidade: 'frente' }),
+      c('g', { tipo: 'Melhoria', granularidade: 'projeto' }),
+    ])
+    expect(r.map((e) => e.criado_em)).toEqual([10, 11, 12])
+    expect(Object.keys(r[0]!).sort()).toEqual([
+      'criado_em',
+      'equipe',
+      'quadro_id',
+      'sistema',
+      'tipo',
+    ])
   })
 })

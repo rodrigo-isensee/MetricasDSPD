@@ -5,7 +5,7 @@ import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
 import type { BaseAC, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
-import { EXTENSAO_BM_VAZIA, type ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
+import { EXTENSAO_BM_VAZIA, EXTENSAO_TAMBEM_BM_VAZIA, entradasSazonaisDeCards, type ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { AppError } from '../../plataforma/erros.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
@@ -332,6 +332,8 @@ export class ServicoMetricas {
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),
       ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem && !real ? { tambem: this.deps.extensaoTambem() } : {}),
+      // Pedido 105 (E7.64): na base real o T11 lê `dim_card` (a regra de chegada é da biblioteca); as outras da extensão seguem sem dado real.
+      ...(id === 'T11' && real ? { tambem: { ...EXTENSAO_TAMBEM_BM_VAZIA, entradasSazonais: entradasSazonaisDeCards((bm as NonNullable<typeof bm>).base.cards), dadoReal: true } } : {}),
     };
     let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".

@@ -5,6 +5,8 @@
  * mudem. Fonte real futura: tabelas próprias (T1.3, T1.4, T4.2). Nenhum campo identifica pessoa.
  */
 import type { NaturezaProjeto, TipoCard } from '@metricas-dspd/contratos'
+import { ehDemandaCard } from './comum'
+import type { DimCard } from './modelo'
 
 /** Sprint = card-template pai no BusinessMap; as entregas são os cards filhos ligados a ele. */
 export interface Sprint {
@@ -49,6 +51,23 @@ export interface EntradaSazonal {
   quadro_id?: string
 }
 
+/**
+ * T11 na base real (pedido 105, E7.64; decisão do dono D-T11 "A"): a demanda criada é a story que não é Bug interno, a mesma regra de
+ * chegada do T4 e do O7 (`ehDemandaCard`), pelo `criado_em`. Arquivados e excluídos ficam (chegaram); subtarefa não é demanda (como no O7 e no T4).
+ * Só campos de contagem: nenhum de pessoa, e a equipe é a do quadro (nunca `equipeResponsavel`).
+ */
+export function entradasSazonaisDeCards(cards: readonly DimCard[]): EntradaSazonal[] {
+  return cards
+    .filter((c) => ehDemandaCard(c) && !c.eh_subtarefa)
+    .map((c) => ({
+      criado_em: c.criado_em,
+      tipo: c.tipo,
+      equipe: c.equipe,
+      sistema: c.sistema,
+      quadro_id: c.quadro_id,
+    }))
+}
+
 /** Vínculo `predecessor` de um card (D-14' = A). `outro_quadro` nulo = quadro do relacionado desconhecido (sem permissão). */
 export interface VinculoPredecessor {
   card_id: string
@@ -89,6 +108,11 @@ export interface ConhecimentoSistema {
 export interface ExtensaoTambemBM {
   /** T11 (fase 1): o histórico de 24 meses que a base mock não tem. */
   entradasSazonais: EntradaSazonal[]
+  /**
+   * Pedido 105 (E7.64): `true` = `entradasSazonais` vem da base real (`dim_card`) e o T11 só publica com 20 demandas ou mais na
+   * janela e nos filtros (mínimo da biblioteca); abaixo disso sai vazio. Ausente = mock (as contagens pequenas dos testes seguem).
+   */
+  dadoReal?: boolean
   /** O22: instante do primeiro comentário humano; `null` = ainda sem toque; ausente = sem dado. */
   primeiroToque: Record<string, number | null>
   /** O26: número de passagens de mão por card entregue (inteiro >= 0); ausente = sem dado. */

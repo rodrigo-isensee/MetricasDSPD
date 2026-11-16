@@ -94,6 +94,50 @@ async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   return { app, d };
 }
 
+describe('pedido 105 (E7.64): T11 com dado real pelo dim_card', () => {
+  const demandas = (n: number, extra: Partial<LinhaCard> = {}): LinhaCard[] =>
+    Array.from({ length: n }, (_, i) => card(`D${i}`, 'Melhoria', { criado_em: new Date(`2026-08-${String((i % 27) + 1).padStart(2, '0')}T12:00:00Z`), ...extra }));
+  type R = { base: { n: number }; anos: { ano: number; meses: { mes: number; entradas: number | null }[] }[]; mediaMensal: number | null };
+  const t11 = async (cards: LinhaCard[]) => {
+    const { app, d } = await montar({ cards });
+    const r = await app.inject('/api/v1/metricas/T11');
+    expect(r.statusCode).toBe(200);
+    return { r, j: r.json() as R, d };
+  };
+
+  it('T11 está no mapa real, lê só a base real e passa no schema', async () => {
+    expect(origemDaMetrica('T11')).toBe('real');
+    const { r, j, d } = await t11(demandas(20));
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T11.safeParse(j).success).toBe(true);
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+    expect(j.anos.find((a) => a.ano === 2026)?.meses.find((m) => m.mes === 8)?.entradas).toBe(20);
+  });
+
+  it('fronteira 19 e 20: com 19 demandas não publica (vazio, n = 19); com 20 publica', async () => {
+    const com19 = (await t11(demandas(19))).j;
+    expect(com19.anos).toEqual([]);
+    expect(com19.mediaMensal).toBeNull();
+    expect(com19.base.n).toBe(19);
+    expect((await t11(demandas(20))).j.base.n).toBe(20);
+  });
+
+  it('a regra de chegada é a do T4 e do O7: Bug interno, frente, projeto e subtarefa ficam fora; arquivado e excluído entram', async () => {
+    const cards = [
+      ...demandas(17),
+      card('ARQ', 'Melhoria', { arquivado_em: new Date('2026-09-05T12:00:00Z') }),
+      card('EXC', 'Melhoria', { excluido_em: new Date('2026-09-05T12:00:00Z') }),
+      card('NOVA', 'Defeito em produção'),
+      card('BUG', 'Bug interno'),
+      card('FRE', 'Melhoria', { granularidade: 'frente' }),
+      card('PRJ', 'Melhoria', { granularidade: 'projeto' }),
+      card('SUB', 'Melhoria', { eh_subtarefa: true }),
+    ];
+    const { j } = await t11(cards);
+    expect(j.base.n).toBe(20);
+  });
+});
+
 describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é um portão', () => {
   it('métrica real lê só a base real; métrica fora do mapa responde "sem dado real" sem ler base nenhuma', async () => {
     const real = await montar();
