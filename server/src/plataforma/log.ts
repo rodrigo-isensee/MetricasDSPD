@@ -25,6 +25,16 @@ export const CAMINHOS_REDIGIDOS = [
   '*.*.comentario',
   '*.*.realname',
   '*.*.responsavel_nome',
+  // Pedido 105 (O22, ADR 0020 R6-7): `user_id` da revisão e `author`, `text` e `attachments` do comentário, em um e em dois níveis (a segunda forma cobre também o
+  // objeto dentro de uma lista, `{ itens: [{ text }] }`). Defesa secundária: nenhum objeto de revisão ou comentário chega ao logger.
+  '*.user_id',
+  '*.author',
+  '*.text',
+  '*.attachments',
+  '*.*.user_id',
+  '*.*.author',
+  '*.*.text',
+  '*.*.attachments',
 ];
 
 export const opcoesLog = (level: string): LoggerOptions => ({

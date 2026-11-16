@@ -94,8 +94,9 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     const c = criarClienteHttp(cfg(f.url));
     for (const caminho of ['/workspaces', '/boards', '/boards/3', '/boards/3/currentStructure', '/boards/3/workflows', '/boards/3/columns',
       '/boards/3/lanes', '/cardTypes', '/customFields', '/cards', '/cards/9', '/cards/9/revisions', '/cards/9/comments']) await c.get(caminho);
+    await c.get('/cards/comments', { consulta: { card_ids: '9,10' } });
     await c.get('/users', { consulta: { fields: 'user_id,realname', user_ids: '1,2' } });
-    expect(f.pedidos).toHaveLength(14);
+    expect(f.pedidos).toHaveLength(15);
     expect(new Set(f.pedidos.map((p) => p.metodo))).toEqual(new Set(['GET']));
   });
 

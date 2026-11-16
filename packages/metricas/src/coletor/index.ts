@@ -23,3 +23,4 @@ export {
   type RegraPorTipo,
   type ResultadoApontamento,
 } from './classificarApontamento'
+export { contaComoToque, type AutorDoEvento } from './contaComoToque'

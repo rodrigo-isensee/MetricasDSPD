@@ -46,6 +46,39 @@ export const CAMPOS_APONTAMENTO = [
 /** 4h: saída da classificação do comentário (lista fechada e inteiros) que acompanha o registro; nunca o texto. */
 export const CAMPOS_CLASSIFICACAO = ['subgrupo_codigo', 'flags_qualidade', 'qtd_palavras', 'versao_dicionario'] as const;
 
+/**
+ * Pedido 105 (O22, ADR 0020 revisão 6, R6-3): lista fechada do primeiro toque, em duas partes. É a ÚNICA fonte do corte de `GET /cards/{id}/revisions` e de
+ * `GET /cards/comments`: o resto do objeto lido (`text`, `attachments`, `type`, `last_modified`, `sender`, `recipients`, chave desconhecida) é descartado aqui,
+ * antes de qualquer normalizador, tabela ou log. `user_id` e `author.*` só existem em memória até `contaComoToque` (biblioteca do coletor) e nunca são gravados.
+ */
+export const CAMPOS_TOQUE = {
+  revisao: ['revision', 'replaced_at', 'user_id'],
+  comentario: ['card_id', 'comment_id', 'created_at', 'author.type', 'author.value'],
+} as const;
+
+export interface RevisaoCortada { revision: unknown; replaced_at: unknown; user_id: unknown }
+export interface ComentarioCortado { card_id: unknown; comment_id: unknown; created_at: unknown; author_type: unknown; author_value: unknown }
+
+const escalarOuAusente = (v: unknown): string | number | boolean | null | undefined => (ehEscalar(v) ? v : undefined);
+
+/** R6-3: item da lista de revisões cortado campo a campo por `CAMPOS_TOQUE.revisao`. Não é objeto: `null` (quem chama marca a leitura incompleta). */
+export function cortarRevisaoDoToque(item: unknown): RevisaoCortada | null {
+  if (!ehObjeto(item)) return null;
+  const [revision, replaced, user] = CAMPOS_TOQUE.revisao;
+  return { revision: escalarOuAusente(item[revision]), replaced_at: escalarOuAusente(item[replaced]), user_id: escalarOuAusente(item[user]) };
+}
+
+/** R6-3: comentário cortado campo a campo por `CAMPOS_TOQUE.comentario`. `author` que não é objeto deixa os dois campos ausentes. Não é objeto: `null`. */
+export function cortarComentarioDoToque(item: unknown): ComentarioCortado | null {
+  if (!ehObjeto(item)) return null;
+  const [card, comentario, criado] = CAMPOS_TOQUE.comentario;
+  const autor = ehObjeto(item.author) ? item.author : {};
+  return {
+    card_id: escalarOuAusente(item[card]), comment_id: escalarOuAusente(item[comentario]), created_at: escalarOuAusente(item[criado]),
+    author_type: escalarOuAusente(autor.type), author_value: escalarOuAusente(autor.value),
+  };
+}
+
 export const VALOR_DESCONHECIDO = 'desconhecido';
 
 const copiarEscalares = (origem: Objeto, campos: readonly string[], destino: Objeto): void => {
