@@ -100,14 +100,14 @@ function varrer(o: unknown, aoNodo: (n: Nodo, caminho: string) => void, caminho 
 }
 
 describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
-  it('sem dado real no painel operacional são exatamente O14 (com o motivo da H-13) e O22 a O26 menos o O24 e o O25; as reais são as 12 da H-13 mais BLOQUEADOS, O5 e O19 (pedido 075, 6b), O20 (pedido 099, lote A2), O21 (pedido 099, lote A1), O25 (pedido 099, lote A3), O24 e T1, T2, T4 e T6 (pedido 105, E7.100), T9 (pedido 105, E7.68), O12 (pedido 099, lote C2b), O16 (pedido 099, lote C8), O17 por sistema (pedido 099, B da Q-099-7), O8 no tempo real (pedido 099, A4), S11 pela Decisão 18b (pedido 105, D6a), T11 pelo dim_card (pedido 105, E7.64) e PV1 (pedido 060)', () => {
+  it('sem dado real no painel operacional são exatamente O14 (com o motivo da H-13) e O22 a O26 menos o O24 e o O25; as reais são as 12 da H-13 mais BLOQUEADOS, O5 e O19 (pedido 075, 6b), O20 (pedido 099, lote A2), O21 (pedido 099, lote A1), O25 (pedido 099, lote A3), O24 e T1, T2, T4 e T6 (pedido 105, E7.100), T9 (pedido 105, E7.68), O12 (pedido 099, lote C2b), O16 (pedido 099, lote C8), O17 por sistema (pedido 099, B da Q-099-7), O8 no tempo real (pedido 099, A4), S11 pela Decisão 18b (pedido 105, D6a), T11 pelo dim_card (pedido 105, E7.64) T10 (pedido 105, E7.77) e PV1 (pedido 060)', () => {
     const ficticiasFL1 = ['O14'] as MetricaId[];
     const comp = ['O22', 'O23', 'O26'] as MetricaId[];
     for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('sem-dado'); expect(motivoDaOrigemSemDado(id), id).toBe('aguardando campo no quadro'); }
     for (const id of comp) expect(origemDaMetrica(id), id).toBe('sem-dado');
-    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'O8', 'O12', 'O15', 'O16', 'O17', 'O18', 'O20', 'O21', 'O24', 'O25', 'PV1', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'T1', 'T2', 'T4', 'T6', 'T9', 'T11', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
-    // FL2 (menos T1, T2, T4 e T6, reais no pedido 105, E7.100, o T9, E7.68, e o T11, E7.64), FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
-    for (const id of METRICA_IDS.filter((m) => (/^(T|E)\d/.test(m) && !['T1', 'T2', 'T4', 'T6', 'T9', 'T11'].includes(m)) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('sem-dado');
+    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, ...REAIS_BLOQUEIO, 'O8', 'O12', 'O15', 'O16', 'O17', 'O18', 'O20', 'O21', 'O24', 'O25', 'PV1', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'T1', 'T10', 'T2', 'T4', 'T6', 'T9', 'T11', 'TENDENCIA_FLUXO', 'TENDENCIA_SUST'].sort());
+    // FL2 (menos T1, T2, T4 e T6, reais no pedido 105, E7.100, o T9, E7.68, o T10, E7.77, e o T11, E7.64), FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
+    for (const id of METRICA_IDS.filter((m) => (/^(T|E)\d/.test(m) && !['T1', 'T2', 'T4', 'T6', 'T9', 'T10', 'T11'].includes(m)) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('sem-dado');
   });
 });
 
