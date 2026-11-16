@@ -53,3 +53,13 @@ Motivo: o K-314 B1 acrescenta `exibir_primeiro_atendimento` e `exibir_restauraca
 | hashAcelerato | 930570e9 | 797abc95 |
 
 Motivo: o D6a põe o domínio real do D1 no gerador do Acelerato (`avaliacao_problema` "Não aplicável" passa a "Não aplicável e com justificativa"). BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e). Consequência legítima do D6a; o gate do CI reprovou o hash antigo, como o brief previu.
+
+## Regravação de 2026-11-16 (pedido 105, motivos de bloqueio do BusinessMap, E7.184 e E7.210)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | b6a3c384 | 88a5c095 |
+| hashBusinessMap | 8d47d431 | 08e2b5e2 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: o gerador do BusinessMap passa a usar os 11 motivos de bloqueio habilitados (ids 1 a 3, 6, 7 e 9 a 14) e `MOTIVOS_FORNECEDOR`, no lugar dos 7 do briefing (decisão B do dono). Acelerato, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar ../docs/qa/evidencias/hash-base-fase-a.json` (em e2e). Consequência legítima da decisão B; fecha o achado A2 do QA.

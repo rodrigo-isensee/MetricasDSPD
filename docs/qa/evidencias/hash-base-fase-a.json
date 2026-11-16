@@ -2,10 +2,10 @@
   "layout": "pacotes",
   "mock": "packages/mock/src/index.ts",
   "semente": 20261009,
-  "hashBase": "b6a3c384",
-  "hashBusinessMap": "8d47d431",
+  "hashBase": "88a5c095",
+  "hashBusinessMap": "08e2b5e2",
   "hashAcelerato": "797abc95",
   "cards": 5792,
   "chamados": 6062,
-  "geracaoMs": 179
+  "geracaoMs": 267
 }
