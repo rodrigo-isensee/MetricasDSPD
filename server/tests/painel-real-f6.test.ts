@@ -474,7 +474,7 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
   });
 
-  it('S5: O19 real devolve os 8 motivos, "não classificado" por último; abaixo de 20 bloqueios por motivo sem percentil e sem percentual', async () => {
+  it('S5: O19 real devolve os 12 motivos, "não classificado" por último; abaixo de 20 bloqueios por motivo sem percentil e sem percentual', async () => {
     const { app } = await real();
     const r = await app.inject('/api/v1/metricas/O19');
     expect(r.statusCode).toBe(200);
@@ -515,7 +515,7 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
   });
 
   it('S7: T12 segue "sem dado real" com o motivo genérico; T10 (pedido 105, E7.77) é real: total dos bloqueios encerrados de fornecedor, sem nome nem pessoa', async () => {
-    const { app } = await real({ bloqueios: [...BLOQUEIOS, bloq('A', 'Aguardando fornecedor', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8'), bloq('A', 'Janela de mudança', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8')] });
+    const { app } = await real({ bloqueios: [...BLOQUEIOS, bloq('A', 'Aguardando fornecedor', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8'), bloq('A', 'Dependência Externa', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8'), bloq('A', 'Aguardando publicação GMUD', '2026-09-14T12:00:00Z', '2026-09-15T12:00:00Z', '8')] });
     const t12 = await app.inject('/api/v1/metricas/T12');
     expect(t12.statusCode).toBe(200);
     expect(t12.headers['x-estado-dado']).toBe('sem-dado-real');
@@ -526,7 +526,7 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
     const j = r.json() as { fornecedores: unknown[]; esperaFornecedores: { bloqueios: number; diasUteis: number; duracao: { status: string; n: number } }; motivoSemFornecedores: string };
     expect(SCHEMAS_RESULTADO.T10.safeParse(j).success).toBe(true);
     expect(j.fornecedores).toEqual([]);
-    // A (16 h úteis, motivo de fornecedor) e o novo (8 h): outro motivo e aberto ficam fora.
+    // Motivos 14 e 11 (8 h cada) entram; o de outro motivo (o A de 16 h, o GMUD) e o aberto ficam fora.
     expect(j.esperaFornecedores.bloqueios).toBe(2);
     expect(j.esperaFornecedores.duracao).toMatchObject({ status: 'insuficiente', n: 2 });
     expect(j.motivoSemFornecedores).toBeTruthy();

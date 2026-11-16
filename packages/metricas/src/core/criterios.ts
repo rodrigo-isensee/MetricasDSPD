@@ -107,6 +107,15 @@ export const VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR: VersaoCriterio = {
   afeta: ['T10'],
 }
 
+/** Pedido 105 (E7.264, decisão do dono, 2026-11-16): o T10 soma o tempo dos bloqueios com motivo Aguardando fornecedor (14) e Dependência Externa (11). */
+export const VERSAO_CRITERIO_T10_MOTIVOS_FORNECEDOR: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t10-motivos-fornecedor',
+  data: '2026-11-16',
+  descricao:
+    'T10 passou a contar o tempo dos bloqueios encerrados com os motivos Aguardando fornecedor e Dependência Externa (antes só o primeiro)',
+  afeta: ['T10'],
+}
+
 /**
  * D2 = A (pedido 011, decisão de 2026-10-17; pedido 024): o E7 deixou de trazer custo em R$ e passou a mostrar só a
  * participação percentual de cada sistema pelas entregas do período. Revê a D-1' e a Q-E7-1.
@@ -141,6 +150,15 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   data: DATA_BLOQUEIO_COM_DADO_REAL,
   descricao: `histórico parcial de bloqueios: só há dado a partir de ${DATA_BLOQUEIO_COM_DADO_REAL} (primeira coleta); antes disso o tempo bloqueado é desconhecido. Início e fim do bloqueio são o instante da coleta que viu a mudança, não o instante real`,
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
+}
+
+/** Pedido 105 (E7.184, decisão B do dono, 2026-11-16): motivos de bloqueio do BusinessMap no lugar dos 7 do briefing. */
+export const VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-motivos-bloqueio-bm',
+  data: '2026-11-16',
+  descricao:
+    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (11 motivos, ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; o fornecedor do T10 são os motivos "Aguardando fornecedor" e "Dependência Externa"',
+  afeta: ['BLOQUEADOS', 'O2', 'O19', 'T10', 'T12'],
 }
 
 /** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
@@ -311,9 +329,11 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
   VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
   VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR,
+  VERSAO_CRITERIO_T10_MOTIVOS_FORNECEDOR,
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,

@@ -134,6 +134,7 @@ Regra de desempate: um card tem um tipo só, e na dúvida vale o motivo pelo qua
 | origem_bug | Vínculo com story ou frente | Abertura do bug | O17, O18 densidade
 Domínios fechados
 - Motivos de bloqueio:Aguardando fornecedor · Aguardando validação do negócio · Aguardando ambiente ou infraestrutura · Dependência de outra demanda · Falta de informação no chamado · Janela de mudança · Aguardando licença ou contrato
+  - Nota datada (2026-11-16, decisão B do dono, pedido 105 E7.184): esta lista foi substituída pelos motivos habilitados no BusinessMap (ids 1 a 3, 6, 7 e 9 a 14, 11 motivos; ver `docs/architecture/fontes/businessmap-dominio.json`). Os motivos de fornecedor do T10 são "Aguardando fornecedor" e "Dependência Externa". Versão de critério `criterio-2026-11-16-motivos-bloqueio-bm`.
 - Fase de detecção do bug:Desenvolvimento · Revisão de código · Teste interno · Homologação do negócio · Produção
 - Causa raiz do bug:Requisito ausente ou ambíguo · Regra de negócio não mapeada · Erro de implementação · Regressão · Integração com terceiro · Ambiente e massa de teste · Configuração e parametrização
 - Origem da demanda (demanda de falha):erro em entrega anterior · configuração incorreta · falta de treinamento do usuário · informação não repassada · processo manual que deveria estar automatizado
