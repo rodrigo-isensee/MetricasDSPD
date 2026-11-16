@@ -80,7 +80,7 @@ describe('origemDaMetrica (H-13)', () => {
     expect(origemDaMetrica('S11')).toBe('real')
     expect(motivoDaOrigemSemDado('S11')).toBeNull()
     expect(MOTIVO_ORIGEM_MOCK).not.toHaveProperty('S11')
-    expect(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL).toMatch(/^[a-z].*[^.]$/)
+    expect(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL).toMatch(/^[A-ZÀ-Ý].*\.$/)
     expect(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL).not.toMatch(/fict|mock|simulad/i)
     // Pedido 099 (D5a): S9 é real pelas esperas decididas; sem motivo de dado fictício.
     expect(origemDaMetrica('S9')).toBe('real')

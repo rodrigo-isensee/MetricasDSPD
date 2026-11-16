@@ -84,7 +84,7 @@ export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
 
 /**
  * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
- * Frase em minúsculas sem ponto final, completada pelo componente.
+ * Frase completa (maiúscula e ponto final), exibida como está pelo componente.
  */
 export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
   'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (o prazo do card diz quando venceu, não de quem foi o atraso)'
@@ -106,7 +106,7 @@ export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
  * publicada como 0. Texto provisório, revisado pela UX. Frase em minúsculas sem ponto final, completada pelo componente.
  */
 export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
-  'aguardando o vínculo do chamado com o Registro de Problema'
+  'Aguardando o vínculo do chamado com o Registro de Problema.'
 /** Pedido 099 (L18, E3.298): motivo do S1 sem `ref_alvo_prioridade` carregada; nenhum prazo é presumido. */
 export const MOTIVO_ALVOS_NAO_CARREGADOS =
   'alvos de prazo por prioridade não carregados (ref_alvo_prioridade); o dono roda o ac:ref-sync'

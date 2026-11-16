@@ -1,7 +1,12 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import type { ComponentType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
+import {
+  MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
+  type FiltrosDe,
+  type MetricaId,
+  type ResultadoDe,
+} from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { FILTROS_FLUXO, FILTROS_SUSTENTACAO } from '@/features/painel/testes/fonteFixa'
 import { fonteDeTeste, renderizarCartao } from '@/test/helpers'
@@ -168,9 +173,7 @@ class FonteS11 extends MockFonteMetricas {
     return {
       ...r,
       conversao,
-      motivoConversao: this.comConversao
-        ? null
-        : 'a base ainda não liga a avaliação ao Registro de Problema.',
+      motivoConversao: this.comConversao ? null : MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
       semFluxo: this.semFluxo,
     } as unknown as ResultadoDe<K>
   }
@@ -185,7 +188,7 @@ describe('S11: conversão e chamados fora do fluxo', () => {
     const el = await abrir(new FonteS11(7))
     await waitFor(() => expect(el).toHaveTextContent('sem dado real'))
     expect(el).toHaveTextContent(
-      'Avaliações que viraram Registro de Problema: sem dado real. a base ainda não liga a avaliação ao Registro de Problema.',
+      'Avaliações que viraram Registro de Problema: sem dado real. Aguardando o vínculo do chamado com o Registro de Problema.',
     )
     expect(el).not.toHaveTextContent('Conversão sem dado real')
     const nota = within(el).getByTestId('s11-fora-do-fluxo')
