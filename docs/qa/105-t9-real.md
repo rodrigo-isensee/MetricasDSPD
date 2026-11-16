@@ -3,10 +3,10 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-t9-real
-commit: 6b772b00710434dea455a6675af68b3c9262a121
-parecer: reprovado
-resultado: reprovado
-escopo: completo
+commit: f71645077b0bb66abcf3ae212d26598b0a4fed0c
+parecer: aprovado
+resultado: aprovado
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -18,13 +18,13 @@ data: 2026-11-16
 Sem especificação de UX nova. Os critérios vêm da decisão do dono (D-T9 "A") e do brief; `CA-n` abaixo são as obrigações nomeadas.
 
 ## Achados
-- A1 (bloqueante) packages/metricas/src/businessmap/t9.test.ts:41 · mutante sobrevivente: trocar `criado_em > inicioProjeto` por `>=` (t9.ts:43) passa os 7 testes. Falta o teste da fronteira: frente criada no mesmo instante do início do projeto conta como original.
+- A1 (bloqueante) packages/metricas/src/businessmap/t9.test.ts:41 · RESOLVIDO na volta 1; mutante sobrevivente: trocar `criado_em > inicioProjeto` por `>=` (t9.ts:43) passa os 7 testes. Falta o teste da fronteira: frente criada no mesmo instante do início do projeto conta como original.
 - A2 (recomendado) packages/metricas/src/businessmap/e5.ts:36 · o E5 ainda lê `adicionado_apos_inicio_pai`, coluna que o T9 deixou de usar e que a própria suíte trata como nunca gravada (false). T9 e E5 podem dizer "frentes adicionadas" com números diferentes. Fora do escopo do PR; vira cartão.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| CA-1 adicionada = frente criada depois do início do projeto; criada antes conta como original | t9.test.ts "frente criada antes do início..." | antes x depois do início; fronteira de igualdade NÃO coberta (A1) | parcial |
+| CA-1 adicionada = frente criada depois do início do projeto; criada antes conta como original | t9.test.ts "frente criada antes do início..." | antes x depois do início; igualdade coberta pelo teste "fronteira: mesmo instante" (A1, volta 1) | passou |
 | CA-2 não lê `adicionado_apos_inicio_pai` | t9.test.ts "não lê adicionado_apos_inicio_pai" | coluna false não zera | passou |
 | CA-3 projeto sem início fora da tabela e contado (`projetosSemInicio`); sem frente não conta | t9.test.ts "projeto sem início..." | início nulo; projeto vazio | passou |
 | CA-4 avanço pelas frentes filhas, sem story | t9.test.ts "o avanço sai pelas frentes filhas..." | story filha ignorada | passou |
@@ -56,5 +56,17 @@ Sem especificação de UX nova. Os critérios vêm da decisão do dono (D-T9 "A"
 
 Observação: M1b morre só nos testes de fronteira 19 e 20 (o teste principal e o de "criado antes" não pegam a inversão sozinhos em todos os casos); a lacuna de igualdade é a mesma classe de A1.
 
-## Parecer
+## Revalidação (volta 1, cabeça f7164507)
+`forge-check parecer delta` lista no domínio: CHANGELOG.md, t9.test.ts, CartaoMetrica.tsx, CartaoT9.tsx, ramos.test.tsx; `t9.ts` não mudou.
+- A1: o teste "fronteira: frente criada no mesmo instante do início do projeto conta como original" entrou em t9.test.ts. Mutante M1 de novo (`criado_em >= inicioProjeto`, t9.ts:43): MORTO, `Tests 1 failed | 7 passed (8)`, falha em t9.test.ts:74 (`toMatchObject({ totalFrentes: 1, originais: 1, ...})`). Restaurado, árvore limpa; sem o mutante, 8 de 8.
+- Delta web (complementoVazio, nota dos projetos sem início no vazio, "Escopo sem frente original" com 0 originais, singular, nota sem "a base não guarda"): `web/src/features/tatico/ramos.test.tsx` 23 de 23 local, com teste por ramo.
+- A2 (recomendado) segue como cartão, fora do escopo do PR.
+- Suíte inteira: CI do mesmo sha f7164507, run 43847926313 (push), conclusão success (a execução do PR, 43847934403, não foi usada).
+
+CA-1 passa a `passou`; demais critérios inalterados (o cálculo não mudou, só texto e estado vazio na interface).
+
+## Parecer final
+Aprovado: A1 resolvido e provado, sem bloqueio aberto.
+
+## Parecer anterior (6b772b00)
 Reprovado por A1 (mutante sobrevivente, bloqueante). Correção: um teste em `t9.test.ts` com frente `criado` igual ao `iniciado` do projeto, esperando `originais: 1, adicionadas: 0` (a regra escrita é "depois", estrito). Aceite do restante: sem outro bloqueio; reteste com `forge-check parecer delta docs/qa/105-t9-real.md`.
