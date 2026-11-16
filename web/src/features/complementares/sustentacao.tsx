@@ -300,6 +300,14 @@ export function CartaoS11({ filtros }: P) {
           {r.conversao === null && r.motivoConversao !== null && (
             <Leia>{`Avaliações que viraram Registro de Problema: sem dado real. ${r.motivoConversao}`}</Leia>
           )}
+          {r.conversao !== null && (
+            <Leia>
+              Conversão pela decisão registrada no chamado, não pelo vínculo. Só os fluxos do PROC;
+              abaixo de 20 avaliações não é publicada.
+              {(r.foraDaConversao ?? 0) > 0 &&
+                ` ${fmtInteiro(r.foraDaConversao ?? 0)} avaliações de fluxos antigos ficam fora da conversão.`}
+            </Leia>
+          )}
           <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
         </div>
       )}

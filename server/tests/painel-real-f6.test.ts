@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, MOTIVO_S11_CONVERSAO_SEM_DADO_REAL, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -597,7 +597,7 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect((s7.ajusteDePrioridade as { totais: { total: number; ocorrencias: number } }).totais).toEqual({ total: 21, ocorrencias: 6 });
   }, 60_000);
 
-  it('D6a (pedido 105, Decisão 18b do 099): S11 real pelo fluxo do chamado: campo nativo no PROC, etapa Causa Raiz fora dele, sem fluxo contado, conversão nula com o motivo', async () => {
+  it('D6a (pedido 105, Decisão 18b do 099): S11 real pelo fluxo do chamado: campo nativo no PROC, etapa Causa Raiz fora dele, sem fluxo contado, conversão insuficiente abaixo de 20 avaliações', async () => {
     const PROC = ['SSVO - INCIDENTE'];
     const fim = new Date('2026-09-25T12:00:00Z');
     // 22 do PROC (P1 a P3; o P3 entra pelo "Contorno Aplicado" real), 8 de fluxo antigo e 3 sem fluxo; todos no escopo do S11.
@@ -617,14 +617,31 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     const { app } = await montar({ chamados: [...proc, ...antigos, ...semFluxo], fluxosProc: PROC, etapas });
     const r = await app.inject('/api/v1/metricas/S11');
     expect(r.statusCode).toBe(200);
-    const s11 = r.json() as { campoDisponivel: boolean; semFluxo: number; escopo: { k: number; n: number; status: string }; conversao: unknown; motivoConversao: string; porGrupo: { grupo: string; taxa: { k: number; n: number } }[] };
+    const s11 = r.json() as { campoDisponivel: boolean; semFluxo: number; escopo: { k: number; n: number; status: string }; conversao: { status: string; k: number; n: number }; motivoConversao: string | null; foraDaConversao: number; porGrupo: { grupo: string; taxa: { k: number; n: number } }[] };
     expect(SCHEMAS_RESULTADO.S11.safeParse(s11).success).toBe(true);
     expect(s11.campoDisponivel).toBe(true);
     expect(s11.semFluxo).toBe(3);
     expect(s11.escopo).toMatchObject({ status: 'ok', k: 11 + 3, n: 30 });
     expect(s11.porGrupo.find((g) => g.grupo === 'Contorno')!.taxa).toMatchObject({ k: 3, n: 6 });
-    expect(s11.conversao).toBeNull();
-    expect(s11.motivoConversao).toBe(MOTIVO_S11_CONVERSAO_SEM_DADO_REAL);
+    // E7.101: 11 avaliações "Aberto" nos 22 do PROC (as dos antigos e sem fluxo não entram): abaixo de 20, não publica; os 3 antigos avaliados pela etapa vão a foraDaConversao.
+    expect(s11.conversao).toMatchObject({ status: 'insuficiente', k: 11, n: 11 });
+    expect(s11.motivoConversao).toBeNull();
+    expect(s11.foraDaConversao).toBe(3);
+  }, 60_000);
+
+  it('E7.101: conversão do S11 pelo campo Avaliação de Problema: "Aberto" sobre as avaliações, "Não aplicável" só no denominador (fronteira 20)', async () => {
+    const fim = new Date('2026-09-25T12:00:00Z');
+    const mk = (n: number, aberto: number) => Array.from({ length: n }, (_, i) => chamado(`P${i}`, {
+      fluxo: 'SSVO - INCIDENTE', status: 'Concluído', data_finalizado: fim, prioridade: 'P1',
+      avaliacao_problema: i < aberto ? 'Aberto' : 'Não aplicável e com justificativa',
+    }));
+    const com20 = await montar({ chamados: mk(20, 5), fluxosProc: ['SSVO - INCIDENTE'] });
+    const r20 = (await com20.app.inject('/api/v1/metricas/S11')).json() as { conversao: { status: string; k: number; n: number; pct?: number } };
+    expect(SCHEMAS_RESULTADO.S11.safeParse(r20).success).toBe(true);
+    expect(r20.conversao).toMatchObject({ status: 'ok', k: 5, n: 20, pct: 25 });
+    const com19 = await montar({ chamados: mk(19, 5), fluxosProc: ['SSVO - INCIDENTE'] });
+    const r19 = (await com19.app.inject('/api/v1/metricas/S11')).json() as { conversao: { status: string } };
+    expect(r19.conversao.status).toBe('insuficiente');
   }, 60_000);
 
   it('L2: S2 real traz a nota e o resto do resultado fica igual', async () => {

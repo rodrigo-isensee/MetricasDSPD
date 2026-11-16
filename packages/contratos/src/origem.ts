@@ -102,8 +102,8 @@ export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
   'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
 
 /**
- * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. A base não liga o chamado ao Registro de Problema; a conversão não é
- * publicada como 0. Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
+ * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. Desde o E7.101 a conversão sai do campo "Avaliação de Problema" e o
+ * serviço não usa mais este motivo (resta para o resultado antigo com `conversao` nula; a conversão nunca é publicada como 0). Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
  */
 export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
   'Aguardando o vínculo do chamado com o Registro de Problema.'
