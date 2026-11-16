@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-campos-value-id
-commit: 2ddd243d863336f154c1f245dd53b1d2f264706c
+commit: 86591ab36dfc97fb25bc45d14b50e0854d1f5bad
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -22,6 +22,10 @@ Sem especificação de UX nem contrato de API novos: as obrigações vêm do bri
 A1 e A2 resolvidos em 2ddd243d, nenhum achado aberto. A1: teste pg do arquivo real atualizado para 2 campos, 38 linhas, 395 inseridas, linhas valor_id_* gravadas pelo dspd_ref e lidas por dominiosDaColeta, afeta O14 e O17. A2 (doc): businessmap-causa-raiz-carga.md:11 agora diz 38 linhas.
 O forge-check parecer delta lista no domínio: dominio-businessmap.pg.test.ts e businessmap-causa-raiz-carga.md. Li o diff do teste: confere 2 campos, 38 e 395 linhas, os 18 pares valor_id_* (codigo = value_id, rotulo = código) contra o arquivo, vigente_ate nulo, a leitura da coleta (114 a 125 no 48; 126 a 131 no 49; 114 indefinido no 49) e afeta O14 e O17. Os 3 módulos locais seguem 129 de 129. Sem código de produção no delta, o vermelho e os 4 mutantes da rodada anterior valem.
 CI do head 2ddd243d (run 43888386557): job banco success (o test:pg local tem 12 falhas em arquivos alheios, banco compartilhado; vale o CI); rapida, build, imagem, openapi, filtro e seguranca success; o job testes ainda rodava na hora deste parecer. Sem PR: a suíte inteira fica para o CI do PR; não afirmo CI verde da suíte.
+
+## Revalidação (delta 2ddd243d..86591ab3, merge da develop)
+Nenhum achado aberto. O forge-check parecer delta lista no domínio sete arquivos (CHANGELOG, businessmap-dominio.json, dominio-businessmap.ts, mapa.ts e três testes), todos vindos da develop. O diff contra a ponta da develop (HEAD^2) mostra só o que o 105 soma: no mapa.ts, origemDeFalha ao lado de nivelDePrioridade (nada perdido); no JSON, uma versão de critério única que afeta O8, O14 e O17 (régua do 486 e value_id juntos, a marca da régua não se apaga, T2.6), com tamanho_regua de 63 linhas e campos 2. Rodei os três módulos no head (allow-list, dominio-businessmap, metricas.mapa): 3 arquivos, 136 testes, todos passaram (eram 129; os 7 a mais vêm da develop). Vermelho e mutantes da rodada anterior valem: a lógica do 105 não mudou.
+CI do head 86591ab3 (run 43892851278): banco success; build, openapi, imagem, filtro e seguranca success; rapida, testes e e2e ainda rodavam na hora deste parecer, então não afirmo CI verde da suíte (fica para o check-run bateria do PR).
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
