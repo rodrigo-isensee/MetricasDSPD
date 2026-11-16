@@ -8,8 +8,8 @@ const ext = gerarExtensoesMock(base)
 
 describe('extensões mock das métricas complementares', () => {
   it('não altera a base: hashes do núcleo intactos', () => {
-    expect(hashJson(base)).toBe('b6a3c384')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('649ba93c')
+    expect(hashJson(base)).toBe('ef67b23e')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('a603366d')
   })
 
   it('é determinística pela semente e pura da base', () => {

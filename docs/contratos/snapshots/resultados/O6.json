@@ -151,6 +151,22 @@
       ],
       "additionalProperties": false
     },
+    "semPrioridade": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "n",
+        "total"
+      ],
+      "additionalProperties": false
+    },
     "alvoMax": {
       "type": "number"
     },
@@ -162,10 +178,10 @@
           "classe": {
             "type": "string",
             "enum": [
-              "Urgente",
-              "Prioritário",
-              "Prazo fixo",
-              "Padrão"
+              "Crítica",
+              "Alta",
+              "Média",
+              "Baixa"
             ]
           },
           "n": {
@@ -316,6 +332,7 @@
     "base",
     "criterios",
     "janelaPercentis",
+    "semPrioridade",
     "alvoMax",
     "classes"
   ],

@@ -1,6 +1,5 @@
 import type {
   BaseAmostral,
-  ClasseServico,
   Granularidade,
   Intervalo,
   Janela,
@@ -104,12 +103,9 @@ export const baseAmostral = (
 export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ctx: ContextoBM) =>
   criteriosDe(id, serie, janela, ctx.criterios)
 
-export const CLASSES_T: readonly ClasseServico[] = [
-  'Urgente',
-  'Prioritário',
-  'Prazo fixo',
-  'Padrão',
-]
+/** Cards sem prioridade: ficam fora da separação por nível e são contados à parte (E7.100, P-3), nunca Média por omissão. */
+export const semPrioridadeDe = <T extends MarcosCard>(xs: readonly T[]): T[] =>
+  xs.filter((m) => m.card.prioridade === null)
 export const r2 = (v: number): number => Math.round(v * 100) / 100
 
 /**
