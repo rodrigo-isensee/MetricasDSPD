@@ -67,9 +67,10 @@ export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
  * `fase_deteccao` saiu em 105 (E7.5): vem só da projeção pela coluna do pai do bug, para não haver duas fontes.
  * `severidade` saiu em 105 (E7.100): vem só do `priority` nativo do card pelo mapa `prioridade_severidade` (`severidadeDaPrioridade`); é a prioridade do painel
  * (T1, T2, T4, T6, O6 e O24) e o eixo não pode mudar de fonte em silêncio por um campo customizado.
+ * `tamanho_declarado` saiu em 105 (E7.102): vem só do `size` nativo do card pela régua do time (`tamanho_regua` de `ref_dominio`); a allow-list aperta, não afrouxa.
  */
 export const COLUNAS_LISTA = [
-  'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
+  'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico',
   'responsabilidade_atraso', 'origem_demanda', 'causa_raiz',
 ] as const;
 

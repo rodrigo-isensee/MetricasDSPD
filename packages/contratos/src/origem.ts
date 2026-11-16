@@ -109,11 +109,12 @@ export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
  */
 export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
 /**
- * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
- * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ * Pedido 099 (A4, Q-099-4) e 105 (E7.102): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o tamanho vem do
+ * `size` nativo do card pela régua de cada time (seis faixas); enquanto a régua aprovada não estiver carregada, nenhum card tem tamanho e a
+ * divisão sai sem dado real. Com algum card com tamanho o motivo é nulo (plano de tamanho, seção 4). Texto provisório, revisado pela UX.
  */
 export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
-  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
+  'aguardando a régua de tamanho aprovada: nenhum card tem tamanho pela régua do time'
 
 /**
  * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. Desde o E7.101 a conversão sai do campo "Avaliação de Problema" e o

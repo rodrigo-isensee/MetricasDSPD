@@ -46,6 +46,9 @@ export type LinhaTimeWorkflow = Versao & { workflow_id: string; time_id: number 
 export type LinhaTime = Versao & { time_id: number; nome: string };
 export type LinhaTipo = Versao & { tipo_id: string; eh_item: boolean; categoria: string | null };
 
+/** Régua de tamanho (105, E7.102): `faixas` = `<time_id>:<size>` -> faixa; `times` = os times que têm régua (um time fora dele é "sem régua"). */
+export interface ReguaTamanho { faixas: ReadonlyMap<string, string>; times: ReadonlySet<string> }
+
 /** A referência inteira, com todas as vigências, em memória (ADR 0016: sem JOIN por instante no SQL do caminho quente). */
 export interface Referencia {
   colunas: ReadonlyMap<string, readonly LinhaColuna[]>;
@@ -59,6 +62,8 @@ export interface Referencia {
   prioridades?: ReadonlyMap<string, string>;
   /** `coluna_id` -> fase de detecção do bug (105, `ref_dominio campo = 'fase_deteccao_coluna'`); vazio ou ausente = nenhum bug tem fase. Usado pela projeção da fase, depois dos cards. */
   fasesDeteccao?: ReadonlyMap<string, FaseDeteccao>;
+  /** Régua de tamanho por time (105, E7.102, `ref_dominio campo = 'tamanho_regua'`); vazia ou ausente = nenhum card tem tamanho. */
+  reguaTamanho?: ReguaTamanho;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -211,6 +216,21 @@ export function severidadeDaPrioridade(valor: unknown, mapa: ReadonlyMap<string,
   if (sev === undefined) notas.push('priority_fora_do_mapa');
   return sev ?? null;
 }
+/**
+ * Pedido 105 (E7.102): tamanho do card = faixa (PP, P, M, G, GG, XG) da régua do time do card para o `size` nativo. O `size` vem do staging (já na allow-list); o time é o
+ * do workflow do card no dia do evento (a mesma resolução da equipe). Sem `size` (nulo, vazio ou 0), `size` fora da régua e time sem régua: `null` (sem tamanho) com a nota respectiva (`size_sem_valor`,
+ * `size_fora_da_regua`, `time_sem_regua`; só contagem, nunca o valor); nunca M por omissão. Régua vazia ou ausente: `null` sem nota (nada foi aprovado ainda).
+ * O `size` vale só se for número finito não negativo (ou texto numérico na mesma forma); `1.50` e `1.5` são a mesma chave.
+ */
+export function tamanhoPelaRegua(size: unknown, timeId: number | null, regua: ReguaTamanho | undefined, notas: string[]): string | null {
+  if (regua === undefined || regua.faixas.size === 0) return null;
+  const numero = typeof size === 'number' ? size : typeof size === 'string' && /^\d{1,4}(\.\d{1,3})?$/.test(size) ? Number(size) : NaN;
+  if (size === null || size === undefined || size === '' || numero === 0) { notas.push('size_sem_valor'); return null; }
+  if (timeId === null || !regua.times.has(String(timeId))) { notas.push('time_sem_regua'); return null; }
+  const faixa = Number.isFinite(numero) && numero >= 0 ? regua.faixas.get(`${timeId}:${numero}`) : undefined;
+  if (faixa === undefined) notas.push('size_fora_da_regua');
+  return faixa ?? null;
+}
 const data = (ms: number | null): Date | null => (ms === null ? null : new Date(ms));
 
 function colunaDoPasso(ref: Referencia, quadro: string | null, coluna: string, dia: string, notas: string[]): { passo: ColunaDoPasso; tipo: 'fila' | 'execucao' | null } | undefined {
@@ -319,6 +339,8 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
 
   const origemBug = origemDoBug(e, tipoRef, ref, criado, notas);
   const severidade = severidadeDaPrioridade(e.card.priority, ref.prioridades, notas);
+  // 105 (E7.102): o time só vale quando o workflow é de time (`situacao = 'time'`); card de workflow `fora` ou sem time fica "sem régua"
+  const tamanho = tamanhoPelaRegua(e.card.size, time?.situacao === 'time' ? time.time_id : null, ref.reguaTamanho, notas);
   const titulo = texto(e.card.title);
   const eventos: EventoCard[] = [{ card_id: e.id, tipo: 'criado', ocorrido_em: new Date(criado) }];
   if (arquivadoNativo !== null) eventos.push({ card_id: e.id, tipo: 'arquivado', ocorrido_em: new Date(arquivadoNativo) });
@@ -333,6 +355,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), origem_bug: origemBug, ...colunasDeLista(e.card, ref.camposLista, notas), classe_servico: classeDeServicoDasTags(e.card, notas),
       // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
       fase_deteccao: null,
+      tamanho_declarado: tamanho,
       // 105 (E7.100): a prioridade do painel; sem mapa, nula (nunca Média por omissão)
       severidade: severidade ?? null,
     },
