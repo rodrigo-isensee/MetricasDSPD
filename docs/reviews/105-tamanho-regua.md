@@ -3,12 +3,23 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-tamanho-regua
-commit: 62254d39142a86cb56d89ec38615643fd8d623eb
+commit: 7ce5875431ca1912b89516bb300045eaa51f8ed9
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-16
 ---
-# Review: 105-tamanho-regua (E7.131; revalidação E7.157)
+# Review: 105-tamanho-regua (E7.131; revalidações E7.157 e E7.180)
+
+## Revalidação (E7.180, merge da develop, cabeça de código `7ce58754`)
+Delta lido: `forge-check parecer delta docs/reviews/105-tamanho-regua.md`, intervalo `62254d39..7ce58754`, sem o que veio da base. No domínio: `CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `docs/architecture/data-model.md`, `docs/architecture/fontes/businessmap-dominio.json`, `packages/contratos/src/origem.ts` e `schemas.ts`, `packages/metricas/src/complementares.test.ts`, `server/src/modulos/businessmap/allow-list.ts`, `dominio-businessmap.ts`, `normalizador.ts`, `server/tests/dominio-businessmap.pg.test.ts`, `dominio-businessmap.test.ts` e `normalizador-businessmap.test.ts`. Os seis conflitos lidos por `git show --remerge-diff 7ce58754`; nada se perdeu:
+
+- **`businessmap-dominio.json`:** fica a versão de critério da régua (`afeta: ['O8']`), com o `motivo` citando o campo 48 (E7.86, afeta vazio); `regra` traz os dois textos (`tamanho_regua` e campo 48); o arquivo final tem `campos` = campo 48 com 12 opções, `tamanho_regua` com 63 linhas, 6 setores, 4 de prioridade e 347 colunas da fase. A versão de critério da causa raiz não marcava métrica, então nenhuma marca do T2.6 se perde; a régua é a última mudança e é ela que afeta o O8.
+- **`allow-list.ts:72`:** `COLUNAS_LISTA` sem `tamanho_declarado` (a régua aperta) e com `causa_raiz` (develop); os dois comentários ficam.
+- **`dominio-businessmap.test.ts`:** fica `afeta` = `['O8']` e a descrição da régua; sai o `toContain('2026-11-16')` da develop, que a descrição da régua não tem (a asserção da régua o substitui); as asserções do campo 48 seguem.
+- **`dominio-businessmap.pg.test.ts:67`:** soma campo (13) + setores + prioridade + fase + bloqueio + régua = 433, `campos: 1`, métricas `['O8']`, `causa_raiz` e `tamanho_regua` (63) conferidos. Passou no CI (job `banco`: o arquivo com 7 testes; 49 arquivos e 329 testes `.pg` verdes).
+- **`data-model.md:118`:** as duas mudanças juntas (`tamanho_declarado` pela régua, fora da espera da WS1, e o parágrafo do `causa_raiz` do campo 48). **`CHANGELOG.md`:** a linha do O8 foi para o fim do `### Corrigido` (linha 12); as entradas da develop (T3 e T7, S11, T9, T11, causa raiz) estão todas.
+- Testes rodados no `7ce58754`: `dominio-businessmap`, `normalizador-businessmap` e `classe-servico-etiquetas` (3 arquivos, 197 testes, passam). Suíte: CI do push do `7ce58754` (corrida 43864207823) verde (testes, banco, build, openapi, segurança, imagem; e2e e perf pulados pelo filtro).
+- A3 e A6 seguem recomendados, sem mudança (A6 agora em `CHANGELOG.md:12`).
 
 ## Revalidação (E7.157, cabeça de código `62254d39`)
 Delta lido: `forge-check parecer delta docs/reviews/105-tamanho-regua.md`, intervalo `0ccb21ef..62254d39` (commit `62254d39`, volta do review, QA, segurança e UX). No domínio: `CHANGELOG.md`, `docs/architecture/data-model.md`, `docs/architecture/ddd/01-linguagem-ubiqua.md`, `docs/architecture/features/metricas-complementares.md`, `docs/contratos/metricas/O8.md`, `docs/especificacao/domain/flow/declared-size.md`, `server/src/modulos/businessmap/normalizador.ts`, `server/src/modulos/businessmap/projetor.ts`, `server/tests/normalizador-businessmap.test.ts`, `server/tests/projetor-businessmap.test.ts`, `web/src/features/complementares/fluxo.tsx` e `ramos.test.tsx`. Depois dele só `113a0073` (parecer do QA, fora do domínio).
@@ -25,11 +36,13 @@ Primeira passada (E7.131), cabeça `0ccb21ef` (base `2c56d33b`; commits `84641f2
 
 ## Achados
 - A3 (recomendado) server/src/modulos/businessmap/projetor.ts:90 · Coleta com --projetar entre o bm:ref-sync e o bm:projetar --reconstruir publica o O8 com tamanho só nos cards tocados. No L3, os dois na mesma janela.
-- A6 (recomendado) CHANGELOG.md:8 · Diz que o bm:ref-sync conta em reguaTimesDesconhecidos; o código conta no bm:projetar, campo reguaLinhasDescartadas.
+- A6 (recomendado) CHANGELOG.md:12 · Diz que o bm:ref-sync conta em reguaTimesDesconhecidos; o código conta no bm:projetar, campo reguaLinhasDescartadas.
 
 ## Sondas
 
 ## Parecer
+Aprovado na revalidação E7.180 (merge da develop em `7ce58754`): os seis conflitos mantêm a régua do O8 e a causa raiz do campo 48, sem perda; CI verde. A3 e A6 seguem recomendados.
+
 Aprovado na revalidação (E7.157): A1 (o bloqueante, documentação) e A2 resolvidos no `62254d39`, A4 e A5 também; A3 e A6 ficam recomendados. Na primeira passada (E7.131) foi reprovado por A1.
 
 - **A3:** no roteiro do L3, `bm:ref-sync` e `bm:projetar --reconstruir` sem coleta entre eles, e a conferência de contagem (tam-b) antes de abrir a tela.
