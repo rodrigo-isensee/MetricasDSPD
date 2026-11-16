@@ -428,7 +428,7 @@ describe('ramos dos componentes complementares', () => {
         r.campoDisponivel = false
         r.porCausa = null
         r.motivoCausaRaiz =
-          'aguardando o Registro de Problemas (a causa aparente não é a causa raiz)'
+          'A causa raiz do incidente é registrada em texto livre no Acelerato e por isso não é contada.'
       },
     })
     renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: semCausa })
@@ -436,7 +436,7 @@ describe('ramos dos componentes complementares', () => {
     const aviso = await within(el).findByTestId('estado-sem-dado-real-O17-causa-raiz')
     expect(aviso).toHaveTextContent('Sem dado real')
     expect(within(el).getByTestId('motivo-sem-dado-real-O17-causa-raiz')).toHaveTextContent(
-      'causa aparente',
+      'texto livre',
     )
     expect(el).not.toHaveTextContent('mais frequente')
     expect(el).toHaveTextContent('Por causa raiz')

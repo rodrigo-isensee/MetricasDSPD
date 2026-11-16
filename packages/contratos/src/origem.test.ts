@@ -132,7 +132,7 @@ describe('origemDaMetrica (H-13)', () => {
   it('O17 é real por sistema (pedido 099, B da Q-099-7) e a causa raiz tem motivo próprio', () => {
     expect(origemDaMetrica('O17')).toBe('real')
     expect(motivoDaOrigemSemDado('O17')).toBeNull()
-    expect(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL).toContain('causa aparente')
+    expect(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL).toContain('texto livre')
   })
 
   it('O26 segue sem dado real, com motivo próprio que diz a data (pedido 105, E7.55)', () => {

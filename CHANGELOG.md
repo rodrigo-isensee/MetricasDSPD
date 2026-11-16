@@ -7,6 +7,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 ### Corrigido
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
+- O17 (sustentação): o motivo da causa raiz é definitivo, por decisão do dono (16/11): o campo "Causa raiz" do Acelerato é texto livre, nunca entra na base (ADR 0020), e a causa raiz de incidente não é contada; sai o "aguardando o Registro de Problemas" (pedido 105, K-372).
+- Base de fallback do BusinessMap sem limite de frentes (`null`, não 0), com teste de que o T7 sai sem limite; o contrato não muda (pedido 105, K-375).
 
 ### Adicionado
 - S1 e S2: o texto do "registro posterior" vira linguagem simples (chamado registrado depois que o atendimento já aconteceu; pela regra fica de fora, mas hoje o Acelerato não traz essa marca e nenhum chamado é excluído por esse motivo) e o MTTR diz "pendente ou em validação", como o cálculo já faz; sem mudar cálculo (pedido 105, E3.48).
