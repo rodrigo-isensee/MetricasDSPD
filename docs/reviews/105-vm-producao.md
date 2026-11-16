@@ -3,37 +3,34 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-vm-producao
-commit: 9c3c2ebae42ece652e02bbbca92b73cbe99f0353
-parecer: aprovado
+commit: d9f8bb9bbaeb5bad961e5c0da883a5d958660673
+parecer: reprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: configuração de produção da VM (E7.270, volta 1 E7.276, review E7.282)
+# Code review: configuração de produção da VM (E7.270, volta 1 E7.276, volta 2 E7.291, review E7.292)
 
-## Delta lido (volta 1)
-`forge-check parecer delta docs/reviews/105-vm-producao.md`: intervalo `efe4fb86..9c3c2eba`, sem o que veio da develop; no domínio `.env.example`, `CHANGELOG.md`, `deploy/sql/00_papeis_e_banco.sql` (gerado), `deploy/sql/papeis-producao.sql` (removido), as quatro unidades `deploy/systemd/*.service`, `docker-compose.prod.yml`, `scripts/gerar-sql-migracoes.mjs` e `.sh`. O documento `docs/devops/105-implantacao-vm.md` fundido foi lido só nas seções de papéis, TLS e systemd.
+## Delta lido (volta 2)
+`forge-check parecer delta docs/reviews/105-vm-producao.md`: intervalo `9c3c2eba..d9f8bb9b`, sem o que veio da develop (merge `809b067f` de `655029ad`). No domínio: `CHANGELOG.md` (só a posição da entrada da develop no merge; nenhuma linha nova da volta) e `deploy/systemd/metricas-referencias.service` (comentário). O commit da volta, `d9f8bb9b`, mexe em 2 arquivos, 7 linhas: o comentário do service e `docs/devops/105-implantacao-vm.md` (linhas 55, 106, 145, 146, 169 e 187), lidas contra `9000_grants.sql`, `grants.ts`, `usuarios.ts`, `eliminacao.ts`, as unidades systemd e a ADR 0022.
 
 ## O que foi conferido
-- **A1 (TLS) resolvido:** as 6 URLs com `sslmode=verify-full` fixo; `NODE_EXTRA_CA_CERTS` e o volume `${DB_CA_ARQUIVO:?}` somente leitura em migrate, api, worker e coleta. `docker compose -f docker-compose.prod.yml --profile coleta config -q` sem `DB_CA_ARQUIVO` falha com `required variable DB_CA_ARQUIVO is missing a value`; com ele, a CA aparece montada nos quatro serviços. `.env.example` e o compose dizem que no `pg` 8 `require` já valia `verify-full` e que `DB_HOST` tem de ser o nome do certificado.
-- **A2 resolvido:** develop integrada (merge `9c3c2eba`, pais `c804e375` e `a04bd2f2`); um roteiro de papéis só, o do gerador (`pnpm run db:sql`), com `\getenv`, `SET log_statement = 'none'` e webhook, automação e pesquisa NOLOGIN e fora do `CONNECT`; `papeis-producao.sql` removido. O arquivo versionado bate com o modelo do gerador; o `.sh` aplica o próprio SQL com as senhas por `-e` no ambiente.
-- **A3 resolvido:** as quatro unidades fixam `COMPOSE_FILE=docker-compose.prod.yml` e `COMPOSE_ENV_FILES` e exigem o `host.env` (sem `-`). Compose 2.24+ exigido no documento.
-- **A4 resolvido:** `.env.example` pede senhas `openssl rand -hex 32` (seguras para URL).
-- **A5 resolvido:** documento, "Se o roteiro de papéis falhar", diz como recomeçar ou continuar.
-- **Sondas no Postgres 17 descartável (S2 a S4):** o roteiro completo cria os 5 papéis de login e os 3 NOLOGIN; a variável ausente para o script com `ON_ERROR_STOP`; o administrador sem superusuário para no `SET log_statement`, antes de criar qualquer papel, e o documento (item 1 da seção do DBA) dá a saída por `\password`.
-- **Ferramentas:** `shellcheck scripts/gerar-sql-migracoes.sh`: só SC1003 (info) na linha 34, que já existia na develop, fora do diff.
-- **Tamanho (M14):** sem `.md`, 163 linhas alteradas contra a develop (compose 81, gerador 36, SQL gerado 26, unidades 16, `.env.example` 4); passa da orientação por 13 linhas, 26 delas geradas; um comportamento só (configuração de produção). O PR registra `teto: excedido, 163 linhas, SQL gerado e compose novo`.
-- **CI:** o pronto local do autor não rodou (fila). O CI de push do head `9c3c2eba` (run 43931502369) terminou `success`: rapida, seguranca, testes, build, imagem, openapi e banco verdes; e2e e perf pulados pelo filtro. Sem PR para a branch: o CI do PR fica para o merge.
+- **A6 da volta 1 resolvido:** `metricas-referencias.service:11` cita `docker-compose.prod.yml`.
+- **A3 do QA resolvido:** linhas 55 e 145 dizem que `PESSOA_ELIMINADA_SAL` está no `.env.example` (confirmado: 1 ocorrência).
+- **A1 do QA, em parte:** linha 106 liga `metricas-referencias.timer` e a 169 lista os 4 timers (`OnCalendar=Sun 05:00` confere). A linha 146 ficou errada (A8).
+- **A2 do QA, em parte:** linha 187 deixou de dizer que `dspd_api_apontamento` não lê coluna de pessoa, mas o texto novo é falso noutro ponto (A9).
+- **A7 da volta 1:** virou cartão, como o pedido da volta registra; não volta ao review.
+- **Ferramentas e CI:** só texto e comentário mudaram; sem código, teste nem shell no diff, nada a rodar. Sem PR para a branch: a suíte fica para o CI do PR; não afirmo CI verde neste head.
 - **Segurança:** cito o parecer do `security-engineer` (`docs/security/105-vm-producao.md`); não o refaço.
 
 ## Achados
-- A6 (recomendado) deploy/systemd/metricas-referencias.service:11 · o comentário diz que `PG_REF_URL` está "montada no docker-compose.yml", mas a unidade agora fixa `docker-compose.prod.yml`; trocar o nome do arquivo no comentário.
-- A7 (recomendado) deploy/sql/00_papeis_e_banco.sql:10 · "Variável ausente para o script (falha fechada)" é verdade, mas só no primeiro `CREATE ROLE` que a usa: sem `PWD_API`, `dspd_migrador` e `dspd_coletor` já ficaram criados (S2). Opcional: conferir as cinco variáveis com `\if` antes do primeiro `CREATE`, no gerador.
+- A8 (bloqueante) docs/devops/105-implantacao-vm.md:146 · diz que os cinco comandos da seção 2.1 item 4 são manuais pela ADR 0022 item 4 e que o timer os chama; o service roda 4, o quinto segue manual e a ADR 0022 item 4 trata da carga inicial.
+- A9 (bloqueante) docs/devops/105-implantacao-vm.md:187 · "já com o nome eliminado pelo sal" é falso: `dim_responsavel.responsavel_nome` guarda o nome real (`usuarios.ts:92`); o sal só faz o HMAC da supressão de quem pediu eliminação.
+- A10 (recomendado) docs/devops/105-implantacao-vm.md:106 · `systemctl list-timers 'metricas-coleta-*'` não mostra o `metricas-referencias.timer` que a linha liga; usar `'metricas-*'`.
 
-## Sondas
-- S2 · roteiro sem `PWD_API`, superusuário · espera: para sem criar papel · obtido: `syntax error at or near ":"` em `dspd_api`; `dspd_migrador` e `dspd_coletor` criados (falha parcial, coberta pela seção de retomada)
-- S3 · roteiro com administrador `CREATEROLE CREATEDB` sem superusuário · espera: falha antes de criar papel · obtido: `permission denied to set parameter "log_statement"`, nenhum papel criado
-- S4 · roteiro completo, superusuário · espera: 5 LOGIN e 3 NOLOGIN · obtido: igual
+## Detalhe e sugestões
+- A8: `metricas-referencias.service` tem 4 `ExecStart` (os ref-sync); `bm:criterios-classe-servico` segue manual (papel migrador, `CHANGELOG.md`); a ADR 0022 não menciona referências, e o título LACUNA não cabe mais. Texto sugerido: "- **Sincronização de referências:** o `metricas-referencias.timer` (domingo 05:00) roda as quatro primeiras sincronizações da seção 2.1, item 4 (`deploy/systemd/metricas-referencias.service`); o `bm:criterios-classe-servico` segue manual, uma vez, com o papel migrador."
+- A9: o documento vai ao DBA e à infraestrutura e afirma uma pseudonimização que não existe; a eliminação a pedido (`eliminacao.ts:9-13`) apaga a linha da pessoa e grava o HMAC do `user_id`. A tabela é `dspd_bm.dim_responsavel`, não "do Apontamento". Texto sugerido: "`dspd_api_apontamento` lê `pessoa_ref` e o nome do responsável (`dim_responsavel.responsavel_nome`, em claro, de propósito, para a aba Apontamento; `grants.ts`); quem pede eliminação sai da tabela pelo `bm:eliminar-pessoa`." O GRANT não muda.
 
 ## Parecer
-Aprovado. A1 a A5 da volta anterior resolvidos; A6 e A7 ficam a critério do autor e não voltam ao review.
+Reprovado por A8 e A9, dois erros de texto provados contra o código e as unidades; a correção é só de texto, nas duas linhas, com as sugestões acima. A10 fica a critério do autor. Na volta, leio só o delta destas linhas.
