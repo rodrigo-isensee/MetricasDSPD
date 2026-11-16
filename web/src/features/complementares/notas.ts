@@ -16,6 +16,7 @@ type Id =
   | 'O24'
   | 'O25'
   | 'O26'
+  | 'O27'
   | 'T6'
   | 'T10'
   | 'T11'
@@ -258,6 +259,16 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Conta trocas, nunca quem. Não existe filtro nem abertura por pessoa. Leia junto com a eficiência de fluxo (O5) e o tempo de ciclo (O3).',
     meta: 'Sem meta numérica.',
     cuidados: 'Não é avaliação de pessoa nem de time.',
+  },
+  O27: {
+    oQueE: 'Por que os bugs do BusinessMap acontecem: a causa raiz registrada, por tipo de bug.',
+    comoSeCalcula:
+      'Bugs concluídos ou descartados nas últimas 12 semanas, inclusive arquivados. Bugs em aberto estão no O16. Filtros de equipe, sistema e setor valem; o filtro de tipo não. Uma coluna para Bug interno e outra para Defeito em produção, nunca somadas. Cada causa mostra o número de bugs e o percentual sobre os bugs com causa; "Não é bug" e "Outros" contam como causa. Bug sem causa informada é contado à parte e fica fora dos percentuais. Cada coluna só mostra a distribuição com 20 bugs com causa ou mais.',
+    comoLer:
+      'As causas seguem a ordem do campo no BusinessMap; as 3 maiores levam o destaque "3 maiores" e viram a ação trimestral. Leia junto com Onde os bugs são encontrados (O15), o estoque e a idade de bugs (O16) e a causa raiz dos incidentes (O17, do Acelerato).',
+    meta: 'Sem meta numérica; as 3 maiores causas viram ação trimestral.',
+    cuidados:
+      'É bug do BusinessMap, não incidente do Acelerato: não somar com o O17 nem com o S3. Nenhuma pessoa e nenhuma comparação entre equipes; a equipe é só filtro. A descrição de "Outros" nunca aparece.',
   },
   T10: {
     oQueE:

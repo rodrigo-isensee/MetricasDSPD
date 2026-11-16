@@ -432,6 +432,15 @@ const COMPLEMENTARES: readonly Compl[] = [
     'Sem alvo de volume; leia com a taxa de escape (O15)',
   ],
   [
+    'O27',
+    'Causa raiz dos bugs',
+    'Por que nossos bugs acontecem?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem meta numérica; as 3 maiores causas viram ação trimestral.',
+  ],
+  [
     'O19',
     'Bloqueios por causa',
     'O que mais trava o trabalho, e quanto isso custa em dias?',

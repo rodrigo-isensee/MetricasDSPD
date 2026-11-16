@@ -7,8 +7,24 @@ import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 const PAINEIS = [
   [
     '/operacional?cadencia=semanal',
-    14,
-    ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16'],
+    15,
+    [
+      'O5',
+      'O6',
+      'O8',
+      'O19',
+      'O22',
+      'O20',
+      'O24',
+      'O21',
+      'O25',
+      'O26',
+      'O11',
+      'O13',
+      'O14',
+      'O16',
+      'O27',
+    ],
   ],
   ['/tatico', 7, ['T6', 'T8', 'T11', 'T12', 'T10', 'T13', 'T14']],
   ['/estrategico', 6, ['E9', 'E4', 'E5', 'E6', 'E7', 'E8']],
@@ -122,7 +138,7 @@ describe('Mais métricas deste painel', () => {
     renderizarApp('/operacional?cadencia=semanal')
     await u.click(await screen.findByRole('link', { name: /O6 Previsibilidade/ }))
     await u.click(await screen.findByRole('button', { name: 'Ocultar esta métrica O6' }))
-    expect(await screen.findByText(/· 13 complementares/)).toBeInTheDocument()
+    expect(await screen.findByText(/· 14 complementares/)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /O6 Previsibilidade/ })).not.toBeInTheDocument()
   })
 
