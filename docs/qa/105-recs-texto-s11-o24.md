@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-recs-texto-s11-o24
-commit: 0fd1187fb449da8b13641479bcbdcf137ef258d7
+commit: 02ee136620fb9b4ca72ec7901bab032939194328
 parecer: aprovado
-resultado: aprovado; texto novo coberto em contratos e web; nenhum e2e afirma o texto antigo; 1 recomendado (comentários trocados)
+resultado: aprovado; texto novo coberto em contratos e web; nenhum e2e afirma o texto antigo; 1 recomendado (comentários trocados), resolvido em 02ee1366 na revalidação
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
@@ -34,7 +34,14 @@ Diff conferido contra a base 81d35af7 (6 arquivos, só texto e teste). Sem plano
 - CI: o run 43788731883 do sha 0fd1187f foi cancelado pelo push seguinte (só `docs/reviews/105-recs-texto-s11-o24.md`, 28 linhas, sem código). O run 43789216695 é do head que só soma esse documento; resultado em "CI" abaixo.
 
 ## Achados
-- A1 (recomendado) packages/contratos/src/origem.ts:86 · o comentário trocado de lugar: "Frase completa (maiúscula e ponto final)" está no `MOTIVO_O12` (que segue em minúsculas, sem ponto) e o do S11 (linha 107) ainda diz "minúsculas sem ponto final, completada pelo componente".
+- A1 (recomendado) packages/contratos/src/origem.ts:87 · resolvido em 02ee1366: os comentários do O12 (linha 87, minúsculas sem ponto) e do S11 (linha 106, frase completa) foram trocados de lugar; os valores não mudaram.
 
 ## CI
 Run 43789216695 (push, head só com o documento de review a mais que 0fd1187f): success, com `testes`, `banco`, `build`, `openapi`, `seguranca` e `rapida` verdes; e2e e perf ficaram skipped no workflow.
+
+## Revalidação (head 02ee1366, E6.44)
+- Delta conferido: `forge-check parecer delta` de 0fd1187f a 60b0dfec. No domínio, só `packages/contratos/src/origem.ts`, e só linhas de comentário (2 trocadas); as constantes `MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL` e `MOTIVO_S11_CONVERSAO_SEM_DADO_REAL` seguem com o mesmo valor. O `02ee1366` também traz os pareceres de QA e review, que estão fora do domínio.
+- O comentário do O12 agora diz "minúsculas sem ponto final" e o valor é minúsculo sem ponto; o do S11 diz "frase completa" e o valor é "Aguardando o vínculo do chamado com o Registro de Problema.". A1 resolvido.
+- Testes: não rerrodados nesta revalidação. Mudança só de comentário não altera o resultado de `origem.test.ts` (25 de 25) nem de `estados.test.tsx` (152 de 152), validados no `0fd1187f`.
+- Commit `60b0dfec` (review): só `docs/reviews/105-recs-texto-s11-o24.md`, fora do domínio do QA.
+- CI do `02ee1366`: run 43790481019 (`CI`), sha `02ee136620fb9b4ca72ec7901bab032939194328`, conclusão success. Check-runs do sha: `testes`, `banco`, `build`, `openapi`, `seguranca`, `rapida`, `imagem` e `filtro` verdes; `e2e`, `e2e-parte` e `perf` skipped. Não há check-run chamado `bateria` neste repositório; o portão de testes é `testes`.
