@@ -13,9 +13,10 @@ Horários em America/Sao_Paulo (o fuso está na própria unidade, o relógio do 
 | `metricas-coleta-businessmap.timer` | todo dia 06:00 | `src/entradas/coleta-businessmap.ts incremental --projetar` |
 | `metricas-coleta-acelerato.timer` | todo dia 06:30 | `src/entradas/coleta.ts ac` |
 | `metricas-coleta-acelerato-releitura.timer` | domingo 07:30 | `src/entradas/coleta.ts ac --releitura` |
+| `metricas-referencias.timer` | domingo 05:00 | em sequência: `ref-sync-businessmap.ts`, `ref-sync-ac.ts`, `ref-sync-calendario.ts`, `ref-sync-apontamento.ts` (todas em `src/entradas/`) |
 | `metricas-coleta-falha@.service` | `OnFailure=` de cada serviço acima | e-mail ao dono |
 
-Cada serviço chama `docker compose --profile coleta run --rm coleta <script> [args]` (serviço `coleta` do `docker-compose.yml`, imagem do servidor, sem porta publicada). Carga inicial, `ac:ref-sync`, `bm:ref-sync-apontamento` e a pesquisa de percepção NÃO são agendados: são manuais, com o dono presente (ADR 0022 item 4; ADR 0023 §8).
+Cada serviço chama `docker compose --profile coleta run --rm coleta <script> [args]` (serviço `coleta` do `docker-compose.yml`, imagem do servidor, sem porta publicada). O **Apontamento** (horas do BusinessMap) não tem timer próprio: o incremental roda como etapa do `coleta-businessmap.ts incremental` das 06:00, desde que `PESSOA_ELIMINADA_SAL` esteja no `coleta.env` e a carga inicial do Apontamento (item 4a) já tenha sido feita. As referências (dicionários do BusinessMap e do Acelerato, calendário e subgrupos do Apontamento) rodam toda semana na unidade `metricas-referencias` (domingo 05:00); ela só usa o banco (papel `dspd_ref`), não chama BusinessMap nem Acelerato e não leva credencial no arquivo da unidade. O container `coleta` recebe o `coleta.env` inteiro (apikey, senha do MySQL, sal), embora esses scripts só leiam o banco; o Compose já define `PG_REF_URL` do `dspd_ref` a partir de `DSPD_PWD_REF`, então **não** ponha `PG_REF_URL` no `coleta.env` (nunca com a URL do migrador nem a do coletor). Com `Persistent=true`, se a VM estiver desligada no domingo a unidade roda no boot, talvez junto da coleta; os scripts são idempotentes. A carga inicial (BusinessMap, Apontamento, Acelerato), `bm:criterios-classe-servico` (usa o papel migrador, que o container de coleta não recebe, e grava uma vez só) e a pesquisa de percepção NÃO são agendados: são manuais, com o dono presente (ADR 0022 item 4; ADR 0023 §8).
 
 ## 2. Pré-requisitos na VM
 
@@ -27,7 +28,7 @@ Cada serviço chama `docker compose --profile coleta run --rm coleta <script> [a
 
 Todos ficam no servidor, dono root, permissão 600 (diretório 700), com uma exceção: o PEM do Acelerato e o diretório `segredos` (item 2), que o container lê como `node` (uid 1000).
 
-1. `/etc/metricas-dspd/coleta.env` (lido SÓ pelo serviço `coleta`, via `env_file`): `BUSINESSMAP_URL_BASE`, `BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS`, `PESSOA_ELIMINADA_SAL` (32 caracteres ou mais), `ACELERATO_MYSQL_HOST`, `ACELERATO_MYSQL_PORT`, `ACELERATO_MYSQL_DATABASE`, `ACELERATO_MYSQL_USER`, `ACELERATO_MYSQL_PASSWORD`, `ACELERATO_MYSQL_TLS_SHA256`, `ACELERATO_MYSQL_TLS_CERT_FILE=/segredos/acelerato.pem`; opcionais: `BUSINESSMAP_LIMITE_POR_MINUTO` (teto 25), `ACELERATO_MYSQL_MAX_EXEC_MS`, `ACELERATO_MYSQL_MARGEM_HORAS`. Não definir `NODE_TLS_REJECT_UNAUTHORIZED` (a partida é recusada).
+1. `/etc/metricas-dspd/coleta.env` (lido SÓ pelo serviço `coleta`, via `env_file`): `BUSINESSMAP_URL_BASE`, `BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS`, `PESSOA_ELIMINADA_SAL` (32 caracteres ou mais, gerado por quem instala, por exemplo `openssl rand -hex 32`; obrigatório para o Apontamento; **só entra no `coleta.env` junto da carga inicial do Apontamento (item 4a), porque com o sal presente o incremental das 06:00 já roda o Apontamento**; guarde uma cópia no cofre do dono, porque trocar o sal invalida a lista de supressão), `ACELERATO_MYSQL_HOST`, `ACELERATO_MYSQL_PORT`, `ACELERATO_MYSQL_DATABASE`, `ACELERATO_MYSQL_USER`, `ACELERATO_MYSQL_PASSWORD`, `ACELERATO_MYSQL_TLS_SHA256`, `ACELERATO_MYSQL_TLS_CERT_FILE=/segredos/acelerato.pem`; opcionais: `BUSINESSMAP_LIMITE_POR_MINUTO` (teto 25), `ACELERATO_MYSQL_MAX_EXEC_MS`, `ACELERATO_MYSQL_MARGEM_HORAS`. Não definir `NODE_TLS_REJECT_UNAUTHORIZED` (a partida é recusada).
 2. `/etc/metricas-dspd/segredos/acelerato.pem`: certificado do servidor MySQL (montado somente leitura em `/segredos`). O diretório `segredos` fica com 755 e o PEM com 644: o certificado é público e o container roda como `node` (uid 1000), que não consegue ler um arquivo 600 de root. Com 700/600 a coleta do Acelerato falha sempre na categoria `tls`. Quando o certificado mudar, a coleta falha com categoria `tls`: atualizar a impressão e o PEM, nunca afrouxar o TLS.
 3. `/etc/metricas-dspd/host.env`: `AVISO_EMAIL=<endereço do dono>` (usado só pelo aviso de falha). Pode conter também `COLETA_ENV_FILE` e `COLETA_SEGREDOS_DIR` se os caminhos forem outros.
 4. Senhas dos papéis do Postgres, no `.env` do Compose do servidor (que o Compose lê da pasta do projeto): `POSTGRES_PASSWORD`, `DSPD_PWD_MIGRADOR`, `DSPD_PWD_COLETOR`, `DSPD_PWD_API`, `DSPD_PWD_REF`, `DSPD_PWD_WEBHOOK`, `DSPD_PWD_AUTOMACAO`, `DSPD_PWD_PESQUISA`, `DSPD_PWD_APONTAMENTO`. O Compose tem valores de desenvolvimento como padrão: em servidor, defina todos, senão valem os padrões públicos. Esse `.env` fica com `chmod 600` (dono root). Na instalação, confirme que nenhuma senha padrão `_dev` restou: cada variável `DSPD_PWD_*` e `POSTGRES_PASSWORD` tem valor próprio, diferente do padrão do `docker-compose.yml` (conferência por leitura do dono; o agente não abre arquivos `.env*`).
@@ -48,10 +49,22 @@ chown -R root:root /opt/metricas-dspd
 chmod 600 /opt/metricas-dspd/.env   # .env do Compose do servidor
 cd /opt/metricas-dspd
 docker compose build coleta
-cp deploy/systemd/metricas-coleta-* /etc/systemd/system/
+cp deploy/systemd/metricas-coleta-* deploy/systemd/metricas-referencias.* /etc/systemd/system/
 systemctl daemon-reload
-systemd-analyze verify /etc/systemd/system/metricas-coleta-*.service /etc/systemd/system/metricas-coleta-*.timer
+systemd-analyze verify /etc/systemd/system/metricas-coleta-*.service /etc/systemd/system/metricas-coleta-*.timer /etc/systemd/system/metricas-referencias.service /etc/systemd/system/metricas-referencias.timer
 ```
+
+### 4a. Primeira carga do Apontamento (manual, só na primeira vez)
+
+O Apontamento depende de três coisas, nesta ordem: (1) banco migrado; (2) carga de cards do BusinessMap feita (`coleta-businessmap.ts carga-inicial --projetar`); (3) dicionário de subgrupos carregado (`ref-sync-apontamento.ts`). Só então:
+
+```
+cd /opt/metricas-dspd
+docker compose --profile coleta run --rm coleta src/entradas/ref-sync-apontamento.ts
+docker compose --profile coleta run --rm coleta src/entradas/apontamento-businessmap.ts carga-inicial
+```
+
+A `carga-inicial` do Apontamento roda **uma vez**, com o dono presente, e exige `PESSOA_ELIMINADA_SAL` (sem o sal ela se recusa a partir). Depois dela o incremental diário já inclui o Apontamento (`bm:coleta incremental`, timer das 06:00): não agende nem rode a `carga-inicial` de novo. Conferir pelo item 6 que a execução do BusinessMap ficou ok e, no log, as contagens do worklog (só números; nunca nome nem id de pessoa).
 
 Antes de ligar os timers, uma execução manual acompanhada pelo dono (a primeira carga é manual; não é a coleta do timer): confirmar o `docker compose run --rm coleta ...` com a carga inicial combinada, depois `systemctl start metricas-coleta-businessmap.service` e `...acelerato.service` e conferir o item 6. Medir e anotar a duração de cada uma (ainda não medida).
 
@@ -62,12 +75,13 @@ Teste do aviso de falha (sem tocar na coleta): `systemctl start metricas-coleta-
 Ligar a agenda:
 
 ```
-systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer
-systemctl list-timers 'metricas-coleta-*'
+systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer metricas-referencias.timer
+systemctl list-timers 'metricas-*'
 ```
 
 ## 5. Reexecutar
 
+- Referências: `systemctl start metricas-referencias.service` (seguro repetir; `ac:ref-sync` grava a vigência dos alvos com a data do dia, então evite rodá-lo duas vezes no mesmo dia).
 - Uma fonte: `systemctl start metricas-coleta-businessmap.service` (ou `-acelerato`, `-acelerato-releitura`). Em caso de falha o aviso por e-mail dispara de novo.
 - Seguro repetir: marca d'água, staging idempotente e trava por fonte (`pg_try_advisory_lock`). Trava ocupada: BusinessMap sai com erro `trava`, Acelerato com estado `em-uso` (código 3); esperar a execução em curso terminar.
 - Códigos de saída: 0 ok; 3 parcial, `em-uso` ou worklog que falhou (cards gravados); 1 erro; 2 uso ou configuração ilegível.
@@ -86,9 +100,9 @@ systemctl list-timers 'metricas-coleta-*'
 Não há migração nesta mudança: voltar é parar a agenda, e o dado já coletado permanece (carga incremental nunca sobrescreve).
 
 ```
-systemctl disable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer
-systemctl stop 'metricas-coleta-*.service'
-rm /etc/systemd/system/metricas-coleta-*
+systemctl disable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer metricas-referencias.timer
+systemctl stop 'metricas-coleta-*.service' metricas-referencias.service
+rm /etc/systemd/system/metricas-coleta-* /etc/systemd/system/metricas-referencias.*
 systemctl daemon-reload
 ```
 

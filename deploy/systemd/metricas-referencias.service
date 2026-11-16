@@ -1,0 +1,21 @@
+[Unit]
+Description=Metricas DSPD: sincronizacao semanal das referencias (dicionarios, calendario, subgrupos do Apontamento)
+Wants=docker.service
+After=docker.service network-online.target
+OnFailure=metricas-coleta-falha@%n.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/metricas-dspd
+# Sem credencial nesta unidade (arquivo). O container do servico coleta recebe o coleta.env inteiro (apikey, senha do MySQL, sal), mas estes scripts
+# so leem o banco, com PG_REF_URL do papel dspd_ref montada no docker-compose.yml; nenhum chama BusinessMap nem Acelerato.
+# Nunca ponha PG_REF_URL no coleta.env com a URL do migrador ou do coletor.
+Environment=COMPOSE_FILE=docker-compose.prod.yml
+Environment=COMPOSE_ENV_FILES=/etc/metricas-dspd/compose.env
+EnvironmentFile=/etc/metricas-dspd/host.env
+# Em sequencia; a primeira que falhar interrompe as seguintes e dispara o aviso de falha. Todas idempotentes (arquivos versionados, papel dspd_ref).
+ExecStart=/usr/bin/docker compose --profile coleta run --rm coleta src/entradas/ref-sync-businessmap.ts
+ExecStart=/usr/bin/docker compose --profile coleta run --rm coleta src/entradas/ref-sync-ac.ts
+ExecStart=/usr/bin/docker compose --profile coleta run --rm coleta src/entradas/ref-sync-calendario.ts
+ExecStart=/usr/bin/docker compose --profile coleta run --rm coleta src/entradas/ref-sync-apontamento.ts
+TimeoutStartSec=30min
