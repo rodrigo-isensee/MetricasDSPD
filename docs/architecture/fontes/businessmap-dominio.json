@@ -77,7 +77,8 @@
     { "codigo": "10", "rotulo": "Dependências outro time Dev" },
     { "codigo": "11", "rotulo": "Dependência Externa" },
     { "codigo": "12", "rotulo": "Dependência do próprio time" },
-    { "codigo": "13", "rotulo": "Não conformidade" }
+    { "codigo": "13", "rotulo": "Não conformidade" },
+    { "codigo": "14", "rotulo": "Aguardando fornecedor" }
   ],
   "setores": [
     {

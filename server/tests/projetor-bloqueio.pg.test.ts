@@ -108,6 +108,14 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
     expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.fato_bloqueio WHERE motivo <> ALL($1)`, [[...MOTIVOS_BLOQUEIO_PUBLICADOS]])).rows[0].n)).toBe(0);
   });
 
+  it('E7.210: o id 14 do mapa projeta Aguardando fornecedor no fato_bloqueio', async () => {
+    const a = novoId();
+    await versao(a, 60, { is_blocked: true, block_reason: { reason_id: 14 } }); await versao(a, 62);
+    await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('motivo_bloqueio', '14', '2020-01-01', 'Aguardando fornecedor', 0)`);
+    await projetar();
+    expect((await dono.query(`SELECT motivo FROM ${E.bm}.fato_bloqueio WHERE card_id = $1`, [a])).rows.map((r) => r.motivo)).toEqual(['Aguardando fornecedor']);
+  });
+
   it('CA-075-1 ponta a ponta (SEG-A3): label, comment e user_id do block_reason não chegam a nenhuma tabela, ao log nem à falha', async () => {
     const id = novoId(); const saida: string[] = [];
     const espia = [process.stdout, process.stderr].map((s) => vi.spyOn(s, 'write').mockImplementation((c: unknown) => { saida.push(String(c)); return true; }));

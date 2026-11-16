@@ -107,11 +107,15 @@ export const MOTIVOS_BLOQUEIO = [
   'Dependência Externa',
   'Dependência do próprio time',
   'Não conformidade',
+  'Aguardando fornecedor',
 ] as const
 export type MotivoBloqueio = (typeof MOTIVOS_BLOQUEIO)[number]
 
-/** Motivo de fornecedor (T10): constante única, nunca o texto repetido. */
-export const MOTIVO_FORNECEDOR = 'Dependência Externa' as const satisfies MotivoBloqueio
+/** Motivos de fornecedor (T10, decisão A do dono, 2026-11-16): lista única, nunca o texto repetido. */
+export const MOTIVOS_FORNECEDOR = [
+  'Aguardando fornecedor',
+  'Dependência Externa',
+] as const satisfies readonly MotivoBloqueio[]
 
 /** Motivo sem mapa (id sem entrada ou nulo, P-075-3); texto exato da UX 075 §1. */
 export const MOTIVO_NAO_CLASSIFICADO = 'não classificado' as const

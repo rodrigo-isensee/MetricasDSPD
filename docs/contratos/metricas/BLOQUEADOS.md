@@ -143,6 +143,7 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.BLOQUEADOS`); a fotografia version
               "Dependência Externa",
               "Dependência do próprio time",
               "Não conformidade",
+              "Aguardando fornecedor",
               "não classificado"
             ]
           },
@@ -173,7 +174,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
       "titulo": "Migrar importação de leads (CRM)",
       "tipo": "Requisição",
       "etapa": "Em desenvolvimento",
-      "motivo": "Dependência Externa",
+      "motivo": "Aguardando fornecedor",
       "fornecedor": "Fornecedor Beta",
       "bloqueadoHaDiasUteis": 0.84
     },

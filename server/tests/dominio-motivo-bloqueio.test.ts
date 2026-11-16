@@ -20,11 +20,11 @@ const recusa = (m: unknown): string => {
 };
 
 describe('bm:ref-sync: domínio motivo_bloqueio (mapa das pessoas, P-075-3)', () => {
-  it('o arquivo real traz o mapa dos 10 motivos habilitados do BusinessMap (ids 1 a 3, 6, 7 e 9 a 13; 5 e 8 fora) e todos passam pelo schema', () => {
+  it('o arquivo real traz o mapa dos 11 motivos habilitados do BusinessMap (ids 1 a 3, 6, 7 e 9 a 14; 5 e 8 fora) e todos passam pelo schema', () => {
     const lido = lerDominioBm();
-    expect(lido.arquivo.motivo_bloqueio.map((m) => m.codigo)).toEqual(['1', '2', '3', '6', '7', '9', '10', '11', '12', '13']);
+    expect(lido.arquivo.motivo_bloqueio.map((m) => m.codigo)).toEqual(['1', '2', '3', '6', '7', '9', '10', '11', '12', '13', '14']);
     expect(lido.arquivo.motivo_bloqueio.find((m) => m.codigo === '11')?.rotulo).toBe('Dependência Externa');
-    expect(listasDoArquivo(lido.arquivo).motivo_bloqueio).toHaveLength(10);
+    expect(listasDoArquivo(lido.arquivo).motivo_bloqueio).toHaveLength(11);
   });
 
   it('aceita os 7 motivos, vários reason_id para o mesmo motivo, e vira a lista motivo_bloqueio', () => {

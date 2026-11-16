@@ -2931,6 +2931,7 @@
                                       "Dependência Externa",
                                       "Dependência do próprio time",
                                       "Não conformidade",
+                                      "Aguardando fornecedor",
                                       "não classificado"
                                     ]
                                   },
@@ -3548,6 +3549,7 @@
                                   "Dependência Externa",
                                   "Dependência do próprio time",
                                   "Não conformidade",
+                                  "Aguardando fornecedor",
                                   "não classificado"
                                 ]
                               },
@@ -14529,6 +14531,7 @@
                                   "Dependência Externa",
                                   "Dependência do próprio time",
                                   "Não conformidade",
+                                  "Aguardando fornecedor",
                                   "não classificado"
                                 ]
                               },
