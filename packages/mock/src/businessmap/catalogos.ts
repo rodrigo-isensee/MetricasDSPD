@@ -1,4 +1,4 @@
-import type { ClasseServico, TipoCard } from '@metricas-dspd/contratos'
+import type { ClasseServico, NivelPrioridadeBM, TipoCard } from '@metricas-dspd/contratos'
 
 /** Equipes fictícias (uma por quadro). Nomes de equipe são recorte, nunca eixo de comparação. */
 export const EQUIPES = [
@@ -133,5 +133,26 @@ export function classePorTipo(tipo: TipoCard, r: number): ClasseServico {
       return r < 0.7 ? 'Prioritário' : 'Padrão'
     default:
       return 'Padrão'
+  }
+}
+
+/**
+ * Prioridade nativa do BusinessMap do card do mock (pedido 105, E7.100), derivada da classe e do tipo sem sortear (a sequência do gerador não muda):
+ * Urgente = Crítica (Melhoria urgente = sem prioridade, `null`, para o painel mostrar a faixa "Sem prioridade" com dado), Padrão = Média,
+ * Prioritário e Prazo fixo = Alta (Dívida técnica prioritária = Baixa, para haver um nível abaixo de 20 itens).
+ */
+export function prioridadePorClasse(
+  classe: ClasseServico,
+  tipo: TipoCard,
+): NivelPrioridadeBM | null {
+  switch (classe) {
+    case 'Urgente':
+      return tipo === 'Melhoria' ? null : 'Crítica'
+    case 'Prioritário':
+      return tipo === 'Dívida técnica' ? 'Baixa' : 'Alta'
+    case 'Prazo fixo':
+      return 'Alta'
+    default:
+      return 'Média'
   }
 }

@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pino } from 'pino';
-import { analisarArgumentos, coletarApontamentos, ErroColetaBm, executarColeta, lerConferencia, montarDepsApontamento } from '../modulos/businessmap/index.js';
+import { analisarArgumentos, coletarApontamentos, coletarToque, ErroColetaBm, executarColeta, lerConferencia, montarDepsApontamento } from '../modulos/businessmap/index.js';
 import { categoriaDoErro, ErroConfiguracao } from '../plataforma/categoria-erro.js';
 import { carregarConfigColetaBusinessMap } from '../plataforma/config.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
@@ -44,13 +44,15 @@ try {
     ...(sal === undefined ? {} : { sal }),
     // Pedido 059 (ADR 0025 item 3): no incremental com --projetar, o worklog entra como etapa, depois dos cards e sob a mesma trava; só com o sal da
     // supressão configurado (sem ele a etapa não existe e `apontamento` sai `null`). A carga inicial do worklog tem o comando próprio `bm:apontamento`.
+    // Pedido 105 (O22, ADR 0020 R6-9): o primeiro toque entra como etapa, depois da projeção, com teto de chamadas; não usa o sal (não resolve pessoa).
+    etapaToque: async (pool) => coletarToque({ cliente, pool, S, hostBase, agora: () => new Date() }, { tipo: 'incremental' }),
     ...(sal === undefined ? {} : {
       etapaApontamento: async (pool) => coletarApontamentos(await montarDepsApontamento({ cliente, pool, S, sal, hostBase, agora: () => new Date() }), { tipo: 'incremental' }),
     }),
   }, args);
   process.stdout.write(`${JSON.stringify(r, null, 2)}\n`);
   // etapa do worklog que não pôde rodar (`apontamento.falha`): os cards saem no JSON e o código é 3, como em `parcial`
-  process.exitCode = r.estado === 'sucesso' && !(r.apontamento !== null && 'falha' in r.apontamento) ? 0 : 3;
+  process.exitCode = r.estado === 'sucesso' && !(r.apontamento !== null && 'falha' in r.apontamento) && !(r.toque !== null && 'falha' in r.toque) ? 0 : 3;
 } catch (e) {
   // Configuração ausente ou inválida: só os NOMES das variáveis (K-304), nunca o valor.
   const codigo = e instanceof ErroConfiguracao ? categoriaDoErro(e) : e instanceof ErroColetaBm ? e.codigo : e instanceof ErroBusinessMap ? e.tipo : 'erro-interno';

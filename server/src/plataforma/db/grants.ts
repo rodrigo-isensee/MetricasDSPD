@@ -49,6 +49,8 @@ export const TABELAS_FORA_DA_API: readonly string[] = [
   'dspd_bm.ref_conta_automacao', 'dspd_ac.ref_conta_automacao', 'dspd_core.ref_conta_automacao',
   // Pedido 059 (CA-AP-1): o dicionário do apontamento é lido só pelo coletor e pelo papel da aba, nunca pelo `dspd_api`.
   'dspd_bm.ref_apontamento_subgrupo', 'dspd_bm.ref_apontamento_termo', 'dspd_bm.ref_apontamento_regra_tipo',
+  // Pedido 105 (O22, ADR 0020 R6-4): o controle de leitura do primeiro toque fica fora da API; ela lê a situação já projetada em `dim_card` (R6-6).
+  'dspd_bm.ctl_toque_leitura',
 ];
 
 const COM = (nomes: string[], ...prefixos: string[]): string[] => nomes.filter((n) => prefixos.some((p) => n.startsWith(p)));

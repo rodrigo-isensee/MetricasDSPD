@@ -39,6 +39,8 @@ export interface EspecCard {
   pai?: string | null
   descarte?: string
   classe?: DimCard['classe_servico']
+  /** Prioridade nativa do BusinessMap (E7.100); padrão Média, `null` = card sem prioridade. */
+  prioridade?: DimCard['prioridade']
   origemBug?: string
   fase?: DimCard['fase_deteccao']
   subtarefa?: boolean
@@ -101,6 +103,7 @@ export function umCard(e: EspecCard): { card: DimCard; trs: FatoTransicao[] } {
     origem_demanda: null,
     fase_deteccao: e.fase ?? null,
     severidade: null,
+    prioridade: e.prioridade === undefined ? 'Média' : e.prioridade,
     origem_bug: e.origemBug ?? null,
     adicionado_apos_inicio_pai: false,
   }
@@ -121,7 +124,7 @@ export function umaBase(especs: EspecCard[], bloqueios: FatoBloqueio[] = []): Ba
     config: {
       limite_wip_fluxo: { 'Equipe A': 5 },
       limite_frentes: 3,
-      sle: [{ classe: 'Padrão', dias_uteis: 5, publicado_em: '2026-06-15' }],
+      sle: [{ classe: 'Média', dias_uteis: 5, publicado_em: '2026-06-15' }],
       alocacao: [],
       objetivos: [],
       criterios: [],

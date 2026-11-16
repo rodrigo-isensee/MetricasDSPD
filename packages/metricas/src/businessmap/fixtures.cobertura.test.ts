@@ -195,6 +195,29 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
   })
 
+  it('O12 (E7.214, interruptor desligado): com o campo 51 preenchido mas o interruptor desligado, a responsabilidade sai nula com o motivo, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
+    const base = umaBase([
+      entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
+      entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
+    ])
+    const com = {
+      ...base,
+      cards: base.cards.map((c) =>
+        c.card_id === 'V1' ? { ...c, responsabilidade_atraso: 'Interno' as const } : c,
+      ),
+    }
+    const r = calcularO12(ctxDe(com), F, false)
+    expect(r.totais.acordos).toBe(2)
+    expect(r.totais.vencidos).toBe(1)
+    expect(r.totais.porResponsabilidade).toBeNull()
+    expect(r.meses.every((m) => m.porResponsabilidade === null)).toBe(true)
+    expect(r.vencidosCausaInterna).toBeNull()
+    expect(r.motivoResponsabilidade).toBe(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL)
+    expect(r.statusMeta).toBe('sem-referencia')
+    // ligado, o mesmo dado publica a causa interna: o interruptor é o que decide
+    expect(calcularO12(ctxDe(com), F, true).vencidosCausaInterna).toBe(1)
+  })
+
   it('O12 (T2.6, E7.214): a versão de critério da responsabilidade do atraso marca O12 e Visão geral', () => {
     expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL)
     expect(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL.afeta).toEqual(['O12', 'VISAO_GERAL'])
@@ -294,7 +317,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
         ],
       })),
     )
-    const padrao = calcularT1(ctxDe(base), F).classes.find((c) => c.classe === 'Padrão')
+    const padrao = calcularT1(ctxDe(base), F).classes.find((c) => c.classe === 'Média')
     expect(padrao?.n).toBe(22)
     expect(padrao?.estatistica.status).toBe('ok')
     if (padrao?.estatistica.status === 'ok') expect(padrao.estatistica.valor.fracaoFilaPct).toBe(0)
@@ -312,7 +335,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
         ],
       })),
     )
-    const padrao = calcularT2(ctxDe(base), F).classes.find((c) => c.classe === 'Padrão')
+    const padrao = calcularT2(ctxDe(base), F).classes.find((c) => c.classe === 'Média')
     expect(padrao?.estouros.total).toBe(20)
     expect(padrao?.estouros.porEtapa.every((e) => e.contagem === 0)).toBe(true)
     expect(padrao?.statusMeta).toBe('fora')
@@ -340,7 +363,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
       })),
     )
     const r = calcularT4(ctxDe(base), { ...F, periodo: { tipo: '12s' } })
-    const padrao = r.classes.find((c) => c.classe === 'Padrão')
+    const padrao = r.classes.find((c) => c.classe === 'Média')
     expect(padrao?.estatistica.status).toBe('ok')
     if (padrao?.estatistica.status === 'ok') expect(padrao.estatistica.valor.razao).toBeNull()
     const curto = calcularT4(ctxDe(base), {

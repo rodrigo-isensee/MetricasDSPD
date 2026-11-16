@@ -1,4 +1,4 @@
-import { MOTIVO_NAO_CLASSIFICADO, MOTIVOS_BLOQUEIO, ORIGENS_DEMANDA, TIPOS_CARD, type OrigemDemanda, type VersaoCriterio } from '@metricas-dspd/contratos';
+import { MOTIVO_NAO_CLASSIFICADO, MOTIVOS_BLOQUEIO, NIVEIS_PRIORIDADE_BM, ORIGENS_DEMANDA, TIPOS_CARD, type NivelPrioridadeBM, type OrigemDemanda, type VersaoCriterio } from '@metricas-dspd/contratos';
 import { CALENDARIO_PADRAO, diaDeIso, fimDoExpediente } from '@metricas-dspd/metricas/core';
 import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC, UnidadeExibicao, UnidadePrazo } from '@metricas-dspd/metricas/acelerato';
 import type {
@@ -21,6 +21,9 @@ const fimDoDia = (iso: string | null): number | null =>
 const campo = <T>(v: string | null): T => v as T;
 /** E7.203: só as 5 origens de falha do contrato entram no O14; "Demanda nova" (a sexta opção do campo 49) é demanda de valor, vira `null` (sem falha). */
 const origemDeFalha = (v: string | null): OrigemDemanda | null => ((ORIGENS_DEMANDA as readonly string[]).includes(v ?? '') ? (v as OrigemDemanda) : null);
+/** Defesa de leitura: valor fora dos quatro níveis vira nulo (sem prioridade); o texto lido nunca sai. */
+const nivelDePrioridade = (v: string | null): NivelPrioridadeBM | null =>
+  (NIVEIS_PRIORIDADE_BM as readonly string[]).includes(v ?? '') ? (v as NivelPrioridadeBM) : null;
 
 export type NomesColuna = Map<string, string>;
 /**
@@ -48,7 +51,9 @@ export function cardDe(l: LinhaCard, nomes: NomesColuna): DimCard {
     quadro_id: l.quadro_id ?? '', coluna_atual: nome(nomes, l.quadro_id, l.coluna_atual_id), excluido_em: ms(l.excluido_em),
     eh_subtarefa: l.eh_subtarefa === true, data_acordada: fimDoDia(l.data_acordada),
     responsabilidade_atraso: campo(l.responsabilidade_atraso), origem_demanda: origemDeFalha(l.origem_demanda),
-    fase_deteccao: campo(l.fase_deteccao), severidade: campo(l.severidade), origem_bug: l.origem_bug,
+    fase_deteccao: campo(l.fase_deteccao), severidade: campo(l.severidade),
+    // 105 (E7.100): a prioridade nativa do BusinessMap é a mesma coluna projetada (`severidade`), no estado atual do card; nula = sem prioridade (nunca Média por omissão)
+    prioridade: nivelDePrioridade(l.severidade), origem_bug: l.origem_bug,
     adicionado_apos_inicio_pai: l.adicionado_apos_inicio_pai === true,
   };
 }

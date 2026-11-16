@@ -51,7 +51,8 @@ describe('origemDaMetrica (H-13)', () => {
         ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['O20'], // pedido 099 (lote A2)
         ...['O25'], // pedido 099 (lote A3)
-        ...['O24'], // pedido 105 (E7.3): classe de serviço pelas etiquetas
+        ...['O24'], // pedido 105 (E7.100): fila da prioridade Média do BusinessMap
+        ...['T1', 'T2', 'T4', 'T6'], // pedido 105 (E7.100, P-7): separação pela prioridade nativa do BusinessMap
         ...['O21'], // pedido 099 (lote A1)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
@@ -147,7 +148,7 @@ describe('origemDaMetrica (H-13)', () => {
   })
 
   it('FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
-    for (const id of ['T1', 'E1', 'VISAO_GERAL'] as const) {
+    for (const id of ['T3', 'E1', 'VISAO_GERAL'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBeNull()
     }
@@ -162,7 +163,9 @@ describe('notas de cartão', () => {
   it('O6 e o SLE (T2) levam a nota de classe; todo id de nota tem texto', () => {
     expect(NOTAS_FIXAS_DO_CARTAO.O6).toEqual(['sem-classe'])
     expect(NOTAS_FIXAS_DO_CARTAO.T2).toEqual(['sem-classe'])
-    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain('sem etiqueta de classe de serviço')
+    expect(TEXTO_NOTA_CARTAO['sem-classe']).toContain(
+      'Cartões sem prioridade ficam fora da separação',
+    )
     expect(TEXTO_NOTA_CARTAO['sle-nao-definido']).toBe('SLE não definido.')
     expect(notaCartaoIdSchema.safeParse('outra').success).toBe(false)
   })
@@ -185,7 +188,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     }
     expect(motivoSemDadoReal('O14')).toBe('aguardando campo no quadro')
     expect(motivoSemDadoReal('VISAO_GERAL')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
-    expect(motivoSemDadoReal('T1')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
+    expect(motivoSemDadoReal('T3')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
   })
 
   it('o corpo não carrega número nem campo fora de estado, métrica e motivo', () => {

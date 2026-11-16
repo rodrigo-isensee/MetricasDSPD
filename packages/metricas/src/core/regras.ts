@@ -11,7 +11,8 @@ export type Celula<T> = T | Pendente
 
 export type ChaveSegmentacao =
   | 'tipo'
-  | 'classe-servico'
+  /** Prioridade nativa do BusinessMap (Crítica, Alta, Média, Baixa; pedido 105, E7.100). Não é a `prioridade` P1 a P5 do Acelerato. */
+  | 'prioridade-bm'
   | 'tipo-projeto'
   | 'natureza-alocacao'
   | 'objetivo'
@@ -204,7 +205,7 @@ export const REGRAS_METRICA = {
   },
   T1: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico', 'etapa'],
+    segmentacao: ['prioridade-bm', 'etapa'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -215,7 +216,7 @@ export const REGRAS_METRICA = {
   },
   T2: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico', 'etapa'],
+    segmentacao: ['prioridade-bm', 'etapa'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -237,7 +238,7 @@ export const REGRAS_METRICA = {
   },
   T4: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico'],
+    segmentacao: ['prioridade-bm'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -446,7 +447,7 @@ export const REGRAS_METRICA = {
   },
   O6: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico'],
+    segmentacao: ['prioridade-bm'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -525,7 +526,7 @@ export const REGRAS_METRICA = {
   },
   T6: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico'],
+    segmentacao: ['prioridade-bm'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -602,7 +603,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa', 'percentis'],
     granularidade: 'story',
     refBriefing:
-      "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prioritário e Prazo fixo fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
+      "pedido 011 O24; D-6' = A (fila de cada equipe, só a prioridade Média do BusinessMap, mesmo tipo; Crítica, Alta, Baixa e card sem prioridade fora, CA-17 e E7.100); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
     status: 'ok',
   },
   O22: {

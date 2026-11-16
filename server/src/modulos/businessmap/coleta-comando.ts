@@ -4,6 +4,7 @@ import { comTravaDaFonte } from '../../plataforma/db/trava.js';
 import type { ClienteHttp } from '../../plataforma/http.js';
 import { coletarCards, ErroColetaBm, inicioDaCarga, type ModoColeta, type ResultadoColeta } from './coleta.js';
 import type { ResultadoApontamento } from './apontamento/coleta.js';
+import type { ResumoToque } from './toque-coleta.js';
 import type { Conferencia } from './conferencia.js';
 import { projetarBusinessMap, type ResultadoProjecao } from './projetor.js';
 import {
@@ -71,6 +72,11 @@ export interface DepsComando {
    * Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão; o pool do coletor chega por argumento, o mesmo da coleta.
    */
   etapaApontamento?: (poolColetor: PoolLike) => Promise<ResultadoApontamento>;
+  /**
+   * Pedido 105 (O22, ADR 0020 R6-9): etapa do primeiro toque, depois dos cards e da projeção, sob a MESMA trava da fonte e com teto de chamadas próprio. Só roda no
+   * incremental com `--projetar` (o conjunto vem de `dim_card`) e se a coleta de cards não falhou. Falha conhecida dela vai em `toque.falha` por código.
+   */
+  etapaToque?: (poolColetor: PoolLike) => Promise<ResumoToque>;
 }
 
 /**
@@ -93,7 +99,9 @@ export function etapaReferencia(
 /** Executa a coleta sob a trava da fonte; sem a trava, recusa (outra coleta do BusinessMap está rodando). */
 /** A etapa do worklog não pôde rodar: só o código (`sem-marca`, `dicionario`, `configuracao`...), nunca a mensagem. Os cards já estão gravados. */
 export interface FalhaEtapaApontamento { falha: string }
-export type ResultadoComando = ResultadoColeta & { projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | FalhaEtapaApontamento | null };
+export type ResultadoComando = ResultadoColeta & {
+  projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | FalhaEtapaApontamento | null; toque: ResumoToque | FalhaEtapaApontamento | null;
+};
 
 export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<ResultadoComando> {
   if (d.quadros.length === 0) throw new ErroColetaBm('configuracao', 'BUSINESSMAP_QUADROS_IDS vazio');
@@ -122,7 +130,16 @@ export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<
         apontamento = { falha: e.codigo };
       }
     }
-    return { ...coleta, projecao, apontamento };
+    let toque: ResumoToque | FalhaEtapaApontamento | null = null;
+    if (args.modo === 'incremental' && args.projetar === true && coleta.estado !== 'falha' && d.etapaToque !== undefined) {
+      try {
+        toque = await d.etapaToque(d.poolColetor);
+      } catch (e) {
+        if (!(e instanceof ErroColetaBm)) throw e;
+        toque = { falha: e.codigo };
+      }
+    }
+    return { ...coleta, projecao, apontamento, toque };
   });
   if (!r.executou) throw new ErroColetaBm('trava', 'outra coleta do BusinessMap em andamento');
   return r.valor;
