@@ -88,7 +88,7 @@ Todos na pasta do projeto na VM, na versão liberada pelo dono (`R-MAIN`: nunca 
 
 1. **Preparar:** ter o `/etc/metricas-dspd/compose.env` (seção 1.1) e a CA do banco. `pnpm` só é necessário para os comandos de referência dos itens 3 e 4 fora do Docker.
 2. **Subir migração, API e painel (Docker, sem banco local):** `docker compose -f docker-compose.prod.yml config -q`, `build` e `up -d` (seção 7). O serviço `migrate` roda sozinho antes da API. O painel fica em `http://127.0.0.1:8080`, a API em `127.0.0.1:3000`. **Não use `pnpm run stack:up` em servidor**: ele sobe o Compose de desenvolvimento (banco local, senhas `_dev`).
-3. **Migrar o banco à mão** (quando só o banco mudou): `pnpm run db:migrate`. Antes, faça o backup (`scripts/db-backup.sh`, `docs/engineering/operacao-banco.md`).
+3. **Migrar o banco à mão** (quando só o banco mudou): faça o backup antes (item 8) e rode `pnpm run db:migrate` com `PG_MIGRADOR_URL` terminando em `?sslmode=verify-full` e `NODE_EXTRA_CA_CERTS=<PEM da CA do banco>` no ambiente (fora do Docker o Node não conhece a CA da empresa; sem `sslmode` a conexão não valida o servidor). Nunca baixe o `sslmode`.
 4. **Sincronizar as referências** (carregam listas, calendário e critérios; seguros de repetir, não chamam BusinessMap nem Acelerato, exceto o último que só grava). Ordem sugerida, depois do passo 3:
    - `pnpm --filter @metricas-dspd/server run bm:ref-sync`: dicionário do BusinessMap (`businessmap-dominio.json`).
    - `pnpm --filter @metricas-dspd/server run ac:ref-sync`: listas e alvos de prazo do Acelerato. Não rode duas vezes no mesmo dia (confunde a data de vigência dos alvos).
@@ -106,7 +106,7 @@ Todos na pasta do projeto na VM, na versão liberada pelo dono (`R-MAIN`: nunca 
    - Ligar: `systemctl enable --now metricas-coleta-businessmap.timer metricas-coleta-acelerato.timer metricas-coleta-acelerato-releitura.timer metricas-referencias.timer` (este, domingo 05:00, roda as quatro sincronizações de referência); conferir com `systemctl list-timers 'metricas-*'` (o padrão `metricas-coleta-*` não lista o `metricas-referencias.timer`).
    - Falha: e-mail ao `AVISO_EMAIL`; log em `journalctl -u metricas-coleta-businessmap.service`.
 7. **Parar:** `docker compose -f docker-compose.prod.yml down` (o banco é da empresa; os dados ficam lá).
-8. **Backup:** `scripts/db-backup.sh`, diário 03:30, e teste de restauração aos domingos 04:30 (`docs/engineering/operacao-banco.md`). Agendamento descrito só para Windows/WSL e cron: **LACUNA** para o agendador da VM (cron serve, o texto existente já traz o modelo).
+8. **Backup:** `scripts/db-backup.sh`, diário 03:30, e teste de restauração aos domingos 04:30 (`docs/engineering/operacao-banco.md`). Roda no host, fora do Docker: exporte `PGSSLMODE=verify-full` e `PGSSLROOTCERT=<PEM da CA do banco>` (sem eles o libpq usa `prefer` e não valida o servidor), `PGHOST` com o nome que consta no certificado, e tenha o cliente `pg_dump`, `pg_restore` e `psql` **17** no host (`pg_dump` mais antigo que o servidor recusa). Agendamento descrito só para Windows/WSL e cron: **LACUNA** para o agendador da VM (cron serve, o texto existente já traz o modelo; ponha as duas variáveis `PGSSL*` no ambiente do job).
 
 Cuidado: o `docker-compose.yml` (desenvolvimento) usa senhas padrão públicas se faltar variável. O de produção falha em vez de assumir padrão: use sempre `-f docker-compose.prod.yml`.
 
@@ -188,7 +188,7 @@ O banco é da empresa. O mesmo esquema chega por **duas formas**, com o mesmo re
 | `consolidado.sql` | De `0000` a `9000` numa só transação (tudo ou nada). Em instalação nova é o único arquivo depois do `00` | `dspd_migrador`, banco `metricas` |
 
 Passo a passo do DBA (instalação nova):
-1. No shell do DBA (psql 15 ou mais novo), sem eco: `read -rs PWD_MIGRADOR; export PWD_MIGRADOR` e o mesmo para `PWD_COLETOR`, `PWD_API`, `PWD_REF` e `PWD_APONTAMENTO`. Depois `psql "host=<servidor> dbname=postgres sslmode=verify-full" -v ON_ERROR_STOP=1 -f deploy/sql/00_papeis_e_banco.sql` e `unset` das cinco. A conexão do DBA usa `~/.pgpass` (600). O script abre com `SET log_statement = 'none'` para o comando com senha não ir ao log do servidor; se o DBA não puder fazer esse `SET`, crie os papéis sem senha e use `\password <papel>` interativo.
+1. No shell do DBA (psql 15 ou mais novo), sem eco: `read -rs PWD_MIGRADOR; export PWD_MIGRADOR` e o mesmo para `PWD_COLETOR`, `PWD_API`, `PWD_REF` e `PWD_APONTAMENTO`. O script confere as cinco antes do primeiro `CREATE`: se uma faltar ou estiver vazia, termina com erro que nomeia a variável (por exemplo `falta a variável de ambiente PWD_REF; nada foi criado`) e nenhum papel é criado. Depois `psql "host=<servidor> dbname=postgres sslmode=verify-full" -v ON_ERROR_STOP=1 -f deploy/sql/00_papeis_e_banco.sql` e `unset` das cinco. A conexão do DBA usa `~/.pgpass` (600). O script abre com `SET log_statement = 'none'` para o comando com senha não ir ao log do servidor; se o DBA não puder fazer esse `SET`, crie os papéis sem senha e use `\password <papel>` interativo.
 2. `psql -v ON_ERROR_STOP=1 -h <servidor> -U dspd_migrador -d metricas -f deploy/sql/consolidado.sql`
 3. Conferir: `SELECT count(*) FROM dspd_core.pgmigrations;` deve dar 39 (hoje).
 
@@ -226,7 +226,28 @@ curl -fsS http://127.0.0.1:3000/health/ready
 
 As unidades de `deploy/systemd/` já fixam `COMPOSE_FILE` e `COMPOSE_ENV_FILES` e exigem o `/etc/metricas-dspd/host.env` (sem `-`): sem ele a unidade falha em vez de cair no Compose de desenvolvimento. O `host.env` traz o `AVISO_EMAIL`.
 
-Rollback: `git checkout <tag anterior>`, `docker compose build` e `docker compose up -d`; a migração tem volta, escrita pelo dev da stack e conferida antes do deploy (seção 6, "Volta").
+- **Reinício da VM:** `api`, `worker` e `web` têm `restart: unless-stopped` e voltam sozinhos com o Docker; `migrate` e `coleta` são pontuais (`restart: "no"`; a coleta é do systemd).
+- **Log dos contêineres:** driver `json-file` com teto de 5 arquivos de 10 MB por serviço (`x-log` no compose), para não encher o disco. Ler: `docker compose logs --tail 200 api` (ou `worker`, `web`). A retenção de 30 dias pedida é do log da VM (`journalctl`), não dos contêineres.
+
+**Pós-deploy** (antes de ligar ou religar os timers):
+
+```
+docker compose ps
+curl -fsS http://127.0.0.1:3000/health/ready
+curl -fsS -o /dev/null http://127.0.0.1:8080/
+systemctl start metricas-coleta-businessmap.service
+journalctl -u metricas-coleta-businessmap.service -n 50 --no-pager
+```
+
+API pronta, painel respondendo e uma coleta de teste sem erro; só então `systemctl enable --now` dos timers (seção 2.1, item 6).
+
+**Rollback, nesta ordem** (a migração vem antes do código; senão o `migrate` do código antigo roda sobre um banco já migrado):
+1. `docker compose down` (API e worker param; o banco é da empresa e fica).
+2. Banco: **restaurar o backup anterior à migração** (volta segura, seção 6) ou, se a migração tem `down` testado, `DSPD_PERMITIR_DOWN=1 pnpm run db:migrate down` com o backup do dia confirmado (mesmos `PG_MIGRADOR_URL` com `verify-full` e `NODE_EXTRA_CA_CERTS` do item 3 da seção 2.1).
+3. `git checkout <tag anterior>`, `docker compose build` e `docker compose up -d`.
+4. Conferir como no pós-deploy (`/health/ready` e o painel em `127.0.0.1:8080`).
+
+Release sem migração: pule o passo 2. A migração tem volta, escrita pelo dev da stack e conferida antes do deploy (seção 6, "Volta").
 
 `PESSOA_ELIMINADA_SAL` (seção 1.3): sem ele o Apontamento para sem dado. Defina antes da primeira coleta e guarde com o dono: trocar o sal muda os identificadores já gravados.
 
