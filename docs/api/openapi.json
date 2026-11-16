@@ -20537,7 +20537,10 @@
                                 ]
                               },
                               "acordadoPct": {
-                                "type": "number"
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
                               },
                               "itens": {
                                 "type": "object",
@@ -22563,10 +22566,16 @@
                               "type": "number"
                             },
                             "limiteFrentes": {
-                              "type": "number"
+                              "type": [
+                                "number",
+                                "null"
+                              ]
                             },
                             "acimaDoLimite": {
-                              "type": "boolean"
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
                             }
                           },
                           "required": [

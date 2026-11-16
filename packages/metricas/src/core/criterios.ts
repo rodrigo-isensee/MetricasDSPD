@@ -280,6 +280,19 @@ export const VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM: VersaoCriterio = {
   afeta: ['T9'],
 }
 
+/**
+ * Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 passa a ler `dim_card` (história real, 25 meses) em vez da série da extensão;
+ * a demanda criada é a story que não é Bug interno (a chegada do T4 e do O7): arquivados entram; excluídos e subtarefas ficam fora; abaixo de 20 demandas não se publica.
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T11_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t11-dado-real',
+  data: '2026-11-16',
+  descricao:
+    'T11 passou a ser calculado com o dado real do BusinessMap: demandas criadas por mês (story que não é Bug interno; as arquivadas entram, as excluídas e as subtarefas ficam fora), sem publicar com menos de 20 demandas',
+  afeta: ['T11'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -304,6 +317,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
   VERSAO_CRITERIO_O18_VINCULOS,
   VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
+  VERSAO_CRITERIO_T11_DADO_REAL,
 ]
 
 /**

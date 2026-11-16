@@ -9,6 +9,7 @@ import {
   type MetricaId,
   type EstadoColeta,
   type PreferenciasMetricas,
+  MOTIVO_O26_HISTORICO_RESPONSAVEIS,
 } from '@metricas-dspd/contratos'
 import { CartaoMetrica } from '@/components/ui'
 import { SemDadoRealErro } from '@/data'
@@ -115,6 +116,12 @@ describe('origem do cartão (pedido 060)', () => {
       })
     }
     expect(origemDoCartao('T2', 'api').semDadoReal).toBe(true)
+    // Pedido 105 (E7.55): o O26 segue sem dado real, com o motivo próprio que diz a data.
+    expect(origemDoCartao('O26', 'api')).toEqual({
+      ficticio: false,
+      semDadoReal: true,
+      motivo: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
+    })
   })
 
   it('código fora do catálogo vale como id de métrica: real se o mapa diz real, senão sem dado real', () => {
@@ -160,13 +167,14 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(n).toBe(esperado)
     expect(n).toBeGreaterThan(0)
-    // Tático: só o T9 tem dado real (pedido 105, E7.68); os demais cartões seguem sem dado real.
+    // Tático: só o T9 (pedido 105, E7.68) e o T11 (E7.64) têm dado real; cada um tem cartão só dele e sai da contagem.
     const taticoSemDado = cartoesDoPainel('tatico').filter((c) =>
       c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
     )
     expect(contarSemDadoReal('tatico', 'api')).toBe(taticoSemDado.length)
-    expect(taticoSemDado.length).toBe(cartoesDoPainel('tatico').length - 1)
+    expect(taticoSemDado.length).toBe(cartoesDoPainel('tatico').length - 2)
     expect(origemDoCartao('T9', 'api').semDadoReal).toBe(false)
+    expect(origemDoCartao('T11', 'api').semDadoReal).toBe(false)
   })
 })
 
