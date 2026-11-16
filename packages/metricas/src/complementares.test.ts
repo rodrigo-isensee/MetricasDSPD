@@ -234,7 +234,16 @@ describe('O6 previsibilidade e O8 tamanho', () => {
     const r = calcularMetrica('O8', F, { bm: com, ac: ctxMock.ac })
     expect(r.motivoPorTamanho).toBeNull()
     const t = r.tipos[0]
-    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual(['M', 'Sem tamanho'])
+    // 105 (E7.102): as seis faixas sempre, depois "Sem tamanho" (aqui com entregas)
+    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual([
+      'PP',
+      'P',
+      'M',
+      'G',
+      'GG',
+      'XG',
+      'Sem tamanho',
+    ])
     expect(t?.porTamanho?.find((x) => x.tamanho === 'M')?.mediana).not.toBeNull()
     expect(t?.porTamanho?.find((x) => x.tamanho === 'Sem tamanho')?.mediana).toBeNull()
   })
