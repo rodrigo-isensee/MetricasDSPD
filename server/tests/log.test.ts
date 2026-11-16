@@ -63,3 +63,12 @@ describe('redact do logger: user_id, autor, texto e anexos do primeiro toque nun
     expect(saida).toContain('[redigido]');
   });
 });
+
+describe('redact do logger: a chave no topo do objeto de log também é redigida (105, A1 do parecer 105-o22-coleta)', () => {
+  const MARCADOR = 'MARCADOR-TOPO-LOG-105';
+  it.each(['user_id', 'author', 'text', 'attachments', 'comment', 'comentario', 'realname', 'responsavel_nome'])('%s no topo', (chave) => {
+    const saida = registrar({ [chave]: { valor: MARCADOR } });
+    expect(saida).not.toContain(MARCADOR);
+    expect(saida).toContain('[redigido]');
+  });
+});

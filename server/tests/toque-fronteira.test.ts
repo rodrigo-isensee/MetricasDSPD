@@ -92,6 +92,15 @@ describe('cliente HTTP: consultas fechadas do primeiro toque (R-T1, R-T3, casos 
     expect(pedidos[0]).toContain('/cards/comments?card_ids=');
   });
 
+  it('/cards/{id}/comments (spike F1) não aceita parâmetro algum; sem consulta passa (A3 do parecer 105-o22-coleta)', async () => {
+    pedidos.length = 0;
+    for (const extra of ['board_ids', 'card_ids', 'per_page', 'page', 'fields']) {
+      expect(await tipo(cliente.get('/cards/9/comments', { consulta: { [extra]: '1' } })), extra).toBe('consulta');
+    }
+    expect(pedidos).toEqual([]);
+    expect(await tipo(cliente.get('/cards/9/comments'))).toBe('sem-erro');
+  });
+
   it('caso 4: /cards/{id}/revisions/{n} é recusado como caminho; revisions só aceita page', async () => {
     pedidos.length = 0;
     expect(await tipo(cliente.get('/cards/123/revisions/5'))).toBe('caminho');

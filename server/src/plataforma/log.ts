@@ -35,6 +35,15 @@ export const CAMINHOS_REDIGIDOS = [
   '*.*.author',
   '*.*.text',
   '*.*.attachments',
+  // Chave no topo do objeto de log (`log.info({ text, user_id, author })`): os caminhos com prefixo não a alcançam (A1 do parecer 105-o22-coleta).
+  'user_id',
+  'author',
+  'text',
+  'attachments',
+  'comment',
+  'comentario',
+  'realname',
+  'responsavel_nome',
 ];
 
 export const opcoesLog = (level: string): LoggerOptions => ({

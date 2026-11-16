@@ -20,7 +20,7 @@ export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
   // Pedido 105 (O22, ADR 0020 R6-2): a lista de revisões do card (consulta própria CONSULTA_REVISOES, só `page`); o detalhe `/revisions/{n}` (card inteiro) continua fora.
-  // `/cards/{id}/comments` fica como está (o spike F1 da forma do quadro o usa; A6 do parecer 105-o22-adr, recomendado, ficou para o arquiteto: o O22 lê comentário em lote, abaixo).
+  // `/cards/{id}/comments` (o spike F1 o usa) tem consulta vazia própria (CONSULTA_VAZIA): nenhum parâmetro é aceito.
   /^\/cards\/\d+\/(revisions|comments)$/,
   // Pedido 105 (O22, ADR 0020 R6-2, B7a): comentários em lote, só GET, com `card_ids` obrigatório (até 200) e `page` (CONSULTA_COMENTARIOS). A rota não tem
   // `fields`: texto, anexos, autor e tipo chegam em memória e são cortados na fronteira por `CAMPOS_TOQUE` (allow-list.ts) antes de qualquer gravação ou log.
@@ -106,6 +106,9 @@ export const CONSULTA_COMENTARIOS: Readonly<Record<string, RegExp>> = {
 export const CONSULTA_REVISOES: Readonly<Record<string, RegExp>> = {
   page: /^\d{1,5}$/,
 };
+
+/** Pedido 105 (O22, A3 do parecer 105-o22-coleta): os comentários de um card (`/cards/{id}/comments`, usado pelo spike F1) não aceitam parâmetro algum; qualquer um é recusado antes da rede. */
+export const CONSULTA_VAZIA: Readonly<Record<string, RegExp>> = {};
 
 /** Tamanho máximo de `user_ids` por chamada (o mesmo limite de `LISTA_IDS`). */
 export const LOTE_USER_IDS = 200;
@@ -263,7 +266,9 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
             ? CONSULTA_COMENTARIOS
             : /^\/cards\/\d+\/revisions$/.test(caminho)
               ? CONSULTA_REVISOES
-              : CONSULTA_PERMITIDA;
+              : /^\/cards\/\d+\/comments$/.test(caminho)
+                ? CONSULTA_VAZIA
+                : CONSULTA_PERMITIDA;
     const params = new URLSearchParams();
     for (const [nome, bruto] of Object.entries(consulta)) {
       const valor = String(bruto);

@@ -6,6 +6,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Corrigido
 
+- Coleta (O22, B7a, volta 1): o log também redige `user_id`, `author`, `text`, `attachments` e os campos de comentário e nome quando estão no topo do objeto; `/cards/{id}/comments` passa a recusar qualquer parâmetro de consulta; a guarda estática do papel da aba Apontamento pula só `estado` e `motivo` das tabelas `ctl_` (pedido 105, E7.170).
 - Catálogo: o parágrafo diz 62 métricas (60 métricas, EI e PV1), derivado dos códigos do catálogo, e o contador diz N de 65 linhas (pedido 099, decisão 30a, K-329).
 - Backup: `scripts/db-backup.sh` (e `lib-pg.sh`) passa a respeitar `PG_PORT`, a mesma variável de `scripts/db.sh`; antes só lia `PGPORT` e apontava para a porta 5432 (base real) mesmo com `PG_PORT` definida. Sem nenhuma das duas segue 5432; as duas diferentes recusam; a mensagem diz host e porta usados (pedido 105, K-369, E3.57).
 
