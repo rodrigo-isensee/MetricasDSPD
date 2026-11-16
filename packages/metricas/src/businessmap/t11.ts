@@ -1,5 +1,6 @@
 import type { FiltrosFluxo, ResultadoT11, TipoCard } from '@metricas-dspd/contratos'
 import { diaLocal, isoDeDia, mesDeDia, primeiroDiaDoMes, somarMeses } from '../core/calendario'
+import { MINIMO_AMOSTRA } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
 import { slug } from '../slug'
 import { baseAmostral, criterios, r2, setoresDe } from './comum'
@@ -72,7 +73,10 @@ export function calcularT11(
         : (porMes.get(b.chave) ?? 0),
     emAndamento: b.emAndamento,
   }))
-  const comDado = meses.filter((m) => m.entradas !== null)
+  const total = meses.reduce((s, m) => s + (m.entradas ?? 0), 0)
+  // Pedido 105 (E7.64): na base real, abaixo de 20 demandas na janela e nos filtros não se publica (mesmo estado vazio de "sem entradas").
+  const abaixoDoMinimo = ext?.dadoReal === true && total < MINIMO_AMOSTRA
+  const comDado = abaixoDoMinimo ? [] : meses.filter((m) => m.entradas !== null)
   const fechados = comDado.filter((m) => !m.emAndamento)
   const anos = [...new Set(meses.map((m) => m.ano))].map((ano) => ({
     ano,
@@ -81,7 +85,6 @@ export function calcularT11(
       return { mes: i + 1, entradas: m?.entradas ?? null, emAndamento: m?.emAndamento ?? false }
     }),
   }))
-  const total = comDado.reduce((s, m) => s + (m.entradas as number), 0)
   return {
     base: baseAmostral(total, 'demandas criadas', janela),
     criterios: crit,

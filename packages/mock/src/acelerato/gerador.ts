@@ -224,7 +224,7 @@ export function gerarBaseAcelerato(cfg: ConfigMock): BaseAC {
           fechado && (prio === 'P1' || prio === 'P2' || encMotivo === 'Contorno aplicado')
             ? bernoulli(rng, 0.7)
               ? 'Aberto'
-              : 'Não aplicável'
+              : 'Não aplicável e com justificativa'
             : null,
         excecao_sla_registro_posterior: bernoulli(rng, 0.03),
         incidente_critico_coordenado: prio === 'P1' || (prio === 'P2' && bernoulli(rng, 0.3)),

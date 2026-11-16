@@ -80,6 +80,14 @@ export const TIPO_DA_CATEGORIA: Record<CategoriaTipoCard, TipoCard> = {
 export const CLASSES_SERVICO = ['Urgente', 'Prioritário', 'Prazo fixo', 'Padrão'] as const
 export type ClasseServico = (typeof CLASSES_SERVICO)[number]
 
+/**
+ * Pedido 105 (E7.100, decisões do dono de 2026-11-16): T1, T2, T4, T6, O6 e O24 separam pela prioridade nativa do BusinessMap, não pela
+ * classe de serviço. Nome próprio: não confundir com `PRIORIDADES` (P1 a P5) do Acelerato; as duas fontes nunca se misturam. Card sem
+ * prioridade fica fora da separação e é contado à parte (`semPrioridade`), nunca vira Média por omissão.
+ */
+export const NIVEIS_PRIORIDADE_BM = ['Crítica', 'Alta', 'Média', 'Baixa'] as const
+export type NivelPrioridadeBM = (typeof NIVEIS_PRIORIDADE_BM)[number]
+
 export const PRIORIDADES = ['P1', 'P2', 'P3', 'P4', 'P5'] as const
 export type Prioridade = (typeof PRIORIDADES)[number]
 
@@ -95,18 +103,33 @@ export const FASES_DETECCAO = [
 ] as const
 export type FaseDeteccao = (typeof FASES_DETECCAO)[number]
 
+/** Pedido 105 (E7.102): as seis faixas de tamanho da régua de cada time, da menor para a maior; a ordem é a do O8 (decisão do dono, 16/11). */
+export const TAMANHOS_REGUA = ['PP', 'P', 'M', 'G', 'GG', 'XG'] as const
+export type TamanhoRegua = (typeof TAMANHOS_REGUA)[number]
+
+/** Motivos habilitados no BusinessMap (decisão B do dono, 2026-11-16): no lugar dos 7 do briefing. Ids 5 e 8 (code review) ficam fora. */
 export const MOTIVOS_BLOQUEIO = [
+  'Aguardando ação interna do time',
+  'Aguardando outro setor/equipe',
+  'Bug identificado',
+  'Parada por repriorização de atividade',
+  'Aguardando publicação GMUD',
+  'Dependências das Áreas - Unifique',
+  'Dependências outro time Dev',
+  'Dependência Externa',
+  'Dependência do próprio time',
+  'Não conformidade',
   'Aguardando fornecedor',
-  'Aguardando validação do negócio',
-  'Aguardando ambiente ou infraestrutura',
-  'Dependência de outra demanda',
-  'Falta de informação no chamado',
-  'Janela de mudança',
-  'Aguardando licença ou contrato',
 ] as const
 export type MotivoBloqueio = (typeof MOTIVOS_BLOQUEIO)[number]
 
-/** Motivo sem mapa para os 7 do briefing (P-075-3); texto exato da UX 075 §1. */
+/** Motivos de fornecedor (T10, decisão A do dono, 2026-11-16): lista única, nunca o texto repetido. */
+export const MOTIVOS_FORNECEDOR = [
+  'Aguardando fornecedor',
+  'Dependência Externa',
+] as const satisfies readonly MotivoBloqueio[]
+
+/** Motivo sem mapa (id sem entrada ou nulo, P-075-3); texto exato da UX 075 §1. */
 export const MOTIVO_NAO_CLASSIFICADO = 'não classificado' as const
 export const MOTIVOS_BLOQUEIO_PUBLICADOS = [...MOTIVOS_BLOQUEIO, MOTIVO_NAO_CLASSIFICADO] as const
 export type MotivoBloqueioPublicado = (typeof MOTIVOS_BLOQUEIO_PUBLICADOS)[number]

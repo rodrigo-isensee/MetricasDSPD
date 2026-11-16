@@ -2921,13 +2921,17 @@
                                   {
                                     "type": "string",
                                     "enum": [
+                                      "Aguardando ação interna do time",
+                                      "Aguardando outro setor/equipe",
+                                      "Bug identificado",
+                                      "Parada por repriorização de atividade",
+                                      "Aguardando publicação GMUD",
+                                      "Dependências das Áreas - Unifique",
+                                      "Dependências outro time Dev",
+                                      "Dependência Externa",
+                                      "Dependência do próprio time",
+                                      "Não conformidade",
                                       "Aguardando fornecedor",
-                                      "Aguardando validação do negócio",
-                                      "Aguardando ambiente ou infraestrutura",
-                                      "Dependência de outra demanda",
-                                      "Falta de informação no chamado",
-                                      "Janela de mudança",
-                                      "Aguardando licença ou contrato",
                                       "não classificado"
                                     ]
                                   },
@@ -3535,13 +3539,17 @@
                               "motivo": {
                                 "type": "string",
                                 "enum": [
+                                  "Aguardando ação interna do time",
+                                  "Aguardando outro setor/equipe",
+                                  "Bug identificado",
+                                  "Parada por repriorização de atividade",
+                                  "Aguardando publicação GMUD",
+                                  "Dependências das Áreas - Unifique",
+                                  "Dependências outro time Dev",
+                                  "Dependência Externa",
+                                  "Dependência do próprio time",
+                                  "Não conformidade",
                                   "Aguardando fornecedor",
-                                  "Aguardando validação do negócio",
-                                  "Aguardando ambiente ou infraestrutura",
-                                  "Dependência de outra demanda",
-                                  "Falta de informação no chamado",
-                                  "Janela de mudança",
-                                  "Aguardando licença ou contrato",
                                   "não classificado"
                                 ]
                               },
@@ -10736,6 +10744,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "alvoMax": {
                           "type": "number"
                         },
@@ -10747,10 +10771,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -10907,6 +10931,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "alvoMax",
                         "classes"
                       ],
@@ -11499,9 +11524,12 @@
                                         "tamanho": {
                                           "type": "string",
                                           "enum": [
+                                            "PP",
                                             "P",
                                             "M",
                                             "G",
+                                            "GG",
+                                            "XG",
                                             "Sem tamanho"
                                           ]
                                         },
@@ -14513,13 +14541,17 @@
                               "motivo": {
                                 "type": "string",
                                 "enum": [
+                                  "Aguardando ação interna do time",
+                                  "Aguardando outro setor/equipe",
+                                  "Bug identificado",
+                                  "Parada por repriorização de atividade",
+                                  "Aguardando publicação GMUD",
+                                  "Dependências das Áreas - Unifique",
+                                  "Dependências outro time Dev",
+                                  "Dependência Externa",
+                                  "Dependência do próprio time",
+                                  "Não conformidade",
                                   "Aguardando fornecedor",
-                                  "Aguardando validação do negócio",
-                                  "Aguardando ambiente ou infraestrutura",
-                                  "Dependência de outra demanda",
-                                  "Falta de informação no chamado",
-                                  "Janela de mudança",
-                                  "Aguardando licença ou contrato",
                                   "não classificado"
                                 ]
                               },
@@ -17100,6 +17132,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "inicios": {
                           "oneOf": [
                             {
@@ -17399,6 +17447,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "inicios",
                         "meses",
                         "marcacoes",
@@ -19321,6 +19370,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19329,10 +19394,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -19518,6 +19583,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -19943,6 +20009,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -19951,10 +20033,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "sle": {
@@ -20118,6 +20200,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -20537,7 +20620,10 @@
                                 ]
                               },
                               "acordadoPct": {
-                                "type": "number"
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
                               },
                               "itens": {
                                 "type": "object",
@@ -21021,6 +21107,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "classes": {
                           "type": "array",
                           "items": {
@@ -21029,10 +21131,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -21301,6 +21403,7 @@
                       "required": [
                         "base",
                         "criterios",
+                        "semPrioridade",
                         "classes"
                       ],
                       "additionalProperties": false
@@ -22563,10 +22666,16 @@
                               "type": "number"
                             },
                             "limiteFrentes": {
-                              "type": "number"
+                              "type": [
+                                "number",
+                                "null"
+                              ]
                             },
                             "acimaDoLimite": {
-                              "type": "boolean"
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
                             }
                           },
                           "required": [
@@ -23390,6 +23499,11 @@
                         },
                         "projetosComEscopoCrescido": {
                           "type": "number"
+                        },
+                        "projetosSemInicio": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [
@@ -23821,6 +23935,22 @@
                           ],
                           "additionalProperties": false
                         },
+                        "semPrioridade": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "total"
+                          ],
+                          "additionalProperties": false
+                        },
                         "entradas": {
                           "type": "object",
                           "properties": {
@@ -23851,10 +23981,10 @@
                               "classe": {
                                 "type": "string",
                                 "enum": [
-                                  "Urgente",
-                                  "Prioritário",
-                                  "Prazo fixo",
-                                  "Padrão"
+                                  "Crítica",
+                                  "Alta",
+                                  "Média",
+                                  "Baixa"
                                 ]
                               },
                               "n": {
@@ -24213,6 +24343,7 @@
                         "base",
                         "criterios",
                         "janelaPercentis",
+                        "semPrioridade",
                         "entradas",
                         "classes"
                       ],
@@ -39605,70 +39736,98 @@
                             "additionalProperties": false
                           }
                         },
+                        "semFluxo": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
                         "conversao": {
-                          "oneOf": [
+                          "anyOf": [
                             {
-                              "type": "object",
-                              "properties": {
-                                "status": {
-                                  "type": "string",
-                                  "enum": [
-                                    "ok"
-                                  ]
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "ok"
+                                      ]
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": 20,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pct": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "pct"
+                                  ],
+                                  "additionalProperties": false
                                 },
-                                "k": {
-                                  "type": "number"
-                                },
-                                "n": {
-                                  "type": "integer",
-                                  "minimum": 20,
-                                  "maximum": 9007199254740991
-                                },
-                                "pct": {
-                                  "type": "number"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "insuficiente"
+                                      ]
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 19
+                                    },
+                                    "minimo": {
+                                      "type": "number",
+                                      "enum": [
+                                        20
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "minimo"
+                                  ],
+                                  "additionalProperties": false
                                 }
-                              },
-                              "required": [
-                                "status",
-                                "k",
-                                "n",
-                                "pct"
-                              ],
-                              "additionalProperties": false
+                              ]
                             },
                             {
-                              "type": "object",
-                              "properties": {
-                                "status": {
-                                  "type": "string",
-                                  "enum": [
-                                    "insuficiente"
-                                  ]
-                                },
-                                "k": {
-                                  "type": "number"
-                                },
-                                "n": {
-                                  "type": "integer",
-                                  "minimum": -9007199254740991,
-                                  "maximum": 19
-                                },
-                                "minimo": {
-                                  "type": "number",
-                                  "enum": [
-                                    20
-                                  ]
-                                }
-                              },
-                              "required": [
-                                "status",
-                                "k",
-                                "n",
-                                "minimo"
-                              ],
-                              "additionalProperties": false
+                              "type": "null"
                             }
                           ]
+                        },
+                        "motivoConversao": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "foraDaConversao": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [
@@ -39677,7 +39836,9 @@
                         "campoDisponivel",
                         "escopo",
                         "porGrupo",
-                        "conversao"
+                        "semFluxo",
+                        "conversao",
+                        "motivoConversao"
                       ],
                       "additionalProperties": false
                     },

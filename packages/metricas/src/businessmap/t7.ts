@@ -55,7 +55,7 @@ export function calcularT7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT7 {
       frentesEmAndamento: abertas.length,
       projetosComFrentes: porProj.size,
       limiteFrentes: limite,
-      acimaDoLimite: abertas.length > limite,
+      acimaDoLimite: limite === null ? null : abertas.length > limite,
     },
     porProjeto: ordenarNeutro(
       [...porProj.entries()].map(([id, abertasN]) => ({

@@ -14,6 +14,7 @@ import { fmtInteiro, fmtMes, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { fmtHU } from '@/features/sustentacao/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
+import { NotaForaDoFluxo } from '@/features/sustentacao/components/comuns'
 import { CampoSemFonte, Leia } from './comuns'
 
 interface P {
@@ -65,11 +66,7 @@ export function CartaoO17({ filtros }: P) {
             categorias={r.porSistema.map((c) => ({ rotulo: c.sistema, valores: { n: c.n } }))}
             series={[{ chave: 'n', rotulo: 'Incidentes' }]}
           />
-          {r.porCausa !== null && (
-            <Leia>
-              A causa raiz vem do Registro de Problemas; a lista de causas é uma proposta do time.
-            </Leia>
-          )}
+          {r.porCausa !== null && <Leia>A lista de causas é uma proposta do time.</Leia>}
         </div>
       )}
     </CartaoComplementar>
@@ -255,6 +252,8 @@ export function CartaoS10({ filtros }: P) {
   )
 }
 
+const textoAvaliacoes = (n: number) => `${fmtInteiro(n)} ${n === 1 ? 'avaliação' : 'avaliações'}`
+
 /** S11: avaliação de Problema em P1, P2 e encerrados por contorno. */
 export function CartaoS11({ filtros }: P) {
   const q = useMetrica('S11', filtros)
@@ -273,28 +272,50 @@ export function CartaoS11({ filtros }: P) {
           : undefined
       }
     >
-      {(r) => (
-        <div className="flex flex-col gap-3">
-          <TabelaDados
-            codigo="S11"
-            legenda="Chamados com avaliação de Problema registrada, por grupo (os grupos se sobrepõem)"
-            colunas={[
-              { chave: 'g', titulo: 'Grupo' },
-              { chave: 't', titulo: 'Com avaliação', alinhar: 'direita' },
-            ]}
-            linhas={[
-              ...r.porGrupo.map((g) => ({
+      {(r) => {
+        const conversao = r.conversao
+        const fora = r.foraDaConversao ?? 0
+        return (
+          <div className="flex flex-col gap-3">
+            <TabelaDados
+              codigo="S11"
+              legenda="Chamados com avaliação de Problema registrada, por grupo (os grupos se sobrepõem)"
+              colunas={[
+                { chave: 'g', titulo: 'Grupo' },
+                { chave: 't', titulo: 'Com avaliação', alinhar: 'direita' },
+              ]}
+              linhas={r.porGrupo.map((g) => ({
                 g: g.grupo === 'Contorno' ? 'Encerrados por contorno' : g.grupo,
                 t: celula(g.taxa),
-              })),
-              { g: 'Avaliações que viraram Registro de Problema', t: celula(r.conversao) },
-            ]}
-          />
-          <Leia>
-            Um chamado pode estar em mais de um grupo; o total do escopo conta cada um uma vez.
-          </Leia>
-        </div>
-      )}
+              }))}
+            />
+            <Leia>
+              Um chamado pode estar em mais de um grupo; o total do escopo conta cada um uma vez.
+            </Leia>
+            {conversao === null && r.motivoConversao !== null && (
+              <Leia>{`Avaliações que viraram Registro de Problema: sem dado real. ${r.motivoConversao}`}</Leia>
+            )}
+            {conversao !== null && (
+              <div className="flex flex-col gap-1" data-testid="s11-conversao">
+                <p className="text-sm font-medium">
+                  Avaliações que viraram Registro de Problema:{' '}
+                  {conversao.status === 'ok'
+                    ? textoTaxa(conversao)
+                    : `Amostra insuficiente (${textoAvaliacoes(conversao.n)})`}
+                </p>
+                <Leia>
+                  {conversao.status === 'ok'
+                    ? `Mostra quantas avaliações de Problema terminaram em Registro de Problema aberto, pela decisão registrada no chamado. "Não aplicável" entra no total, mas não conta como aberto. Base: ${textoAvaliacoes(conversao.n)}.`
+                    : `A conversão ainda não é mostrada: há ${textoAvaliacoes(conversao.n)} registradas e são precisas pelo menos 20. Isto não significa zero.`}
+                  {fora > 0 &&
+                    ` ${textoAvaliacoes(fora)} ${fora === 1 ? 'ficou fora da conversão: esse chamado não tem' : 'ficaram fora da conversão: esses chamados não têm'} decisão registrada no campo.`}
+                </Leia>
+              </div>
+            )}
+            <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
+          </div>
+        )
+      }}
     </CartaoComplementar>
   )
 }

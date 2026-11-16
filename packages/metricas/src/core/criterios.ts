@@ -134,6 +134,15 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
 }
 
+/** Pedido 105 (E7.184, decisão B do dono, 2026-11-16): motivos de bloqueio do BusinessMap no lugar dos 7 do briefing. */
+export const VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-motivos-bloqueio-bm',
+  data: '2026-11-16',
+  descricao:
+    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (11 motivos, ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; o fornecedor do T10 são os motivos "Aguardando fornecedor" e "Dependência Externa"',
+  afeta: ['BLOQUEADOS', 'O2', 'O19', 'T10', 'T12'],
+}
+
 /** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
 export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-10-tendencia-fluxo-dado-real',
@@ -267,6 +276,32 @@ export const VERSAO_CRITERIO_O18_VINCULOS: VersaoCriterio = {
   afeta: ['O18'],
 }
 
+/**
+ * Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 passou de "Sem dado real" para dado real. Frente adicionada depois do início
+ * é a frente criada depois do início do projeto; a frente criada antes e ligada depois conta como original (a base não guarda o instante do vínculo).
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t9-escopo-criado-em',
+  data: '2026-11-16',
+  descricao:
+    'T9 passou a ser calculado com o dado real do BusinessMap: o avanço é frentes concluídas sobre o total das filhas; frente adicionada depois do início é a criada depois do início do projeto (a criada antes e ligada depois conta como original); projeto sem início fica fora, com a contagem',
+  afeta: ['T9'],
+}
+
+/**
+ * Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 passa a ler `dim_card` (história real, 25 meses) em vez da série da extensão;
+ * a demanda criada é a story que não é Bug interno (a chegada do T4 e do O7): arquivados entram; excluídos e subtarefas ficam fora; abaixo de 20 demandas não se publica.
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T11_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t11-dado-real',
+  data: '2026-11-16',
+  descricao:
+    'T11 passou a ser calculado com o dado real do BusinessMap: demandas criadas por mês (story que não é Bug interno; as arquivadas entram, as excluídas e as subtarefas ficam fora), sem publicar com menos de 20 demandas',
+  afeta: ['T11'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -278,6 +313,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
@@ -290,6 +326,8 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
   VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
   VERSAO_CRITERIO_O18_VINCULOS,
+  VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
+  VERSAO_CRITERIO_T11_DADO_REAL,
 ]
 
 /**

@@ -22,6 +22,11 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
       eh_subtarefa: false, adicionado_apos_inicio_pai: false, data_acordada: null, responsaveis: [], criado_em: T.getTime(),
       comprometido_em: null, concluido_em: null });
   });
+  it('E7.203: origem_demanda das 5 falhas do contrato passa; "Demanda nova" (sexta opção) e valor fora da lista viram nulo (demanda de valor no O14)', () => {
+    expect(cardDe({ ...cardNulo, origem_demanda: 'Configuração incorreta' }, new Map()).origem_demanda).toBe('Configuração incorreta');
+    expect(cardDe({ ...cardNulo, origem_demanda: 'Demanda nova' }, new Map()).origem_demanda).toBeNull();
+    expect(cardDe({ ...cardNulo, origem_demanda: 'qualquer' }, new Map()).origem_demanda).toBeNull();
+  });
   it('card preenchido: nome da coluna pelo ref_coluna, data_acordada = fim do expediente do dia civil', () => {
     const nomes = nomesDeColuna([col('q1', 'c3', 'Em teste')]);
     const c = cardDe({ ...cardNulo, quadro_id: 'q1', coluna_atual_id: 'c3', eh_subtarefa: true, adicionado_apos_inicio_pai: true,
@@ -31,6 +36,13 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(c.concluido_em).toBe(T.getTime());
     expect(new Date(c.data_acordada!).toISOString()).toBe('2026-10-05T20:00:00.000Z'); // 17:00 -03:00
     expect(cardDe({ ...cardNulo, quadro_id: 'q1', coluna_atual_id: 'cx' }, nomes).coluna_atual).toBe('cx');
+  });
+  it('pedido 105 (E7.100): a prioridade do painel é a coluna severidade já projetada; nula e fora dos quatro níveis ficam sem prioridade, nunca Média', () => {
+    for (const nivel of ['Crítica', 'Alta', 'Média', 'Baixa']) expect(cardDe({ ...cardNulo, severidade: nivel }, new Map()).prioridade).toBe(nivel);
+    expect(cardDe({ ...cardNulo, severidade: null }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: 'Urgente' }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: '' }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: 'Alta' }, new Map())).toMatchObject({ severidade: 'Alta', prioridade: 'Alta' });
   });
   it('transição: quadro da linha, do card ou desconhecido; sem coluna de origem', () => {
     const nomes = nomesDeColuna([col('q1', 'c1', 'Fila'), col('q1', 'c2', 'Feito')]);
@@ -49,9 +61,9 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(bloqueioDe({ ...b, card_id: 'zz' }, nomes, quadros).coluna_em_que_bloqueou).toBe('c1');
   });
   it('bloqueioDe: motivo desconhecido, vazio, nulo ou com marcador de pessoa sai "não classificado"; motivo do domínio passa', () => {
-    const b = { card_id: 'c1', motivo: 'Janela de mudança', coluna_em_que_bloqueou: null, fornecedor: null, inicio: T, fim: null, duracao_horas_uteis: null };
+    const b = { card_id: 'c1', motivo: 'Aguardando publicação GMUD', coluna_em_que_bloqueou: null, fornecedor: null, inicio: T, fim: null, duracao_horas_uteis: null };
     const de = (motivo: string | null) => bloqueioDe({ ...b, motivo }, new Map(), new Map()).motivo;
-    expect(de('Janela de mudança')).toBe('Janela de mudança');
+    expect(de('Aguardando publicação GMUD')).toBe('Aguardando publicação GMUD');
     for (const m of ['Fornecedor', '', null, 'MARCADOR-PESSOA-075']) expect(de(m)).toBe('não classificado');
   });
   it('colunas sem tipo ou sem papel conhecido não entram (o papel não se infere)', () => {
@@ -59,9 +71,9 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(r.map((c) => c.coluna)).toEqual(['A', 'E']);
     expect(r[1]).toMatchObject({ tipo_coluna: 'execucao', papel: 'entrega', limite_wip: 3, quadro_id: 'q' });
   });
-  it('config do BM: sem linha de limite de frentes = 0; sem SLE = lista vazia; limite de WIP por equipe', () => {
+  it('config do BM: sem linha de limite de frentes = nulo; sem SLE = lista vazia; limite de WIP por equipe', () => {
     const vazio = configBM({ equipes: [], sistemas: [], limitesWip: [], limiteFrentes: null, sle: [], alocacao: [], objetivos: [], areasInternas: [], fichas: [], criterios: [] });
-    expect(vazio).toMatchObject({ limite_frentes: 0, sle: [], limite_wip_fluxo: {}, equipes: [] });
+    expect(vazio).toMatchObject({ limite_frentes: null, sle: [], limite_wip_fluxo: {}, equipes: [] });
     const c = configBM({ equipes: ['Fluig'], sistemas: [{ codigo: 'fluig', rotulo: 'Fluig' }], limitesWip: [{ equipe: 'Fluig', limite: 14 }], limiteFrentes: 12,
       sle: [{ classe: 'Padrão', valor: '5.0', desde: '2026-06-15' }], alocacao: [{ classe: 'Evolução', valor: '40.00', desde: '2026-01-01' }],
       objetivos: [{ codigo: 'o', rotulo: 'Crescer' }], areasInternas: [{ codigo: 'i', rotulo: 'DSPD (interno)' }], fichas: [], criterios: [] });

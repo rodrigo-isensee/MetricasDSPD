@@ -9,6 +9,7 @@ import {
   type MetricaId,
   type EstadoColeta,
   type PreferenciasMetricas,
+  MOTIVO_O26_HISTORICO_RESPONSAVEIS,
 } from '@metricas-dspd/contratos'
 import { CartaoMetrica } from '@/components/ui'
 import { SemDadoRealErro } from '@/data'
@@ -114,7 +115,15 @@ describe('origem do cartão (pedido 060)', () => {
         motivo: null,
       })
     }
-    expect(origemDoCartao('T2', 'api').semDadoReal).toBe(true)
+    // Pedido 105 (E7.100): T1, T2, T4, T6, O6 e O24 separam pela prioridade e estão no mapa real; o T5 segue sem dado real.
+    expect(origemDoCartao('T2', 'api').semDadoReal).toBe(false)
+    expect(origemDoCartao('T5', 'api').semDadoReal).toBe(true)
+    // Pedido 105 (E7.55): o O26 segue sem dado real, com o motivo próprio que diz a data.
+    expect(origemDoCartao('O26', 'api')).toEqual({
+      ficticio: false,
+      semDadoReal: true,
+      motivo: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
+    })
   })
 
   it('código fora do catálogo vale como id de métrica: real se o mapa diz real, senão sem dado real', () => {
@@ -127,13 +136,10 @@ describe('origem do cartão (pedido 060)', () => {
     expect(origemDoCartao('XX9', 'mock').semDadoReal).toBe(false)
   })
 
-  it('Sustentação: S1, S2, S3, S4, S8, S9, S10 e S12 têm dado real; S5, S6 e S7 também (pedido 105, D2); S11 e a EI_SUST estão sem dado real com o motivo do Acelerato', () => {
-    for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S12']) {
+  it('Sustentação: S1, S2, S3, S4, S8, S9, S10 e S12 têm dado real; S5, S6, S7 e S11 também (pedido 105, D2 e D6); só a EI_SUST está sem dado real', () => {
+    for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12']) {
       expect(origemDoCartao(c, 'api').semDadoReal, c).toBe(false)
     }
-    expect(origemDoCartao('S11', 'api').motivo).toBe(
-      'aguardando tipo e domínio do campo do chamado (P-DS-19)',
-    )
     expect(origemDoCartao('EI-SUST', 'api').semDadoReal).toBe(true)
     expect(origemDoCartao('S2', 'mock').semDadoReal).toBe(false)
   })
@@ -144,7 +150,7 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(contarSemDadoReal('sustentacao', 'api')).toBe(n)
     expect(n).toBeLessThan(cartoesDoPainel('sustentacao').length)
-    expect(n).toBeGreaterThanOrEqual(2) // S11 e EI_SUST
+    expect(n).toBeGreaterThanOrEqual(1) // EI_SUST
   })
 
   it('com a fonte mock vale só o catálogo: o aviso global do app já diz que tudo é fictício', () => {
@@ -163,7 +169,13 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(n).toBe(esperado)
     expect(n).toBeGreaterThan(0)
-    expect(contarSemDadoReal('tatico', 'api')).toBe(cartoesDoPainel('tatico').length)
+    const tatico = cartoesDoPainel('tatico').filter((c) =>
+      c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
+    ).length
+    expect(contarSemDadoReal('tatico', 'api')).toBe(tatico)
+    expect(tatico).toBeLessThan(cartoesDoPainel('tatico').length)
+    expect(origemDoCartao('T9', 'api').semDadoReal).toBe(false)
+    expect(origemDoCartao('T11', 'api').semDadoReal).toBe(false)
   })
 })
 
@@ -187,17 +199,19 @@ describe('painel com API real: estado "Sem dado real" por cartão e nota do cabe
     expect(within(o3).queryByTestId('estado-sem-dado-real-O3')).not.toBeInTheDocument()
   })
 
-  it('no Tático todos os cartões estão sem dado real e a nota conta todos', async () => {
+  it('no Tático a nota conta os cartões sem dado real, e o T5 está entre eles', async () => {
     renderizarApp('/tatico', fonteApi())
     const nota = await screen.findByTestId('nota-sem-dado-real-tatico')
     expect(nota).toHaveTextContent(`${contarSemDadoReal('tatico', 'api')} cartões sem dado real`)
-    const t2 = await screen.findByTestId('metrica-T2')
-    expect(await within(t2).findByTestId('estado-sem-dado-real-T2')).toBeInTheDocument()
-    expect(within(t2).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
-    // Faixa de atenção: nunca afirma que nada pede atenção sem dado.
-    expect(await screen.findByTestId('faixa-atencao-sem-dado-real')).toHaveTextContent(
-      'Sem dado real',
-    )
+    const t5 = await screen.findByTestId('metrica-T5')
+    expect(await within(t5).findByTestId('estado-sem-dado-real-T5')).toBeInTheDocument()
+    expect(within(t5).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
+    // Faixa de atenção: com T2, T4, T9 e T11 reais e T3 sem dado, a faixa lista o que há ou diz que a lacuna é parcial; nunca afirma que nada pede atenção.
+    expect(screen.queryByText(/Nada pede atenção/)).not.toBeInTheDocument()
+    expect(
+      await within(await screen.findByTestId('metrica-T9')).findByTestId('tabela-T9'),
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('faixa-atencao-sem-dado-real')).not.toBeInTheDocument()
   })
 
   it('com a fonte mock não há nota nem estado de sem dado real (o aviso global cobre)', async () => {
@@ -281,16 +295,18 @@ describe('notas no cartão (H-15 e H-24)', () => {
       </MemoryRouter>,
     )
 
-  it('O6 mostra "sem separação por classe" pelo texto do contrato', () => {
+  it('O6 mostra "sem prioridade fica fora" pelo texto do contrato', () => {
     cartao('O6')
     expect(screen.getByTestId('notas-cartao-O6')).toHaveTextContent(
-      'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
+      'Cartões sem prioridade ficam fora da separação por prioridade e são contados à parte.',
     )
   })
 
-  it('o SLE (T2) só mostra a nota quando a métrica for dado real: hoje é mock', () => {
+  it('o T2 mostra a nota de cartões sem prioridade, pelo texto do contrato', () => {
     cartao('T2')
-    expect(screen.queryByTestId('notas-cartao-T2')).not.toBeInTheDocument()
+    expect(screen.getByTestId('notas-cartao-T2')).toHaveTextContent(
+      'Cartões sem prioridade ficam fora da separação por prioridade e são contados à parte.',
+    )
   })
 
   it('O3 mostra "SLE não definido" só quando o resultado indica, e sem repetir', () => {

@@ -18,7 +18,7 @@ const pronto = async (codigo: string) => {
 }
 const INSUF = { status: 'insuficiente', n: 5, minimo: 20, janela: null }
 
-describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
+describe('T1 e T2: nenhuma prioridade com amostra suficiente', () => {
   it('T1 não publica lead time e avisa na leitura', async () => {
     renderizarCartao(<CartaoT1 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
@@ -28,7 +28,7 @@ describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
     })
     const el = await pronto('T1')
     expect(within(el).getByTestId('leitura-T1')).toHaveTextContent(
-      'Nenhuma classe tem amostra suficiente para publicar o lead time.',
+      'Nenhuma prioridade tem amostra suficiente para publicar o lead time.',
     )
   })
 
@@ -41,13 +41,45 @@ describe('T1 e T2: nenhuma classe com amostra suficiente', () => {
     })
     const el = await pronto('T2')
     expect(within(el).getByTestId('leitura-T2')).toHaveTextContent(
-      'Nenhuma classe tem amostra suficiente para publicar a aderência ao SLE.',
+      'Nenhuma prioridade tem amostra suficiente para publicar a aderência ao SLE.',
     )
   })
 })
 
+describe('T2: fronteira de 20 itens', () => {
+  const semSle = { status: 'insuficiente', n: 0, minimo: 20, janela: null }
+  const comN = (n: number) =>
+    new FonteAjustada({
+      T2: (r: { classes: { n: number; dentroDoSle: unknown }[] }) =>
+        r.classes.forEach((c) => {
+          c.n = n
+          c.dentroDoSle = semSle
+        }),
+    })
+
+  it('n = 20 sem SLE publicado: já não é amostra insuficiente', async () => {
+    renderizarCartao(<CartaoT2 filtros={FILTROS_FLUXO} />, { fonte: comN(20) })
+    const el = await pronto('T2')
+    const itens = within(el).getAllByTestId(/^t2-/)
+    for (const li of itens) {
+      expect(li).toHaveTextContent('SLE ainda não definido para esta prioridade.')
+      expect(li).not.toHaveTextContent('Amostra insuficiente')
+    }
+  })
+
+  it('n = 19: amostra insuficiente, com "19 de 20 itens mínimos"', async () => {
+    renderizarCartao(<CartaoT2 filtros={FILTROS_FLUXO} />, { fonte: comN(19) })
+    const el = await pronto('T2')
+    const itens = within(el).getAllByTestId(/^t2-/)
+    for (const li of itens) {
+      expect(li).toHaveTextContent('Amostra insuficiente (19 de 20 itens mínimos)')
+      expect(li).not.toHaveTextContent('SLE ainda não publicado')
+    }
+  })
+})
+
 describe('T3: alocação sem desvio calculado', () => {
-  it('percentual publicado sem desvio: mostra 0,0 p.p. sem sinal e não cita no resumo', async () => {
+  it('percentual publicado sem desvio: não mostra desvio 0 nem a leitura de menos de 20 itens', async () => {
     renderizarCartao(<CartaoT3 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
         T3: (r: {
@@ -63,8 +95,10 @@ describe('T3: alocação sem desvio calculado', () => {
       }),
     })
     const el = await pronto('T3')
-    expect(within(el).getAllByText(/desvio 0 p\.p\./).length).toBeGreaterThan(0)
-    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('Percentuais indisponíveis')
+    expect(within(el).getAllByText(/realizado 10/).length).toBeGreaterThan(0)
+    expect(within(el).queryByText(/desvio [+\d-]/)).not.toBeInTheDocument()
+    expect(within(el).queryByText(/menos de 20 itens entregues/)).not.toBeInTheDocument()
+    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('como a capacidade foi dividida')
   })
 })
 
@@ -87,7 +121,7 @@ describe('T4: demanda x capacidade', () => {
   const comClasse = (fn: (c: Record<string, unknown>) => void) =>
     new FonteAjustada({
       T4: (r: { classes: Record<string, unknown>[] }) => {
-        const padrao = r.classes.find((c) => c.classe === 'Padrão') as Record<string, unknown>
+        const padrao = r.classes.find((c) => c.classe === 'Média') as Record<string, unknown>
         fn(padrao)
       },
     })
@@ -120,7 +154,7 @@ describe('T4: demanda x capacidade', () => {
     expect(within(el).getByTestId('leitura-T4')).toHaveTextContent('A fila cresce')
   })
 
-  it('classe com amostra insuficiente: leitura "n de 20" e bloco de amostra insuficiente', async () => {
+  it('prioridade com amostra insuficiente: leitura "n de 20" e bloco de amostra insuficiente', async () => {
     renderizarCartao(<CartaoT4 filtros={FILTROS_FLUXO} />, {
       fonte: comClasse((c) => (c.estatistica = { ...INSUF, n: 9 })),
     })
@@ -129,11 +163,11 @@ describe('T4: demanda x capacidade', () => {
     expect(within(el).getByTestId('amostra-insuficiente-T4')).toBeInTheDocument()
   })
 
-  it('sem a classe Padrão no resultado, não há leitura nem gráfico (nada é inventado)', async () => {
+  it('sem a prioridade Média no resultado, não há leitura nem gráfico (nada é inventado)', async () => {
     renderizarCartao(<CartaoT4 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
         T4: (r: { classes: { classe: string }[] }) => {
-          r.classes = r.classes.filter((c) => c.classe !== 'Padrão')
+          r.classes = r.classes.filter((c) => c.classe !== 'Média')
         },
       }),
     })
@@ -211,10 +245,114 @@ describe('T7 e T9', () => {
     const el = await pronto('T9')
     expect(within(el).getAllByText(/\+1 frente;/).length).toBeGreaterThan(0)
   })
+
+  it('T9: um projeto sem data de início fica fora da conta, no singular', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetosSemInicio: number }) => (x.projetosSemInicio = 1),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(within(el).getByTestId('t9-nota-escopo')).toHaveTextContent(
+      '1 projeto sem data de início ficou fora desta conta.',
+    )
+  })
+
+  it('T9: vários projetos sem data de início ficam fora da conta, no plural', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetosSemInicio: number }) => (x.projetosSemInicio = 3),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(within(el).getByTestId('t9-nota-escopo')).toHaveTextContent(
+      '3 projetos sem data de início ficaram fora desta conta.',
+    )
+  })
+})
+
+describe('T9: estados de borda (UX T9-1, T9-2, T9-3)', () => {
+  it('todos os projetos sem início: o vazio mostra quantos ficaram fora, no plural', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: unknown[]; projetosSemInicio: number; base: { n: number } }) => {
+          x.projetos = []
+          x.base.n = 0
+          x.projetosSemInicio = 2
+        },
+      }),
+    })
+    const el = await screen.findByTestId('metrica-T9')
+    expect(await within(el).findByTestId('t9-nota-vazio')).toHaveTextContent(
+      '2 projetos sem data de início ficaram fora desta conta.',
+    )
+  })
+
+  it('vazio sem projetos fora da conta: nenhuma nota', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: unknown[]; projetosSemInicio: number; base: { n: number } }) => {
+          x.projetos = []
+          x.base.n = 0
+          x.projetosSemInicio = 0
+        },
+      }),
+    })
+    const el = await screen.findByTestId('metrica-T9')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'), { timeout: 8000 })
+    expect(within(el).queryByTestId('t9-nota-vazio')).toBeNull()
+  })
+
+  it('sem frente original: "Escopo sem frente original", sem percentual', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: { originais: number; adicionadas: number; totalFrentes: number }[] }) =>
+          x.projetos.forEach((p) => {
+            p.originais = 0
+            p.adicionadas = 1
+            p.totalFrentes = 1
+          }),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(
+      within(el).getAllByText(/Escopo sem frente original \(\+1 frente\)/).length,
+    ).toBeGreaterThan(0)
+    expect(within(el).queryByText(/Escopo cresceu/)).toBeNull()
+    expect(within(el).getByTestId('leitura-T9')).toHaveTextContent(
+      '1 frente foi adicionada depois do início: o projeto não tem frente original.',
+    )
+    expect(within(el).getByTestId('leitura-T9')).toHaveTextContent('de 1 frente concluída')
+  })
+
+  it('sem frente original com várias adicionadas: plural', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        T9: (x: { projetos: { originais: number; adicionadas: number; totalFrentes: number }[] }) =>
+          x.projetos.forEach((p) => {
+            p.originais = 0
+            p.adicionadas = 3
+            p.totalFrentes = 3
+          }),
+      }),
+    })
+    const el = await pronto('T9')
+    expect(
+      within(el).getAllByText(/Escopo sem frente original \(\+3 frentes\)/).length,
+    ).toBeGreaterThan(0)
+  })
+
+  it('a nota explica a regra sem vocabulário técnico', async () => {
+    renderizarCartao(<CartaoT9 filtros={FILTROS_FLUXO} />, { fonte: new FonteAjustada({}) })
+    const el = await pronto('T9')
+    expect(within(el).getByTestId('t9-nota-escopo')).toHaveTextContent(
+      'O sistema não registra quando a frente foi ligada ao projeto',
+    )
+  })
 })
 
 describe('Painel Tático: faixa "Pede atenção"', () => {
-  it('mais de uma classe fora da meta e mais de uma natureza com desvio: plural', async () => {
+  it('mais de uma prioridade fora da meta e mais de uma natureza com desvio: plural', async () => {
     renderizarApp(
       '/tatico',
       new FonteAjustada({
@@ -227,7 +365,7 @@ describe('Painel Tático: faixa "Pede atenção"', () => {
       }),
     )
     await screen.findByTestId('faixa-atencao')
-    expect(await screen.findByText(/abaixo da meta em \d+ classes/)).toBeInTheDocument()
+    expect(await screen.findByText(/abaixo da meta em \d+ prioridades/)).toBeInTheDocument()
     expect(
       await screen.findByText(/desvio acima de 10 p\.p\. em \d+ naturezas/),
     ).toBeInTheDocument()

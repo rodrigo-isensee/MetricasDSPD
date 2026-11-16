@@ -77,14 +77,14 @@ describe('métricas complementares: contratos e regras comuns', () => {
       }
   })
 
-  it('sem extensão: nada é publicado como 0% (S8, S11, S12 insuficientes; O17 e E4 sem partes)', () => {
+  it('sem extensão: nada é publicado como 0% (S8 e S12 insuficientes; conversão do S11 nula com o motivo; O17 e E4 sem partes)', () => {
     const t8 = calcularMetrica('T8', F, ctxSemExt)
     expect(t8.sprints).toEqual([])
     const o17 = calcularMetrica('O17', FS, ctxSemExt)
     expect(o17.campoDisponivel).toBe(false)
     expect(o17.porCausa).toBeNull()
     expect(o17.motivoCausaRaiz).toBe(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL)
-    expect(o17.motivoCausaRaiz).toContain('causa aparente')
+    expect(o17.motivoCausaRaiz).toContain('texto livre')
     // Pedido 099 (E3.20, B' da Q-099-7): a parte por sistema é dado real mesmo sem a extensão.
     expect(o17.base.n).toBeGreaterThan(0)
     expect(o17.porSistema.reduce((t, x) => t + x.n, 0)).toBe(o17.base.n)
@@ -98,8 +98,10 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(s8.meses.every((m) => m.reabertos === 0 && m.taxa.status === 'insuficiente')).toBe(true)
     expect(s8.cobertura.n).toBe(0)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
-    expect(s11.campoDisponivel).toBe(false)
-    expect(s11.conversao.status).toBe('insuficiente')
+    expect(s11.campoDisponivel).toBe(true) // pedido 105 (D6a): a avaliação é dado real
+    expect(s11.conversao).not.toBeNull() // E7.101: a conversão sai do campo, com ou sem extensão
+    expect(s11.motivoConversao).toBeNull()
+    expect(calcularMetrica('S11', FS, ctxMock).motivoConversao).toBeNull()
     const s12 = calcularMetrica('S12', FS, ctxSemExt)
     expect(s12.campoDisponivel).toBe(false)
     expect(s12.reincidencia.every((x) => x.proporcao.status === 'insuficiente')).toBe(true)
@@ -165,7 +167,7 @@ describe('O5 eficiência de fluxo', () => {
   it('separa execução, fila e bloqueio: a soma das horas é o ciclo', () => {
     const bloqueios: FatoBloqueio[] = Array.from({ length: 25 }, (_, i) => ({
       card_id: `C${i}`,
-      motivo: 'Aguardando fornecedor',
+      motivo: 'Dependência Externa',
       coluna_em_que_bloqueou: 'Em revisão',
       fornecedor: null,
       inicio: Date.parse('2026-09-03T08:00-03:00'),
@@ -232,7 +234,16 @@ describe('O6 previsibilidade e O8 tamanho', () => {
     const r = calcularMetrica('O8', F, { bm: com, ac: ctxMock.ac })
     expect(r.motivoPorTamanho).toBeNull()
     const t = r.tipos[0]
-    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual(['M', 'Sem tamanho'])
+    // 105 (E7.102): as seis faixas sempre, depois "Sem tamanho" (aqui com entregas)
+    expect(t?.porTamanho?.map((x) => x.tamanho)).toEqual([
+      'PP',
+      'P',
+      'M',
+      'G',
+      'GG',
+      'XG',
+      'Sem tamanho',
+    ])
     expect(t?.porTamanho?.find((x) => x.tamanho === 'M')?.mediana).not.toBeNull()
     expect(t?.porTamanho?.find((x) => x.tamanho === 'Sem tamanho')?.mediana).toBeNull()
   })

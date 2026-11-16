@@ -10,16 +10,16 @@ import { hashJson } from './prng'
  */
 describe('B11a: ajuste do mock da fase 1', () => {
   it('Acelerato intacto: hash da base (escala 1 e 0,2) igual ao de antes do ajuste', () => {
-    expect(hashJson(gerarBaseMock().ac)).toBe('930570e9')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('692530cf')
+    expect(hashJson(gerarBaseMock().ac)).toBe('797abc95')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }).ac)).toBe('4a73ffc7')
   })
 
   it('sem nenhum passo, a base do BusinessMap é a de antes (hash anterior), com ou sem a opção "tambem: false"', () => {
-    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO, { tambem: false }))).toBe('30aff592')
+    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO, { tambem: false }))).toBe('858acf56')
     expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO, { omitir: PASSOS_TAMBEM }))).toBe(
-      '30aff592',
+      '858acf56',
     )
-    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO))).not.toBe('30aff592')
+    expect(hashJson(gerarBaseBusinessMap(CONFIG_PADRAO))).not.toBe('858acf56')
   })
 
   it('streams próprias: o que nenhum passo toca sai idêntico e nenhum card some, só os de projeto parado entram', () => {

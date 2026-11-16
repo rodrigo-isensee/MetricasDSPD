@@ -32,12 +32,12 @@ async function abrirBloqueados(itens: Q[]) {
 
 describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
   it('CA-1, CA-3, CA-4 e CA-11: BLOQUEADOS com itálico, ícone decorativo, leitura e apoios', async () => {
-    const el = await abrirBloqueados([item(NC, 9), item('Janela de mudança', 2)])
+    const el = await abrirBloqueados([item(NC, 9), item('Aguardando publicação GMUD', 2)])
     const tabela = within(el).getByTestId('tabela-BLOQUEADOS')
     const texto = within(tabela).getByText(NC)
     expect(texto).toHaveClass('italic', 'text-texto-2')
     expect(texto.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
-    expect(within(tabela).getByText('Janela de mudança')).not.toHaveClass('italic')
+    expect(within(tabela).getByText('Aguardando publicação GMUD')).not.toHaveClass('italic')
     expect(el).toHaveTextContent('bloqueado há 9 dias úteis por motivo não classificado.')
     expect(el).not.toHaveTextContent('por "não classificado"')
     const apoio = within(el).getByTestId('apoio-nao-classificado')
@@ -102,8 +102,8 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
             ...COMUM,
             motivos: [
               m(NC, 40, 70),
-              m('Janela de mudança', 25, 20),
-              m('Aguardando fornecedor', 30, 10),
+              m('Aguardando publicação GMUD', 25, 20),
+              m('Dependência Externa', 30, 10),
             ],
             abertosForaDaSoma: 0,
             totalDiasUteis: 100,
@@ -114,13 +114,13 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
       await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
       const linhas = within(within(el).getByTestId('tabela-O19')).getAllByRole('row').slice(1)
       expect(linhas.map((l) => l.querySelector('th')?.textContent)).toEqual([
-        'Janela de mudança',
-        'Aguardando fornecedor',
+        'Aguardando publicação GMUD',
+        'Dependência Externa',
         NC,
       ])
       expect(within(linhas[2] as HTMLElement).getByText(NC)).toHaveClass('italic')
       expect(within(linhas[2] as HTMLElement).getAllByRole('cell')[1]).toHaveTextContent('70')
-      expect(el).toHaveTextContent('Janela de mudança somou 20 dias úteis')
+      expect(el).toHaveTextContent('Aguardando publicação GMUD somou 20 dias úteis')
       expect(el).toHaveTextContent(
         'Bloqueio sem motivo classificado somou 70 dias úteis em 40 bloqueios.',
       )

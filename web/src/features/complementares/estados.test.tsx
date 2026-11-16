@@ -1,7 +1,12 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import type { ComponentType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
+import {
+  MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
+  type FiltrosDe,
+  type MetricaId,
+  type ResultadoDe,
+} from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { FILTROS_FLUXO, FILTROS_SUSTENTACAO } from '@/features/painel/testes/fonteFixa'
 import { fonteDeTeste, renderizarCartao } from '@/test/helpers'
@@ -148,5 +153,117 @@ describe.each(['E4', 'S8', 'S11', 'S12'])('%s: campo sem fonte', (codigo) => {
     expect(aviso.querySelector('svg')).not.toBeNull()
     expect(el).not.toHaveTextContent(/amostra insuficiente/i)
     expect(within(el).queryByRole('img')).not.toBeInTheDocument()
+  })
+})
+
+/** S11 pela Decisão 18b: conversão nula vira "sem dado real" com o motivo, nunca 0; semFluxo aparece. */
+class FonteS11 extends MockFonteMetricas {
+  private readonly semFluxo: number
+  private readonly comConversao: boolean
+  private readonly extra: Record<string, unknown>
+  private readonly conversaoPronta: unknown
+  constructor(
+    semFluxo: number,
+    comConversao = false,
+    extra: Record<string, unknown> = {},
+    conversaoPronta?: unknown,
+  ) {
+    super({ latenciaMs: 0 })
+    this.semFluxo = semFluxo
+    this.comConversao = comConversao
+    this.extra = extra
+    this.conversaoPronta = conversaoPronta
+  }
+  override async obter<K extends MetricaId>(id: K, filtros: FiltrosDe<K>): Promise<ResultadoDe<K>> {
+    const r = (await fonteDeTeste.obter(id, filtros)) as ResultadoDe<'S11'>
+    const conversao =
+      this.conversaoPronta ??
+      (this.comConversao ? { ...r.escopo, status: 'ok' as const, k: 12, n: 40, valor: 0.3 } : null)
+    return {
+      ...r,
+      ...this.extra,
+      conversao,
+      motivoConversao: conversao !== null ? null : MOTIVO_S11_CONVERSAO_SEM_DADO_REAL,
+      semFluxo: this.semFluxo,
+    } as unknown as ResultadoDe<K>
+  }
+}
+
+describe('S11: conversão e chamados fora do fluxo', () => {
+  const abrir = async (fonte: MockFonteMetricas) => {
+    renderizarCartao(<CartaoS11 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    return screen.findByTestId('metrica-S11')
+  }
+  it('conversão nula: "sem dado real" com o nome da linha e o motivo, e nota no plural', async () => {
+    const el = await abrir(new FonteS11(7))
+    await waitFor(() => expect(el).toHaveTextContent('sem dado real'))
+    expect(el).toHaveTextContent(
+      'Avaliações que viraram Registro de Problema: sem dado real. Aguardando o vínculo do chamado com o Registro de Problema.',
+    )
+    expect(el).not.toHaveTextContent('Conversão sem dado real')
+    const nota = within(el).getByTestId('s11-fora-do-fluxo')
+    expect(nota).toHaveTextContent('7 chamados ficaram fora desta métrica')
+    expect(nota.querySelector('svg')).not.toBeNull()
+  })
+  it('um chamado fora: nota no singular', async () => {
+    const el = await abrir(new FonteS11(1))
+    const nota = await within(el).findByTestId('s11-fora-do-fluxo')
+    expect(nota).toHaveTextContent('1 chamado ficou fora desta métrica: não tem fluxo definido')
+  })
+  it('nenhum fora: a nota some', async () => {
+    const el = await abrir(new FonteS11(0))
+    await within(el).findByRole('table')
+    expect(within(el).queryByTestId('s11-fora-do-fluxo')).not.toBeInTheDocument()
+  })
+  it('conversão com valor: mostra o percentual e não o texto "sem dado real" nem o motivo', async () => {
+    const el = await abrir(new FonteS11(0, true))
+    const bloco = await within(el).findByTestId('s11-conversao')
+    expect(bloco).not.toHaveTextContent('sem dado real')
+    expect(bloco).toHaveTextContent(/viraram Registro de Problema: .*\d+%/)
+    expect(bloco).toHaveTextContent('Base: 40 avaliações.')
+    expect(bloco).not.toHaveTextContent('Amostra insuficiente')
+    expect(within(el).queryByRole('row', { name: /viraram Registro/ })).not.toBeInTheDocument()
+    expect(el).not.toHaveTextContent('a base ainda não liga')
+  })
+  const insuficiente = (n: number) => ({ status: 'insuficiente', k: 0, n })
+  it('conversão insuficiente: texto de amostra insuficiente, sem "0 de 13" e sem percentual', async () => {
+    const el = await abrir(new FonteS11(0, false, {}, insuficiente(13)))
+    const bloco = await within(el).findByTestId('s11-conversao')
+    expect(bloco).toHaveTextContent(
+      'Avaliações que viraram Registro de Problema: Amostra insuficiente (13 avaliações)',
+    )
+    expect(bloco).toHaveTextContent('há 13 avaliações registradas e são precisas pelo menos 20')
+    expect(bloco).toHaveTextContent('Isto não significa zero.')
+    expect(el).not.toHaveTextContent('0 de 13')
+    expect(bloco).not.toHaveTextContent('%')
+    expect(bloco).not.toHaveTextContent(/fora da conversão/)
+  })
+  it('conversão insuficiente com 1 avaliação: singular', async () => {
+    const el = await abrir(new FonteS11(0, false, {}, insuficiente(1)))
+    const bloco = await within(el).findByTestId('s11-conversao')
+    expect(bloco).toHaveTextContent('Amostra insuficiente (1 avaliação)')
+    expect(bloco).toHaveTextContent('há 1 avaliação registradas')
+  })
+  it('fora da conversão: 0 e ausente não mostram a frase', async () => {
+    for (const extra of [{ foraDaConversao: 0 }, { foraDaConversao: undefined }]) {
+      const el = await abrir(new FonteS11(0, true, extra))
+      await within(el).findByTestId('s11-conversao')
+      expect(el).not.toHaveTextContent('fora da conversão')
+      cleanup()
+    }
+  })
+  it('fora da conversão: 1 no singular e 3 no plural, com a razão', async () => {
+    const um = await abrir(new FonteS11(0, true, { foraDaConversao: 1 }))
+    const b1 = await within(um).findByTestId('s11-conversao')
+    expect(b1).toHaveTextContent(
+      '1 avaliação ficou fora da conversão: esse chamado não tem decisão registrada no campo.',
+    )
+    cleanup()
+    const tres = await abrir(new FonteS11(0, true, { foraDaConversao: 3 }))
+    const b3 = await within(tres).findByTestId('s11-conversao')
+    expect(b3).toHaveTextContent(
+      '3 avaliações ficaram fora da conversão: esses chamados não têm decisão registrada no campo.',
+    )
+    expect(b3).not.toHaveTextContent(/PROC|fluxos antigos|vínculo/)
   })
 })

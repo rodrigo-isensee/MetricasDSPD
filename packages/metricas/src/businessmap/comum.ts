@@ -1,6 +1,5 @@
 import type {
   BaseAmostral,
-  ClasseServico,
   Granularidade,
   Intervalo,
   Janela,
@@ -13,6 +12,7 @@ import { criteriosDe } from '../core/criterios'
 import { JANELA_POR_GRANULARIDADE, janelaMovel } from '../core/janela'
 import { resolverPeriodo } from '../core/series'
 import type { ContextoBM, MarcosCard } from './indice'
+import type { DimCard } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
 import { slug } from '../slug'
 
@@ -81,8 +81,10 @@ export function selecionar(
 }
 
 /** Demanda entregável ao solicitante: story que não é bug interno (4.2). */
-export const ehDemanda = (m: MarcosCard): boolean =>
-  m.card.granularidade === 'story' && m.card.tipo !== 'Bug interno'
+export const ehDemandaCard = (c: Pick<DimCard, 'granularidade' | 'tipo'>): boolean =>
+  c.granularidade === 'story' && c.tipo !== 'Bug interno'
+
+export const ehDemanda = (m: MarcosCard): boolean => ehDemandaCard(m.card)
 
 export const dentro = (ctx: ContextoBM, ms: number | null, j: Intervalo): boolean => {
   if (ms === null) return false
@@ -101,12 +103,19 @@ export const baseAmostral = (
 export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ctx: ContextoBM) =>
   criteriosDe(id, serie, janela, ctx.criterios)
 
-export const CLASSES_T: readonly ClasseServico[] = [
-  'Urgente',
-  'Prioritário',
-  'Prazo fixo',
-  'Padrão',
-]
+/**
+ * Regra do T9 (decisão do dono D-T9 "T9 A"): frente adicionada depois do início = frente criada (`criado_em`) depois do início do projeto
+ * (`iniciado_em`). Projeto sem início não tem referência: nenhuma frente conta como adicionada. A criada antes e ligada depois conta como
+ * original (a base não guarda o instante do vínculo). Fonte única do T9 e do E5.
+ */
+export const frenteAdicionadaAposInicio = (
+  frente: Pick<DimCard, 'criado_em'>,
+  inicioProjeto: number | null,
+): boolean => inicioProjeto !== null && frente.criado_em > inicioProjeto
+
+/** Cards sem prioridade: ficam fora da separação por nível e são contados à parte (E7.100, P-3), nunca Média por omissão. */
+export const semPrioridadeDe = <T extends MarcosCard>(xs: readonly T[]): T[] =>
+  xs.filter((m) => m.card.prioridade === null)
 export const r2 = (v: number): number => Math.round(v * 100) / 100
 
 /**
