@@ -73,6 +73,15 @@ export function CartaoO17({ filtros }: P) {
   )
 }
 
+/** S8: quantos incidentes ficaram sem resposta no campo (campo `semResposta`; sem ele, total menos com resposta). */
+function textoSemResposta(r: {
+  semResposta?: number | undefined
+  cobertura: { n: number; total: number }
+}): string {
+  const sem = r.semResposta ?? r.cobertura.total - r.cobertura.n
+  return `${fmtInteiro(sem)} ${sem === 1 ? 'incidente sem resposta' : 'incidentes sem resposta'} no campo.`
+}
+
 /** S8: taxa de reabertura de incidentes, com a referência do briefing. */
 export function CartaoS8({ filtros }: P) {
   const q = useMetrica('S8', filtros)
@@ -108,7 +117,8 @@ export function CartaoS8({ filtros }: P) {
           {r.cobertura.n < r.cobertura.total && (
             <p className="text-sm text-atencao" data-testid="cobertura-S8">
               Com resposta em {fmtInteiro(r.cobertura.n)} de {fmtInteiro(r.cobertura.total)}{' '}
-              incidentes. A taxa considera só os que têm resposta (sim ou não).
+              incidentes. A taxa considera só os que têm resposta (sim ou não).{' '}
+              <span data-testid="sem-resposta-S8">{textoSemResposta(r)}</span>
             </p>
           )}
           <TabelaDados

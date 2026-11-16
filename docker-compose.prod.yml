@@ -1,0 +1,94 @@
+# Produção na VM da empresa (pedido 105, E7.270). O PostgreSQL 17 e o HTTPS são da empresa: aqui NÃO há serviço postgres e NÃO há senha padrão.
+# Toda variável obrigatória sem valor faz `docker compose config` e `up` falharem com a mensagem (${VAR:?}); nada cai num valor de desenvolvimento.
+# Uso: ver docs/devops/105-implantacao-vm.md (COMPOSE_FILE e COMPOSE_ENV_FILES apontando para este arquivo e para /etc/metricas-dspd/compose.env).
+# Papéis dspd_webhook, dspd_automacao e dspd_pesquisa ficam NOLOGIN (deploy/sql/00_papeis_e_banco.sql, gerado por `pnpm run db:sql`): por isso nenhuma URL deles aparece aqui.
+# TLS: sslmode=verify-full fixo (no pg 8, `require` já valia isso; nunca baixar). A CA do servidor entra por DB_CA_ARQUIVO (PEM no host, montado só leitura) e NODE_EXTRA_CA_CERTS.
+# DB_HOST precisa ser o nome que consta no certificado do servidor (IP fora do certificado falha).
+name: ${COMPOSE_PROJECT_NAME:-metricasdspd}
+
+x-servidor: &servidor
+  build: { context: ., dockerfile: server/Dockerfile }
+
+# Teto de log dos contêineres (json-file): 5 arquivos de 10 MB por serviço, para o log não encher o disco da VM. Ler: `docker compose logs --tail 200 api`.
+x-log: &log
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+services:
+  migrate:
+    <<: *servidor
+    command: ["node", "--import", "tsx", "src/entradas/migrar.ts"]
+    environment:
+      NODE_EXTRA_CA_CERTS: /segredos-db/ca.pem
+      PG_MIGRADOR_URL: postgres://dspd_migrador:${DSPD_PWD_MIGRADOR:?defina DSPD_PWD_MIGRADOR}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+    volumes:
+      - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
+    restart: "no"
+    logging: *log
+
+  api:
+    <<: *servidor
+    environment:
+      NODE_EXTRA_CA_CERTS: /segredos-db/ca.pem
+      PG_API_URL: postgres://dspd_api:${DSPD_PWD_API:?defina DSPD_PWD_API}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      PG_APONTAMENTO_URL: postgres://dspd_api_apontamento:${DSPD_PWD_APONTAMENTO:?defina DSPD_PWD_APONTAMENTO}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      APONTAMENTO_NOMES: "0"
+      APONTAMENTO_PUBLICACAO_LOOPBACK: "1"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
+    ports: ["127.0.0.1:${API_PORT:-3000}:3000"]
+    restart: unless-stopped
+    logging: *log
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  worker:
+    <<: *servidor
+    command: ["node", "--import", "tsx", "src/entradas/worker.ts"]
+    environment:
+      NODE_EXTRA_CA_CERTS: /segredos-db/ca.pem
+      PG_COLETOR_URL: postgres://dspd_coletor:${DSPD_PWD_COLETOR:?defina DSPD_PWD_COLETOR}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+    logging: *log
+
+  # Coleta agendada (deploy/systemd/): `docker compose --profile coleta run --rm coleta <script> [args]`.
+  # Única que recebe a apikey do BusinessMap, a senha do MySQL do Acelerato e PESSOA_ELIMINADA_SAL, vindas do COLETA_ENV_FILE (600) do host.
+  coleta:
+    <<: *servidor
+    profiles: ["coleta"]
+    entrypoint: ["node", "--import", "tsx"]
+    command: ["src/entradas/coleta-businessmap.ts", "incremental", "--projetar"]
+    env_file:
+      - path: ${COLETA_ENV_FILE:-/etc/metricas-dspd/coleta.env}
+        required: false
+    environment:
+      NODE_EXTRA_CA_CERTS: /segredos-db/ca.pem
+      PG_COLETOR_URL: postgres://dspd_coletor:${DSPD_PWD_COLETOR:?defina DSPD_PWD_COLETOR}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      PG_REF_URL: postgres://dspd_ref:${DSPD_PWD_REF:?defina DSPD_PWD_REF}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ${COLETA_SEGREDOS_DIR:-/etc/metricas-dspd/segredos}:/segredos:ro
+      - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
+    restart: "no"
+    logging: *log
+
+  # O HTTPS é da empresa (proxy reverso na frente): a porta fica só em 127.0.0.1.
+  web:
+    build: { context: ., dockerfile: docker/web/Dockerfile }
+    ports: ["127.0.0.1:${WEB_PORT:-8080}:80"]
+    restart: unless-stopped
+    logging: *log
+    depends_on:
+      api: { condition: service_healthy }

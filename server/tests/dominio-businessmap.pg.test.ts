@@ -2,7 +2,6 @@ import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { dominiosDaColeta } from '../src/modulos/businessmap/coleta.js';
 import { analisarDominioBm, lerDominioBm, referenciaDaVersaoBm, sincronizarDominioBm } from '../src/modulos/businessmap/dominio-businessmap.js';
-import { ErroDominio } from '../src/modulos/referencia/dominio-acelerato.js';
 import type { PoolLike } from '../src/plataforma/db/pool.js';
 import { poolDe, S, url } from './pg/ctx.js';
 
@@ -146,11 +145,20 @@ d('bm:ref-sync contra PostgreSQL (papel dspd_ref, vigência, versão de critéri
     });
   });
 
-  it('mudança no mesmo dia da vigência aberta é recusada e nada é gravado', async () => {
+  it('mudança no mesmo dia da vigência aberta: só esse campo é recusado (nada gravado nele) e os outros campos gravam (K-383)', async () => {
     await comoRef(async (pool, c) => {
       await sincronizarDominioBm(pool, S, analisarDominioBm(texto([campo()]), TIPOS), D1, AGORA);
       const antes = await linhas(c, 'area_solicitante');
-      await expect(sincronizarDominioBm(pool, S, analisarDominioBm(texto([campo('Outra')]), TIPOS), D1, AGORA)).rejects.toBeInstanceOf(ErroDominio);
+      const t = (rotulo: string, m: unknown[]): string => JSON.stringify({ ...JSON.parse(texto([campo(rotulo)], rotulo)), motivo_bloqueio: m });
+      const r = await sincronizarDominioBm(pool, S, analisarDominioBm(t('Outra', [{ codigo: '9', rotulo: 'Aguardando publicação GMUD' }]), TIPOS), D1, AGORA);
+      expect(r).toMatchObject({ inseridas: 1, fechadas: 0, versaoRegistrada: true });
+      expect(r.recusados.map((x) => x.campo)).toEqual(['area_solicitante']);
+      expect(await linhas(c, 'area_solicitante')).toEqual(antes);
+      expect((await linhas(c, 'motivo_bloqueio')).map((l) => l.codigo)).toEqual(['9']);
+      // repetir o mesmo arquivo: o campo gravado agora é igual (pulado) e o recusado segue recusado, sem erro
+      const r2 = await sincronizarDominioBm(pool, S, analisarDominioBm(t('Outra', [{ codigo: '9', rotulo: 'Aguardando publicação GMUD' }]), TIPOS), D1, AGORA);
+      expect(r2).toMatchObject({ inseridas: 0, fechadas: 0 });
+      expect(r2.recusados.map((x) => x.campo)).toEqual(['area_solicitante']);
       expect(await linhas(c, 'area_solicitante')).toEqual(antes);
     });
   });

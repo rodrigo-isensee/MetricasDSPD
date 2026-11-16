@@ -1,7 +1,7 @@
 // Gera os scripts SQL das migrações para o DBA (pedido 105, E7.246). Não é chamado direto: use `pnpm run db:sql`
 // (scripts/gerar-sql-migracoes.sh), que sobe um Postgres descartável, e roda este arquivo via tsx dentro de `server/`.
 // Fases: `arquivos` (papéis + um .sql por migração, lidos de server/migrations/*.ts, sem banco) e `grants` (GRANTs + consolidado,
-// lidos do catálogo do banco descartável já migrado, PG_MIGRADOR_URL). Nenhum segredo: senhas são variáveis do psql.
+// lidos do catálogo do banco descartável já migrado, PG_MIGRADOR_URL). Nenhum segredo: senhas vêm do ambiente, lidas pelo psql (\getenv).
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
@@ -15,10 +15,12 @@ const COMANDO = 'pnpm run db:sql';
 const CAB = `-- GERADO por \`${COMANDO}\` a partir de server/migrations. Não edite à mão: mude a migração e gere de novo.\n-- Sem segredo neste arquivo.\n`;
 const PREPARO = '0000_preparo.sql';
 const GRANTS = '9000_grants.sql';
+// Cinco papéis de login (senha lida por \getenv, nunca por -v) e três sem uso em produção (NOLOGIN, sem senha, sem CONNECT).
 const PAPEL_SENHA = [
-  ['dspd_migrador', 'pwd_migrador'], ['dspd_coletor', 'pwd_coletor'], ['dspd_api', 'pwd_api'], ['dspd_ref', 'pwd_ref'],
-  ['dspd_webhook', 'pwd_webhook'], ['dspd_automacao', 'pwd_automacao'], ['dspd_pesquisa', 'pwd_pesquisa'], ['dspd_api_apontamento', 'pwd_apontamento'],
+  ['dspd_migrador', 'pwd_migrador', 'PWD_MIGRADOR'], ['dspd_coletor', 'pwd_coletor', 'PWD_COLETOR'], ['dspd_api', 'pwd_api', 'PWD_API'],
+  ['dspd_ref', 'pwd_ref', 'PWD_REF'], ['dspd_api_apontamento', 'pwd_apontamento', 'PWD_APONTAMENTO'],
 ];
+const PAPEL_SEM_LOGIN = ['dspd_webhook', 'dspd_automacao', 'dspd_pesquisa'];
 const fim = (s) => (s.trimEnd().endsWith(';') ? s.trimEnd() : `${s.trimEnd()};`);
 const escrever = (nome, txt) => writeFileSync(join(SAIDA, nome), txt, 'utf8');
 const bloco = (nome, instrucoes, registra) =>
@@ -31,20 +33,36 @@ const S = montarEsquemas('');
 if (fase === 'arquivos') {
   mkdirSync(SAIDA, { recursive: true });
   for (const f of readdirSync(SAIDA)) if (f.endsWith('.sql')) rmSync(join(SAIDA, f));
-  // Papéis e banco: o DBA roda uma vez, como administrador, com as senhas em variáveis do psql (-v pwd_x=...).
+  // Papéis e banco: o DBA roda uma vez, como administrador; senhas por variável de AMBIENTE (\getenv), nunca por -v (histórico e lista de processos).
+  const ler = PAPEL_SENHA.map(([, v, e]) => `\\getenv ${v} ${e}`).join('\n');
+  // Conferência antes do primeiro CREATE: variável ausente ou vazia para o script, nomeando a que falta (nada é criado pela metade).
+  const conferir = PAPEL_SENHA.map(([, v, e]) =>
+    `\\if :{?${v}}\n\\else\n  DO $$ BEGIN RAISE EXCEPTION 'falta a variável de ambiente ${e}; nada foi criado'; END $$;\n\\endif\n` +
+    `SELECT (btrim(:'${v}') = '') AS ${v}_vazia \\gset\n\\if :${v}_vazia\n  DO $$ BEGIN RAISE EXCEPTION '${e} está vazia ou só de espaços; nada foi criado'; END $$;\n\\endif`).join('\n');
   const criar = PAPEL_SENHA.map(([p, v]) => `CREATE ROLE ${p} LOGIN PASSWORD :'${v}';`).join('\n');
-  const todos = PAPEL_SENHA.map(([p]) => p).join(', ');
-  escrever('00_papeis_e_banco.sql', `${CAB}-- Roda UMA vez, como administrador, conectado ao banco \`postgres\`:
---   psql -v ON_ERROR_STOP=1 -h <servidor> -U <administrador> -d postgres \\
---     -v pwd_migrador=... -v pwd_coletor=... -v pwd_api=... -v pwd_ref=... -v pwd_webhook=... -v pwd_automacao=... -v pwd_pesquisa=... -v pwd_apontamento=... \\
---     -f 00_papeis_e_banco.sql
--- Se a empresa já criou o banco \`metricas\` (UTF8), apague a linha CREATE DATABASE. As senhas ficam no .env da VM, nunca aqui.
+  const semLogin = PAPEL_SEM_LOGIN.map((p) => `CREATE ROLE ${p} NOLOGIN;`).join('\n');
+  const logins = PAPEL_SENHA.map(([p]) => p).join(', ');
+  const envs = PAPEL_SENHA.map(([, , e]) => e).join(', ');
+  escrever('00_papeis_e_banco.sql', `${CAB}-- Roda UMA vez, como administrador, conectado ao banco \`postgres\` (psql 15 ou mais novo, por causa do \\getenv).
+-- Antes, no shell do DBA: \`read -rs <VARIAVEL>; export <VARIAVEL>\` para cada uma de ${envs}; \`unset\` ao terminar.
+--   psql "host=<servidor> dbname=postgres sslmode=verify-full" -v ON_ERROR_STOP=1 -f 00_papeis_e_banco.sql
+-- Variável ausente ou vazia: o script para antes do primeiro CREATE e diz qual falta (falha fechada, nada é criado). Nenhuma senha vai na linha de comando; os SET do começo (antes de qualquer comando que leia uma senha) tiram o comando com senha do log do servidor, mesmo com log_statement=all, log_min_duration_statement=0 ou erro no CREATE ROLE.
+-- webhook, automação e pesquisa ficam NOLOGIN, sem senha e sem CONNECT (existem só para os GRANTs das migrações); ligar um deles é decisão do dono.
+-- Se falhar no meio, nada é desfeito sozinho: veja "Se o roteiro de papéis falhar" em docs/devops/105-implantacao-vm.md.
+-- Se a empresa já criou o banco \`metricas\` (UTF8), apague a linha CREATE DATABASE.
+\\set ON_ERROR_STOP on
+SET log_statement = 'none';
+SET log_min_duration_statement = -1;
+SET log_min_error_statement = panic;
+${ler}
+${conferir}
 ${criar}
+${semLogin}
 CREATE DATABASE metricas ENCODING 'UTF8' TEMPLATE template0;
 \\connect metricas
 ALTER DATABASE metricas SET timezone TO 'UTC';
 REVOKE ALL ON DATABASE metricas FROM PUBLIC;
-GRANT CONNECT ON DATABASE metricas TO ${todos};
+GRANT CONNECT ON DATABASE metricas TO ${logins};
 GRANT CREATE ON DATABASE metricas TO dspd_migrador;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 `);

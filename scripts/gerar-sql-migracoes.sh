@@ -20,7 +20,7 @@ for _ in $(seq 1 60); do
 done
 psqla -d postgres -c "SELECT 1" >/dev/null || { echo "Postgres descartável não subiu" >&2; exit 1; }
 # Os próprios SQL de papéis e banco, com senhas de mentira.
-psqla -d postgres -v pwd_migrador=x -v pwd_coletor=x -v pwd_api=x -v pwd_ref=x -v pwd_webhook=x -v pwd_automacao=x -v pwd_pesquisa=x -v pwd_apontamento=x < deploy/sql/00_papeis_e_banco.sql
+docker exec -i -e PWD_MIGRADOR=x -e PWD_COLETOR=x -e PWD_API=x -e PWD_REF=x -e PWD_APONTAMENTO=x "$NOME" psql -v ON_ERROR_STOP=1 -q -U postgres -d postgres < deploy/sql/00_papeis_e_banco.sql
 export PG_MIGRADOR_URL="postgres://dspd_migrador:x@127.0.0.1:$PORTA/metricas"
 # Caminho A: o runner real da aplicação (db:migrate).
 pnpm --filter @metricas-dspd/server run migrate >/dev/null
@@ -28,7 +28,7 @@ gerar grants
 # Caminho B: o consolidado gerado, em outro banco descartável, para provar que dá o mesmo esquema.
 psqla -d postgres -c "CREATE DATABASE metricas_b ENCODING 'UTF8' TEMPLATE template0" -c "ALTER DATABASE metricas_b SET timezone TO 'UTC'" \
   -c "GRANT CONNECT, CREATE ON DATABASE metricas_b TO dspd_migrador" \
-  -c "GRANT CONNECT ON DATABASE metricas_b TO dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento"
+  -c "GRANT CONNECT ON DATABASE metricas_b TO dspd_coletor, dspd_api, dspd_ref, dspd_api_apontamento"
 psqla -d metricas_b -c "REVOKE ALL ON SCHEMA public FROM PUBLIC"
 docker exec -i "$NOME" psql -v ON_ERROR_STOP=1 -q -U dspd_migrador -d metricas_b < deploy/sql/consolidado.sql
 dump() { docker exec "$NOME" pg_dump -U postgres --schema-only --no-owner "$1" | grep -v '^\\' | grep -v '^--'; }
