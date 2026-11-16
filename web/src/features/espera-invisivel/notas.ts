@@ -23,6 +23,6 @@ export const NOTAS_EI: Record<'FL1' | 'FL2' | 'FL3' | 'SUST', TextoNota> = {
     comoSeCalcula:
       'Visão do cliente: soma do tempo de todas as etapas do chamado, sem as etapas finais (Concluído, Encerramento, Causa Raiz e Revisão). Visão do time: a do cliente menos as esperas (Pendente, Aguardando Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança e Validação, as mesmas que pausam o SLA) e a fila inicial (Novo, Novo Atendimento, Em triagem e Aguardando Atribuição). Índice = (cliente − time) ÷ cliente, sobre as medianas da mesma janela, por prioridade. Com menos de 20 chamados na prioridade, nenhuma das duas visões é publicada.',
     cuidados:
-      'Aguardando Equipe Interna, Aprovação, Mudança e Data Acordada ainda não foram classificadas: contam como tempo do time, então o índice sai conservador (menor), e o tempo nelas é informado à parte. Vem de outra fonte (Acelerato): não compare com os níveis do BusinessMap. Horas úteis, por prioridade.',
+      'Aguardando Equipe Interna, Aprovação, Mudança e Data Acordada ainda não foram classificadas: contam como tempo do time, então o índice sai conservador (menor), e o tempo nelas é informado à parte, na tabela "Composição dos chamados da janela" do cartão (com chamados sem etapas, fila inicial e etapas finais). Vem de outra fonte (Acelerato): não compare com os níveis do BusinessMap. Horas úteis, por prioridade.',
   },
 }
