@@ -35,22 +35,47 @@ const recusa = (texto: string, tipos: readonly string[] = TIPOS_DO_TESTE): strin
 };
 
 describe('bm:ref-sync: o arquivo versionado', () => {
-  it('E7.86: o arquivo traz só o campo 48 (Causa Raiz, dropdown) com as 12 opções do dono, e a lista positiva de tipos é só dropdown', () => {
+  it('E7.203: os campos 48 e 49 trazem o value_id de cada opção (catálogo do spike); o 49 tem as 6 opções; value_id vira lista valor_id_<coluna> no ref_dominio', () => {
+    const lido = lerDominioBm();
+    const ids48 = lido.arquivo.campos[0]!.valores.map((v) => v.value_id);
+    expect([...ids48].sort()).toEqual(['114', '115', '116', '117', '118', '119', '120', '121', '122', '123', '124', '125']);
+    expect(lido.arquivo.campos[1]).toMatchObject({ field_id: '49', type: 'dropdown', coluna: 'origem_demanda' });
+    expect(lido.arquivo.campos[1]!.valores.map((v) => [v.value_id, v.codigo])).toEqual([
+      ['126', 'Erro em entrega anterior'], ['127', 'Configuração incorreta'], ['128', 'Falta de treinamento do usuário'],
+      ['129', 'Informação não repassada'], ['130', 'Processo manual que deveria estar automatizado'], ['131', 'Demanda nova'],
+    ]);
+    const listas = listasDoArquivo(lido.arquivo);
+    expect(listas['valor_id_causa_raiz']).toHaveLength(12);
+    expect(listas['valor_id_origem_demanda']![0]).toEqual({ codigo: '126', rotulo: 'Erro em entrega anterior' });
+    expect(listas['origem_demanda']![0]).toEqual({ codigo: 'Erro em entrega anterior', rotulo: '1. Erro em entrega anterior' });
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17']);
+  });
+
+  it('E7.203: value_id repetido ou não numérico no arquivo é recusado', () => {
+    const ruim = JSON.parse(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')) as { campos: { valores: { value_id?: string }[] }[] };
+    ruim.campos[0]!.valores[1]!.value_id = ruim.campos[0]!.valores[0]!.value_id!;
+    expect(() => analisarDominioBm(JSON.stringify(ruim))).toThrow(ErroDominio);
+    ruim.campos[0]!.valores[1]!.value_id = '12a';
+    expect(() => analisarDominioBm(JSON.stringify(ruim))).toThrow(ErroDominio);
+  });
+
+  it('E7.86: o arquivo traz o campo 48 (Causa Raiz, dropdown) com as 12 opções do dono, e a lista positiva de tipos é só dropdown', () => {
     const lido = lerDominioBm();
     // Escrito AQUI, não importado do código (B-1 da ADR 0020): rótulos exatamente como o dono passou, na ordem dele.
-    const ROTULOS = ['Requisito mal definido', 'Requisito alterado', 'Erro de lógica / codificação', 'Falha de integração', 'Dados / massa de teste',
-      'Configuração de ambiente', 'Efeito colateral', 'Dependência externa', 'Teste insuficiente', 'Layout / interface', 'Não é bug', 'Outros'];
-    expect(lido.arquivo.campos).toHaveLength(1);
+    const ROTULOS = ['Requisitos mal definidos', 'Requisito alterado', 'Erro de lógica / codificação', 'Falha de integração', 'Dados / massa de teste',
+      'Configuração de ambiente', 'Efeito colateral', 'Dependência externa', 'Teste insuficiente', 'Layout / Interface', 'Não é bug', 'Outros'];
+    expect(lido.arquivo.campos).toHaveLength(2);
     expect(lido.arquivo.campos[0]).toMatchObject({ field_id: '48', type: 'dropdown', coluna: 'causa_raiz' });
     expect(lido.arquivo.campos[0]!.valores.map((v) => v.rotulo)).toEqual(ROTULOS);
     expect(new Set(lido.arquivo.campos[0]!.valores.map((v) => v.codigo)).size).toBe(12);
-    expect(listasDoArquivo(lido.arquivo)['campo_customizado']).toEqual([{ codigo: '48', rotulo: 'causa_raiz' }]);
+    expect(listasDoArquivo(lido.arquivo)['campo_customizado']).toEqual([{ codigo: '48', rotulo: 'causa_raiz' }, { codigo: '49', rotulo: 'origem_demanda' }]);
+    expect(lido.arquivo.versao_criterio.descricao).toContain('2026-11-16');
     // C8a: escrito AQUI, não importado do código (B-1 da ADR 0020); fato da OpenAPI v2 do BusinessMap, escala decrescente
     expect(lido.arquivo.prioridade_severidade).toEqual([
       { codigo: '1', rotulo: 'Crítica' }, { codigo: '2', rotulo: 'Alta' }, { codigo: '3', rotulo: 'Média' }, { codigo: '4', rotulo: 'Baixa' },
     ]);
-    // 105 (E7.102): a versão de critério do arquivo agora é a da régua de tamanho, que afeta só o O8
-    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8']);
+    // 105 (E7.102 e E7.203): uma versão de critério marca a régua de tamanho (O8) e os campos 48 e 49 pelo value_id (O14, O17)
+    expect(lido.arquivo.versao_criterio.afeta).toEqual(['O8', 'O14', 'O17']);
     expect(lido.arquivo.versao_criterio.descricao).toContain('105:tamanho-pela-regua-do-time');
     expect(lido.sha256).toBe(createHash('sha256').update(readFileSync(ARQUIVO_DOMINIO_BM, 'utf8')).digest('hex'));
     expect(TIPOS_SELECAO_UNICA).toEqual(['dropdown']);
@@ -72,7 +97,9 @@ describe('bm:ref-sync: o arquivo versionado', () => {
     expect(listasDoArquivo(lido.arquivo)).toEqual({
       campo_customizado: [{ codigo: '7', rotulo: 'area_solicitante' }, { codigo: '8', rotulo: 'sistema' }],
       area_solicitante: [{ codigo: 'a1', rotulo: 'Area Um' }],
+      valor_id_area_solicitante: [],
       sistema: [{ codigo: 's1', rotulo: 'Sistema Um' }],
+      valor_id_sistema: [],
       motivo_bloqueio: [],
       setor_quadro: [],
       prioridade_severidade: [],
@@ -188,6 +215,15 @@ describe('coletor: dominiosDeLinhas desconfia do ref_dominio (A4)', () => {
     expect([...m.get('7')!]).toEqual([['Bom', 'ok']]);
   });
 
+  it('E7.203: valor_id_<coluna> liga value_id ao código; value_id duplicado, não numérico ou de código fora da lista é ignorado', () => {
+    const m = dominiosDeLinhas([
+      cc('48', 'causa_raiz'), v('causa_raiz', 'outros', 'Outros'), v('causa_raiz', 'efeito', 'Efeito'),
+      v('valor_id_causa_raiz', '122', 'outros'), v('valor_id_causa_raiz', '117', 'efeito'), v('valor_id_causa_raiz', '9', 'efeito'), v('valor_id_causa_raiz', '9', 'outros'),
+      v('valor_id_causa_raiz', '1x', 'outros'), v('valor_id_causa_raiz', '500', 'inexistente'), v('valor_id_causa_raiz', '600', 'desconhecido'),
+    ]);
+    expect([...m.get('48')!].sort()).toEqual([['117', 'efeito'], ['122', 'outros'], ['Efeito', 'efeito'], ['Outros', 'outros']].sort());
+  });
+
   it('field ligado a duas colunas é ignorado inteiro; campo sem valor não entra', () => {
     const m = dominiosDeLinhas([cc('7', 'area_solicitante'), cc('7', 'sistema'), v('area_solicitante', 'a1', 'A'), v('sistema', 's1', 'S'), cc('8', 'fornecedor')]);
     expect(m.size).toBe(0);
@@ -209,7 +245,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
     const versao = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio'))!;
     expect(versao.valores).toEqual([HOJE, 'Teste do bm:ref-sync', 'Teste', `069:ref-bm-campos:${lido.sha256}`, AGORA.toISOString()]);
-    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade', 'fase_deteccao_coluna', 'tamanho_regua']]);
+    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'valor_id_area_solicitante', 'motivo_bloqueio', 'setor_quadro', 'prioridade_severidade', 'fase_deteccao_coluna', 'tamanho_regua']]);
   });
 
   it('já vigente e igual: nada é gravado e nenhuma versão é registrada; versão já existente não duplica', async () => {
