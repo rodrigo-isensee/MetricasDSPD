@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-motivos-bm
-commit: 89e421e46a0ff9fb9014ce21c755db8adbfd0a54
+commit: 95050bda55b746b3f1095a1e6bebd2a54037585e
 parecer: aprovado
-resultado: aprovado na revalidação; A1, A2 e A4 fechados, A3 vira cartão; job testes do CI cancelado por push seguinte, suíte inteira fica para o PR
+resultado: aprovado na revalidação do merge da develop (95050bda); hash da base mock regravado conferido pelo gate; CI do head verde (runs 43909728275 e 43909714343); A3 segue como cartão
 escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
@@ -16,6 +16,14 @@ data: 2026-11-16
 # QA: motivos de bloqueio do BusinessMap (pedido 105, E7.184 e E7.210, revalidação E7.251)
 
 Revalidação do delta e0fb925f..89e421e4 (`forge-check parecer delta`: CHANGELOG, decisão do arquiteto, `businessmap-dominio.json`, briefing, `t12.ts` e `t12.test.ts`, `criterios.ts`, `dominio-businessmap.pg.test.ts`). Código testado: 89e421e4; o QA acrescentou o commit 3c83af10 (só o hash da base mock e a nota). Os commits seguintes (cdd7558c, 8f9a0315, bd840edc) tocam só `docs/reviews/`.
+
+## Revalidação E7.258 (merge da develop, 95050bda)
+
+`forge-check parecer delta` (89e421e4..95050bda, sem o que veio da base) lista no domínio: `businessmap-dominio.json` (campos 48 e 49 por value_id, régua 63), `dominio-businessmap.ts`, `mapa.ts`, mock do BusinessMap, testes de domínio da união (incl. `dominio-businessmap.pg.test.ts`), `operacionais.test.tsx`, CHANGELOG e `openapi.json`.
+
+- Hash da base mock (regravado pelo tech-lead no merge, `hash-base-fase-a.json`): `node scripts/gate.mjs` em e2e no head: `## hash da base mock (vs fase A): APROVADO`, `OK: base mock idêntica à linha de base`, `GATE DO AUTOR: APROVADO`.
+- CI do head 95050bda, run 43909728275 (push): `build`, `banco`, `openapi`, `rapida`, `seguranca`, `imagem`, `filtro`, `testes`, `e2e-parte (1/2)` e `(2/2)` ✓; `perf` não roda em push. Run 43909714343 (push): ✓. Sem PR, não há `bateria`; a suíte do PR fica para o CI dele.
+- Testes de domínio na união (pg 469) rodam no job `banco` ✓. Sem teste novo do QA neste delta; o vermelho antes do verde abaixo segue válido.
 
 ## Critério → teste → resultado
 
