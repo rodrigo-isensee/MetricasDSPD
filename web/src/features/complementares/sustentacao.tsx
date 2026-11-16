@@ -14,6 +14,7 @@ import { fmtInteiro, fmtMes, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { fmtHU } from '@/features/sustentacao/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
+import { NotaForaDoFluxo } from '@/features/sustentacao/components/comuns'
 import { CampoSemFonte, Leia } from './comuns'
 
 interface P {
@@ -297,13 +298,9 @@ export function CartaoS11({ filtros }: P) {
             Um chamado pode estar em mais de um grupo; o total do escopo conta cada um uma vez.
           </Leia>
           {r.conversao === null && r.motivoConversao !== null && (
-            <Leia>{`Conversão sem dado real: ${r.motivoConversao}`}</Leia>
+            <Leia>{`Avaliações que viraram Registro de Problema: sem dado real. ${r.motivoConversao}`}</Leia>
           )}
-          {r.semFluxo > 0 && (
-            <Leia>
-              {`${fmtInteiro(r.semFluxo)} chamados ficaram fora do cálculo por não ter fluxo definido (ou ter mais de um).`}
-            </Leia>
-          )}
+          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
         </div>
       )}
     </CartaoComplementar>

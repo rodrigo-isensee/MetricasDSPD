@@ -152,29 +152,61 @@ describe.each(['E4', 'S8', 'S11', 'S12'])('%s: campo sem fonte', (codigo) => {
 })
 
 /** S11 pela Decisão 18b: conversão nula vira "sem dado real" com o motivo, nunca 0; semFluxo aparece. */
-class FonteS11SemConversao extends MockFonteMetricas {
-  constructor() {
+class FonteS11 extends MockFonteMetricas {
+  private readonly semFluxo: number
+  private readonly comConversao: boolean
+  constructor(semFluxo: number, comConversao = false) {
     super({ latenciaMs: 0 })
+    this.semFluxo = semFluxo
+    this.comConversao = comConversao
   }
   override async obter<K extends MetricaId>(id: K, filtros: FiltrosDe<K>): Promise<ResultadoDe<K>> {
-    const r = await fonteDeTeste.obter(id, filtros)
+    const r = (await fonteDeTeste.obter(id, filtros)) as ResultadoDe<'S11'>
+    const conversao = this.comConversao
+      ? { ...r.escopo, status: 'ok' as const, k: 12, n: 40, valor: 0.3 }
+      : null
     return {
       ...r,
-      conversao: null,
-      motivoConversao: 'a base não tem o vínculo avaliação-problema',
-      semFluxo: 7,
-    }
+      conversao,
+      motivoConversao: this.comConversao
+        ? null
+        : 'a base ainda não liga a avaliação ao Registro de Problema.',
+      semFluxo: this.semFluxo,
+    } as unknown as ResultadoDe<K>
   }
 }
 
-describe('S11: conversão sem dado real', () => {
-  it('mostra "sem dado real" com o motivo e os chamados fora do fluxo', async () => {
-    renderizarCartao(<CartaoS11 filtros={FILTROS_SUSTENTACAO} />, {
-      fonte: new FonteS11SemConversao(),
-    })
-    const el = await screen.findByTestId('metrica-S11')
+describe('S11: conversão e chamados fora do fluxo', () => {
+  const abrir = async (fonte: MockFonteMetricas) => {
+    renderizarCartao(<CartaoS11 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    return screen.findByTestId('metrica-S11')
+  }
+  it('conversão nula: "sem dado real" com o nome da linha e o motivo, e nota no plural', async () => {
+    const el = await abrir(new FonteS11(7))
     await waitFor(() => expect(el).toHaveTextContent('sem dado real'))
-    expect(el).toHaveTextContent('a base não tem o vínculo avaliação-problema')
-    expect(el).toHaveTextContent('7 chamados ficaram fora do cálculo')
+    expect(el).toHaveTextContent(
+      'Avaliações que viraram Registro de Problema: sem dado real. a base ainda não liga a avaliação ao Registro de Problema.',
+    )
+    expect(el).not.toHaveTextContent('Conversão sem dado real')
+    const nota = within(el).getByTestId('s11-fora-do-fluxo')
+    expect(nota).toHaveTextContent('7 chamados ficaram fora desta métrica')
+    expect(nota.querySelector('svg')).not.toBeNull()
+  })
+  it('um chamado fora: nota no singular', async () => {
+    const el = await abrir(new FonteS11(1))
+    const nota = await within(el).findByTestId('s11-fora-do-fluxo')
+    expect(nota).toHaveTextContent('1 chamado ficou fora desta métrica: não tem fluxo definido')
+  })
+  it('nenhum fora: a nota some', async () => {
+    const el = await abrir(new FonteS11(0))
+    await within(el).findByRole('table')
+    expect(within(el).queryByTestId('s11-fora-do-fluxo')).not.toBeInTheDocument()
+  })
+  it('conversão com valor: mostra o percentual e não o texto "sem dado real" nem o motivo', async () => {
+    const el = await abrir(new FonteS11(0, true))
+    const linha = await within(el).findByRole('row', { name: /viraram Registro de Problema/ })
+    expect(linha).not.toHaveTextContent('sem dado real')
+    expect(linha).toHaveTextContent(/\d+%/)
+    expect(el).not.toHaveTextContent('a base ainda não liga')
   })
 })
