@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  CAMINHOS_CATALOGO, ehEtiquetaDeSistema, etiquetasDeSistema, opcoesDoCatalogo, executarSpikeCampos, novoAcumulo, renderizarResumo, rotuloSeguro, somarCard, TETO_AMOSTRA,
+  CAMINHOS_CATALOGO, ehEtiquetaDeSistema, etiquetasDeSistema, opcoesDoCatalogo, linhasFormaCatalogo, executarSpikeCampos, novoAcumulo, renderizarResumo, rotuloSeguro, somarCard, TETO_AMOSTRA,
 } from '../src/modulos/businessmap/spike-campos.js';
 
 // Dados fictícios e servidor local: nenhuma chamada ao BusinessMap real; o `.env` nunca é lido.
@@ -87,7 +87,9 @@ const subir = async (cards: unknown[], tags: unknown[]): Promise<{ url: string; 
     } else if (u.pathname === '/tags') corpo = { data: tags };
     else if (/^\/customFields\/\d+$/.test(u.pathname)) {
       const id = Number(u.pathname.split('/')[2]);
-      corpo = { data: { field_id: id, allowed_values: [{ value_id: id * 10 + 1, value: `Opção Fictícia ${id}A`, position: 0 }, { value_id: id * 10 + 2, value: `Opção Fictícia ${id}B`, position: 1 }] } };
+      const ops = [{ value_id: id * 10 + 1, value: `Opção Fictícia ${id}A`, position: 0 }, { value_id: id * 10 + 2, value: `Opção Fictícia ${id}B`, position: 1 }];
+      // dois envelopes diferentes: plano (40, 41, 48) e aninhado em duas camadas (49, 50)
+      corpo = id <= 48 ? { data: { field_id: id, allowed_values: ops } } : { data: { field_id: id, config: { choices: { items: ops } } } };
     }
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(corpo));
@@ -106,6 +108,17 @@ describe('catálogo de opções', () => {
     expect(opcoesDoCatalogo({ data: { options: [] } })).toEqual([]);
     expect(opcoesDoCatalogo({ erro: 1 })).toEqual([]);
   });
+  it('acha a lista com value_id em qualquer envelope, até 4 níveis', () => {
+    const ops = [{ value_id: 3, value: 'X', position: 1 }];
+    expect(opcoesDoCatalogo({ data: { field: { settings: { items: ops } } } })).toEqual([{ valueId: '3', rotulo: 'X', position: '1' }]);
+    expect(opcoesDoCatalogo({ data: [{ a: { b: ops } }] })).toHaveLength(1);
+    expect(opcoesDoCatalogo({ a: { b: { c: { d: { e: ops } } } } })).toEqual([]); // fundo demais
+  });
+  it('forma da resposta: só chaves, tipos e contagens, sem valor', () => {
+    const t = linhasFormaCatalogo('48', { data: { field_id: 48, settings: { list: [{ value_id: 1, value: 'Segredo Fictício' }] } } }).join('\n');
+    expect(t).toContain('$.data.settings.list[].value_id');
+    expect(t).not.toContain('Segredo');
+  });
 });
 
 describe('executarSpikeCampos', () => {
@@ -123,6 +136,9 @@ describe('executarSpikeCampos', () => {
     expect(cat.map((p) => p.url)).toEqual(['40', '41', '48', '49', '50'].map((i) => `/customFields/${i}`)); // sem consulta
     expect(f.pedidos.map((p) => p.caminho).every((c) => c === '/cards' || c === '/tags' || CAMINHOS_CATALOGO.some((r) => r.test(c)))).toBe(true);
     expect(r.saida).toContain('Catálogo do campo 48: 2 opções.');
+    expect(r.saida).toContain('Catálogo do campo 50: 2 opções.');
+    expect(r.saida).toContain('Forma da resposta do campo 50:');
+    expect(r.saida).toContain('$.data.config.choices.items[].value_id');
     const arq = join(saida, 'relatorio-campos-sistemas.md');
     expect(statSync(arq).mode & 0o777).toBe(0o600);
     const rel = readFileSync(arq, 'utf8');

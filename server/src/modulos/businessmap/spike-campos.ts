@@ -112,23 +112,40 @@ export function somarCard(ac: AcumuloSpike, card: unknown): void {
 
 export interface OpcaoCatalogo { valueId: string; rotulo: string; position: string }
 
-/** Opções de `GET /customFields/{id}`: a primeira lista de objetos com `value_id` em `allowed_values`, `values` ou `options` (sem inferir além disso). */
-export function opcoesDoCatalogo(corpo: unknown): OpcaoCatalogo[] {
-  const { itens } = desembrulhar(corpo);
-  const campo = itens[0];
-  if (!ehObj(campo)) return [];
-  for (const chave of ['allowed_values', 'values', 'options']) {
-    const lista = campo[chave];
-    if (!Array.isArray(lista)) continue;
-    const saida: OpcaoCatalogo[] = [];
-    for (const o of lista) {
-      if (!ehObj(o) || !ehChave(o.value_id)) continue;
-      const rotulo = typeof o.value === 'string' ? o.value : typeof o.label === 'string' ? o.label : typeof o.name === 'string' ? o.name : '';
-      saida.push({ valueId: String(o.value_id), rotulo, position: ehChave(o.position) ? String(o.position) : '' });
+const PROFUNDIDADE_CATALOGO = 4;
+
+/** Primeira lista (busca em largura, até 4 níveis a partir do corpo) com algum objeto que tenha `value_id`. */
+function listaComValueId(corpo: unknown): unknown[] | undefined {
+  let nivel: unknown[] = [corpo];
+  for (let prof = 0; prof <= PROFUNDIDADE_CATALOGO && nivel.length > 0; prof += 1) {
+    const prox: unknown[] = [];
+    for (const no of nivel) {
+      if (Array.isArray(no)) {
+        if (no.some((o) => ehObj(o) && ehChave(o.value_id))) return no;
+        prox.push(...no);
+      } else if (ehObj(no)) prox.push(...Object.values(no));
     }
-    if (saida.length > 0 || lista.length === 0) return saida;
+    nivel = prox;
   }
-  return [];
+  return undefined;
+}
+
+/** Opções de `GET /customFields/{id}`: a lista com `value_id` em qualquer profundidade (até 4 níveis), seja qual for o envelope. */
+export function opcoesDoCatalogo(corpo: unknown): OpcaoCatalogo[] {
+  const lista = listaComValueId(corpo);
+  if (lista === undefined) return [];
+  const saida: OpcaoCatalogo[] = [];
+  for (const o of lista) {
+    if (!ehObj(o) || !ehChave(o.value_id)) continue;
+    const rotulo = typeof o.value === 'string' ? o.value : typeof o.label === 'string' ? o.label : typeof o.name === 'string' ? o.name : '';
+    saida.push({ valueId: String(o.value_id), rotulo, position: ehChave(o.position) ? String(o.position) : '' });
+  }
+  return saida;
+}
+
+/** Forma da resposta do catálogo de um campo (só chaves, tipos e contagens; nenhum valor), para o stdout. */
+export function linhasFormaCatalogo(id: string, corpo: unknown): string[] {
+  return [`Forma da resposta do campo ${id}:`, ...linhasDeForma(somarForma(corpo))];
 }
 
 export interface EtiquetaSistema { tagId: string; rotulo: string; cards: number }
@@ -265,15 +282,19 @@ export async function executarSpikeCampos(deps: DepsSpikeCampos): Promise<Result
     }
     if (total > TETO_PAGINAS_TAGS) avisos.push(`tags: a API declara ${total} páginas; lidas ${TETO_PAGINAS_TAGS}`);
     const catalogos = new Map<string, OpcaoCatalogo[]>();
+    const formas: string[] = [];
     for (const id of CAMPOS_CATALOGO) {
       const corpo = await ler(`catalogo-campo-${id}`, `/customFields/${id}`, {});
-      if (corpo !== undefined) catalogos.set(id, opcoesDoCatalogo(corpo));
+      if (corpo !== undefined) {
+        catalogos.set(id, opcoesDoCatalogo(corpo));
+        formas.push(...linhasFormaCatalogo(id, corpo));
+      }
     }
     const etiquetas = etiquetasDeSistema(catalogo, ac);
     const agora = new Date((deps.agora ?? Date.now)()).toISOString();
     const arquivo = join(dir, 'relatorio-campos-sistemas.md');
     await writeFile(arquivo, renderizarRelatorio(ac, etiquetas, quadros, agora, avisos, catalogos), { flag: 'wx', mode: 0o600 });
-    return { codigo: 0, saida: `${renderizarResumo(ac, etiquetas, avisos, catalogos)}\nRelatório (com rótulo, só para o dono) em: ${arquivo}`, erro: '' };
+    return { codigo: 0, saida: `${renderizarResumo(ac, etiquetas, avisos, catalogos)}\n${formas.join('\n')}\nRelatório (com rótulo, só para o dono) em: ${arquivo}`, erro: '' };
   } catch (e) {
     const erro = e as ErroBusinessMap;
     return { codigo: 1, saida: '', erro: limpar(`${erro.tipo ?? 'erro'}: ${erro.message}`) };
