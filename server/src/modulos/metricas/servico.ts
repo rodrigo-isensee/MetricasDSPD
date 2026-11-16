@@ -63,7 +63,7 @@ async function calendarioDaReferencia(db: Consultavel, S: Esquemas | undefined, 
 }
 const BASE_AC_VAZIA: BaseAC = { chamados: [], etapas: [], config: { alvos: [], criterios: [] } };
 const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
-  limite_wip_fluxo: {}, limite_frentes: 0, sle: [], alocacao: [], objetivos: [], criterios: [], equipes: [], sistemas: [], areas_internas: [],
+  limite_wip_fluxo: {}, limite_frentes: null, sle: [], alocacao: [], objetivos: [], criterios: [], equipes: [], sistemas: [], areas_internas: [],
 } };
 
 type Marca = { versao: string; finalizadoEm: Date | null };

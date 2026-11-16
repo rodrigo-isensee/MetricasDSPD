@@ -9,6 +9,9 @@ import { propsCartao } from '@/features/painel/propsCartao'
 
 type Contagem = 'itens' | 'tempo'
 
+/** Acordado ausente nunca aparece como 0%. */
+const acordadoTexto = (v: number | null) => (v === null ? 'não definido' : fmtPct(v))
+
 /** Selo de desvio da natureza. */
 function SeloDesvio() {
   return (
@@ -39,7 +42,7 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
       ? maiores
           .map(
             (n) =>
-              `${n.natureza} consumiu ${fmtPct(med(n).pct as number)} da capacidade (acordado: ${fmtPct(n.acordadoPct)}).`,
+              `${n.natureza} consumiu ${fmtPct(med(n).pct as number)} da capacidade (acordado: ${acordadoTexto(n.acordadoPct)}).`,
           )
           .join(' ')
       : 'Percentuais indisponíveis: menos de 20 itens entregues no total.'
@@ -103,8 +106,8 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
                   <strong>{n.natureza}:</strong>
                   <span>
                     {ok && m.pct !== null
-                      ? `realizado ${fmtPct(m.pct)} · acordado ${fmtPct(n.acordadoPct)} · desvio ${m.desvioPP !== null && m.desvioPP > 0 ? '+' : ''}${fmtNumero(m.desvioPP ?? 0, 1)} p.p.`
-                      : `${fmtInteiro(m.quantidade)} ${unidade} · acordado ${fmtPct(n.acordadoPct)}`}
+                      ? `realizado ${fmtPct(m.pct)} · acordado ${acordadoTexto(n.acordadoPct)} · desvio ${m.desvioPP !== null && m.desvioPP > 0 ? '+' : ''}${fmtNumero(m.desvioPP ?? 0, 1)} p.p.`
+                      : `${fmtInteiro(m.quantidade)} ${unidade} · acordado ${acordadoTexto(n.acordadoPct)}`}
                   </span>
                   {ok && m.statusMeta === 'fora' && <SeloDesvio />}
                 </li>

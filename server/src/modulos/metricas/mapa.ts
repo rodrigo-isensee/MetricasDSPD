@@ -116,7 +116,7 @@ export function configBM(r: RefBM, colunasReais?: readonly DimColuna[]): ConfigB
   return {
     ...(colunasReais === undefined ? {} : { limite_wip_por_coluna: true }),
     limite_wip_fluxo: colunasReais === undefined ? Object.fromEntries(r.limitesWip.map((x) => [x.equipe, x.limite])) : limitesDosTimes(colunasReais),
-    limite_frentes: r.limiteFrentes ?? 0,
+    limite_frentes: r.limiteFrentes,
     sle: r.sle.map((x) => ({ classe: campo(x.classe), dias_uteis: Number(x.valor), publicado_em: x.desde })),
     alocacao: r.alocacao.map((x) => ({ natureza: campo(x.classe), pct: Number(x.valor) })),
     objetivos: r.objetivos.map((x) => x.rotulo), criterios: r.criterios,

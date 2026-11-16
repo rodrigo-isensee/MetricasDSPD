@@ -44,7 +44,15 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
           }
         : {})}
       {...(leitura ? { leitura } : {})}
-      statusMeta={d ? (d.kpis.acimaDoLimite ? 'fora' : 'dentro') : 'sem-meta'}
+      statusMeta={
+        d
+          ? d.kpis.acimaDoLimite === null
+            ? 'sem-meta'
+            : d.kpis.acimaDoLimite
+              ? 'fora'
+              : 'dentro'
+          : 'sem-meta'
+      }
       className="lg:col-span-6"
     >
       {d && (
@@ -61,14 +69,22 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
               textoCompleto={`${d.kpis.projetosComFrentes} projetos com frentes ao mesmo tempo`}
             />
             <NumeroGrande
-              valor={fmtInteiro(d.kpis.limiteFrentes)}
+              valor={
+                d.kpis.limiteFrentes === null ? 'não definido' : fmtInteiro(d.kpis.limiteFrentes)
+              }
               rotulo="limite de frentes simultâneas"
-              textoCompleto={`Limite de ${d.kpis.limiteFrentes} frentes simultâneas`}
+              textoCompleto={
+                d.kpis.limiteFrentes === null
+                  ? 'Limite de frentes simultâneas não definido'
+                  : `Limite de ${d.kpis.limiteFrentes} frentes simultâneas`
+              }
               complemento={
-                <StatusMeta
-                  status={d.kpis.acimaDoLimite ? 'fora' : 'dentro'}
-                  texto={d.kpis.acimaDoLimite ? 'Acima do limite' : 'Dentro do limite'}
-                />
+                d.kpis.acimaDoLimite === null ? null : (
+                  <StatusMeta
+                    status={d.kpis.acimaDoLimite ? 'fora' : 'dentro'}
+                    texto={d.kpis.acimaDoLimite ? 'Acima do limite' : 'Dentro do limite'}
+                  />
+                )
               }
             />
           </div>
