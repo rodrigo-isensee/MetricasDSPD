@@ -53,3 +53,13 @@ Motivo: o K-314 B1 acrescenta `exibir_primeiro_atendimento` e `exibir_restauraca
 | hashAcelerato | 930570e9 | 797abc95 |
 
 Motivo: o D6a põe o domínio real do D1 no gerador do Acelerato (`avaliacao_problema` "Não aplicável" passa a "Não aplicável e com justificativa"). BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e). Consequência legítima do D6a; o gate do CI reprovou o hash antigo, como o brief previu.
+
+## Regravação de 2026-11-16 (pedido 105, PR 490, E7.205)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | b6a3c384 | ef67b23e |
+| hashBusinessMap | 8d47d431 | 1f3e6fd7 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: a prioridade nativa do BusinessMap (campo de urgência, faixa Sem prioridade) muda os cards do mock do BusinessMap; Acelerato, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e), pelo QA, como o brief E7.205 pediu. Consequência legítima da prioridade nativa (achado A2 do parecer).

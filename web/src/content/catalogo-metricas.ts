@@ -143,7 +143,7 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     painel: 'tatico',
     fonte: 'BusinessMap',
     granularidade: 'demanda',
-    meta: 'Publicar o lead time por classe e reduzir o tempo de fila',
+    meta: 'Publicar o lead time por prioridade e reduzir o tempo de fila',
   },
   {
     id: 'T2',
@@ -153,7 +153,7 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     painel: 'tatico',
     fonte: 'BusinessMap',
     granularidade: 'demanda',
-    meta: '85% por classe',
+    meta: '85% por prioridade',
   },
   {
     id: 'T3',

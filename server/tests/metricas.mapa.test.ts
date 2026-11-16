@@ -32,6 +32,13 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(new Date(c.data_acordada!).toISOString()).toBe('2026-10-05T20:00:00.000Z'); // 17:00 -03:00
     expect(cardDe({ ...cardNulo, quadro_id: 'q1', coluna_atual_id: 'cx' }, nomes).coluna_atual).toBe('cx');
   });
+  it('pedido 105 (E7.100): a prioridade do painel é a coluna severidade já projetada; nula e fora dos quatro níveis ficam sem prioridade, nunca Média', () => {
+    for (const nivel of ['Crítica', 'Alta', 'Média', 'Baixa']) expect(cardDe({ ...cardNulo, severidade: nivel }, new Map()).prioridade).toBe(nivel);
+    expect(cardDe({ ...cardNulo, severidade: null }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: 'Urgente' }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: '' }, new Map()).prioridade).toBeNull();
+    expect(cardDe({ ...cardNulo, severidade: 'Alta' }, new Map())).toMatchObject({ severidade: 'Alta', prioridade: 'Alta' });
+  });
   it('transição: quadro da linha, do card ou desconhecido; sem coluna de origem', () => {
     const nomes = nomesDeColuna([col('q1', 'c1', 'Fila'), col('q1', 'c2', 'Feito')]);
     const base = { card_id: 'c1', tipo_coluna: 'fila', direcao: 'avanco', ocorrido_em: T.getTime(), coluna_destino_id: 'c2' };

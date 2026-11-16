@@ -37,9 +37,9 @@ export function textoAlerta(a: Alerta): string {
     case 'O10_BACKLOG_180':
       return `${fmtInteiro(a.valor)} itens do backlog com mais de 180 dias`
     case 'T2_ABAIXO_85':
-      return `Aderência ao SLE abaixo de 85% em ${kde(a.valor, a.de)} classes`
+      return `Aderência ao SLE abaixo de 85% em ${kde(a.valor, a.de)} prioridades`
     case 'T4_RAZAO_FORA':
-      return `Razão chegada/vazão fora de 0,9 a 1,0 em ${kde(a.valor, a.de)} classes`
+      return `Razão chegada/vazão fora de 0,9 a 1,0 em ${kde(a.valor, a.de)} prioridades`
     case 'T3_DESVIO':
       return `Desvio de alocação acima de 10 p.p. em ${kde(a.valor, a.de)} naturezas`
     case 'T9_ESCOPO':
@@ -71,9 +71,9 @@ export function textoIndicador(i: Indicador): string {
     case 'BLOQUEADOS':
       return `${fmtInteiro(v)} bloqueados agora`
     case 'T2':
-      return `${kde(v, i.de)} classes com aderência abaixo de 85% (T2)`
+      return `${kde(v, i.de)} prioridades com aderência abaixo de 85% (T2)`
     case 'T4':
-      return `${kde(v, i.de)} classes fora de 0,9 a 1,0 (T4)`
+      return `${kde(v, i.de)} prioridades fora de 0,9 a 1,0 (T4)`
     case 'T9':
       return `${kde(v, i.de)} projetos com escopo crescido (T9)`
     case 'E3':

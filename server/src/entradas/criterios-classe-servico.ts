@@ -6,7 +6,7 @@ import { criarPool } from '../plataforma/db/pool.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { dataCivilValida, registrarCriterioClasseServico } from '../modulos/referencia/index.js';
 
-// Entrada `criterios-classe-servico [AAAA-MM-DD]` (pedido 105, E7.3): registra em `ref_versao_criterio` a versão da classe de serviço pelas etiquetas (T2.6, métricas O6, O24, T1, T2, T4 e T6) com a data de vigência (padrão: hoje, horário de Brasília; informe a da primeira coleta que grava `classes_tag`). Usa o migrador (dono da referência); idempotente. Imprime só as referências gravadas; na falha, só a categoria de `categoriaDoErro` (nunca pilha, host, porta nem usuário).
+// Entrada `criterios-classe-servico [AAAA-MM-DD]` (pedido 105, E7.3): registra em `ref_versao_criterio` a versão `105:classe-pela-prioridade` (T2.6, métricas O6, O24, T1, T2, T4 e T6, separadas pela prioridade nativa do BusinessMap) com a data de vigência (padrão: hoje, horário de Brasília; informe o dia em que o eixo novo vai ao ar). Usa o migrador (dono da referência); idempotente. Imprime só as referências gravadas; na falha, só a categoria de `categoriaDoErro` (nunca pilha, host, porta nem usuário).
 // O `.env` da raiz é lido só aqui, pelo programa, como em `bm:ref-sync-apontamento`; nada dele é impresso. Uso: `pnpm --filter @metricas-dspd/server run bm:criterios-classe-servico <data>`.
 const raiz = fileURLToPath(new URL('../../../', import.meta.url));
 try {

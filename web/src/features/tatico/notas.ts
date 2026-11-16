@@ -7,19 +7,19 @@ export const NOTAS_TATICO = {
     comoSeCalcula:
       'Entrada → entrega, dividido pelos marcos e pelo tipo de coluna (fila/execução) das transições; a soma das medianas dos blocos não é a mediana do total (as duas aparecem separadas).',
     comoLer: 'Cada bloco tem um dono diferente.',
-    meta: 'Publicar por classe e reduzir a fila.',
+    meta: 'Publicar por prioridade e reduzir a fila.',
     cuidados:
       'Expor a fila costuma incomodar no primeiro ciclo; leia com a demanda × capacidade: "temos mais pedidos do que capacidade", não "o time é lento". Aceite fica fora (medido à parte).',
   },
   T2: {
     oQueE: 'Percentual de demandas entregues dentro do SLE publicado.',
     comoSeCalcula:
-      'Entregues com tempo de ciclo ≤ SLE da classe, nas últimas 12 semanas; o SLE da classe é o P85 publicado (com data).',
+      'Entregues com tempo de ciclo ≤ SLE da prioridade, nas últimas 12 semanas; o SLE da prioridade é o P85 publicado (com data). Cartão sem prioridade fica fora e é contado à parte.',
     comoLer:
-      'Um prazo por classe, não um prazo único; o mapa indica em que etapa o tempo se perdeu.',
-    meta: '85% por classe.',
+      'Um prazo por prioridade, não um prazo único; o mapa indica em que etapa o tempo se perdeu.',
+    meta: '85% por prioridade.',
     cuidados:
-      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por classe. A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a classe passou a vir da etiqueta do cartão.',
+      'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por prioridade. Enquanto o dono não aprovar os prazos, o SLE fica não definido. A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a separação passou a ser pela prioridade do cartão.',
   },
   T3: {
     oQueE: 'Distribuição das entregas por natureza do trabalho contra o acordo.',
@@ -32,11 +32,11 @@ export const NOTAS_TATICO = {
   T4: {
     oQueE: 'Chegada de pedidos contra a vazão.',
     comoSeCalcula:
-      'Contagem semanal por classe de entradas (criação) e saídas (entrega); saldo = vazão − chegada.',
+      'Contagem semanal por prioridade de entradas (criação) e saídas (entrega); saldo = vazão − chegada.',
     comoLer:
       'Enquanto a linha de chegada estiver acima da de vazão, nenhuma melhoria de produtividade estabiliza o prazo.',
     meta: 'Razão entre 0,9 e 1,0.',
-    cuidados: 'Calcule por classe; leia junto do lead time (T1).',
+    cuidados: 'Calcule por prioridade; leia junto do lead time (T1).',
   },
   T5: {
     oQueE: 'Parcela da demanda que chega por falha anterior.',

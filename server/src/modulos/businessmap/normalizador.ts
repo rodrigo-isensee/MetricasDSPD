@@ -356,7 +356,8 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       // 105: a fase de detecção não vem do card; é projetada depois, pela coluna do pai do bug (`projetarFasesDeteccao`). O projetor preserva o valor já gravado.
       fase_deteccao: null,
       tamanho_declarado: tamanho,
-      ...(severidade === undefined ? {} : { severidade }),
+      // 105 (E7.100): a prioridade do painel; sem mapa, nula (nunca Média por omissão)
+      severidade: severidade ?? null,
     },
     transicoes, eventos, notas,
   };

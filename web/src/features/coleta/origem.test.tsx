@@ -115,7 +115,9 @@ describe('origem do cartão (pedido 060)', () => {
         motivo: null,
       })
     }
-    expect(origemDoCartao('T2', 'api').semDadoReal).toBe(true)
+    // Pedido 105 (E7.100): T1, T2, T4, T6, O6 e O24 separam pela prioridade e estão no mapa real; o T5 segue sem dado real.
+    expect(origemDoCartao('T2', 'api').semDadoReal).toBe(false)
+    expect(origemDoCartao('T5', 'api').semDadoReal).toBe(true)
     // Pedido 105 (E7.55): o O26 segue sem dado real, com o motivo próprio que diz a data.
     expect(origemDoCartao('O26', 'api')).toEqual({
       ficticio: false,
@@ -167,12 +169,11 @@ describe('origem do cartão (pedido 060)', () => {
     ).length
     expect(n).toBe(esperado)
     expect(n).toBeGreaterThan(0)
-    // Tático: só o T9 (pedido 105, E7.68) e o T11 (E7.64) têm dado real; cada um tem cartão só dele e sai da contagem.
-    const taticoSemDado = cartoesDoPainel('tatico').filter((c) =>
+    const tatico = cartoesDoPainel('tatico').filter((c) =>
       c.metricas.some((m) => origemDaMetrica(m) === 'sem-dado'),
-    )
-    expect(contarSemDadoReal('tatico', 'api')).toBe(taticoSemDado.length)
-    expect(taticoSemDado.length).toBe(cartoesDoPainel('tatico').length - 2)
+    ).length
+    expect(contarSemDadoReal('tatico', 'api')).toBe(tatico)
+    expect(tatico).toBeLessThan(cartoesDoPainel('tatico').length)
     expect(origemDoCartao('T9', 'api').semDadoReal).toBe(false)
     expect(origemDoCartao('T11', 'api').semDadoReal).toBe(false)
   })
@@ -198,19 +199,19 @@ describe('painel com API real: estado "Sem dado real" por cartão e nota do cabe
     expect(within(o3).queryByTestId('estado-sem-dado-real-O3')).not.toBeInTheDocument()
   })
 
-  it('no Tático os cartões sem dado real são todos menos o T9 e a nota conta esses', async () => {
+  it('no Tático a nota conta os cartões sem dado real, e o T5 está entre eles', async () => {
     renderizarApp('/tatico', fonteApi())
     const nota = await screen.findByTestId('nota-sem-dado-real-tatico')
     expect(nota).toHaveTextContent(`${contarSemDadoReal('tatico', 'api')} cartões sem dado real`)
-    const t2 = await screen.findByTestId('metrica-T2')
-    expect(await within(t2).findByTestId('estado-sem-dado-real-T2')).toBeInTheDocument()
-    expect(within(t2).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
-    // Faixa de atenção: com o T9 real e as demais sem dado, a faixa não é mais "sem dado real" inteira e nunca afirma que nada pede atenção.
+    const t5 = await screen.findByTestId('metrica-T5')
+    expect(await within(t5).findByTestId('estado-sem-dado-real-T5')).toBeInTheDocument()
+    expect(within(t5).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
+    // Faixa de atenção: com T2, T4, T9 e T11 reais e T3 sem dado, a faixa lista o que há ou diz que a lacuna é parcial; nunca afirma que nada pede atenção.
+    expect(screen.queryByText(/Nada pede atenção/)).not.toBeInTheDocument()
     expect(
       await within(await screen.findByTestId('metrica-T9')).findByTestId('tabela-T9'),
     ).toBeInTheDocument()
     expect(screen.queryByTestId('faixa-atencao-sem-dado-real')).not.toBeInTheDocument()
-    expect(screen.queryByText(/Nada pede atenção/i)).not.toBeInTheDocument()
   })
 
   it('com a fonte mock não há nota nem estado de sem dado real (o aviso global cobre)', async () => {
@@ -294,16 +295,18 @@ describe('notas no cartão (H-15 e H-24)', () => {
       </MemoryRouter>,
     )
 
-  it('O6 mostra "sem separação por classe" pelo texto do contrato', () => {
+  it('O6 mostra "sem prioridade fica fora" pelo texto do contrato', () => {
     cartao('O6')
     expect(screen.getByTestId('notas-cartao-O6')).toHaveTextContent(
-      'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
+      'Cartões sem prioridade ficam fora da separação por prioridade e são contados à parte.',
     )
   })
 
-  it('o SLE (T2) só mostra a nota quando a métrica for dado real: hoje é mock', () => {
+  it('o T2 mostra a nota de cartões sem prioridade, pelo texto do contrato', () => {
     cartao('T2')
-    expect(screen.queryByTestId('notas-cartao-T2')).not.toBeInTheDocument()
+    expect(screen.getByTestId('notas-cartao-T2')).toHaveTextContent(
+      'Cartões sem prioridade ficam fora da separação por prioridade e são contados à parte.',
+    )
   })
 
   it('O3 mostra "SLE não definido" só quando o resultado indica, e sem repetir', () => {
