@@ -165,11 +165,41 @@ describe('ramos dos componentes complementares', () => {
     const fonte = new FonteAjustada({
       S8: (r: Qualquer) => {
         r.cobertura = { n: 30, total: 50 }
+        r.semResposta = 20
       },
     })
     renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     expect(await screen.findByTestId('cobertura-S8')).toHaveTextContent(
       'Com resposta em 30 de 50 incidentes',
+    )
+    expect(screen.getByTestId('sem-resposta-S8')).toHaveTextContent(
+      '20 incidentes sem resposta no campo',
+    )
+  })
+
+  it('S8 diz "1 incidente sem resposta no campo" no singular e usa o campo semResposta do contrato', async () => {
+    const fonte = new FonteAjustada({
+      S8: (r: Qualquer) => {
+        r.cobertura = { n: 49, total: 50 }
+        r.semResposta = 1
+      },
+    })
+    renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    expect(await screen.findByTestId('sem-resposta-S8')).toHaveTextContent(
+      '1 incidente sem resposta no campo',
+    )
+  })
+
+  it('S8 sem o campo semResposta (opcional) calcula total menos com resposta', async () => {
+    const fonte = new FonteAjustada({
+      S8: (r: Qualquer) => {
+        r.cobertura = { n: 30, total: 50 }
+        delete r.semResposta
+      },
+    })
+    renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    expect(await screen.findByTestId('sem-resposta-S8')).toHaveTextContent(
+      '20 incidentes sem resposta no campo',
     )
   })
 
