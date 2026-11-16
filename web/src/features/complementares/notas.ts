@@ -150,7 +150,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'A parcela dos incidentes abertos que são reincidentes, isto é, voltaram como novo chamado com o ticket anterior informado.',
     comoSeCalcula:
-      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta. Só publica com 20 ou mais incidentes com resposta.',
+      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta e o cartão diz quantos incidentes ficaram sem resposta no campo (decisão do dono, pedido 105). Só publica com 20 ou mais incidentes com resposta.',
     comoLer: 'Reabertura alta sugere correção que não resolveu.',
     meta: 'Abaixo de 5%.',
     cuidados:
