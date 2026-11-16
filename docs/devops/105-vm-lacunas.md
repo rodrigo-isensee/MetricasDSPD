@@ -11,9 +11,10 @@ data: 2026-11-16
 # Review de devops: lacunas da VM, volta 1 (E7.259)
 
 ## Achados
-Nenhum aberto. Fechados nesta volta: segurança A1 (bloqueante) e A2; review A1 e A2.
 
 ## Detalhes
+Nenhum achado aberto. Fechados nesta volta: segurança A1 (bloqueante) e A2; review A1 e A2.
+
 Escopo: `docker-compose.yml`, `deploy/systemd/metricas-referencias.service` e `.timer`, `docs/devops/runbook-coleta-diaria.md`, `CHANGELOG.md`.
 
 - Segurança A1: o serviço `coleta` do Compose agora define `PG_REF_URL` do papel `dspd_ref`, montada de `DSPD_PWD_REF` como as outras senhas (opção a do parecer). Prova: `docker compose --profile coleta config` mostra `PG_REF_URL` no ambiente do serviço; `carregarConfigRef` carregado com exatamente esse ambiente (sem variável manual) devolve a config com papel `dspd_ref` (antes: ErroConfiguracao em `PG_REF_URL`). O runbook manda nunca pôr `PG_REF_URL` no `coleta.env`, e o item 4a (comando manual) passa a funcionar.
