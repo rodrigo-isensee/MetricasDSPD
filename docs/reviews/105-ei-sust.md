@@ -3,15 +3,21 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ei-sust
-commit: bcbe9ff40d7f4de6611819ea5e9b15cb08fcfc87
+commit: bb0b770baef8b9c17279eed5c12cb3d26696664f
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: EI_SUST com dado real pelo tempo por etapa, E7.243 (review E7.289, revalidação E7.322)
+# Code review: EI_SUST com dado real pelo tempo por etapa, E7.243 (review E7.289, revalidações E7.322 e E7.329)
 
 Branch `feature/105-ei-sust` contra `develop` (base `57989aa0`). A primeira rodada revisou o head `7614d58a`, com um commit. São 26 arquivos e 1304 linhas no total. Sem `.md`, snapshots e `openapi.json` sobram 378 linhas de código e teste, acima da orientação de 150 (M14). O comportamento é um só (a regra da EI_SUST), e o resto é o contrato gerado e o ajuste dos testes que fixavam a EI_SUST como "sem dado". Quando houver PR, o corpo leva `teto: excedido`.
+
+## Revalidação no head bb0b770b (E7.329)
+Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `bcbe9ff4..bb0b770b` (merge da `origin/develop` em `312a0152`), sem o que veio da base. No domínio: `CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `packages/contratos/src/origem.ts`, `packages/contratos/src/origem.test.ts` e `server/tests/painel-real-f6.test.ts`. Os cinco últimos trazem mudanças da develop: o O12 pelo campo 51 (E7.214) e os motivos de bloqueio do BusinessMap (E7.184). O delta os mostra por causa da resolução do merge, e o EI_SUST não mexe neles.
+- Patch do EI_SUST contra a develop: `git diff origin/develop bb0b770b` dá 30 arquivos, +1533/-42. Fora o `CHANGELOG.md`, comparei com o patch aprovado (`git diff origin/develop...bcbe9ff4`). Mudam só três coisas: os índices dos blobs, a posição dos hunks do `openapi.json` e o parecer do QA (`docs/qa/105-ei-sust.md`, fora do meu domínio). O código e os testes são os mesmos.
+- `CHANGELOG.md`: contra a develop, o patch tem uma linha só, a entrada do EI_SUST em `### Adicionado`, igual à aprovada. A resolução do conflito manteve as entradas da develop.
+- Nenhum achado novo. A2 a A5 seguem recomendados.
 
 ## Revalidação no head bcbe9ff4 (E7.322)
 Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `7614d58a..bcbe9ff4`, três arquivos no domínio: `web/src/features/espera-invisivel/components/CartaoEI.tsx`, `web/src/features/espera-invisivel/espera-invisivel.test.tsx` e `web/src/features/espera-invisivel/notas.ts`. Não reli o resto.
@@ -21,7 +27,7 @@ Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `
 - A2 a A5 seguem recomendados e ficam fora deste delta. O A3 pede cartão para o S1.
 
 ## Parecer
-**Aprovado** no head `bcbe9ff4`, com o A1 resolvido (veja acima). A primeira rodada, no head `7614d58a`, foi reprovada por um bloqueante (A1). O cálculo segue as decisões do dono:
+**Aprovado** no head `bb0b770b`. A revalidação foi pelo delta, e o patch do EI_SUST é o mesmo aprovado em `bcbe9ff4`, onde o A1 foi resolvido (veja acima). A primeira rodada, no head `7614d58a`, foi reprovada por um bloqueante (A1). O cálculo segue as decisões do dono:
 - P-EI-1 B: cliente = soma de `porEtapa`; time = cliente menos as esperas da D5a.
 - P-EI-2 A: as finais ficam fora das duas visões e são contadas.
 - Suposição P-EI-3 da ordem do dono das 12:51: a fila inicial conta como espera.
@@ -51,4 +57,4 @@ Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `
 - Mutantes: M1 (`time: cliente - espera`, sem a fila inicial) derruba 1 teste. M2 (`cliente < 0`) derruba 1 teste. M3 é o do A2 e sobrevive. M4 está na revalidação.
 
 ## CI e suíte
-Não há PR para esta branch. A suíte inteira fica para o CI do PR. Na primeira rodada, o autor não tinha fechado um `pnpm run pronto` completo depois da última correção (só o pacote docs-contratos). O CI do push no head `7614d58a`, run 43933986407, passou em `rapida`, `build`, `banco`, `openapi`, `seguranca` e `imagem`, e o job `testes` foi cancelado pelo push seguinte. O run 43935238784 roda em `d54e6e41`, que tem o mesmo código, e terminou com `success`. No head `bcbe9ff4`, o autor informa que o `pnpm run pronto` completo terminou com EXIT 0 (PQ do autor). Não afirmo CI verde neste head e não rodei a suíte.
+Não há PR para esta branch. A suíte inteira fica para o CI do PR. Na primeira rodada, o autor não tinha fechado um `pnpm run pronto` completo depois da última correção (só o pacote docs-contratos). O CI do push no head `7614d58a`, run 43933986407, passou em `rapida`, `build`, `banco`, `openapi`, `seguranca` e `imagem`, e o job `testes` foi cancelado pelo push seguinte. O run 43935238784 roda em `d54e6e41`, que tem o mesmo código, e terminou com `success`. No head `bcbe9ff4`, o autor informa que o `pnpm run pronto` completo terminou com EXIT 0 (PQ do autor). No head `bb0b770b`, que só integra a develop, não rodei a suíte e não afirmo CI verde: ela fica para o CI do PR.
