@@ -9,13 +9,13 @@ import { COLUNAS_LISTA } from './allow-list.js';
 import { derivarBloqueios, type VersaoBloqueio } from './bloqueios.js';
 import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
 import {
-  CAMPO_CUSTOMIZADO, CAMPO_FASE_DETECCAO_COLUNA, CAMPO_MOTIVO_BLOQUEIO, CAMPO_PRIORIDADE_SEVERIDADE, colunasDosCampos, fasesDeLinhas, motivosDeLinhas, prioridadesDeLinhas, type LinhaRefDominio,
+  CAMPO_CUSTOMIZADO, CAMPO_FASE_DETECCAO_COLUNA, CAMPO_MOTIVO_BLOQUEIO, CAMPO_PRIORIDADE_SEVERIDADE, CAMPO_TAMANHO_REGUA, colunasDosCampos, fasesDeLinhas, motivosDeLinhas, prioridadesDeLinhas, reguaDeLinhas, type LinhaRefDominio,
 } from './dominio-businessmap.js';
 import { faseDeDeteccao, TIPOS_DE_BUG, type TransicaoDoPai } from './fase-deteccao.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
 import {
   agrupar, diaDe, instanteDoBm, noDia, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
-  type LinhaTipo, type LinhaWorkflow, type Referencia, type TransicaoStg,
+  type LinhaTipo, type LinhaWorkflow, type Referencia, type ReguaTamanho, type TransicaoStg,
 } from './normalizador.js';
 
 // F4 do plano 052 (K-182): projetor do BusinessMap, do staging (append-only) para `evt_card`, `fato_transicao` (fonte `revision`),
@@ -64,6 +64,14 @@ type Valor = string | number | boolean | Date | readonly string[] | null;
 
 const linhas = <T extends QueryResultRow>(db: Consultavel, texto: string, valores: unknown[] = []): Promise<T[]> => db.query<T>(texto, valores).then((r) => r.rows);
 
+/** 105 (E7.102): a régua só vale para time que existe na referência de times; linha de time desconhecido é ignorada (o time dela fica "sem régua"). */
+export function reguaSoDeTimesDaReferencia(r: ReguaTamanho, existentes: ReadonlySet<string>): ReguaTamanho {
+  return {
+    faixas: new Map([...r.faixas].filter(([chave]) => existentes.has(chave.slice(0, chave.indexOf(':'))))),
+    times: new Set([...r.times].filter((t) => existentes.has(t))),
+  };
+}
+
 /** Referência inteira (todas as vigências) em memória: as tabelas são pequenas (ADR 0016). */
 export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<Referencia> {
   // uma conexão só, dentro da transação: as leituras são em série
@@ -78,6 +86,8 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
   const prioridades = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_PRIORIDADE_SEVERIDADE]);
   // 105 (E7.5): tabela coluna -> fase de detecção do bug, vigente, validada de novo; sem linhas, nenhum bug tem fase
   const fases = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_FASE_DETECCAO_COLUNA]);
+  // 105 (E7.102): régua de tamanho por time (`<time_id>:<size>` -> faixa), vigente, validada de novo; sem linhas, nenhum card tem tamanho
+  const regua = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_TAMANHO_REGUA]);
   return {
     colunas: agrupar(colunas, (c) => `${c.quadro_id}|${c.coluna_id}`),
     workflows: agrupar(workflows, (w) => `${w.quadro_id}|${w.workflow_id}`),
@@ -87,6 +97,7 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
     camposLista: colunasDosCampos(campos),
     prioridades: prioridadesDeLinhas(prioridades),
     fasesDeteccao: fasesDeLinhas(fases),
+    reguaTamanho: reguaSoDeTimesDaReferencia(reguaDeLinhas(regua), new Set(times.map((t) => String(t.time_id)))),
   };
 }
 
@@ -269,7 +280,7 @@ async function projetarLote(
   // dim_card: projeção, refeita por card (a história fica no staging e em dim_card_versao); `responsaveis` nunca vem do staging
   await db.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [ok]);
   const COLUNAS_DIM = ['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em', 'motivo_descarte', 'titulo',
-    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico', 'fase_deteccao', 'origem_bug', ...COLUNAS_LISTA] as const;
+    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', 'data_acordada', 'classe_servico', 'fase_deteccao', 'origem_bug', 'tamanho_declarado', ...COLUNAS_LISTA] as const;
   await inserir(db, `${S.bm}.dim_card`, [...COLUNAS_DIM, 'responsaveis', 'coletado_em', 'atualizado_por_coleta_id'],
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
 

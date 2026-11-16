@@ -455,3 +455,68 @@ describe('C2a: ano 0000 no deadline (099-C2A-001; sondas S1 e S2 do parecer de s
     expect(proj(card({ deadline: '0001-01-01T00:00:00Z' })).dim.data_acordada).toBe('0001-01-01');
   });
 });
+
+// Pedido 105 (E7.102): tamanho pelo `size` nativo e a régua do time do card. Faixas e chaves escritas AQUI (B-1 da ADR 0020).
+describe('105: tamanho_declarado pela régua do time do card (size nativo)', () => {
+  // time 1 (workflows S e F) com régua; time 2 (workflow T2 até junho) sem régua; time 3 (T2 depois de junho) com uma linha só
+  const REGUA = { faixas: new Map([['1:0.5', 'PP'], ['1:1', 'PP'], ['1:2', 'P'], ['1:3', 'M'], ['1:5', 'G'], ['1:8', 'GG'], ['1:13', 'XG'], ['3:4', 'M']]), times: new Set(['1', '3']) };
+  const COM_REGUA: Referencia = { ...REF, reguaTamanho: REGUA };
+  const tam = (size: unknown, extra: Record<string, unknown> = {}, ref: Referencia = COM_REGUA) => proj(card({ size, ...extra }), [], {}, ref);
+
+  it.each([[0.5, 'PP'], [1, 'PP'], [2, 'P'], [3, 'M'], [5, 'G'], [8, 'GG'], [13, 'XG'], ['3', 'M'], ['0.5', 'PP'], [1.0, 'PP'], ['1.500', null]])('size %j no time com régua vira %j', (size, faixa) => {
+    const p = tam(size);
+    expect(p.dim.tamanho_declarado).toBe(faixa);
+    if (faixa !== null) expect(p.notas.filter((n) => n.startsWith('size_') || n === 'time_sem_regua')).toEqual([]);
+  });
+
+  it('card sem size (ausente, nulo ou vazio) fica sem tamanho, com a nota size_sem_valor; nunca M por omissão', () => {
+    for (const p of [proj(card(), [], {}, COM_REGUA), tam(null), tam(undefined), tam('')]) {
+      expect(p.dim.tamanho_declarado).toBeNull();
+      expect(p.notas.filter((n) => n === 'size_sem_valor')).toHaveLength(1);
+    }
+  });
+
+  it.each([[0], [4], [21], [-1], [2.5], ['M'], ['dois'], [true], [{}], [NaN], [Infinity], ['1e3']])('size %j fora da régua fica sem tamanho, com uma nota (nunca encaixa no vizinho)', (size) => {
+    const p = tam(size);
+    expect(p.dim.tamanho_declarado).toBeNull();
+    expect(p.notas.filter((n) => n === 'size_fora_da_regua')).toHaveLength(1);
+  });
+
+  it('time sem régua (workflow fora, time 2, workflow sem time) fica sem tamanho, com a nota time_sem_regua, mesmo com size que existe em outro time', () => {
+    const doTime2 = proj(card({ size: 3, workflow_id: 'T2' }), [tr('31', '2026-05-20T10:00:00Z', { workflow: 'T2' })], {}, COM_REGUA);
+    expect(doTime2.dim.tamanho_declarado).toBeNull();
+    expect(doTime2.notas).toContain('time_sem_regua');
+    const fora = proj(card({ size: 3, workflow_id: WF_FORA }), [tr('21', '2026-05-20T10:00:00Z', { workflow: WF_FORA })], {}, COM_REGUA);
+    expect(fora.dim.tamanho_declarado).toBeNull();
+    expect(fora.notas).toContain('time_sem_regua');
+    const semTime = tam(3, { workflow_id: 'inexistente' });
+    expect(semTime.dim.tamanho_declarado).toBeNull();
+    expect(semTime.notas).toContain('time_sem_regua');
+  });
+
+  it('a régua é por time: o mesmo size dá faixas diferentes (ou nenhuma) em times diferentes', () => {
+    const t1 = proj(card({ size: 4, workflow_id: 'T2' }), [tr('31', '2026-06-20T10:00:00Z', { workflow: 'T2' })], {}, COM_REGUA);
+    expect(t1.dim.tamanho_declarado).toBe('M'); // time 3 (depois de junho): 4 é M
+    expect(tam(4).dim.tamanho_declarado).toBeNull(); // time 1: 4 não está na régua
+    expect(tam(4).notas).toContain('size_fora_da_regua');
+  });
+
+  it('sem régua carregada (ausente ou vazia) ninguém tem tamanho e nenhuma nota é emitida (nada aprovado ainda)', () => {
+    for (const ref of [REF, { ...REF, reguaTamanho: { faixas: new Map(), times: new Set<string>() } }]) {
+      const p = tam(3, {}, ref);
+      expect(p.dim.tamanho_declarado).toBeNull();
+      expect(p.notas.filter((n) => n.startsWith('size_') || n === 'time_sem_regua')).toEqual([]);
+    }
+  });
+
+  it('as notas são só contagem: nunca o valor do size nem o time', () => {
+    const p = tam(21);
+    expect(p.notas.every((n) => !/21|time_id|^1$/.test(n))).toBe(true);
+  });
+
+  it('o size de campo customizado não alimenta mais tamanho_declarado (uma fonte só): o mapa field_id -> coluna não a preenche', () => {
+    const ref: Referencia = { ...COM_REGUA, camposLista: new Map([['501', 'tamanho_declarado']]) };
+    const p = proj(card({ size: 3, custom_fields: [{ field_id: '501', valor: 'XG' }] }), [], {}, ref);
+    expect(p.dim.tamanho_declarado).toBe('M');
+  });
+});
