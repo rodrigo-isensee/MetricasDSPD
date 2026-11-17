@@ -30,6 +30,7 @@
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && pnpm run db:up",
     "db:migrate": "bash scripts/db.sh migrate",
+    "vm:preparar": "pnpm --filter @metricas-dspd/server run vm:preparar",
     "db:sql": "bash scripts/gerar-sql-migracoes.sh",
     "bm:diagnostico": "bash scripts/bm-diagnostico.sh",
     "coleta": "bash scripts/coleta.sh",

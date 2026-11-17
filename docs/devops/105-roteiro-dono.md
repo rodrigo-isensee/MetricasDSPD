@@ -223,7 +223,7 @@ Depois do passo 0.3, grave as marcas de critério do Acelerato (idempotente; imp
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:criterios); echo "rc=$?"
 ```
-Rc=0 é sucesso. Condicional, só quando a migração 0040 (escala P do S1) estiver na versão que você implantou: backup (seção 4, item 1), `db:migrate`, coleta do Acelerato parada, `ac:reprojetar-escala`, `ac:criterios` de novo (grava `105:S1-escala-p`) e religar a coleta. O rollback da 0040 segue a seção 4 (`DSPD_PERMITIR_DOWN=1`, backup de hoje, `down 1`). Detalhe: `docs/devops/105-implantacao-vm.md`, seção 2.1, item 4a.
+Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). Condicional, só quando a migração 0040 (escala P do S1) estiver na versão que você implantou: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só: com a coleta do Acelerato parada (0.1), `ac:reprojetar-escala`, `ac:criterios` de novo (grava `105:S1-escala-p`) e religar a coleta (seção 3). O rollback da 0040 segue a seção 4 (`DSPD_PERMITIR_DOWN=1`, backup de hoje, `down 1`). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
 
 ## O que fica fora deste roteiro
 
