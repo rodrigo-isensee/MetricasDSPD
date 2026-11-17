@@ -392,7 +392,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             {estado === 'vazio' && (
               <div className="mt-3">
                 <EstadoVazio codigo={p.codigo} />
-                {p.complementoVazio}
+                {p.complementoVazio && <div className="mt-2">{p.complementoVazio}</div>}
               </div>
             )}
 

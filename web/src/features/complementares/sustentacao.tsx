@@ -93,7 +93,7 @@ export function CartaoS8({ filtros }: P) {
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
       complementoVazio={(r) =>
         (r.semResposta ?? r.cobertura.total - r.cobertura.n) > 0 && (
-          <p className="mt-2 text-sm" data-testid="s8-nota-vazio">
+          <p className="text-sm" data-testid="s8-nota-vazio">
             {textoSemResposta(r)}
           </p>
         )
