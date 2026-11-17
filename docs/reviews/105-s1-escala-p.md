@@ -3,13 +3,20 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s1-escala-p1-p5
-commit: 07cfc675032c45616599d29a0dc9ec8de547bd8c
+commit: 549dfd8b9d8c7e7f85eca204ac7db7740a2f561c
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: S1 só com a escala P1 a P5 (E7.238, review E7.308, revalidação E7.382)
+# Code review: S1 só com a escala P1 a P5 (E7.238, review E7.308, revalidação E7.382, junção E7.421)
+
+## Revalidação da junção no head `549dfd8b` (delta lido)
+- Delta lido: `forge-check parecer delta docs/reviews/105-s1-escala-p.md`, intervalo `07cfc675..549dfd8b`, sem o que veio da `develop` (`edfff4d8`, com #505 EI_SUST, #514 e #515 K-394). No domínio: `CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `packages/contratos/src/{origem.ts,origem.test.ts,schemas.ts}`, `packages/metricas/src/acelerato/acelerato.test.ts`, `server/src/modulos/referencia/criterios-acelerato.ts`, `server/tests/criterios-acelerato.test.ts`, `server/tests/painel-real-f6.test.ts`; todos são linhas do EI_SUST trazidas pela junção. `.env.example` e `package.json` vêm só da `develop`.
+- **O remendo do S1 não mudou**: `git diff --numstat ab12a37f 07cfc675` (S1 contra a base antiga) e `git diff --numstat edfff4d8 549dfd8b` (S1 contra a base nova) dão os mesmos números em todo arquivo de código, teste, migração e documento; só os pareceres diferem. O diff completo, sem `index` e `@@`, difere só em dois pontos: o contexto da entrada vizinha (`105:S8-so-respondidos` antes, `105:EI_SUST` agora) e o teste CT-49.
+- **Os três critérios** (`criterios-acelerato.ts:55-70`): `105:S8-so-respondidos` 8º, `105:EI_SUST` 9º, `105:S1-escala-p` 10º, cada um com a sua métrica; sem marcador de conflito. O teste (`server/tests/criterios-acelerato.test.ts`) espera as dez entradas, ids 8 S8, 9 EI_SUST, 10 S1; rodei o arquivo: 6 passaram.
+- **SQL do DBA**: a `develop` não trouxe migração (`deploy/sql` e `server/migrations` contra `edfff4d8` só mostram a 0040 desta branch); o #515 muda no gerador só a trava do wrapper, sem mudar a saída. Não precisa regenerar.
+- **CI do head `549dfd8b`**: `rapida`, `build`, `banco`, `openapi`, `seguranca`, `imagem` verdes; `testes` e `e2e-parte` em andamento na hora deste parecer. Do autor: `pnpm run pronto` rc=0. Sem PR: o parecer não afirma CI verde do PR.
 
 ## Revalidação no head `07cfc675` (delta lido)
 - Delta lido: `forge-check parecer delta docs/reviews/105-s1-escala-p.md`, intervalo `744e5a36..07cfc675`, sem o que veio da `develop`. Commits da volta: `18e842c7` (testes de banco, SQL do DBA da 0040, testes dos mutantes) e `07cfc675` (integra a `develop` com o #508 e regenera o SQL do DBA).
