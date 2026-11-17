@@ -1,6 +1,6 @@
 #!/bin/bash
 # Teste do scripts/changelog.mjs (K-377): dois fragmentos de branches diferentes mesclam sem conflito e o `juntar` junta os
-# dois; formato inválido reprova; o histórico do CHANGELOG.md (da versão fechada em diante) fica intacto; o contraste mostra
+# dois; formato inválido reprova; o histórico de um CHANGELOG de fixture (da versão fechada em diante) fica intacto; o contraste mostra
 # que editar o topo do CHANGELOG.md em duas branches dá conflito. Sem rede, sem banco: repositório temporário.
 set -uo pipefail
 # Isola do repositório de fora: quando roda num gancho ou no `pronto`, GIT_DIR e afins apontariam os commits de teste para ele.
@@ -23,7 +23,7 @@ git init -q -b develop .
 git config user.email t@t
 git config user.name t
 git config commit.gpgsign false
-cp "$RAIZ/CHANGELOG.md" CHANGELOG.md
+cp "$RAIZ/scripts/fixtures/changelog-teste.md" CHANGELOG.md # fixture própria (K-401), nunca o CHANGELOG.md real
 cp "$RAIZ/changelog.d/README.md" changelog.d/README.md
 git add -A
 git commit -q -m base
