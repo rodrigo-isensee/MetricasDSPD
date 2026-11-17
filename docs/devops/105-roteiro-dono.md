@@ -69,9 +69,9 @@ Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes da
 ```
 - O que faz: a migração 0038 criou `dim_chamado.fluxo` vazia e a coleta de costume só projeta versões novas do staging; este comando reaplica a regra de fluxo que já existe às etapas guardadas no staging e preenche `fluxo` **só onde ele é nulo**. Nunca troca valor existente, não chama o Acelerato e não toca no staging. Roda em lotes, numa transação só (tudo ou nada), com a credencial do migrador.
 - Não recebe argumento. Imprime só contagens, em uma linha JSON: `coletaId`, `lidos`, `preenchidos`, `fluxoMultiplo`, `semFluxo`. Rc=0 é sucesso; rc=1 é erro (`ac:reprojetar-fluxo falhou: <categoria>`): pare e avise. Como é uma transação só, o erro não deixa nada pela metade.
-- Repetir é seguro e não muda nenhum dado (só soma uma linha de execução em `ctl_coleta`); mesmo assim, não precisa repetir.
+- Repetir é seguro e não muda nenhum dado; repetição sem mudança nem grava linha em `ctl_coleta` (K-397). Mesmo assim, não precisa repetir.
 - Resultado esperado: `lidos` = 5144 e `preenchidos` quase todos. Chamado com **fluxo múltiplo** e chamado **sem etapa** seguem nulos de propósito (aparecem em `fluxoMultiplo` e `semFluxo`).
-- Atenção: o "última carga" da tela do Acelerato passa a mostrar a hora desta reprojeção até a próxima coleta do Acelerato. Não é erro nem dado novo.
+- Atenção: só nesta primeira rodada, que preenche linhas, o "última carga" da tela do Acelerato mostra a hora da reprojeção até a próxima coleta do Acelerato. Não é erro nem dado novo. Rodada sem mudança (repetição) não move o "última carga" (K-397). O `ac:reprojetar-escala` da seção 5 ainda grava uma linha a cada rodada.
 - Tempo: não medido; anote a duração e devolva.
 
 ## 1. Passos
@@ -215,15 +215,16 @@ Só se algo der errado depois do `db:migrate` do passo 0.2. A 0038 só criou a c
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='fluxo'"
 ```
 4. Para reaplicar depois, rode o `db:migrate` do passo 0.2 de novo. O código da release usa `fluxo`: com a 0038 desfeita, S5, S6 e S7 não funcionam até reaplicar ou reverter o merge da release (`git revert`, pelo tech-lead).
-5. Restaurar o `.dump` do backup (perda de dado maior) é decisão do Jarvis; `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
+5. **Rollback da 0040** (S1, `dim_chamado.escala_p`, coluna derivada que a reprojeção refaz). Se a 0040 já foi aplicada e algo deu errado, as duas saídas são: (a) **`down 1`** com as duas travas, igual ao passo 2, **uma migração por vez**: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; DSPD_PERMITIR_DOWN=1 DSPD_BACKUP_DIR=~/backups-metricas pnpm run db:migrate down 1); echo "rc=$?"`. O `down 1` desfaz a **última** migração aplicada, que é a 0040 só se nada foi aplicado depois dela: confira antes com `SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1;`. Se a 0038 também precisa sair, é outro `down 1` depois, nunca `down 2` sem o Jarvis. Confira que a coluna saiu (deve imprimir `0`): `docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='escala_p'"`. Com a 0040 desfeita, o S1 não funciona até reaplicar (`db:migrate` e `ac:reprojetar-escala`) ou reverter o merge da release. (b) **Restaurar o backup** tirado antes do `db:migrate` (decisão do Jarvis, item 6; perde o que entrou depois dele). Em qualquer das duas, **a coleta do Acelerato continua parada** até acabar.
+6. Restaurar o `.dump` do backup (perda de dado maior) é decisão do Jarvis; `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
 
-## 5. Marcas de critério do Acelerato e, se a 0040 existir, o S1 (K-396)
+## 5. Marcas de critério do Acelerato e o S1 (K-396)
 
 Depois do passo 0.3, grave as marcas de critério do Acelerato (idempotente; imprime só as referências novas):
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:criterios); echo "rc=$?"
 ```
-Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). Condicional, só quando a migração 0040 (escala P do S1) estiver na versão que você implantou: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só: com a coleta do Acelerato parada (0.1), `ac:reprojetar-escala`, `ac:criterios` de novo (grava `105:S1-escala-p`) e religar a coleta (seção 3). O rollback da 0040 segue a seção 4 (`DSPD_PERMITIR_DOWN=1`, backup de hoje, `down 1`). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
+Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). O S1 (migração 0040, escala P1 a P5) já está na `develop` e vem na release: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só, **com a coleta do Acelerato parada (0.1)**: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-escala); echo "rc=$?"`, depois `ac:criterios` de novo (grava `105:S1-escala-p`) e só então religar a coleta (seção 3). O rollback da 0040 é o item 5 da seção 4 (`DSPD_PERMITIR_DOWN=1`, backup de hoje, `down 1`, ou restaurar o backup). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
 
 ## O que fica fora deste roteiro
 
