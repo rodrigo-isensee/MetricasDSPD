@@ -20,5 +20,6 @@ Diff lido: `f15e4e4b..0dde8f64` (6 arquivos, +22 -7).
 - **Suíte:** sem PR; vale o PQ do autor (`pnpm run pronto` rc=0). Não afirmo CI verde.
 - Sem guarda nova ou mudada no diff (só dado e um passo de lista); sem mutante a declarar.
 
+Sem achados: o bloco abaixo fica vazio.
+
 ## Achados
-Nenhum.
