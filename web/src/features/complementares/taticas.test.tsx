@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { MOTIVOS_FORNECEDOR } from '@metricas-dspd/contratos'
 import type {
   Dominio,
   FiltrosDe,
@@ -11,6 +12,7 @@ import type {
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { COMUM, FILTROS_FLUXO, FonteFixa, JANELA, insuf } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
+import { NOTAS_COMPLEMENTARES } from './notas'
 import { CartaoT10, CartaoT11, CartaoT12, CartaoT13, CartaoT14 } from './taticas'
 
 vi.setConfig({ testTimeout: 45000 })
@@ -76,7 +78,7 @@ describe('T10 Tempo de terceiros', () => {
     })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('leitura-T10')).toHaveTextContent(
-      'Os bloqueios encerrados com o motivo Aguardando fornecedor somaram 52 dias úteis no período, em 30 bloqueios. Nas últimas 12 semanas, em 85% dos casos a espera durou até 6 dias úteis. Prazo contratado não informado.',
+      'Os bloqueios encerrados com os motivos Dependência Externa e Aguardando fornecedor somaram 52 dias úteis no período, em 30 bloqueios. Nas últimas 12 semanas, em 85% dos casos a espera durou até 6 dias úteis. Prazo contratado não informado.',
     )
     const linhas = within(within(el).getByTestId('tabela-T10')).getAllByRole('row').slice(1)
     expect(linhas).toHaveLength(1)
@@ -101,7 +103,7 @@ describe('T10 Tempo de terceiros', () => {
     })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('leitura-T10')).toHaveTextContent(
-      'Os bloqueios encerrados com o motivo Aguardando fornecedor somaram 1,5 dias úteis no período, em 1 bloqueio. Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas. Prazo contratado não informado.',
+      'Os bloqueios encerrados com os motivos Dependência Externa e Aguardando fornecedor somaram 1,5 dias úteis no período, em 1 bloqueio. Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas. Prazo contratado não informado.',
     )
     const linha = within(within(el).getByTestId('tabela-T10')).getAllByRole('row')[1]!
     expect(linha).toHaveTextContent(
@@ -124,11 +126,22 @@ describe('T10 Tempo de terceiros', () => {
     )
   })
 
+  it('cada motivo de MOTIVOS_FORNECEDOR aparece no aviso de vazio e na nota do T10', async () => {
+    const fonte = new FonteFixa({ T10: dto(undefined, { totalDiasUteis: 0 }) })
+    const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
+    const aviso = within(el).getByTestId('t10-sem-fornecedor')
+    const nota = NOTAS_COMPLEMENTARES.T10.comoSeCalcula
+    for (const motivo of MOTIVOS_FORNECEDOR) {
+      expect(aviso).toHaveTextContent(`"${motivo}"`)
+      expect(nota).toContain(`"${motivo}"`)
+    }
+  })
+
   it('resposta antiga, sem o total: diz o motivo do vazio e o de não separar por fornecedor', async () => {
     const fonte = new FonteFixa({ T10: dto(undefined, { totalDiasUteis: 0 }) })
     const el = await abrir('T10', <CartaoT10 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('t10-sem-fornecedor')).toHaveTextContent(
-      'Nenhum bloqueio com o motivo "Aguardando fornecedor" foi encerrado no período.',
+      'Nenhum bloqueio com os motivos "Dependência Externa" ou "Aguardando fornecedor" foi encerrado no período.',
     )
     expect(within(el).getByTestId('t10-motivo')).toHaveTextContent(
       'O nome do fornecedor não é guardado na base.',
