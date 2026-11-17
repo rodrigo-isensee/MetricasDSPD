@@ -108,7 +108,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['O7', 'Entrada × saída por tipo', undefined, ['o20', 'o25']],
   ]),
   ...secao('operacional', 'qualidade', 'Qualidade', [
-    ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16', 'o17']],
+    ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16', 'o27']],
     ['O18', 'Entregas com e sem bug', undefined, ['o4']],
   ]),
   ...secao(
@@ -226,6 +226,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     [
       ['O13', 'Vazão de defeitos'],
       ['O16', 'Estoque e idade de bugs'],
+      ['O27', 'Causa raiz dos bugs', undefined, ['o15', 'o16', 'o17']],
     ],
     'complementar',
   ),

@@ -176,10 +176,10 @@ describe('determinismo da base', () => {
   // E7.210: id 14 Aguardando fornecedor e MOTIVOS_FORNECEDOR (base de 48333a46 para 88a5c095).
   // Regravada de novo (pedido 105, D6): S11 pela Decisão 18b muda o gerador do Acelerato do mock.
   // Regravada de novo (pedido 105, E7.100): a prioridade nativa separa T1, T2, T4, T6, O6 e O24 (base para ef67b23e).
-  // Regravada no merge da develop nos motivos (pedido 105, E7.253): E7.184 junto do E7.100 (base de ef67b23e e 88a5c095 para 61a511eb).
+  // Regravada no merge da develop nos motivos (pedido 105, E7.253): E7.184 junto do E7.100 (base de ef67b23e e 88a5c095 para c2340ec0).
   it('os hashes da base, do Acelerato e das extensões seguem os de antes', () => {
     const base = mock.gerarBaseMock()
-    expect(mock.hashJson(base)).toBe('61a511eb')
+    expect(mock.hashJson(base)).toBe('c2340ec0')
     expect(mock.hashJson(base.ac)).toBe('797abc95')
     expect(mock.hashJson(mock.gerarExtensaoTambemMock(base))).toBe('82329bc3')
   })
@@ -187,6 +187,6 @@ describe('determinismo da base', () => {
   it('a duração do boot é informada e a base do núcleo não altera a gerada (hash estável)', async () => {
     const { bootMs } = await new NucleoMock().iniciar()
     expect(bootMs).toBeGreaterThanOrEqual(0)
-    expect(mock.hashJson(mock.gerarBaseMock())).toBe('61a511eb')
+    expect(mock.hashJson(mock.gerarBaseMock())).toBe('c2340ec0')
   })
 })

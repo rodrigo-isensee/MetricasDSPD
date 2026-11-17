@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
+import { CartaoO27 } from './CartaoO27'
 import { CartaoO11, CartaoO13, CartaoO14, CartaoO16, CartaoO5, CartaoO6, CartaoO8 } from './fluxo'
 import {
   CartaoO19,
@@ -31,6 +32,7 @@ const FLUXO: Record<string, ComponentType<{ filtros: FiltrosFluxo }>> = {
   o24: CartaoO24,
   o25: CartaoO25,
   o26: CartaoO26,
+  o27: CartaoO27,
   t6: CartaoT6,
   t10: CartaoT10,
   t11: CartaoT11,

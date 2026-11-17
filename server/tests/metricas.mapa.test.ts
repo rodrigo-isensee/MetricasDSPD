@@ -10,7 +10,7 @@ const cardNulo: LinhaCard = {
   card_pai: null, criado_em: T, comprometido_em: null, iniciado_em: null, concluido_em: null, arquivado_em: null, motivo_descarte: null,
   tamanho_declarado: null, titulo: null, granularidade: 'story', equipe: null, quadro_id: null, coluna_atual_id: null, excluido_em: null,
   eh_subtarefa: null, data_acordada: null, responsabilidade_atraso: null, origem_demanda: null, fase_deteccao: null, severidade: null,
-  origem_bug: null, adicionado_apos_inicio_pai: null,
+  origem_bug: null, causa_raiz: null, adicionado_apos_inicio_pai: null,
 };
 const col = (quadro: string, id: string, nome: string, extra: Partial<LinhaColuna> = {}): LinhaColuna =>
   ({ quadro_id: quadro, coluna_id: id, nome, tipo_coluna: 'fila', papel: 'trabalho', ordem: 1, limite_wip: null, ...extra });

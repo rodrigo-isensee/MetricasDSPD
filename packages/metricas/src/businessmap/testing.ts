@@ -42,6 +42,8 @@ export interface EspecCard {
   /** Prioridade nativa do BusinessMap (E7.100); padrão Média, `null` = card sem prioridade. */
   prioridade?: DimCard['prioridade']
   origemBug?: string
+  /** Código da causa raiz do bug (O27); ausente = não informada. */
+  causaRaiz?: string | null
   fase?: DimCard['fase_deteccao']
   subtarefa?: boolean
   dataAcordada?: string
@@ -105,6 +107,7 @@ export function umCard(e: EspecCard): { card: DimCard; trs: FatoTransicao[] } {
     severidade: null,
     prioridade: e.prioridade === undefined ? 'Média' : e.prioridade,
     origem_bug: e.origemBug ?? null,
+    causa_raiz: e.causaRaiz ?? null,
     adicionado_apos_inicio_pai: false,
   }
   return { card, trs }

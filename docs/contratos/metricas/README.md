@@ -1,9 +1,9 @@
 # Contratos por métrica: índice
 
-Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-29.
+Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-11-16.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 70 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -33,6 +33,7 @@ Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais,
 | [`O24`](O24.md) | Ordem de chegada | businessmap | `/api/v1/metricas/O24` | story | 20 | ok |
 | [`O25`](O25.md) | Descarte | businessmap | `/api/v1/metricas/O25` | story | 20 | ok |
 | [`O26`](O26.md) | Passagens de mão | businessmap | `/api/v1/metricas/O26` | story | 20 | ok |
+| [`O27`](O27.md) | Causa raiz dos bugs | businessmap | `/api/v1/metricas/O27` | story | 20 | ok |
 | [`T1`](T1.md) | Lead time ponta a ponta | businessmap | `/api/v1/metricas/T1` | story | 20 | ok |
 | [`T2`](T2.md) | Aderência ao SLE | businessmap | `/api/v1/metricas/T2` | story | 20 | ok |
 | [`T3`](T3.md) | Alocação da capacidade | businessmap | `/api/v1/metricas/T3` | story | 20 | ok |
