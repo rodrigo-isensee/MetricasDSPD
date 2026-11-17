@@ -1,4 +1,4 @@
-// Gera os scripts SQL das migrações para o DBA (pedido 105, E7.246). Não é chamado direto: use `pnpm run db:sql`
+// Gera os scripts SQL das migrações para o DBA (pedido 105, E7.246). Não é chamado direto (sem DSPD_GERADOR_VIA_WRAPPER=1, que só o wrapper define, recusa com código 3): use `pnpm run db:sql`
 // (scripts/gerar-sql-migracoes.sh), que sobe um Postgres descartável, e roda este arquivo via tsx dentro de `server/`.
 // Fases: `arquivos` (papéis + um .sql por migração, lidos de server/migrations/*.ts, sem banco) e `grants` (GRANTs + consolidado,
 // lidos do catálogo do banco descartável já migrado, PG_MIGRADOR_URL). Nenhum segredo: senhas vêm do ambiente, lidas pelo psql (\getenv).
@@ -27,6 +27,12 @@ const bloco = (nome, instrucoes, registra) =>
   `${CAB}-- ${nome}\nBEGIN;\n${instrucoes.map(fim).join('\n\n')}\n${registra ? `\nINSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('${registra}', now());\n` : ''}COMMIT;\n`;
 
 const fase = process.argv[2];
+// Trava (K-394): a fase `arquivos` apaga os .sql de deploy/sql antes de gerar e `grants` precisa do banco descartável do wrapper.
+// Chamado direto, sem o wrapper, não toca em nada: recusa antes de qualquer leitura ou escrita em disco.
+if (process.env.DSPD_GERADOR_VIA_WRAPPER !== '1') {
+  console.error(`recusado: este arquivo apaga e regera deploy/sql e só roda pelo wrapper. Use "${COMANDO}". Nada foi alterado.`);
+  process.exit(3);
+}
 const { montarEsquemas } = await import(`${DB}/esquemas.ts`);
 const S = montarEsquemas('');
 

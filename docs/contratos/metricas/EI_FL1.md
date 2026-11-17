@@ -1,6 +1,6 @@
 # Contrato da métrica EI_FL1
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_FL1. Público: time (back-end, front-end, QA). Revisão: 2026-11-15.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_FL1. Público: time (back-end, front-end, QA). Revisão: 2026-11-16.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -208,6 +208,49 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.EI_FL1`); a fotografia versionada 
         "required": ["chave","rotulo","n","estatistica","serie"],
         "additionalProperties": false
       }
+    },
+    "composicao": {
+      "type": "object",
+      "properties": {
+        "chamados": {"type":"number"},
+        "semEtapas": {"type":"number"},
+        "filaInicial": {
+          "type": "object",
+          "properties": {"chamados":{"type":"number"},"horasUteis":{"type":"number"}},
+          "required": ["chamados","horasUteis"],
+          "additionalProperties": false
+        },
+        "finais": {
+          "type": "object",
+          "properties": {"chamados":{"type":"number"},"horasUteis":{"type":"number"}},
+          "required": ["chamados","horasUteis"],
+          "additionalProperties": false
+        },
+        "naoDecididas": {
+          "type": "object",
+          "properties": {
+            "chamados": {"type":"number"},
+            "horasUteis": {"type":"number"},
+            "etapas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "etapa": {"type":"string"},
+                  "chamados": {"type":"number"},
+                  "horasUteis": {"type":"number"}
+                },
+                "required": ["etapa","chamados","horasUteis"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["chamados","horasUteis","etapas"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["chamados","semEtapas","filaInicial","finais","naoDecididas"],
+      "additionalProperties": false
     }
   },
   "required": [
