@@ -26,4 +26,4 @@ Diff `ca6a1281...6e7dfe71`: 12 arquivos, 51 adições e 28 remoções (dentro da
 - A3 (recomendado) web/src/features/complementares/estrategicas.tsx:196 · E6 e T9 vazios leem "Fora da conta: 2 projetos ... ficaram fora desta conta", redundante. Texto é decisão do UX; fica para a revisão de interface.
 
 ## UX
-O parecer `docs/ux/105-revisao-fora-da-conta.md` ainda não existia em /home/rodrigoisensee/MetricasDSPD-065 na hora deste review; não foi commitado aqui.
+O parecer `docs/ux/105-revisao-fora-da-conta.md` do ux-designer foi copiado de /home/rodrigoisensee/MetricasDSPD-065 e commitado nesta branch, como o brief pede; não o alterei.
