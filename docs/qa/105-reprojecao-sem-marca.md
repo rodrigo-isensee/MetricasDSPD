@@ -44,5 +44,4 @@ Diff `8a40f662..abd6ce6f` no domínio: `reprojecao-fluxo.ts` (o INSERT em `ctl_c
 - `compararComGravado` só lê (SELECT); em falha de leitura a transação aborta e nada é gravado. O cursor e o lote iguais aos da reprojeção real.
 - Registro de `registrarCriterioD7528` antes do INSERT não muda o resultado quando a versão é nova; quando existe, devolve `false` sem gravar.
 
-## Achados
-Nenhum bloqueante nem recomendado.
+Sem achados: nenhum bloqueante nem recomendado.
