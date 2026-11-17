@@ -72,6 +72,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['T9'], // pedido 105 (E7.68, D-T9 "T9 A")
         ...['T11'], // pedido 105 (E7.64, D-T11 "A")
         ...['T8'], // pedido 105 (E7.499, D-T8 "A")
+        ...['T15'], // pedido 105 (E7.504)
         ...['EI_SUST'], // pedido 105 (E7.243, P-EI-1 B, P-EI-2 A, P-EI-3)
       ].sort(),
     )

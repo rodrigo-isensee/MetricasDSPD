@@ -211,6 +211,68 @@ describe('pedido 105 (E7.499, D-T8 "A"): T8 com dado real pelas sprints e pelo v
   });
 });
 
+describe('pedido 105 (E7.504): T15 tamanho das sprints, pela mesma janela do T8', () => {
+  const sprint = (i: number, extra: Partial<LinhaSprint> = {}): LinhaSprint => ({
+    sprint_id: `S${i}`, inicio_em: new Date('2026-09-02T12:00:00Z'), fim_em: new Date('2026-09-10T12:00:00Z'), ...extra,
+  });
+  const mundo = (n: number) => ({
+    cards: Array.from({ length: n }, (_, i) => card(`F${i}`, 'Melhoria')),
+    sprints: Array.from({ length: n }, (_, i) => sprint(i)),
+    sprintFilhos: Array.from({ length: n }, (_, i) => ({ sprint_id: `S${i}`, filho_id: `F${i}` })),
+    entregues: true,
+  });
+  type R = {
+    base: { n: number; unidade: string };
+    sprintsNoRecorte: number;
+    estatistica: { status: string; n: number; valor?: { p50: number; p85: number; p95: number; media: number } };
+    foraDaConta: { semDatas: number; acimaDoTeto: number; tetoDiasUteis: number };
+  };
+  const t15 = async (o: OpcoesReal) => {
+    const { app, d } = await montar(o);
+    const r = await app.inject('/api/v1/metricas/T15');
+    expect(r.statusCode).toBe(200);
+    return { r, j: r.json() as R, d };
+  };
+
+  it('T15 está no mapa real, lê só a base real e passa no schema; P50, P85 e média juntos em dias úteis', async () => {
+    expect(origemDaMetrica('T15')).toBe('real');
+    const { r, j, d } = await t15(mundo(20));
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T15.safeParse(j).success).toBe(true);
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+    expect(j.sprintsNoRecorte).toBe(20);
+    expect(j.estatistica.status).toBe('ok');
+    expect(j.estatistica.valor).toEqual({ p50: 6, p85: 6, p95: 6, media: 6 }); // 02/09 a 10/09, menos o feriado de 07/09;
+  });
+
+  it('com 19 sprints só a contagem, sem estatística', async () => {
+    const { j } = await t15(mundo(19));
+    expect(j.sprintsNoRecorte).toBe(19);
+    expect(j.estatistica.status).toBe('insuficiente');
+    expect(j.estatistica).not.toHaveProperty('valor');
+  });
+
+  it('sem as duas datas ou acima de 30 dias úteis: fora da conta e contada, igual ao T8', async () => {
+    const m = mundo(20);
+    const extras = [
+      sprint(30, { inicio_em: null }), sprint(31, { fim_em: null }),
+      sprint(32, { inicio_em: new Date('2026-03-02T12:00:00Z'), fim_em: new Date('2026-06-30T12:00:00Z') }),
+    ];
+    const { j } = await t15({
+      ...m, cards: [...m.cards, card('G0', 'Melhoria'), card('G1', 'Melhoria'), card('G2', 'Melhoria')], sprints: [...m.sprints, ...extras],
+      sprintFilhos: [...m.sprintFilhos, ...extras.map((s, i) => ({ sprint_id: s.sprint_id, filho_id: `G${i}` }))],
+    });
+    expect(j.foraDaConta).toEqual({ semDatas: 2, acimaDoTeto: 1, tetoDiasUteis: 30 });
+    expect(j.sprintsNoRecorte).toBe(20);
+  });
+
+  it('sem sprint na base: zero e insuficiente', async () => {
+    const { j } = await t15({});
+    expect(j.sprintsNoRecorte).toBe(0);
+    expect(j.estatistica.status).toBe('insuficiente');
+  });
+});
+
 describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é um portão', () => {
   it('métrica real lê só a base real; métrica fora do mapa responde "sem dado real" sem ler base nenhuma', async () => {
     const real = await montar();

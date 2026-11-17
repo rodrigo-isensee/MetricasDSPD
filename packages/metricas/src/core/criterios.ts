@@ -31,7 +31,7 @@ export const VERSAO_CRITERIO_PARADOS_V1: VersaoCriterio = {
  * T11 (B11b): conta demandas criadas por mês, não usa `descartado()` nem o `ativo` do descarte.
  * Fase 2 do pedido 011 (O22, O26, T13, T14, E6 e E8): nasceram com o descarte nativo já vigente (nunca existiram com o
  * critério anterior), então nenhuma marcação de "mudou o critério" faz sentido nelas.
- * O27 (pedido 105, E7.218): nasceu com o descarte nativo vigente; tem a sua própria versão de critério.
+ * O27 (pedido 105, E7.218) e T15 (pedido 105, E7.504): nasceram com o descarte nativo vigente; têm a sua própria versão de critério.
  */
 export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
   'T11',
@@ -42,6 +42,7 @@ export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
   'E6',
   'E8',
   'O27',
+  'T15',
 ]
 
 /** `afeta` do descarte nativo, derivado do catálogo: toda métrica de fonte BusinessMap, menos as nascidas depois. */
@@ -362,6 +363,18 @@ export const VERSAO_CRITERIO_T8_DADO_REAL: VersaoCriterio = {
   afeta: ['T8'],
 }
 
+/**
+ * Pedido 105 (E7.504, dono, 2026-11-17): métrica nova T15, tamanho das sprints. Duração da sprint em dias úteis (primeiro início à primeira conclusão do card Sprint, a mesma
+ * janela do T8, teto de 30 dias úteis), com P50, P85 e a média juntos; um time por vez; abaixo de 20 sprints só a contagem. Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T15_TAMANHO_SPRINT: VersaoCriterio = {
+  id: 'criterio-2026-11-17-t15-tamanho-sprint',
+  data: '2026-11-17',
+  descricao:
+    'T15 (tamanho das sprints) passou a existir: duração da sprint em dias úteis, do primeiro início à primeira conclusão do card Sprint (a mesma janela do T8; mais de 30 dias úteis, ou sem as duas datas, fica fora da conta e é contada), com P50, P85 e a média; sem publicar com menos de 20 sprints',
+  afeta: ['T15'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -393,6 +406,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
   VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG,
   VERSAO_CRITERIO_T8_DADO_REAL,
+  VERSAO_CRITERIO_T15_TAMANHO_SPRINT,
 ]
 
 /**

@@ -60,6 +60,7 @@ export type ResultadoO27 = z.infer<typeof s.resultadoO27>
 export type ResultadoO17 = z.infer<typeof s.resultadoO17>
 export type ResultadoT6 = z.infer<typeof s.resultadoT6>
 export type ResultadoT8 = z.infer<typeof s.resultadoT8>
+export type ResultadoT15 = z.infer<typeof s.resultadoT15>
 export type ResultadoE4 = z.infer<typeof s.resultadoE4>
 export type ResultadoE5 = z.infer<typeof s.resultadoE5>
 export type ResultadoS8 = z.infer<typeof s.resultadoS8>
@@ -125,6 +126,7 @@ export interface ContratoMetricas {
   T9: Fluxo<ResultadoT9>
   T6: Fluxo<ResultadoT6>
   T8: Fluxo<ResultadoT8>
+  T15: Fluxo<ResultadoT15>
   T10: Fluxo<ResultadoT10>
   T11: Fluxo<ResultadoT11>
   T12: Fluxo<ResultadoT12>
@@ -248,6 +250,8 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O27: ['equipe', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
+  // T15 (E7.504): um time por vez, só pelo filtro de equipe; a mesma janela do T8.
+  T15: ['equipe', 'sistema', 'periodo'],
   T10: ['equipe', 'tipo', 'sistema', 'periodo'],
   // T11: janela fixa de 24 meses mais o corrente; o período é aceito e ignorado (CA-12, "Não afetado por: Período"), como no E9.
   T11: ['equipe', 'tipo', 'sistema', 'periodo'],

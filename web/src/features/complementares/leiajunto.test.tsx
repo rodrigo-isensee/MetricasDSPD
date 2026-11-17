@@ -88,7 +88,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     expect(await screen.findByTestId('metrica-O20')).toBeInTheDocument()
   })
 
-  it('os links do núcleo alcançam as 34 complementares (em cadeia)', () => {
+  it('os links do núcleo alcançam as 35 complementares (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = comPares.flatMap((c) => c.leiaJunto ?? [])
     for (let id = fila.pop(); id; id = fila.pop()) {
@@ -97,7 +97,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
       fila.push(...(cartaoPorIdGlobal(id)?.leiaJunto ?? []))
     }
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').map((c) => c.id)
-    expect(compl).toHaveLength(34)
+    expect(compl).toHaveLength(35)
     // O21 não tem origem na especificação de UX (CA-15 o liga pela página Métricas).
     expect(compl.filter((id) => !alcancadas.has(id))).toEqual(['o21'])
   })

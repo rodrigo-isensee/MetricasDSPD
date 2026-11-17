@@ -43,6 +43,7 @@ const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O17',
   'T6',
   'T8',
+  'T15',
   'E4',
   'E5',
   'S8',

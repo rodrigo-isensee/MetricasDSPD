@@ -92,6 +92,7 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
       'E6',
       'E8',
       'O27',
+      'T15',
     ])
     expect(fonteDaMetrica('T11')).toBe('businessmap')
     expect(METRICA_IDS).toContain('T11')
@@ -101,7 +102,7 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     }
     // sem T11 na lista nominal ele entraria: o teste de igualdade acima é a trava
     const semNominal = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
-    expect(semNominal).toHaveLength(53)
+    expect(semNominal).toHaveLength(54)
     for (const id of NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO)
       expect(marcacoesNoPeriodo(id, { inicio: '2026-10-01', fim: '2026-10-16' }, []), id).toEqual(
         [],

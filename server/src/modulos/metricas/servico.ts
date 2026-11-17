@@ -71,7 +71,7 @@ type Marca = { versao: string; finalizadoEm: Date | null };
 type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; cal: Calendario; sleDefinido?: boolean;
   /** Pedido 077 (L3a): início do histórico carregado (menor `inicio_carga` das cargas iniciais do BusinessMap); ausente = sem carga inicial válida. */
   historicoDesde?: string;
-  /** Pedido 105 (E7.499): sprints e filhos da base real (só o BusinessMap; vazia no modo mock); o T8 é a única métrica que os lê. Só a carga do BusinessMap a preenche. */
+  /** Pedido 105 (E7.499): sprints e filhos da base real (só o BusinessMap; vazia no modo mock); o T8 e o T15 (E7.504) são as únicas métricas que os lêem. Só a carga do BusinessMap a preenche. */
   extSprints?: ExtensaoBM };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
@@ -341,8 +341,8 @@ export class ServicoMetricas {
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),
       ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem && !real ? { tambem: this.deps.extensaoTambem() } : {}),
-      // Pedido 105 (E7.499): na base real o T8 lê as sprints (janela de execução do card Sprint) e o vínculo dos filhos; só o BusinessMap, nunca misturado com o Acelerato.
-      ...(id === 'T8' && real ? { ext: { bm: (bm as NonNullable<typeof bm>).extSprints as ExtensaoBM, ac: EXTENSAO_AC_VAZIA } } : {}),
+      // Pedido 105 (E7.499): na base real o T8 e o T15 (E7.504, mesma janela) leem as sprints (janela de execução do card Sprint) e o vínculo dos filhos; só o BusinessMap, nunca misturado com o Acelerato.
+      ...((id === 'T8' || id === 'T15') && real ? { ext: { bm: (bm as NonNullable<typeof bm>).extSprints as ExtensaoBM, ac: EXTENSAO_AC_VAZIA } } : {}),
       // Pedido 105 (E7.64): na base real o T11 lê `dim_card` (a regra de chegada é da biblioteca); as outras da extensão seguem sem dado real.
       ...(id === 'T11' && real ? { tambem: { ...EXTENSAO_TAMBEM_BM_VAZIA, entradasSazonais: entradasSazonaisDeCards(ctxBM), dadoReal: true } } : {}),
     };

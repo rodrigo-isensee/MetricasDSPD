@@ -559,6 +559,17 @@ export const REGRAS_METRICA = {
     refBriefing: '06 T8; 7.2 sem alvo de 100%',
     status: 'ok',
   },
+  T15: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'story',
+    refBriefing: '06 T8; 7.1 sem média isolada; E7.504',
+    status: 'ok',
+  },
   O19: {
     dominio: 'businessmap',
     segmentacao: ['motivo-bloqueio'],

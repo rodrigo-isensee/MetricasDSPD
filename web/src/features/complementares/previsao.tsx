@@ -3,7 +3,15 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
 import { AmostraInsuficiente, SemPrioridade, SeletorLocal, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
-import { fmtData, fmtInteiro, fmtPct, fmtTrimestre, plural, textoJanela } from '@/lib/formatar'
+import {
+  fmtData,
+  fmtDiasUteis,
+  fmtInteiro,
+  fmtPct,
+  fmtTrimestre,
+  plural,
+  textoJanela,
+} from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { CartaoComplementar } from './CartaoComplementar'
 import { Leia } from './comuns'
@@ -206,6 +214,66 @@ export function CartaoT8({ filtros }: P) {
             Sem alvo de 100%: leia sempre junto com a entrada não planejada. Agregado das sprints,
             sem comparar times.
           </Leia>
+        </div>
+      )}
+    </CartaoComplementar>
+  )
+}
+
+/**
+ * T15 (E7.504): tamanho das sprints em dias úteis. P50, P85 e a média sempre juntos (nunca a média sozinha), de um time por vez (pelo filtro); abaixo de 20 sprints
+ * só a contagem. Reusa a nota "fora da conta" do T8 (mesma janela).
+ */
+export function CartaoT15({ filtros }: P) {
+  const q = useMetrica('T15', filtros)
+  const d = q.dados
+  const est = d?.estatistica
+  const ok = est?.status === 'ok' ? est.valor : null
+  return (
+    <CartaoComplementar
+      id="T15"
+      q={q}
+      semTabela
+      baseVariante={ok ? 'ok' : 'insuficiente'}
+      complementoVazio={(r) => notaForaDaContaT8(r.foraDaConta, true)}
+      leitura={
+        d
+          ? ok
+            ? `A metade das sprints dura até ${fmtDiasUteis(ok.p50)} e 85% duram até ${fmtDiasUteis(ok.p85)}; a média é ${fmtDiasUteis(ok.media)}.`
+            : `Só ${fmtInteiro(d.sprintsNoRecorte)} ${plural(d.sprintsNoRecorte, 'sprint', 'sprints')} no recorte: abaixo de 20 não se publica estatística.`
+          : undefined
+      }
+    >
+      {(r) => (
+        <div className="flex flex-col gap-3">
+          {notaForaDaContaT8(r.foraDaConta)}
+          {ok ? (
+            <TabelaDados
+              codigo="T15"
+              legenda="Duração das sprints em dias úteis: P50, P85 e média juntos"
+              colunas={[
+                { chave: 'n', titulo: 'Sprints', alinhar: 'direita' },
+                { chave: 'p50', titulo: 'P50 (mediana)', alinhar: 'direita' },
+                { chave: 'p85', titulo: 'P85', alinhar: 'direita' },
+                { chave: 'media', titulo: 'Média (só com P50 e P85)', alinhar: 'direita' },
+              ]}
+              linhas={[
+                {
+                  n: fmtInteiro(r.sprintsNoRecorte),
+                  p50: fmtDiasUteis(ok.p50),
+                  p85: fmtDiasUteis(ok.p85),
+                  media: fmtDiasUteis(ok.media),
+                },
+              ]}
+            />
+          ) : (
+            <AmostraInsuficiente
+              n={r.sprintsNoRecorte}
+              codigo="T15"
+              oQue="P50, P85 e média do tamanho das sprints"
+            />
+          )}
+          <Leia>Um time por vez, pelo filtro de time. Sem meta e sem comparar times.</Leia>
         </div>
       )}
     </CartaoComplementar>

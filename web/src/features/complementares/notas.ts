@@ -24,6 +24,7 @@ type Id =
   | 'T13'
   | 'T14'
   | 'T8'
+  | 'T15'
   | 'E4'
   | 'E5'
   | 'E6'
@@ -131,6 +132,16 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     meta: 'Sem alvo de 100%.',
     cuidados:
       'Limite do dado: o BusinessMap não guarda a data em que o filho foi ligado à sprint. Por isso o não planejado é o filho criado depois do início da sprint; quem foi criado antes e ligado depois conta como planejado. Não compara sprints entre times nem usa pontos como meta.',
+  },
+  T15: {
+    oQueE: 'Quantos dias úteis dura uma sprint, do começo ao fim, para o time escolhido.',
+    comoSeCalcula:
+      'Cada sprint dura do primeiro início de execução à primeira conclusão do próprio card Sprint, em dias úteis (a mesma janela do cartão Sprint). Mostra o P50 (mediana), o P85 e a média juntos. Sprint sem as duas datas, ou com mais de 30 dias úteis, fica fora da conta e é contada à parte.',
+    comoLer:
+      'Leia o P50 e o P85 primeiro: a média sozinha engana quando há sprints muito longas ou muito curtas. Com menos de 20 sprints no recorte só se mostra a contagem.',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Um time por vez, pelo filtro de time. Não compara times nem ordena sprints. Só BusinessMap.',
   },
   E4: {
     oQueE: 'Quantos projetos começaram e quantos terminaram por trimestre.',

@@ -26,7 +26,7 @@ const PAINEIS = [
       'O27',
     ],
   ],
-  ['/tatico', 7, ['T6', 'T8', 'T11', 'T12', 'T10', 'T13', 'T14']],
+  ['/tatico', 8, ['T6', 'T8', 'T15', 'T11', 'T12', 'T10', 'T13', 'T14']],
   ['/estrategico', 6, ['E9', 'E4', 'E5', 'E6', 'E7', 'E8']],
   ['/operacional?cadencia=sustentacao', 6, ['S9', 'S10', 'S8', 'S11', 'O17', 'S12']],
 ] as const
@@ -160,7 +160,7 @@ describe('Mais métricas deste painel', () => {
       'metricas-dspd:preferencias:v1',
       JSON.stringify({
         versao: 1,
-        paineis: { tatico: { ocultar: ['t6', 't8', 't10', 't11', 't12', 't13', 't14'] } },
+        paineis: { tatico: { ocultar: ['t6', 't8', 't15', 't10', 't11', 't12', 't13', 't14'] } },
         atualizadoEm: '2026-10-10T00:00:00.000Z',
       }),
     )
@@ -169,7 +169,7 @@ describe('Mais métricas deste painel', () => {
     await screen.findByTestId('botao-metricas')
     expect(screen.queryByTestId('mais-metricas')).not.toBeInTheDocument()
     expect(await screen.findByTestId('mais-metricas-ocultas')).toHaveTextContent(
-      '7 complementares ocultas pelas suas preferências',
+      '8 complementares ocultas pelas suas preferências',
     )
   })
 

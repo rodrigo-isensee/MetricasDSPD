@@ -240,7 +240,10 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     'tatico',
     'cumprindo-o-plano',
     'Estamos cumprindo o plano?',
-    [['T8', 'Sprint']],
+    [
+      ['T8', 'Sprint', undefined, ['t15']],
+      ['T15', 'Tamanho das sprints'],
+    ],
     'complementar',
   ),
   ...secao(

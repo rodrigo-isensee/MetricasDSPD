@@ -1219,6 +1219,22 @@ export const resultadoT8 = z.object({
   sprintsNoRecorte: z.number().int().min(0).optional(),
 })
 
+/**
+ * T15: tamanho das sprints (pedido 105, E7.504). Duração em dias úteis (P50, P85, P95 e a média juntos, nunca a média sozinha), de um time por vez (só o filtro de
+ * equipe). Abaixo de 20 sprints no recorte a estatística vem `insuficiente` (só a contagem). `foraDaConta` é o mesmo do T8: sem as duas datas e acima do teto.
+ */
+export const resultadoT15 = z.object({
+  ...comum,
+  /** Sprints que entram na conta no recorte (a mesma janela do T8). */
+  sprintsNoRecorte: z.number().int().min(0),
+  estatistica: estatisticaSchema(percentisComMediaSchema),
+  foraDaConta: z.object({
+    semDatas: z.number().int().min(0),
+    acimaDoTeto: z.number().int().min(0),
+    tetoDiasUteis: z.number().int().min(1),
+  }),
+})
+
 /** E4: projetos iniciados × concluídos por trimestre. */
 export const resultadoE4 = z.object({
   ...comum,

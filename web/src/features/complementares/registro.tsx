@@ -13,7 +13,7 @@ import {
 } from './operacionais'
 import { CartaoE6, CartaoE7, CartaoE8, CartaoE9 } from './estrategicas'
 import { CartaoT10, CartaoT11, CartaoT12, CartaoT13, CartaoT14 } from './taticas'
-import { CartaoE4, CartaoE5, CartaoT6, CartaoT8 } from './previsao'
+import { CartaoE4, CartaoE5, CartaoT6, CartaoT8, CartaoT15 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS11, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
 /** Cartões complementares de fluxo (BusinessMap) por id de cartão; o catálogo único decide em que painel e seção. */
@@ -40,6 +40,7 @@ const FLUXO: Record<string, ComponentType<{ filtros: FiltrosFluxo }>> = {
   t13: CartaoT13,
   t14: CartaoT14,
   t8: CartaoT8,
+  t15: CartaoT15,
   e4: CartaoE4,
   e5: CartaoE5,
   e6: CartaoE6,

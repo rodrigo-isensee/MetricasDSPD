@@ -9,7 +9,7 @@ import { bancoDoMock } from './base-duble.js';
 import { criarDublePg } from './duble-pg.js';
 
 /**
- * Testes SISTÊMICOS intensivos (QA, docs/qa/intensivo-sistemico.md): as 70 rotas de métrica sob uma matriz de filtros válidos
+ * Testes SISTÊMICOS intensivos (QA, docs/qa/intensivo-sistemico.md): as 71 rotas de métrica sob uma matriz de filtros válidos
  * e inválidos, ETag/304, e as regras invioláveis verificadas sobre as respostas reais da API (pessoa, regra dos 20 itens,
  * BusinessMap x Acelerato, story/frente/projeto). Sem Postgres: o banco falso responde com as linhas que o seed gravaria.
  */
@@ -60,9 +60,9 @@ beforeAll(async () => {
   app = await montar(base);
 }, 60_000);
 
-describe('SIS-API: matriz de filtros nas 70 rotas', () => {
-  it('são 70 rotas de métrica', () => {
-    expect(METRICA_IDS).toHaveLength(70);
+describe('SIS-API: matriz de filtros nas 71 rotas', () => {
+  it('são 71 rotas de métrica', () => {
+    expect(METRICA_IDS).toHaveLength(71);
   });
 
   it.each([...METRICA_IDS])('%s: filtros válidos = 200 no schema, ETag estável e 304', async (id) => {
@@ -128,7 +128,7 @@ function* percorrer(v: unknown, caminho: string[] = [], ancestrais: Record<strin
 }
 
 describe('SIS-INV: regras invioláveis nas respostas da API', () => {
-  it('nenhuma resposta (70 rotas x filtros) traz nome, e-mail ou id de pessoa da base', () => {
+  it('nenhuma resposta (71 rotas x filtros) traz nome, e-mail ou id de pessoa da base', () => {
     expect(respostas.length).toBeGreaterThan(61 * 2);
     const pessoas = new Set<string>();
     for (const c of base.bm.cards) for (const p of c.responsaveis) pessoas.add(p);

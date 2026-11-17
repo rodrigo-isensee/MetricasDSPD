@@ -531,6 +531,15 @@ const COMPLEMENTARES: readonly Compl[] = [
     'Sem alvo de 100%; leia com a entrada não planejada',
   ],
   [
+    'T15',
+    'Tamanho das sprints',
+    'Quantos dias úteis dura uma sprint do time?',
+    'tatico',
+    'BusinessMap',
+    'demanda',
+    'Sem meta; leia o P50 e o P85 com a média',
+  ],
+  [
     'T10',
     'Tempo de terceiros',
     'O tempo de resposta contratado com cada fornecedor é o praticado?',

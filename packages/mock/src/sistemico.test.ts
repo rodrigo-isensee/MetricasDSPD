@@ -17,7 +17,7 @@ import { gerarBaseMock, gerarExtensoesMock, gerarPesquisaMock } from '.'
 
 /**
  * Teste sistêmico entre pacotes: gerador (mock) -> contexto -> `calcularMetrica` (metricas) ->
- * schema do contrato (contratos), para as 70 métricas.
+ * schema do contrato (contratos), para as 71 métricas.
  */
 const base = gerarBaseMock({ escala: 0.5 })
 const ctx = {
@@ -44,10 +44,10 @@ function amostrasPublicadas(x: unknown, acumulado: number[] = []): number[] {
   return acumulado
 }
 
-describe('gerador -> métricas -> contrato (70 métricas)', () => {
-  it('cobre exatamente as 70 métricas do catálogo', () => {
-    expect(METRICA_IDS).toHaveLength(70)
-    expect(Object.keys(SCHEMAS_RESULTADO)).toHaveLength(70)
+describe('gerador -> métricas -> contrato (71 métricas)', () => {
+  it('cobre exatamente as 71 métricas do catálogo', () => {
+    expect(METRICA_IDS).toHaveLength(71)
+    expect(Object.keys(SCHEMAS_RESULTADO)).toHaveLength(71)
   })
 
   it.each(METRICA_IDS)('%s: o resultado calculado sobre a base gerada obedece ao schema', (id) => {
