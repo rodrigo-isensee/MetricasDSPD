@@ -91,6 +91,13 @@ export function CartaoS8({ filtros }: P) {
       id="S8"
       q={q}
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
+      complementoVazio={(r) =>
+        (r.semResposta ?? r.cobertura.total - r.cobertura.n) > 0 && (
+          <p className="text-sm" data-testid="s8-nota-vazio">
+            {textoSemResposta(r)}
+          </p>
+        )
+      }
       leitura={
         d?.total.status === 'ok'
           ? `${textoTaxa(d.total)} dos incidentes com resposta no campo de reincidência são reincidentes. Sem resposta fica fora da conta.`
@@ -276,6 +283,11 @@ export function CartaoS11({ filtros }: P) {
       q={q}
       semTabela
       baseVariante={d?.escopo.status === 'ok' ? 'ok' : 'insuficiente'}
+      complementoVazio={(r) =>
+        r.semFluxo > 0 ? (
+          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
+        ) : null
+      }
       leitura={
         d
           ? `${textoTaxa(d.escopo)} dos chamados P1, P2 e encerrados por contorno têm avaliação de Problema.`

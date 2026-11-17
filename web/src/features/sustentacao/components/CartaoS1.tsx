@@ -133,6 +133,19 @@ function Bloco({
   )
 }
 
+type ForaDaMatriz = { outrasEscalas: number; semPrazo: number } | undefined
+
+/** S1: o que ficou fora da conta (outras escalas e sem prazo); a nota vale no corpo e no estado vazio (K-373). */
+function notaForaDaMatriz(f: ForaDaMatriz) {
+  return (
+    <p className="text-sm text-texto-2" data-testid="s1-fora-da-matriz">
+      {f === undefined
+        ? 'Mede só os chamados da escala P1 a P5 da matriz.'
+        : `Mede só os chamados da escala P1 a P5 da matriz. Fora da conta: ${fmtInteiro(f.outrasEscalas)} de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e ${fmtInteiro(f.semPrazo)} sem prazo.`}
+    </p>
+  )
+}
+
 export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S1')
   const q = useMetrica('S1', filtros)
@@ -175,6 +188,9 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className="lg:col-span-12"
+      {...(d?.foraDaMatriz && d.foraDaMatriz.outrasEscalas + d.foraDaMatriz.semPrazo > 0
+        ? { complementoVazio: notaForaDaMatriz(d.foraDaMatriz) }
+        : {})}
     >
       {d && (
         <div className="flex flex-col gap-6">
@@ -184,11 +200,7 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
             atendimento (de fora do cálculo). Hoje essa marca não vem do Acelerato, então nenhum
             chamado sai do cálculo por esse motivo.
           </p>
-          <p className="text-sm text-texto-2" data-testid="s1-fora-da-matriz">
-            {d.foraDaMatriz === undefined
-              ? 'Mede só os chamados da escala P1 a P5 da matriz.'
-              : `Mede só os chamados da escala P1 a P5 da matriz. Fora da conta: ${fmtInteiro(d.foraDaMatriz.outrasEscalas)} de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e ${fmtInteiro(d.foraDaMatriz.semPrazo)} sem prazo.`}
-          </p>
+          {notaForaDaMatriz(d.foraDaMatriz)}
           <p className="text-sm text-texto-2" data-testid="s1-dia-util">
             Dia útil da Sustentação: {fmtNumero(d.horasPorDiaUtil, 2)} h.
           </p>

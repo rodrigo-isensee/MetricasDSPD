@@ -11,7 +11,7 @@ A coleta incremental só lê cards com `last_modified` depois da marca d'água (
 3. `bm:ref-sync`: grava o domínio dos campos 48, 49 e 51 (45 linhas em `ref_dominio`: 3 de campo, 21 de opção e 21 de `value_id`, as `valor_id_*`) e a versão de critério.
 4. `bm:coleta carga-inicial` (com `--projetar`, se o modo estiver em uso): reabre os cards e grava staging novo com o campo 48 reduzido ao código do domínio. Não sobrescreve histórico; arquivados e excluídos permanecem.
 5. `bm:projetar`: preenche `dim_card.causa_raiz` e grava versão nova em `dim_card_versao`; as versões antigas ficam.
-6. Conferência: leia a contagem da nota `campo_fora_do_dominio` das execuções. Perto do total de bugs = o arquivo não casa com a API (volte ao passo 1). Resíduo pequeno = bugs sem causa raiz preenchida ou opção nova no BusinessMap (decisão do dono, nunca inferência).
+6. Conferência: leia a contagem da nota `campo_fora_do_dominio` das execuções. Perto do total de bugs = o arquivo não casa com a API (volte ao passo 1). Leia também `campo_sem_selecao` (K-393): é o bug sem causa raiz escolhida (não preenchido), separado do preenchido fora do domínio. `campo_fora_do_dominio` agora é só opção nova ou `value_id` que o arquivo não conhece (decisão do dono, nunca inferência).
 
 ## Fora do plano
 A causa raiz de incidente segue só no Acelerato; nada cruza `dspd_bm` e `dspd_ac`. O O15 fica fora do `afeta` desta versão (registrado, sem mudança).

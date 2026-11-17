@@ -38,7 +38,7 @@ describe('derivarBloqueios (via A)', () => {
     'CA-075-2: reason_id %j vira %j', (entrada, esperado) => {
       const r = derivarBloqueios([v(T1, true, entrada)]);
       expect(r.eventos[0]!.motivoCodigo).toBe(esperado);
-      expect(r.notas).toEqual(esperado === null ? ['motivo_codigo_invalido'] : []);
+      expect(r.notas).toEqual(esperado !== null ? [] : entrada === null || entrada === undefined ? ['motivo_ausente'] : ['motivo_codigo_invalido']);
     });
   it('CA-075-1: label, comment e user_id marcadores não chegam à saída', () => {
     const r = derivarBloqueios([v(T1, true, 'LABEL_X', { label: 'LABEL_X', comment: 'COMMENT_X', user_id: 'USER_X' } as object)]);
@@ -91,11 +91,21 @@ describe('derivarBloqueios (via A)', () => {
     expect(derivarBloqueios([v(T1, true, 1), v(T2, true, 1, { archivedAt: new Date(T1) })]).eventos.map((e) => e.ocorridoEm)).toEqual([T1, T1]);
     expect(() => derivarBloqueios([v('LIXO-X', false)])).toThrow(/^coletadoEm inválido$/);
     const outro = new Map([['F1', 'fornecedor'], ['F2', 'sistema']]);
-    expect(derivarBloqueios([v(T1, true, 1, { customFields: [{ field_id: 'F2', valor: '' }] })], {}, outro).notas).not.toContain('campo_fora_do_dominio');
+    expect(derivarBloqueios([v(T1, true, 1, { customFields: [{ field_id: 'F2', valor: '' }] })], {}, outro).notas).not.toContain('campo_sem_selecao');
+  });
+  it('K-393: bloqueio sem motivo é motivo_ausente; código fora do catálogo é motivo_codigo_invalido; o valor é nulo nos dois', () => {
+    const sem = derivarBloqueios([v(T1, true, undefined)]);
+    expect(sem.notas).toEqual(['motivo_ausente']);
+    expect(sem.eventos[0]!.motivoCodigo).toBeNull();
+    const ruim = derivarBloqueios([v(T1, true, 'texto-livre')]);
+    expect(ruim.notas).toEqual(['motivo_codigo_invalido']);
+    expect(ruim.eventos[0]!.motivoCodigo).toBeNull();
   });
   it('CA-075-12: fornecedor só de custom_fields mapeado, nunca de outro campo', () => {
     const r = derivarBloqueios([v(T1, true, 1, { fornecedor: 'FORA_X', label: 'FORA_Y', customFields: [{ field_id: 'F9', valor: 'FORA_Z' }] })], {}, mapa);
     expect(r.eventos[0]!.fornecedorCodigo).toBeNull();
-    expect(derivarBloqueios([v(T1, true, 1, campo(''))], {}, mapa).notas).toContain('campo_fora_do_dominio');
+    expect(derivarBloqueios([v(T1, true, 1, campo(''))], {}, mapa).notas).toContain('campo_sem_selecao');
+    expect(derivarBloqueios([v(T1, true, 1, campo(''))], {}, mapa).notas).not.toContain('campo_fora_do_dominio');
+    expect(derivarBloqueios([v(T1, true, 1, campo('desconhecido'))], {}, mapa).notas).toEqual(['campo_fora_do_dominio']);
   });
 });
