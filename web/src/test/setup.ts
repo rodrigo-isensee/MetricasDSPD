@@ -20,7 +20,8 @@ vi.mock('recharts', async (importar) => {
 })
 
 // A primeira chamada gera a base fictícia (import dinâmico + geração): folga para esperas assíncronas.
-configure({ asyncUtilTimeout: 5000 })
+// 5 s na estação; maior só no CI, pela variável que o workflow define (E7.541, `test.env` em vite.config.ts).
+configure({ asyncUtilTimeout: Number(process.env.METRICAS_DSPD_ESPERA_ASYNC_MS) })
 
 afterEach(() => {
   cleanup()
