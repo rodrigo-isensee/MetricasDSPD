@@ -20,7 +20,7 @@ vi.mock('recharts', async (importar) => {
 })
 
 // A primeira chamada gera a base fictícia (import dinâmico + geração): folga para esperas assíncronas.
-configure({ asyncUtilTimeout: 15000 })
+configure({ asyncUtilTimeout: 5000 })
 
 afterEach(() => {
   cleanup()

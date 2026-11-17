@@ -56,19 +56,21 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
     >
       {d && (
         <div className="flex flex-col gap-3">
-          {ok ? (
+          {ok && publicadas.length === 0 ? (
+            <p className="text-sm" data-testid="t3-sem-fatia">
+              Nenhuma fatia chegou a 20 entregas: só a contagem de cada uma aparece abaixo.
+            </p>
+          ) : ok ? (
             <Barras
               descricao={`Divisão das entregas por fatia, realizado (${unidade})`}
               orientacao="horizontal"
-              unidade="% da capacidade"
+              unidade="% das entregas"
               formatar={(v) => fmtPct(v)}
               categorias={publicadas.map((n) => ({
                 rotulo: n.natureza,
                 valores: { realizado: med(n).pct },
               }))}
-              series={[
-                { chave: 'realizado', rotulo: 'Realizado', cor: 1, padrao: 'liso' } as const,
-              ]}
+              series={[{ chave: 'realizado', rotulo: 'Entregas', cor: 1, padrao: 'liso' } as const]}
             />
           ) : (
             <AmostraInsuficiente n={d.base.n} codigo="T3" oQue="Percentuais de alocação" />

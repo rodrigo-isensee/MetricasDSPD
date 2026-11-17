@@ -194,6 +194,16 @@ describe('T3 alocação', () => {
     await within(el).findAllByText(/^realizado 25/)
     expect(within(el).getByTestId('leitura-T3')).not.toHaveTextContent('menos de 20 entregas')
   })
+  it('total >= 20 com todas as fatias abaixo de 20: uma frase no lugar do gráfico vazio', async () => {
+    const base = t3('ok')
+    const naturezas = base.naturezas.map((n) => nat(n.natureza, null, 5))
+    renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
+    const el = await cartao('T3')
+    expect(await within(el).findByTestId('t3-sem-fatia')).toHaveTextContent(
+      'Nenhuma fatia chegou a 20 entregas',
+    )
+    expect(within(el).queryByRole('img')).not.toBeInTheDocument()
+  })
   it('total insuficiente com fatia não marcada abaixo de 20: só a contagem', async () => {
     const base = t3('insuficiente')
     const naturezas = base.naturezas.map((n) => ({
