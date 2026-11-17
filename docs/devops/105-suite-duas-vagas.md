@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-suite-duas-vagas
-commit: 1e0ec6f7215516be9395eaafe1ab6b49f667aaba
+commit: 0813ca6d4c07d4fa790d29c0dba7a686becd22a8
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-16
@@ -25,6 +25,13 @@ Aprovado, sem achado bloqueante. A mudança é de scripts (`scripts/suite-unica.
 - `shellcheck` (no PATH): sem erro; avisos SC2174 (`mkdir -p -m`, só o último diretório recebe o modo, aqui é o desejado), SC2319 e SC2016 (informativo) em `suite-unica.test.sh`, sem efeito. `actionlint` e `zizmor` fora do PATH, mas nenhum workflow mudou.
 - Uso de CPU e memória com duas suítes juntas (medido de verdade, 16/11 20:46 a 20:47, estação com as duas vagas cheias por dois `pnpm run pronto:interno` da worktree 063, e mais outros agentes na máquina; não rodei suítes minhas para não furar a fila nem inflar a carga): 16 núcleos e 18 GB (o `CLAUDE.md` fala em 8 GB e 8 núcleos; a estação atual é maior). Três amostras de 9 s: load average 19,0 / 17,3 / 16,5; CPU ociosa 39 a 43% (vmstat `id`), nenhuma espera de I/O (`wa` 0), swap 0; memória usada 9,9 / 10,9 / 11,4 GB, disponível 8,1 / 7,1 / 6,6 GB (tendência de queda de ~0,75 GB por amostra enquanto os workers do vitest subiam, 0,6 a 1,5 GB de RSS por worker); pressão de memória (`/proc/pressure/memory`) em 0 (`full` 0, `some` avg60 0,04%); pressão de CPU `some` avg60 15%, avg300 9%, sem `full`. Soma de RSS de vitest/playwright/chrome/postgres: ~3 GB. Leitura: duas suítes de unidade/tipos/build cabem com folga de memória e sem espera de I/O; a CPU fica saturada em picos (load acima de 16), o que alonga cada suíte mas não derruba. Limite: não vi duas suítes E2E (Chromium) juntas; cada navegador pesa mais, então vale conferir o `available` na primeira vez em que dois `test:e2e` rodarem juntos e, se cair de ~3 GB, reduzir com `METRICAS_DSPD_SUITE_VAGAS=1`.
 - Fila em uso real: vi 5 `pronto` esperando atrás de duas vagas ocupadas (arquivos de vaga com `pid`, pasta e comando) e uma vaga `pg` separada ocupada por `test-pg.sh` ao mesmo tempo, sem uma bloquear a outra.
+
+## Revalidação no head 0813ca6d (delta 1e0ec6f7..0813ca6d)
+Segue aprovado. Lido só o `forge-check parecer delta`: no domínio, `package.json` (`test:e2e` com `METRICAS_DSPD_SUITE_GRUPO=e2e`), `scripts/suite-unica.sh` (só comentário) e `scripts/suite-unica.test.sh` (caso 6b); fora do domínio, `praticas.md`. Nada em `.github/`, `Dockerfile*`, `compose*` nem IaC: sem custo, sem workflow, sem `continue-on-error` (`R-CUSTO`, `R-VERIFY`, `R-MAIN`).
+- A1 atendido: `praticas.md` agora documenta a vaga presa depois de `kill -9` (`fuser <vaga>`, `kill` no filho órfão, apagar o arquivo não ajuda). A2 segue como recomendação (worktrees com o script antigo até rebasear).
+- Fila do e2e correta: o Playwright usa portas fixas com `strictPort` (4173, 4174, 4175; `e2e/playwright.config.ts:37,44,55`), então uma vaga só para o e2e evita dois builds disputando a porta; a fila é separada da suíte e do pg (o caso 6b prova as duas direções). O `pronto:interno` não roda Playwright (o `pronto` do pacote e2e é só `typecheck`) e o `pnpm test` não tem script no pacote e2e, então nenhum caminho dentro de uma vaga da suíte cai nas portas.
+- B1 (recomendado, sem bloqueio) e2e/package.json:9-17 · `test:chromium`, `test:smoke`, `test:perf`, `test:api` e `test:evidencias-qa` rodados direto não passam pela vaga do e2e e podem colidir de porta com um `pnpm run test:e2e`; a prática manda usar `pnpm run test:e2e`, aceitável por ora. Chamada aninhada (`test:e2e` dentro de comando que já segura vaga) também roda direto, mesmo desenho da fila antiga.
+- Teste do script rodado aqui no head 0813ca6d: `bash scripts/suite-unica.test.sh` termina em "tudo certo", rc=0, com os `ok` do caso 6b. Vagas em /tmp/claude-1000 sem vazamento (`pg-1`, `suite-1`, `suite-2` e o antigo `suite.lock`). Não rodei `pnpm run pronto` completo; o autor registra pronto rc=0 e a suíte inteira fica para o CI do PR, sem afirmar CI verde. A medição de CPU e memória acima (duas suítes de unidade) segue valendo; o e2e agora nunca roda em dobro, o que reduz o risco de dois Chromium juntos.
 
 ## Custo e rollback
 Custo zero: sem minutos de CI, sem recurso novo. Rollback: reverter o commit (volta à trava única) ou, sem reverter, `METRICAS_DSPD_SUITE_VAGAS=1` (uma suíte por vez, só a fila `suite`; o `pg` já é de uma vaga).

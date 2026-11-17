@@ -3,46 +3,50 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-suite-duas-vagas
-commit: 1e0ec6f7215516be9395eaafe1ab6b49f667aaba
-parecer: reprovado
+commit: 0813ca6d4c07d4fa790d29c0dba7a686becd22a8
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: fila de testes com duas vagas (E7.370, review E7.373)
+# Code review: fila de testes com duas vagas (E7.370, review E7.373; revalidação E7.391)
 
-## Escopo lido
-`git diff ab12a37f..1e0ec6f7` (Base-sha da develop): `scripts/suite-unica.sh`, `scripts/suite-unica.test.sh`, `package.json` (só o `test:pg`) e `docs/engineering/praticas.md` (só a regra da fila). Para medir o alcance, li também `e2e/playwright.config.ts` (portas e `reuseExistingServer`), `server/vitest.config.ts`, `server/tests/pg/global-setup.ts` (só o cabeçalho) e a decisão do dono de 2026-11-16 20:35 no pedido.
+## Revalidação no head 0813ca6d (delta lido)
+`forge-check parecer delta docs/reviews/105-suite-duas-vagas.md`, intervalo `1e0ec6f7..0813ca6d`, domínio: `docs/engineering/praticas.md`, `package.json`, `scripts/suite-unica.sh` (só o comentário do cabeçalho) e `scripts/suite-unica.test.sh` (caso 6b e o cabeçalho). Li só esse delta.
 
-Decisão do dono (20:35): "a fila de testes passa a rodar dois `pnpm run pronto` ao mesmo tempo [...]; o test:pg segue com uma vaga até o K-392 entrar".
+- A1 resolvido: `package.json:16` passa o `test:e2e` (e o `e2e`, que o chama) para `METRICAS_DSPD_SUITE_GRUPO=e2e`, uma vaga própria (`metricas-dspd-e2e-1.lock`), pelo mesmo caminho de código do pg. O `pronto` não roda o Playwright (o `pronto` do pacote e2e é só `typecheck`), então duas suítes juntas não disputam as portas 4173, 4174 e 4175.
+- Caso 6b do teste: a segunda chamada do e2e espera (rc=124 no `timeout 1`), e o e2e ocupado não segura a fila da suíte nem a do pg. A ligação do `package.json` é conferida por `grep` (texto), mas o comportamento da fila e2e é provado por execução; aceito.
+- A4 resolvido: o `praticas.md` diz para não exportar `PG_TESTE_URL` ao rodar o `pronto` ou o `pnpm test`.
+- Frase nova sobre vaga presa depois de `kill -9`: correta (o `flock` cai com o processo; `fuser` aponta o filho órfão).
+- A2, A3 e A5 seguem recomendados; nenhum bloqueia.
+
+## Ferramentas e testes (no head 0813ca6d)
+- `bash scripts/suite-unica.test.sh`: 25 `ok`, "suite-unica.test: tudo certo" (17 s).
+- `shellcheck` nos dois scripts: os mesmos três avisos da rodada anterior (SC2174 em `suite-unica.sh:45`, SC2319 em `suite-unica.test.sh:48`, SC2016 em `suite-unica.test.sh:83`), nenhum nas linhas novas.
+- `git diff --numstat --no-renames ab12a37f...0813ca6d -- scripts package.json`: 220 linhas (script 79, teste 137, `package.json` 4), acima da orientação de 150 (M14); ver A5.
+- Sem PR para a branch: a suíte inteira fica para o CI do PR; não afirmo CI verde. O brief traz o teste do script e o `pronto` com rc=0 do autor no head; o `pronto` completo de antes não tinha sido rodado.
+- Pipeline e segurança: pareceres do `devops-engineer` e do QA, em paralelo; não os refaço.
+
+## Escopo da primeira leitura (1e0ec6f7)
+`git diff ab12a37f..1e0ec6f7`: `scripts/suite-unica.sh`, `scripts/suite-unica.test.sh`, `package.json` (o `test:pg`) e a regra da fila no `docs/engineering/praticas.md`; mais `e2e/playwright.config.ts` (portas e `reuseExistingServer`) para medir o alcance. Decisão do dono (2026-11-16 20:35): dois `pnpm run pronto` ao mesmo tempo; o test:pg segue com uma vaga até o K-392.
 
 ## O que está certo
-- Vagas `flock` em `<base>-<n>.lock`, tentadas sem espera uma a uma; o fd 9 só fica aberto na vaga obtida (`exec 9>&-` nas demais). O rc do comando é repassado e a chamada aninhada segue direta.
-- `METRICAS_DSPD_SUITE_VAGAS` validado por `case` (1 a 16, rc=2 fora disso); `METRICAS_DSPD_SUITE_GRUPO` restrito a `[A-Za-z0-9_-]`, sem caminho (rc=2); link simbólico recusado em todas as vagas e no diretório.
-- O `test:pg` tem fila própria de uma vaga, que o `METRICAS_DSPD_SUITE_VAGAS` não altera, e não segura a fila da suíte: está como a decisão pede.
-- Quem espera lista cada vaga e quem a segura (pid, pasta e comando escritos na vaga).
-- `praticas.md` descreve o novo comportamento, o caminho das vagas e a fila do pg.
-
-## Ferramentas e testes
-- `bash scripts/suite-unica.test.sh` em 1e0ec6f7: 20 `ok`, "suite-unica.test: tudo certo" (13 s).
-- `shellcheck` nos dois scripts: SC2174 em `suite-unica.sh:45` (linha que não mudou), SC2319 em `suite-unica.test.sh:48` (o `$?` do `[` é intencional, mesmo padrão do arquivo) e SC2016 (info) em `suite-unica.test.sh:83` (aspas simples intencionais). Nenhum aponta defeito.
-- O `docs/engineering/praticas.md` não traz regra "decidida por" que alcance estes arquivos.
-- Sem PR para a branch: a suíte inteira fica para o CI do PR; não afirmo CI verde. O autor declarou que não rodou o `pnpm run pronto` completo; não há PQ do autor para citar.
-- Pipeline e segurança: o `devops-engineer` e o QA revisam em paralelo; não refaço os pareceres deles.
+- Vagas `flock` em `<base>-<n>.lock`, tentadas sem espera uma a uma; o fd 9 só fica aberto na vaga obtida. O rc do comando é repassado e a chamada aninhada segue direta.
+- `METRICAS_DSPD_SUITE_VAGAS` validado (1 a 16, rc=2 fora disso); `METRICAS_DSPD_SUITE_GRUPO` restrito a `[A-Za-z0-9_-]` (rc=2); link simbólico recusado.
+- `test:pg` e `test:e2e` têm filas próprias de uma vaga, que o `METRICAS_DSPD_SUITE_VAGAS` não altera e que não seguram a fila da suíte.
+- Quem espera lista cada vaga e quem a segura.
 
 ## Detalhe dos achados
-- A1: duas worktrees com `pnpm run test:e2e` agora rodam juntas (S1). `e2e/playwright.config.ts:44-46` e `:53-57` usam as portas fixas 4173 e 4174 com `reuseExistingServer: !CI`: fora da CI, a segunda execução reaproveita o `vite preview` da outra worktree e testa o build errado (resultado falso, verde ou vermelho); no modo API, a 4175 com `--strictPort` e `reuseExistingServer: false` derruba a segunda por porta ocupada. A trava única impedia isso, e a decisão do dono (20:35) fala de dois `pnpm run pronto`, não do e2e. Sugestão: `"test:e2e": "METRICAS_DSPD_SUITE_GRUPO=e2e bash scripts/suite-unica.sh ..."` (uma vaga própria, como o pg), um caso no `suite-unica.test.sh` e a frase no `praticas.md`.
-- A2: os casos "diretório padrão" e "vagas padrão 2" fazem `grep` na fonte. O padrão 2 já está provado pelo caso 1; o diretório `/tmp/claude-<uid>` fica sem teste que o execute.
-- A3: a espera deixou de ser bloqueante e passou a tentativas a cada 0,3 s; sem ordem de chegada, quem espera pode perder a vaga para quem chegou depois. Com duas ou três suítes o efeito é pequeno; basta registrar no comentário.
-- A4: com `PG_TESTE_URL` exportado, o `cobertura` do server (`vitest run --coverage`, no `pronto`) roda o projeto `pg` numa vaga da suíte, fora da vaga do pg. Os schemas por execução atenuam.
-- A5: `git diff --numstat --no-renames ab12a37f...1e0ec6f7` dá 203 linhas (script 79, teste 122, `package.json` 2), acima da orientação de 150 (M14).
+- A1 (resolvido em 0813ca6d): o `test:e2e` estava nas duas vagas da suíte; com as portas fixas e `reuseExistingServer`, um e2e testaria o build de outra worktree (S1).
+- A2: o diretório padrão `/tmp/claude-<uid>` é conferido por `grep` na fonte, sem execução.
+- A3: a espera é por sondagem de 0,3 s, sem ordem de chegada; registrar no comentário do script.
+- A4 (resolvido em 0813ca6d): `PG_TESTE_URL` exportada punha o projeto pg do `pronto` fora da vaga do pg.
+- A5: 220 linhas de código e teste; o PR traz `teto: excedido, 220 linhas, teste do script reescrito`.
 
 ## Sondas
-- S1 · duas chamadas simultâneas de `suite-unica.sh` no grupo padrão (o do `test:e2e`), vagas em pasta temporária · espera: e2e sem segunda vaga · obtido: as duas começam juntas (+5 ms), nenhuma linha de espera
+- S1 · duas chamadas simultâneas de `suite-unica.sh` no grupo padrão (o do `test:e2e` em 1e0ec6f7), vagas em pasta temporária · espera: e2e sem segunda vaga · obtido: as duas começam juntas (+5 ms), nenhuma linha de espera (em 0813ca6d o caso 6b prova a espera no grupo e2e)
 
 ## Achados
-- A1 (bloqueante) package.json:16 · o `test:e2e` ficou nas duas vagas da suíte: duas worktrees rodam o e2e juntas e, pelas portas fixas com `reuseExistingServer`, uma testa o build da outra (S1); a decisão cobre só o `pronto`. Dar ao e2e um grupo de uma vaga.
 - A2 (recomendado) scripts/suite-unica.test.sh:83 · o diretório padrão é conferido por `grep` na fonte, não por execução.
 - A3 (recomendado) scripts/suite-unica.sh:78 · espera por sondagem de 0,3 s, sem ordem de chegada; registrar no comentário.
-- A4 (recomendado) docs/engineering/praticas.md:62 · com `PG_TESTE_URL` exportado, o `pronto` roda o projeto pg fora da vaga do pg; dizer na regra para não exportá-lo.
-- A5 (recomendado) scripts/suite-unica.test.sh:1 · 203 linhas de código e teste (M14): o PR traz `teto: excedido, 203 linhas, teste reescrito`.
+- A5 (recomendado) scripts/suite-unica.test.sh:1 · 220 linhas de código e teste (M14): o PR traz `teto: excedido, 220 linhas, teste reescrito`.
