@@ -20,4 +20,3 @@ Diff lido: `d65624e7...1a42330a`, 3 arquivos, 16+/10- (`web/src/components/chart
 - **Suíte:** sem PR para a branch; vale o PQ do autor (`pnpm run pronto` rc=0). Não afirmo CI verde.
 
 ## Achados
-Nenhum.
