@@ -31,6 +31,7 @@ export const VERSAO_CRITERIO_PARADOS_V1: VersaoCriterio = {
  * T11 (B11b): conta demandas criadas por mês, não usa `descartado()` nem o `ativo` do descarte.
  * Fase 2 do pedido 011 (O22, O26, T13, T14, E6 e E8): nasceram com o descarte nativo já vigente (nunca existiram com o
  * critério anterior), então nenhuma marcação de "mudou o critério" faz sentido nelas.
+ * O27 (pedido 105, E7.218): nasceu com o descarte nativo vigente; tem a sua própria versão de critério.
  */
 export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
   'T11',
@@ -40,6 +41,7 @@ export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
   'T14',
   'E6',
   'E8',
+  'O27',
 ]
 
 /** `afeta` do descarte nativo, derivado do catálogo: toda métrica de fonte BusinessMap, menos as nascidas depois. */
@@ -333,6 +335,20 @@ export const VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL: VersaoCriterio = {
   afeta: ['O12', 'VISAO_GERAL'],
 }
 
+/**
+ * Pedido 105 (E7.218, O27 do dono de 2026-11-16): nasce o cartão "Causa raiz dos bugs" (BusinessMap, campo 48), distinto do O17 do Acelerato.
+ * Entram os bugs (Bug interno e Defeito em produção) fechados, concluídos ou descartados, nas 12 semanas; "Não é bug" e "Outros" contam como causa;
+ * sem causa fica de fora do denominador; cada tipo só publica a distribuição com 20 bugs com causa ou mais. Data provisória (a do PR): o dono confirma
+ * a da primeira projeção com o campo, depois da recoleta, como no O15.
+ */
+export const VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG: VersaoCriterio = {
+  id: 'criterio-2026-11-16-o27-causa-raiz-bug',
+  data: '2026-11-16',
+  descricao:
+    'O27 passou a mostrar a causa raiz dos bugs do BusinessMap, pelo campo Causa Raiz, nos bugs concluídos ou descartados nas últimas 12 semanas, uma coluna por tipo; Não é bug e Outros contam como causa, a causa não informada fica fora dos percentuais, e cada tipo só publica a distribuição com 20 bugs com causa ou mais',
+  afeta: ['O27'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -362,6 +378,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
   VERSAO_CRITERIO_T11_DADO_REAL,
   VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
+  VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG,
 ]
 
 /**

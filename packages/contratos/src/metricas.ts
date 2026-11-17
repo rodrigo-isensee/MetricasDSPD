@@ -56,6 +56,7 @@ export type ResultadoO11 = z.infer<typeof s.resultadoO11>
 export type ResultadoO13 = z.infer<typeof s.resultadoO13>
 export type ResultadoO14 = z.infer<typeof s.resultadoO14>
 export type ResultadoO16 = z.infer<typeof s.resultadoO16>
+export type ResultadoO27 = z.infer<typeof s.resultadoO27>
 export type ResultadoO17 = z.infer<typeof s.resultadoO17>
 export type ResultadoT6 = z.infer<typeof s.resultadoT6>
 export type ResultadoT8 = z.infer<typeof s.resultadoT8>
@@ -114,6 +115,7 @@ export interface ContratoMetricas {
   O22: Fluxo<ResultadoO22>
   O25: Fluxo<ResultadoO25>
   O26: Fluxo<ResultadoO26>
+  O27: Fluxo<ResultadoO27>
   T1: Fluxo<ResultadoT1>
   T2: Fluxo<ResultadoT2>
   T3: Fluxo<ResultadoT3>
@@ -242,6 +244,8 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O22: ['equipe', 'tipo', 'sistema', 'periodo'],
   O25: ['equipe', 'tipo', 'sistema', 'periodo'],
   O26: ['equipe', 'tipo', 'sistema', 'periodo'],
+  // O27: bugs do BusinessMap; o tipo é a coluna do cartão (Bug interno | Defeito em produção), então o filtro de tipo não atua (como no O15).
+  O27: ['equipe', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
   T10: ['equipe', 'tipo', 'sistema', 'periodo'],

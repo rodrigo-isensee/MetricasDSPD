@@ -3,6 +3,8 @@ import type { Page } from '@playwright/test'
 
 // Pedido 007: preferências de métricas. Axe a 375 e 1280, nos dois temas; ocultar/desfazer; alerta de métrica oculta.
 const CHAVE = 'metricas-dspd:preferencias:v1'
+// Complementares do Operacional (O5 a O27 visíveis na visão semanal): o O27 fez 15; ao entrar outro cartão, muda aqui.
+const N_COMPL_OPERACIONAL = 15
 const TEMAS = ['light', 'dark'] as const
 const TELAS = [
   { nome: '1280', width: 1280, height: 800 },
@@ -99,7 +101,7 @@ test.describe('fluxos', () => {
     await expect(
       page.getByRole('status').filter({ hasText: 'Salvo neste navegador' }),
     ).toBeVisible()
-    await expect(page.getByTestId('contador-operacional')).toHaveText('11 de 12 do núcleo e 14 de 14 complementares visíveis')
+    await expect(page.getByTestId('contador-operacional')).toHaveText(`11 de 12 do núcleo e ${N_COMPL_OPERACIONAL} de ${N_COMPL_OPERACIONAL} complementares visíveis`)
     await page.goto('/operacional?cadencia=semanal')
     await expect(page.getByTestId('metrica-O3')).toBeVisible()
     await expect(page.getByTestId('metrica-O9')).toHaveCount(0)

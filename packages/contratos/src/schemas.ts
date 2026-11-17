@@ -6,6 +6,7 @@
 import { z } from 'zod'
 import {
   CAUSAS_RAIZ,
+  CAUSAS_RAIZ_BUG,
   NIVEIS_PRIORIDADE_BM,
   MINIMOS_PESQUISA,
   NATUREZAS_PROJETO,
@@ -1041,6 +1042,48 @@ export const resultadoO13 = z.object({
       pct: taxaSchema,
     }),
   ),
+})
+
+const codigosCausaBug = CAUSAS_RAIZ_BUG.map((c) => c.codigo) as [
+  (typeof CAUSAS_RAIZ_BUG)[number]['codigo'],
+  ...(typeof CAUSAS_RAIZ_BUG)[number]['codigo'][],
+]
+const rotulosCausaBug = CAUSAS_RAIZ_BUG.map((c) => c.rotulo) as [
+  (typeof CAUSAS_RAIZ_BUG)[number]['rotulo'],
+  ...(typeof CAUSAS_RAIZ_BUG)[number]['rotulo'][],
+]
+
+/**
+ * O27 (Operacional, fonte BusinessMap): causa raiz dos bugs fechados (concluídos ou descartados) na janela de 12 semanas. Uma coluna por tipo
+ * (Bug interno e Defeito em produção), nunca uma soma dos dois. `n` = bugs fechados do tipo; `naoInformada` = sem causa ou com valor fora do
+ * domínio (fica fora do denominador); `comCausa` = `n - naoInformada`. "Não é bug" e "Outros" são causa como as outras (D1): entram em `causas`
+ * e em `comCausa`. `causas` = as 12 opções na ordem do campo (sem ordenar por tamanho, D4), com `n` e `pct` sobre `comCausa`; `null` abaixo de
+ * 20 bugs com causa (D3), e então só os totais (`n`, `naoEBug`, `naoInformada`) são publicados. `porSistema` é `null` com o motivo até o campo
+ * Sistema afetado existir no BusinessMap. Sem pessoa nem equipe como série; nenhum dado do Acelerato.
+ */
+export const resultadoO27 = z.object({
+  ...comum,
+  porTipo: z.array(
+    z.object({
+      tipo: z.enum(['Bug interno', 'Defeito em produção']),
+      n: z.number().int().min(0),
+      naoEBug: z.number().int().min(0),
+      naoInformada: z.number().int().min(0),
+      comCausa: z.number().int().min(0),
+      causas: z
+        .array(
+          z.object({
+            causa: z.enum(codigosCausaBug),
+            rotulo: z.enum(rotulosCausaBug),
+            n: z.number().int().min(0),
+            pct: z.number(),
+          }),
+        )
+        .nullable(),
+    }),
+  ),
+  porSistema: z.null(),
+  motivoPorSistema: z.string().min(1),
 })
 
 const linhaOrigem = z.object({

@@ -28,7 +28,7 @@ const entregue = (id: string, tipo: string, fim: number): LinhaCard => ({
   criado_em: new Date(fim - 5 * DIA), comprometido_em: new Date(fim - 4 * DIA), iniciado_em: new Date(fim - 3 * DIA), concluido_em: new Date(fim),
   arquivado_em: null, motivo_descarte: null, tamanho_declarado: null, titulo: 'Card de teste', granularidade: 'story', equipe: 'Time A', quadro_id: '35',
   coluna_atual_id: '4', excluido_em: null, eh_subtarefa: false, data_acordada: null, responsabilidade_atraso: null, origem_demanda: null, fase_deteccao: null,
-  severidade: null, origem_bug: null, adicionado_apos_inicio_pai: false,
+  severidade: null, origem_bug: null, causa_raiz: null, adicionado_apos_inicio_pai: false,
 });
 const transicoes = (k: LinhaCard): LinhaTransicao[] => [
   [null, '1', k.criado_em], ['1', '2', k.comprometido_em], ['2', '3', k.iniciado_em], ['3', '4', k.concluido_em],
