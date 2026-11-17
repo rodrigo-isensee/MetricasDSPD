@@ -57,7 +57,7 @@ O banco do Compose precisa estar de pé: `(set -a; . ~/Metricas/MetricasDSPD/.en
 ```
 - Tempo: segundos.
 - Antes de migrar, faça o backup do dia (seção 4, que também traz a volta das migrações 0038 a 0041).
-- Deve mostrar: as migrações `0038` (coluna `fluxo`), `0039` (tabelas do toque do BusinessMap) `0040` (coluna `escala_p`) e `0041` (categoria `habilitador`) aplicadas, se ainda faltarem, e rc=0. Rodar de novo diz que não há migração pendente.
+- Deve mostrar: as migrações `0038` (coluna `fluxo`), `0039` (tabelas do toque do BusinessMap), `0040` (coluna `escala_p`) e `0041` (categoria `habilitador`) aplicadas, se ainda faltarem, e rc=0. Rodar de novo diz que não há migração pendente.
 - Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existem a **0038** (pedido 099, D1), a **0039**, a **0040** e a **0041** (pedido 105); por isso este passo é obrigatório.
 - Se der erro: pare e avise. Pode repetir.
 
@@ -239,7 +239,7 @@ docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name F
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT count(*) FROM dspd_bm.ref_tipo_card WHERE categoria = 'habilitador'"
 ```
-   Com contagem maior que 0, a volta é **só pelo backup anterior à subida (receita A)**; não rode `bm:ref-sync` nem outro passo para "limpar" o Enabler, que só gravaria vigência nova. Com contagem 0, o `down 1` abaixo tira a 0041 (a 0040 continua; para tirá-la, só pela receita A, ou por outro `down 1` depois de conferir a volta da 0041). Texto de referência: `docs/devops/105-implantacao-vm.md`, "Reversão da migração 0041".
+   Com contagem maior que 0, a volta é **só pelo backup anterior à subida (receita A)**; não rode `bm:ref-sync` nem outro passo para "limpar" o Enabler, que só gravaria vigência nova. Com contagem 0, o `down 1` abaixo tira a 0041 (a 0040 continua; para tirá-la, só pela receita A, sem repetir o `down 1`). Texto de referência: `docs/devops/105-implantacao-vm.md`, "Reversão da migração 0041".
 
    Depois, **um** `down 1`, com as duas travas (`DSPD_PERMITIR_DOWN=1` e o backup de hoje confirmado):
 ```
@@ -262,7 +262,7 @@ docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT count(*) FROM pg_constraint WHERE conname = 'ref_tipo_card_categoria_check' AND pg_get_constraintdef(oid) LIKE '%habilitador%'"
 ```
-   Com a 0041 desfeita, o Enabler sai da categoria `habilitador` e o T3 deixa de tratá-lo como habilitador até reaplicar (`db:migrate`) ou reverter o merge da release. Nas duas receitas, **a coleta do Acelerato continua parada** até acabar.
+   Com a 0041 desfeita, o CHECK volta a seis valores e recusa o `bm:ref-sync` do código da release (que grava `habilitador`) até reaplicar (`db:migrate`) ou reverter o merge da release. Nas duas receitas, **a coleta do Acelerato continua parada** até acabar.
 
 4. Restaurar o `.dump` (receita A) é decisão do Jarvis (perda de dado maior); `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
 
