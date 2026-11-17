@@ -659,6 +659,14 @@ describe('E7.62: referência ausente sai nula, nunca 0', () => {
     expect(r.naturezas.every((n) => !n.abaixoDe20)).toBe(true)
   })
 
+  it('T3: entrega do tipo Iniciativa cai na fatia Produto, não em Habilitador (K-406)', () => {
+    const base = umaBase([...tipado(21, 'Iniciativa', 'I'), ...tipado(21, 'Habilitador', 'H')])
+    const f = fatias(calcularT3(ctxDe(base), F))
+    expect(f['Produto']?.itens.quantidade).toBe(21)
+    expect(f['Habilitador']?.itens.quantidade).toBe(21)
+    expect(f['Correção em produção']?.itens.quantidade).toBe(0)
+  })
+
   it('T3: fatia com menos de 20 entregas mostra a contagem, sem percentual de itens nem de tempo, e não se junta a outra', () => {
     const base = umaBase([
       ...tipado(30, 'Trabalho de produto', 'P'),
