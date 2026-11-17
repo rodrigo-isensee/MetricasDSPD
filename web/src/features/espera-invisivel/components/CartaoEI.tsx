@@ -71,6 +71,81 @@ interface Props {
   className?: string
 }
 
+type Composicao = NonNullable<ResultadoEI['composicao']>
+
+/** Soma e contagem, sem estatística: o que a EI_SUST deixou de fora ou classificou por suposição (pedido 105, E7.243). */
+export function ComposicaoSust({ c }: { c: Composicao }) {
+  const linhas: { chave: string; rotulo: string; chamados: number; horas?: number }[] = [
+    { chave: 'chamados', rotulo: 'Chamados na janela', chamados: c.chamados },
+    {
+      chave: 'sem-etapas',
+      rotulo: 'Sem tempo por etapa (fora das duas visões)',
+      chamados: c.semEtapas,
+    },
+    {
+      chave: 'fila-inicial',
+      rotulo: 'Fila inicial (conta como espera invisível)',
+      chamados: c.filaInicial.chamados,
+      horas: c.filaInicial.horasUteis,
+    },
+    {
+      chave: 'finais',
+      rotulo: 'Etapas finais (fora das duas visões)',
+      chamados: c.finais.chamados,
+      horas: c.finais.horasUteis,
+    },
+    {
+      chave: 'nao-decididas',
+      rotulo: 'Etapas ainda não decididas (contam como tempo do time)',
+      chamados: c.naoDecididas.chamados,
+      horas: c.naoDecididas.horasUteis,
+    },
+    ...c.naoDecididas.etapas.map((e) => ({
+      chave: `etapa-${e.etapa}`,
+      rotulo: `Não decidida: ${e.etapa}`,
+      chamados: e.chamados,
+      horas: e.horasUteis,
+    })),
+  ]
+  return (
+    <details data-testid="ei-composicao-sust" className="text-sm">
+      <summary className="alvo cursor-pointer text-acento underline">
+        Composição dos chamados da janela
+      </summary>
+      <p className="mt-2 text-texto-2">
+        Somas e contagens de todas as prioridades do filtro, sem estatística. Horas em h úteis.
+      </p>
+      <table className="mt-2 w-full text-left">
+        <caption className="sr-only">Composição da espera invisível da Sustentação</caption>
+        <thead>
+          <tr>
+            <th scope="col">Grupo</th>
+            <th scope="col" className="text-right">
+              Chamados
+            </th>
+            <th scope="col" className="text-right">
+              Horas úteis
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {linhas.map((l) => (
+            <tr key={l.chave}>
+              <th scope="row" className="font-normal">
+                {l.rotulo}
+              </th>
+              <td className="text-right tabular-nums">{fmtInteiro(l.chamados)}</td>
+              <td className="text-right tabular-nums">
+                {l.horas === undefined ? '—' : fmtNumero(l.horas, 2)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+  )
+}
+
 const maiusculo = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 /** Cartão de Espera invisível de UM nível: abas por segmento (uma classe por vez), sempre as duas visões juntas. */
@@ -199,6 +274,7 @@ export function CartaoEI({ nivel, q, aplicaveis, periodo, className }: Props) {
             {aberta ? 'Esconder evolução mensal' : 'Ver evolução mensal'}
           </button>
         )}
+        {nivel === 'SUST' && d.composicao && <ComposicaoSust c={d.composicao} />}
         {nivel === 'SUST' && (
           <p className="text-sm text-texto-2" data-testid="ei-fonte-sust">
             Fonte diferente (Acelerato), em horas úteis. Não comparável com os níveis do BusinessMap
