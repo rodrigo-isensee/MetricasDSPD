@@ -57,7 +57,11 @@ export function derivarBloqueios(
     } else if (agora && aberto === null && !noMarco) {
       // inclui a reabertura depois de marco (TL-A5); dentro do marco, bloqueado não abre nada (TL-A9)
       const motivoCodigo = codigoDe(v.blockReasonId);
-      if (motivoCodigo === null) notas.push('motivo_codigo_invalido');
+      if (motivoCodigo === null) {
+        // K-393: bloqueio sem motivo escolhido (não preenchido) é diferente de código fora do catálogo (preenchido errado); o valor gravado é nulo nos dois
+        const ausente = v.blockReasonId === null || v.blockReasonId === undefined || (typeof v.blockReasonId === 'string' && v.blockReasonId.trim() === '');
+        notas.push(ausente ? 'motivo_ausente' : 'motivo_codigo_invalido');
+      }
       const fornecedorCodigo = colunasDeLista({ custom_fields: v.customFields }, soFornecedor, notas).fornecedor;
       aberto = { tipo: 'inicio', idOrigem: idOrigemDe(v.cardId, v.coletadoEm), ocorridoEm: v.coletadoEm, motivoCodigo, colunaId, fornecedorCodigo };
       eventos.push(aberto);
