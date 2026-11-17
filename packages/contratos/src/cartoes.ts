@@ -59,7 +59,6 @@ export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
   'T8',
   'E4',
   'S8',
-  'S11',
   'O22',
   'O26',
   'T13',

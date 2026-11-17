@@ -27,6 +27,8 @@ import {
 import {
   VERSAO_CRITERIO_O12_PRAZO_DO_CARD,
   VERSAO_CRITERIO_O18_VINCULOS,
+  VERSAO_CRITERIO_T11_DADO_REAL,
+  VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
   VERSOES_DA_BIBLIOTECA,
 } from '../core/criterios'
 import { blocosDe } from './blocos'
@@ -149,27 +151,62 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.itens).toEqual([])
   })
 
-  it('O12 (interruptor ligado, futuro): acordo vencido sem classificação do atraso conta como "não classificado"', () => {
+  it('O12 (E7.214): com o campo 51 vindo em parte dos vencidos, a divisão é publicada e o vencido sem classificação conta como "não classificado"', () => {
     const base = umaBase([
       entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
-      entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
+      entregue('V2', 0, 3, { dataAcordada: em(1, '13:00') }),
+      entregue('V3', 0, 1, { dataAcordada: em(5, '12:00') }),
     ])
-    const r = calcularO12(ctxDe(base), F, true)
-    expect(r.totais.acordos).toBe(2)
-    expect(r.totais.vencidos).toBe(1)
-    expect(r.totais.porResponsabilidade?.naoClassificado).toBe(1)
+    const com = {
+      ...base,
+      cards: base.cards.map((c) =>
+        c.card_id === 'V1' ? { ...c, responsabilidade_atraso: 'Terceiro' as const } : c,
+      ),
+    }
+    const r = calcularO12(ctxDe(com), F, true)
+    expect(r.totais.acordos).toBe(3)
+    expect(r.totais.vencidos).toBe(2)
+    expect(r.totais.porResponsabilidade).toEqual({
+      Interno: 0,
+      Solicitante: 0,
+      Terceiro: 1,
+      naoClassificado: 1,
+    })
     expect(r.vencidosCausaInterna).toBe(0)
     expect(r.motivoResponsabilidade).toBeNull()
     expect(r.statusMeta).toBe('dentro')
   })
 
-  it('O12 (C5-o12-zero-falso): sem o campo no quadro a responsabilidade sai nula com o motivo, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
+  it('O12 (E7.214, C5-o12-zero-falso): ligado, mas sem nenhum vencido com o campo 51 preenchido, a responsabilidade sai nula com o motivo da data de início, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
     const base = umaBase([
       entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
       entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
     ])
     const r = calcularO12(ctxDe(base), F)
-    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(false)
+    expect(RESPONSABILIDADE_ATRASO_COM_FONTE).toBe(true)
+    expect(r.totais.acordos).toBe(2)
+    expect(r.totais.vencidos).toBe(1)
+    expect(r.totais.porResponsabilidade).toBeNull()
+    expect(r.meses.every((m) => m.porResponsabilidade === null)).toBe(true)
+    expect(r.vencidosCausaInterna).toBeNull()
+    expect(r.motivoResponsabilidade).toBe(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL)
+    expect(r.motivoResponsabilidade).toContain('16/11/2026')
+    expect(r.statusMeta).toBe('sem-referencia')
+    expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
+  })
+
+  it('O12 (E7.214, interruptor desligado): com o campo 51 preenchido mas o interruptor desligado, a responsabilidade sai nula com o motivo, nunca 0, e a meta não é avaliada; acordos e vencidos seguem', () => {
+    const base = umaBase([
+      entregue('V1', 0, 3, { dataAcordada: em(1, '12:00') }),
+      entregue('V2', 0, 1, { dataAcordada: em(5, '12:00') }),
+    ])
+    const com = {
+      ...base,
+      cards: base.cards.map((c) =>
+        c.card_id === 'V1' ? { ...c, responsabilidade_atraso: 'Interno' as const } : c,
+      ),
+    }
+    const r = calcularO12(ctxDe(com), F, false)
     expect(r.totais.acordos).toBe(2)
     expect(r.totais.vencidos).toBe(1)
     expect(r.totais.porResponsabilidade).toBeNull()
@@ -177,7 +214,14 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(r.vencidosCausaInterna).toBeNull()
     expect(r.motivoResponsabilidade).toBe(MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL)
     expect(r.statusMeta).toBe('sem-referencia')
-    expect(r.meses.reduce((n, m) => n + m.vencidos, 0)).toBe(1)
+    // ligado, o mesmo dado publica a causa interna: o interruptor é o que decide
+    expect(calcularO12(ctxDe(com), F, true).vencidosCausaInterna).toBe(1)
+  })
+
+  it('O12 (T2.6, E7.214): a versão de critério da responsabilidade do atraso marca O12 e Visão geral', () => {
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL)
+    expect(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL.afeta).toEqual(['O12', 'VISAO_GERAL'])
+    expect(VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL.data).toBe('2026-11-16')
   })
 
   it('O12 (T2.6): a versão de critério do prazo do card marca O12 e Visão geral', () => {
@@ -185,6 +229,8 @@ describe('O2, O10, O12, O18: casos de borda', () => {
     expect(VERSAO_CRITERIO_O12_PRAZO_DO_CARD.afeta).toEqual(['O12', 'VISAO_GERAL'])
     expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_O18_VINCULOS)
     expect(VERSAO_CRITERIO_O18_VINCULOS.afeta).toEqual(['O18'])
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_T11_DADO_REAL)
+    expect(VERSAO_CRITERIO_T11_DADO_REAL.afeta).toEqual(['T11'])
   })
 
   it('O12 (Q-099-23 b = A): card com prazo que nunca passou pelo compromisso não conta como acordo', () => {
@@ -271,7 +317,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
         ],
       })),
     )
-    const padrao = calcularT1(ctxDe(base), F).classes.find((c) => c.classe === 'Padrão')
+    const padrao = calcularT1(ctxDe(base), F).classes.find((c) => c.classe === 'Média')
     expect(padrao?.n).toBe(22)
     expect(padrao?.estatistica.status).toBe('ok')
     if (padrao?.estatistica.status === 'ok') expect(padrao.estatistica.valor.fracaoFilaPct).toBe(0)
@@ -289,17 +335,23 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
         ],
       })),
     )
-    const padrao = calcularT2(ctxDe(base), F).classes.find((c) => c.classe === 'Padrão')
+    const padrao = calcularT2(ctxDe(base), F).classes.find((c) => c.classe === 'Média')
     expect(padrao?.estouros.total).toBe(20)
     expect(padrao?.estouros.porEtapa.every((e) => e.contagem === 0)).toBe(true)
     expect(padrao?.statusMeta).toBe('fora')
   })
 
-  it('T3: sem alocação acordada configurada, o acordado é 0', () => {
+  it('T3: sem alocação acordada configurada, o acordado é nulo (nunca 0) e a métrica fica sem-referencia', () => {
     const base = umaBase(varios(21, (i) => entregue(`A${i}`, i % 10, (i % 10) + 1)))
     const r = calcularT3(ctxDe(base), F)
     expect(r.status).toBe('ok')
-    expect(r.naturezas.every((n) => n.acordadoPct === 0)).toBe(true)
+    expect(r.naturezas.every((n) => n.acordadoPct === null)).toBe(true)
+    expect(
+      r.naturezas.every(
+        (n) => n.itens.statusMeta === 'sem-referencia' && n.tempo.statusMeta === 'sem-referencia',
+      ),
+    ).toBe(true)
+    expect(r.naturezas.every((n) => n.itens.desvioPP === null)).toBe(true)
   })
 
   it('T4: período curto sem semana completa não tem médias; chegadas sem entregas não têm razão', () => {
@@ -311,7 +363,7 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
       })),
     )
     const r = calcularT4(ctxDe(base), { ...F, periodo: { tipo: '12s' } })
-    const padrao = r.classes.find((c) => c.classe === 'Padrão')
+    const padrao = r.classes.find((c) => c.classe === 'Média')
     expect(padrao?.estatistica.status).toBe('ok')
     if (padrao?.estatistica.status === 'ok') expect(padrao.estatistica.valor.razao).toBeNull()
     const curto = calcularT4(ctxDe(base), {
@@ -370,7 +422,7 @@ describe('índice, estado e blocos: dados incompletos', () => {
     const base = umaBase([entregue('K', 0, 2)])
     const bloqueio: FatoBloqueio = {
       card_id: 'K',
-      motivo: 'Aguardando fornecedor',
+      motivo: 'Dependência Externa',
       coluna_em_que_bloqueou: 'Em desenvolvimento',
       fornecedor: null,
       inicio: base.transicoes[2]?.timestamp ?? 0,
@@ -532,6 +584,75 @@ describe('EI e T7: segmentos sem marcos e frentes sem projeto', () => {
     expect(new Set(r.idades.map((i) => i.situacao))).toEqual(
       new Set(['dentro', 'entre-p85-p95', 'acima-p95']),
     )
+  })
+})
+
+describe('E7.62: referência ausente sai nula, nunca 0', () => {
+  const comConfig = (base: BaseBM, cfg: Partial<BaseBM['config']>): BaseBM => ({
+    ...base,
+    config: { ...base.config, ...cfg },
+  })
+  const frente = (id: string): EspecCard => ({
+    id,
+    criado: em(0, '08:00'),
+    gran: 'frente',
+    trilha: [
+      ['Aguardando priorização', em(0, '08:00')],
+      ['Em desenvolvimento', em(1, '09:00')],
+    ],
+  })
+
+  it('T7: sem limite vigente, limiteFrentes e acimaDoLimite são nulos', () => {
+    const base = comConfig(umaBase(varios(5, (i) => frente(`F${i}`))), { limite_frentes: null })
+    const k = calcularT7(ctxDe(base), F).kpis
+    expect(k.frentesEmAndamento).toBe(5)
+    expect(k.limiteFrentes).toBeNull()
+    expect(k.acimaDoLimite).toBeNull()
+  })
+
+  it('T7: com limite, acimaDoLimite é booleano (acima e dentro)', () => {
+    const base = umaBase(varios(5, (i) => frente(`F${i}`)))
+    expect(calcularT7(ctxDe(comConfig(base, { limite_frentes: 3 })), F).kpis).toMatchObject({
+      limiteFrentes: 3,
+      acimaDoLimite: true,
+    })
+    expect(calcularT7(ctxDe(comConfig(base, { limite_frentes: 5 })), F).kpis).toMatchObject({
+      limiteFrentes: 5,
+      acimaDoLimite: false,
+    })
+  })
+
+  const entregues = (n: number) => varios(n, (i) => entregue(`A${i}`, i % 10, (i % 10) + 1))
+  const todas = (acordado: number | null) =>
+    (['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'] as const).flatMap((natureza) =>
+      acordado === null ? [] : [{ natureza, pct: acordado }],
+    )
+
+  it('T3: fronteira de 19 e 20 itens, sem referência: acordado nulo; pct só a partir de 20', () => {
+    const r19 = calcularT3(ctxDe(umaBase(entregues(19))), F)
+    expect(r19.status).toBe('insuficiente')
+    expect(r19.naturezas.every((n) => n.acordadoPct === null && n.itens.pct === null)).toBe(true)
+    const r20 = calcularT3(ctxDe(umaBase(entregues(20))), F)
+    expect(r20.status).toBe('ok')
+    expect(r20.naturezas.every((n) => n.acordadoPct === null)).toBe(true)
+    expect(r20.naturezas.some((n) => n.itens.pct !== null)).toBe(true)
+    expect(r20.naturezas.every((n) => n.itens.statusMeta === 'sem-referencia')).toBe(true)
+  })
+
+  it('T3: com referência, acordado vem do cadastro e o desvio é calculado', () => {
+    const r = calcularT3(ctxDe(comConfig(umaBase(entregues(20)), { alocacao: todas(25) })), F)
+    const ev = r.naturezas.find((n) => n.natureza === 'Evolução')
+    expect(ev?.acordadoPct).toBe(25)
+    expect(ev?.itens.pct).toBe(100)
+    expect(ev?.itens.desvioPP).toBe(75)
+    expect(ev?.itens.statusMeta).toBe('fora')
+    const r19 = calcularT3(ctxDe(comConfig(umaBase(entregues(19)), { alocacao: todas(25) })), F)
+    expect(r19.naturezas.every((n) => n.itens.statusMeta === 'sem-referencia')).toBe(true)
+  })
+
+  it('T3: acordado 0 cadastrado de propósito continua 0 (diferente de ausente)', () => {
+    const r = calcularT3(ctxDe(comConfig(umaBase(entregues(20)), { alocacao: todas(0) })), F)
+    expect(r.naturezas.every((n) => n.acordadoPct === 0)).toBe(true)
   })
 })
 

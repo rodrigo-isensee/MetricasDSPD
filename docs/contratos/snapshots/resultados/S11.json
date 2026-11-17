@@ -265,64 +265,92 @@
         "additionalProperties": false
       }
     },
+    "semFluxo": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
     "conversao": {
-      "oneOf": [
+      "anyOf": [
         {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "const": "ok"
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 9007199254740991
+                },
+                "pct": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
             },
-            "k": {
-              "type": "number"
-            },
-            "n": {
-              "type": "integer",
-              "minimum": 20,
-              "maximum": 9007199254740991
-            },
-            "pct": {
-              "type": "number"
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "insuficiente"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 19
+                },
+                "minimo": {
+                  "type": "number",
+                  "const": 20
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "minimo"
+              ],
+              "additionalProperties": false
             }
-          },
-          "required": [
-            "status",
-            "k",
-            "n",
-            "pct"
-          ],
-          "additionalProperties": false
+          ]
         },
         {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "const": "insuficiente"
-            },
-            "k": {
-              "type": "number"
-            },
-            "n": {
-              "type": "integer",
-              "minimum": -9007199254740991,
-              "maximum": 19
-            },
-            "minimo": {
-              "type": "number",
-              "const": 20
-            }
-          },
-          "required": [
-            "status",
-            "k",
-            "n",
-            "minimo"
-          ],
-          "additionalProperties": false
+          "type": "null"
         }
       ]
+    },
+    "motivoConversao": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "foraDaConversao": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
     }
   },
   "required": [
@@ -331,7 +359,9 @@
     "campoDisponivel",
     "escopo",
     "porGrupo",
-    "conversao"
+    "semFluxo",
+    "conversao",
+    "motivoConversao"
   ],
   "additionalProperties": false
 }

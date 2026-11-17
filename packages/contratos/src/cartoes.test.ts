@@ -124,7 +124,7 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    const mock = ['T8', 'E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8', 'S11']
+    const mock = ['T8', 'E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8']
     for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')

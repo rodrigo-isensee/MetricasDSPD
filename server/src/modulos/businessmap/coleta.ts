@@ -5,12 +5,12 @@ import { contarColetasDoSeed, descreverColetasDoSeed, tomarTravaDoSeed } from '.
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
-import { CAMPOS_CARD, CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados, type MapaTagsDeClasse } from './allow-list.js';
-import { CAMPO_CUSTOMIZADO, dominiosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
+import { CAMPOS_CARD, cardTemEtiqueta, CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados, type MapaTagsDeClasse } from './allow-list.js';
+import { CAMPO_CUSTOMIZADO, PREFIXO_VALOR_ID, dominiosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
 import { ErroReferencia } from './referencia.js';
 import { desembrulhar } from './spike-forma.js';
 import { gravarStgCard, gravarStgRevision } from './staging.js';
-import { lerMapaDeTagsDeClasse } from './tags.js';
+import { lerMapaDeTagsDeClasse, type AvisoTetoTags } from './tags.js';
 import { resolverResponsaveis, type ResultadoUsuarios } from './usuarios.js';
 
 // F3 do plano 052 (K-182): coleta dos cards do BusinessMap para o staging, incremental e carga inicial de 12 meses. Só GET, pelo
@@ -47,7 +47,7 @@ export { CAMPOS_CUSTOMIZADOS_FORA };
 export async function dominiosDaColeta(db: Consultavel, S: Esquemas): Promise<DominiosCamposCustomizados> {
   const r = await db.query<LinhaRefDominio>(
     `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[]) ORDER BY campo, ordem, codigo`,
-    [[CAMPO_CUSTOMIZADO, ...COLUNAS_LISTA]]);
+    [[CAMPO_CUSTOMIZADO, ...COLUNAS_LISTA, ...COLUNAS_LISTA.map((c) => `${PREFIXO_VALOR_ID}${c}`)]]);
   return dominiosDeLinhas(r.rows);
 }
 
@@ -196,6 +196,8 @@ async function marcaDagua(db: Consultavel, S: Esquemas): Promise<Date | null> {
 interface Execucao {
   d: DepsColeta; S: Esquemas; coletaId: number; filtro: (estado: EstadoCard) => Record<string, string>;
   dominios: DominiosCamposCustomizados; mapaTags: MapaTagsDeClasse | undefined; vistos: Set<string>; falhas: string[]; motivosPendentes: string[];
+  /** Cards lidos com ao menos uma etiqueta (só número; alimenta `cards_com_etiqueta`). */
+  cardsComEtiqueta: number;
 }
 
 /** Uma leitura (quadro e estado): página por página, cada página numa transação com a marca da página (retomável). */
@@ -222,6 +224,7 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
           await registrarFalha(db, x.S, x.coletaId, entidade, null, 'card-sem-id');
           continue;
         }
+        if (cardTemEtiqueta(card)) x.cardsComEtiqueta += 1;
         const responsaveis = extrairResponsaveis(card);
         for (const r of responsaveis ?? []) x.vistos.add(r);
         if (responsaveis !== null) x.d.responsaveis?.set(id, responsaveis);
@@ -300,7 +303,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
      VALUES ('coleta_incremental', $1, 'em_andamento', $2, $3, $4, $5::jsonb) RETURNING coleta_id`,
     [inicio, marcaDe, modo.tipo === 'incremental' ? SOBREPOSICAO_S : 0, VERSAO_COLETOR, JSON.stringify(parametros)]);
   const coletaId = Number(aberta.rows[0]!.coleta_id);
-  const x: Execucao = { d, S, coletaId, filtro, dominios, mapaTags: undefined, vistos: new Set(), falhas: [], motivosPendentes: [] };
+  const x: Execucao = { d, S, coletaId, filtro, dominios, mapaTags: undefined, vistos: new Set(), falhas: [], motivosPendentes: [], cardsComEtiqueta: 0 };
 
   try {
     let referencia: unknown = null;
@@ -318,7 +321,15 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     // 4i: o catálogo de etiquetas vem antes dos cards. Sem ele, ler os cards gravaria versões sem `classes_tag` e a classe já projetada se perderia:
     // a falha para a leitura dos cards (código e entidade `tags` no controle; nada de rótulo).
     try {
-      x.mapaTags = await lerMapaDeTagsDeClasse(d.cliente);
+      let tetoTags: AvisoTetoTags | undefined;
+      x.mapaTags = await lerMapaDeTagsDeClasse(d.cliente, (a) => { tetoTags = a; });
+      // O24: o tamanho do mapa fica registrado (só número). Mapa vazio = aviso (contagem sem rótulo nem dado de pessoa); a coleta segue e o status não muda.
+      await registrarContagem(d.pool, S, coletaId, 'tags_classe_no_mapa', { lidos: x.mapaTags.size, inseridos: 0, jaExistentes: 0, falhas: 0 });
+      if (x.mapaTags.size === 0) await registrarContagem(d.pool, S, coletaId, 'aviso_mapa_classe_vazio', { lidos: 0, inseridos: 0, jaExistentes: 0, falhas: 1 });
+      // Aviso, não falha (o status não muda): só contagens, em `ctl_coleta_contagem` (lidos = páginas lidas; falhas = páginas que ficaram sem ler).
+      if (tetoTags !== undefined) {
+        await registrarContagem(d.pool, S, coletaId, 'tags_teto_paginas', { lidos: tetoTags.lidas, inseridos: 0, jaExistentes: 0, falhas: tetoTags.declaradas - tetoTags.lidas });
+      }
     } catch (e) {
       if (!(e instanceof ErroBusinessMap)) throw e;
       x.falhas.push(e.tipo);
@@ -346,6 +357,8 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
           { lidos: c.transicoes.lidas, inseridos: c.transicoes.inseridas, jaExistentes: c.transicoes.jaExistentes, falhas: c.transicoes.invalidas });
       }
     }
+
+    if (x.mapaTags !== undefined) await registrarContagem(d.pool, S, coletaId, 'cards_com_etiqueta', { lidos: x.cardsComEtiqueta, inseridos: 0, jaExistentes: 0, falhas: 0 });
 
     let usuarios: ResultadoUsuarios | null = null;
     if (!fatal) {

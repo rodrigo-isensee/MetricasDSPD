@@ -22,7 +22,7 @@ const REF_LINHAS: Record<string, unknown[]> = {
     { ...V, vigente_ate: '2026-10-31', quadro_id: 'Q', coluna_id: '10', workflow_id: 'W', section: 4, eh_descarte: false, papel: 'entrega', tipo_coluna: 'execucao', ordem: 10 },
     { ...V, vigente_de: '2026-10-31', quadro_id: 'Q', coluna_id: '10', workflow_id: 'W', section: 3, eh_descarte: false, papel: 'trabalho', tipo_coluna: 'execucao', ordem: 10 },
   ],
-  ref_dominio: [{ campo: 'campo_customizado', codigo: '5001', rotulo: 'fornecedor' }, { campo: 'motivo_bloqueio', codigo: '7', rotulo: 'Janela de mudança' }],
+  ref_dominio: [{ campo: 'campo_customizado', codigo: '5001', rotulo: 'fornecedor' }, { campo: 'motivo_bloqueio', codigo: '11', rotulo: 'Dependência Externa' }],
   ref_workflow: [{ ...V, quadro_id: 'Q', workflow_id: 'W', nivel: 'story' }],
   ref_time_workflow: [{ ...V, workflow_id: 'W', time_id: 1, situacao: 'time' }],
   ref_time: [{ ...V, time_id: 1, nome: 'Time A' }],
@@ -98,6 +98,10 @@ describe('projetarBusinessMap (F4)', () => {
     expect(com(d, 'INSERT INTO dspd_bm.dim_card_versao')[0]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING');
     expect(com(d, 'DELETE FROM dspd_bm.dim_card WHERE')[0]!.valores).toEqual([['1', '3']]);
     expect(com(d, 'INSERT INTO dspd_bm.dim_card ')[0]!.texto).toContain('::text[]');
+    // 105 (O22, B7b): o DELETE + INSERT zera o primeiro toque; ele se refaz do controle e da staging do toque, para os mesmos cards, depois do INSERT, sem API
+    const toque = com(d, 'UPDATE dspd_bm.dim_card d SET primeiro_toque_em')[0]!;
+    expect(toque.valores).toEqual([['1', '3']]);
+    expect(d.chamadas.indexOf(toque)).toBeGreaterThan(d.chamadas.indexOf(com(d, 'INSERT INTO dspd_bm.dim_card ')[0]!));
     expect(com(d, 'UPDATE dspd_bm.ctl_coleta')[0]!.valores[0]).toBe(88);
     const entidades = com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').map((x) => x.valores[1]);
     expect(entidades).toEqual(expect.arrayContaining(['projecao_card', 'projecao_transicao', 'projecao_evento', 'projecao_versao', 'nota_pai_sprint']));
@@ -169,6 +173,22 @@ describe('projetarBusinessMap (F4)', () => {
     });
     const r = await projetarBusinessMap({ pool: d.pool, S, agora: () => AGORA, responsaveis: new Map([['1', ['9']]]) });
     expect(r.responsaveisGravados).toBe(1);
+  });
+
+  it('segurança A1 (105): o relatório conta as linhas da régua de time que não existe em ref_time, só a contagem', async () => {
+    const d = criarDublePg((q) => {
+      const t = q.texto;
+      if (t.includes("'projecao'")) return [{ coleta_id: '88' }];
+      if (t.includes('FROM dspd_bm.ref_time') && !t.includes('ref_time_workflow')) return [{ time_id: 26, nome: 'a', motivo: 'carga_inicial', vigente_de: '2020-01-01', vigente_ate: null }];
+      if (t.includes('FROM dspd_bm.ref_dominio') && q.valores[0] === 'tamanho_regua') {
+        return [{ campo: 'tamanho_regua', codigo: '26:1', rotulo: 'P' }, { campo: 'tamanho_regua', codigo: '99:1', rotulo: 'M' }, { campo: 'tamanho_regua', codigo: '77:2', rotulo: 'G' }];
+      }
+      return [];
+    });
+    const r = await projetarBusinessMap({ pool: d.pool, S, agora: () => AGORA });
+    expect(r.reguaLinhasDescartadas).toBe(2);
+    const vazio = await projetarBusinessMap({ pool: criarDublePg((q) => (q.texto.includes("'projecao'") ? [{ coleta_id: '89' }] : [])).pool, S, agora: () => AGORA });
+    expect(vazio.reguaLinhasDescartadas).toBe(0);
   });
 
   it('reconstrução limpa só a lista explícita (dim_card), nunca dim_responsavel, e não tem como chamar o BusinessMap', async () => {
@@ -281,12 +301,12 @@ describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
   const ini = new Date(Date.UTC(2026, 10, 3, 12));
   const ev = (id: string, motivo: string | null, fim: Date | null) => ({ card_id: '1', id_origem: id, motivo_codigo: motivo, coluna_id: '3', fornecedor_codigo: 'F', ini, fim });
   const fatos = (d: ReturnType<typeof montar>) => com(d, 'INSERT INTO dspd_bm.fato_bloqueio').flatMap((x) => Array.from({ length: x.valores.length / 10 }, (_, i) => x.valores.slice(i * 10, i * 10 + 10)));
-  const eventos = [ev('a', '7', new Date(Date.UTC(2026, 10, 3, 14))), ev('b', null, ini), ev('c', '8', null)];
+  const eventos = [ev('a', '11',new Date(Date.UTC(2026, 10, 3, 14))), ev('b', null, ini), ev('c', '8', null)];
 
   it('monta o fato dos eventos: motivo do mapa ou "não classificado", duração pelo calendário vigente, aberto sem fim e sem duração, fim = início com 0', async () => {
     const d = montar({ stg: [stg('1')], fatos: eventos });
     const r = await proj(d);
-    expect(fatos(d).map((f) => [f[2], f[7]])).toEqual([['Janela de mudança', 2], ['não classificado', 0], ['não classificado', null]]);
+    expect(fatos(d).map((f) => [f[2], f[7]])).toEqual([['Dependência Externa', 2],['não classificado', 0], ['não classificado', null]]);
     expect(fatos(d)[2]).toEqual(['1', 'c', 'não classificado', '3', 'F', ini, null, null, AGORA, 88]);
     expect(r.fatosBloqueio).toEqual({ lidos: 3, inseridos: 3 });
     expect(com(d, 'UPDATE dspd_bm.fato_bloqueio')[0]!.texto).toContain('IS DISTINCT FROM');
@@ -298,7 +318,7 @@ describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
     const up = com(d, 'UPDATE dspd_bm.fato_bloqueio')[0]!;
     expect(up.texto).toContain('motivo = v.motivo');
     expect(up.texto).toContain('(f.fim, f.duracao_horas_uteis, f.motivo) IS DISTINCT FROM (v.fim, v.horas, v.motivo)');
-    expect(up.valores[2]).toEqual(['Janela de mudança', 'não classificado', 'não classificado']);
+    expect(up.valores[2]).toEqual(['Dependência Externa', 'não classificado', 'não classificado']);
   });
   it('troca de calendário recalcula a duração (offset e feriados da referência)', async () => {
     const d = montar({ stg: [stg('1')], fatos: eventos, calendario: true });

@@ -1,5 +1,5 @@
 import type { ResultadoT4 } from '@metricas-dspd/contratos'
-import { CLASSES_SERVICO, META_RAZAO_MAX, META_RAZAO_MIN } from '@metricas-dspd/contratos'
+import { NIVEIS_PRIORIDADE_BM, META_RAZAO_MAX, META_RAZAO_MIN } from '@metricas-dspd/contratos'
 import type { Intervalo } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
@@ -7,7 +7,15 @@ import { estatistica, medianaDe } from '../core/estatistica'
 import { maximo, minimo } from '../core/extremos'
 import { media } from '../core/percentil'
 import { semanasEntre } from '../core/series'
-import { baseAmostral, criterios, ehDemanda, periodoDe, r2, selecionar } from './comum'
+import {
+  baseAmostral,
+  criterios,
+  ehDemanda,
+  periodoDe,
+  r2,
+  selecionar,
+  semPrioridadeDe,
+} from './comum'
 import { amostraBM } from './amostra'
 import type { ContextoBM } from './indice'
 
@@ -18,14 +26,22 @@ const faixa = (v: readonly number[], j: Intervalo) => ({
   media: r2(media(v)),
 })
 
-/** T4: demanda x capacidade, sempre por classe de serviço (nunca agregado). */
+/** T4: demanda x capacidade, sempre por prioridade nativa do BusinessMap (nunca agregado; E7.100). Card sem prioridade fica fora e é contado. */
 export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
   const periodo = periodoDe(ctx, f)
   const cards = selecionar(ctx, f, 'story').filter(ehDemanda)
   const semanas = semanasEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia)
   let total = 0
-  const classes = CLASSES_SERVICO.map((classe) => {
-    const xs = cards.filter((m) => m.card.classe_servico === classe)
+  // Cartões distintos com chegada ou entrega em semana completa (cartão entregue na janela não conta 2, A4).
+  const cartoesDe = (xs: typeof cards): number => {
+    const completas = semanas.filter((s) => !s.emAndamento)
+    const na = (t: number | null): boolean =>
+      t !== null &&
+      ((d) => completas.some((s) => d >= s.inicioDia && d <= s.fimDia))(diaLocal(t, ctx.cal))
+    return xs.filter((m) => na(m.entrada) || na(m.entrega)).length
+  }
+  const classes = NIVEIS_PRIORIDADE_BM.map((classe) => {
+    const xs = cards.filter((m) => m.card.prioridade === classe)
     const chegadas = xs.map((m) => diaLocal(m.entrada, ctx.cal))
     const saidas = xs
       .filter((m) => m.entrega !== null)
@@ -85,6 +101,7 @@ export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
   return {
     base: baseAmostral(total, 'chegadas e entregas', periodo),
     criterios: criterios('T4', periodo, periodo, ctx),
+    semPrioridade: { n: cartoesDe(semPrioridadeDe(cards)), total: cartoesDe(cards) },
     classes,
   }
 }

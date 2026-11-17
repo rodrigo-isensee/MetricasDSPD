@@ -98,6 +98,24 @@ export const VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO: VersaoCriterio = {
   afeta: ['T10'],
 }
 
+/** E7.77 = A (pedido 105, decisão do dono de 2026-11-16): o T10 publica o tempo total esperando fornecedores (motivo "Aguardando fornecedor"), sem separar por fornecedor; substitui a P-075-11 "B". */
+export const VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t10-tempo-total-fornecedor',
+  data: '2026-11-16',
+  descricao:
+    'T10 passou a ter dado real: tempo total dos bloqueios encerrados com o motivo Aguardando fornecedor, sem separar por fornecedor',
+  afeta: ['T10'],
+}
+
+/** Pedido 105 (E7.264, decisão do dono, 2026-11-16): o T10 soma o tempo dos bloqueios com motivo Aguardando fornecedor (14) e Dependência Externa (11). */
+export const VERSAO_CRITERIO_T10_MOTIVOS_FORNECEDOR: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t10-motivos-fornecedor',
+  data: '2026-11-16',
+  descricao:
+    'T10 passou a contar o tempo dos bloqueios encerrados com os motivos Aguardando fornecedor e Dependência Externa (antes só o primeiro)',
+  afeta: ['T10'],
+}
+
 /**
  * D2 = A (pedido 011, decisão de 2026-10-17; pedido 024): o E7 deixou de trazer custo em R$ e passou a mostrar só a
  * participação percentual de cada sistema pelas entregas do período. Revê a D-1' e a Q-E7-1.
@@ -132,6 +150,15 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   data: DATA_BLOQUEIO_COM_DADO_REAL,
   descricao: `histórico parcial de bloqueios: só há dado a partir de ${DATA_BLOQUEIO_COM_DADO_REAL} (primeira coleta); antes disso o tempo bloqueado é desconhecido. Início e fim do bloqueio são o instante da coleta que viu a mudança, não o instante real`,
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
+}
+
+/** Pedido 105 (E7.184, decisão B do dono, 2026-11-16): motivos de bloqueio do BusinessMap no lugar dos 7 do briefing. */
+export const VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-motivos-bloqueio-bm',
+  data: '2026-11-16',
+  descricao:
+    'Os motivos de bloqueio passaram a ser os habilitados no BusinessMap (11 motivos, ids 1 a 3, 6, 7 e 9 a 14), no lugar dos 7 do briefing; o fornecedor do T10 são os motivos "Aguardando fornecedor" e "Dependência Externa"',
+  afeta: ['BLOQUEADOS', 'O2', 'O19', 'T10', 'T12'],
 }
 
 /** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
@@ -267,6 +294,45 @@ export const VERSAO_CRITERIO_O18_VINCULOS: VersaoCriterio = {
   afeta: ['O18'],
 }
 
+/**
+ * Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 passou de "Sem dado real" para dado real. Frente adicionada depois do início
+ * é a frente criada depois do início do projeto; a frente criada antes e ligada depois conta como original (a base não guarda o instante do vínculo).
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t9-escopo-criado-em',
+  data: '2026-11-16',
+  descricao:
+    'T9 passou a ser calculado com o dado real do BusinessMap: o avanço é frentes concluídas sobre o total das filhas; frente adicionada depois do início é a criada depois do início do projeto (a criada antes e ligada depois conta como original); projeto sem início fica fora, com a contagem',
+  afeta: ['T9'],
+}
+
+/**
+ * Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 passa a ler `dim_card` (história real, 25 meses) em vez da série da extensão;
+ * a demanda criada é a story que não é Bug interno (a chegada do T4 e do O7): arquivados entram; excluídos e subtarefas ficam fora; abaixo de 20 demandas não se publica.
+ * Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T11_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-16-t11-dado-real',
+  data: '2026-11-16',
+  descricao:
+    'T11 passou a ser calculado com o dado real do BusinessMap: demandas criadas por mês (story que não é Bug interno; as arquivadas entram, as excluídas e as subtarefas ficam fora), sem publicar com menos de 20 demandas',
+  afeta: ['T11'],
+}
+
+/**
+ * Pedido 105 (E7.214): o O12 passa a dividir os vencidos pela responsabilidade do atraso lida do campo 51 do BusinessMap ("Responsabilidade do Atraso",
+ * casado pelo value_id); a parte só é publicada quando algum card vencido vem classificado, e a contagem começa em 16/11/2026. A Visão geral entra porque o
+ * alerta de vencidos por causa interna volta a poder ser gerado. Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-16-o12-responsabilidade-dado-real',
+  data: '2026-11-16',
+  descricao:
+    'O12 passou a dividir os vencidos pela responsabilidade do atraso (campo Responsabilidade do Atraso do BusinessMap: Interno, Solicitante, Terceiro); a divisão só é publicada quando algum card vencido vem classificado, e a contagem começa em 16/11/2026',
+  afeta: ['O12', 'VISAO_GERAL'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -275,9 +341,12 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O19_PCT_DIAS,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
   VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
+  VERSAO_CRITERIO_T10_TEMPO_TOTAL_FORNECEDOR,
+  VERSAO_CRITERIO_T10_MOTIVOS_FORNECEDOR,
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_MOTIVOS_BLOQUEIO_BM,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
   VERSAO_CRITERIO_O17_POR_SISTEMA_DADO_REAL,
@@ -290,6 +359,9 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_AJUSTE_PRIORIDADE_DADO_REAL,
   VERSAO_CRITERIO_MOTIVOS_PROC_DADO_REAL,
   VERSAO_CRITERIO_O18_VINCULOS,
+  VERSAO_CRITERIO_T9_ESCOPO_CRIADO_EM,
+  VERSAO_CRITERIO_T11_DADO_REAL,
+  VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
 ]
 
 /**

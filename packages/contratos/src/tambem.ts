@@ -126,9 +126,14 @@ export const resultadoO21 = fechado({
   ),
 })
 
-/** O24 Ordem de chegada. O grupo é literal único (D-6' = A). */
+/**
+ * O24 Ordem de chegada. O grupo é literal único (D-6' = A); `equipe-tipo-padrao` guarda o nome histórico: desde o pedido 105 (E7.100)
+ * a fila é a da prioridade Média do BusinessMap (P-1 do dono), não mais a da classe de serviço Padrão.
+ */
 export const resultadoO24 = fechado({
   ...comum,
+  /** Inícios do período de cards sem prioridade: ficam fora da fila (nunca Média por omissão) e são contados aqui. */
+  semPrioridade: fechado({ n: z.number(), total: z.number() }),
   inicios: taxaSchema,
   meses: z.array(
     fechado({
@@ -187,6 +192,14 @@ export const resultadoT10 = fechado({
     }),
   ),
   totalDiasUteis: z.number(),
+  /**
+   * Pedido 105 (E7.77, decisão do dono de 2026-11-16, opção A): tempo total esperando fornecedores, dos bloqueios encerrados
+   * com o motivo "Aguardando fornecedor", sem separar por fornecedor (o nome fica no texto livre, que nunca entra na base).
+   * Campo novo opcional (política de mudança de contrato); P50/P85/P95 só com 20 ou mais na janela de 12 semanas.
+   */
+  esperaFornecedores: fechado({ bloqueios: z.number(), diasUteis: z.number(), duracao }).optional(),
+  /** Por que `fornecedores` vem vazio (texto simples). Ausente quando a lista tem linhas (resposta antiga). */
+  motivoSemFornecedores: z.string().optional(),
 })
 
 /** T11 Sazonalidade da chegada: 24 meses fechados mais o corrente, sem depender do período do filtro (CA-12). */

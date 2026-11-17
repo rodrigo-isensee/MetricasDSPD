@@ -11,7 +11,8 @@ export type Celula<T> = T | Pendente
 
 export type ChaveSegmentacao =
   | 'tipo'
-  | 'classe-servico'
+  /** Prioridade nativa do BusinessMap (Crítica, Alta, Média, Baixa; pedido 105, E7.100). Não é a `prioridade` P1 a P5 do Acelerato. */
+  | 'prioridade-bm'
   | 'tipo-projeto'
   | 'natureza-alocacao'
   | 'objetivo'
@@ -204,7 +205,7 @@ export const REGRAS_METRICA = {
   },
   T1: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico', 'etapa'],
+    segmentacao: ['prioridade-bm', 'etapa'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -215,7 +216,7 @@ export const REGRAS_METRICA = {
   },
   T2: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico', 'etapa'],
+    segmentacao: ['prioridade-bm', 'etapa'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -237,7 +238,7 @@ export const REGRAS_METRICA = {
   },
   T4: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico'],
+    segmentacao: ['prioridade-bm'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -446,7 +447,7 @@ export const REGRAS_METRICA = {
   },
   O6: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico'],
+    segmentacao: ['prioridade-bm'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -512,7 +513,7 @@ export const REGRAS_METRICA = {
     status: 'ok',
   },
   O17: {
-    // Acelerato, painel Sustentação. Por sistema: dado real. Causa raiz: sem dado real (Registro de Problemas; pedido 099, B' da Q-099-7).
+    // Acelerato, painel Sustentação. Por sistema: dado real. Causa raiz: não é contada, é texto livre no Acelerato (ADR 0020; pedido 105, K-372).
     dominio: 'acelerato',
     segmentacao: ['causa-raiz', 'sistema'],
     ordem: 'neutra',
@@ -525,7 +526,7 @@ export const REGRAS_METRICA = {
   },
   T6: {
     dominio: 'businessmap',
-    segmentacao: ['classe-servico'],
+    segmentacao: ['prioridade-bm'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
@@ -566,7 +567,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['percentis'],
     granularidade: 'story',
     refBriefing:
-      'pedido 011 T10; D-10 = A (sem prazo contratado); R-5 (qualquer motivo com fornecedor informado); B11-001 = sim: fornecedor agrupado pelo nome normalizado (caixa e espaços), exibido pela grafia mais frequente',
+      'pedido 011 T10; D-10 = A (sem prazo contratado); pedido 105, E7.77 (opção A, 2026-11-16): tempo total dos bloqueios encerrados com os motivos Aguardando fornecedor (14) e Dependência Externa (11) (E7.264), sem separar por fornecedor (o nome fica no texto livre, fora da base)',
     status: 'ok',
   },
   O20: {
@@ -602,7 +603,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa', 'percentis'],
     granularidade: 'story',
     refBriefing:
-      "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prioritário e Prazo fixo fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
+      "pedido 011 O24; D-6' = A (fila de cada equipe, só a prioridade Média do BusinessMap, mesmo tipo; Crítica, Alta, Baixa e card sem prioridade fora, CA-17 e E7.100); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
     status: 'ok',
   },
   O22: {

@@ -28,8 +28,14 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O20',
   // Pedido 099 (lote A3, E3.43): o O25 Descarte lê o descarte nativo (`motivo_descarte`, `arquivado_em`, `excluido_em`) já na base (Q-RO-2).
   'O25',
-  // Pedido 105 (E7.3, decisão do dono de 2026-11-15 12:33): o O24 lê a classe de serviço das etiquetas do card (Padrão = etiqueta Padrao); card sem etiqueta de classe fica fora da fila, nunca Padrão por omissão (Q-099-9).
+  // Pedido 105 (E7.100, decisões do dono de 2026-11-16: campo de urgência do BM, "leitura 2", P-1): o O24 usa a fila da prioridade Média (campo `priority` do BusinessMap) no lugar da classe Padrão; card sem prioridade fica fora da fila e contado à parte, nunca Média por omissão.
   'O24',
+  // Pedido 105 (E7.100, decisões do dono de 2026-11-16, P-7: "liga já"): T1, T2, T4 e T6 separam pela prioridade nativa do BusinessMap (Crítica, Alta, Média, Baixa); as quatro passam de 20 entregues em 12 semanas (consulta pri-d). Card sem prioridade fica fora e contado (P-3); abaixo de 20 por nível = insuficiente, nunca somado a outro; T4 nunca agregado.
+  // T2: o SLE segue "não definido" até o dono aprovar os prazos propostos (D-T2); os 60 dias de dado limpo recomeçam na troca (P-5).
+  'T1',
+  'T2',
+  'T4',
+  'T6',
   // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
   'O16',
   // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.
@@ -37,9 +43,19 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 105 (E7.4, O18 = c): entregas com e sem bug pelos vínculos do BusinessMap (pai e filho ou relacionado) projetados em `dim_card.origem_bug`.
   'O18',
   'EI_FL1',
+  // Pedido 105 (E7.68, D-T9 "T9 A", decisão do dono de 2026-11-16): o T9 lê o avanço pelas frentes filhas (concluídas ÷ total) e as adicionadas pela regra
+  // do `criado_em` da frente depois do `iniciado_em` do projeto, derivada na leitura (a base não guarda o instante do vínculo: a frente criada antes e
+  // ligada depois conta como original, e a nota do cartão diz isso); projeto sem início fica fora, contado. Só 13 projetos ativos têm frente filha:
+  // o T9 não publica estatística agregada (só "k de n"), e o por projeto segue a regra do briefing (censo).
+  'T9',
+  // Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 lê `dim_card` (criado_em; story que não é Bug interno, a chegada do T4 e do O7; arquivados entram;
+  // excluídos e subtarefas ficam fora; sem pessoa nem `equipeResponsavel`); a base real tem 25 meses sem buraco (consulta tat-i). Abaixo de 20 demandas não publica.
+  'T11',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
-  // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
+  // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T12 segue fora (P-075-12, "B").
   'BLOQUEADOS',
+  // Pedido 105 (E7.77, decisão do dono de 2026-11-16, opção A): o T10 publica o tempo total dos bloqueios encerrados com o motivo "Aguardando fornecedor", sem separar por fornecedor (o nome fica no texto livre, fora da base). Substitui a P-075-11 "B".
+  'T10',
   'PV1',
   // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S12 entrou no pedido 099 (D9) só com o volume.
   'S2',
@@ -64,6 +80,9 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S5',
   'S6',
   'S7',
+  // Pedido 105 (D6a, Decisão 18b do pedido 099): S11 real pela regra do fluxo do chamado (campo nativo no PROC, etapa "Causa Raiz" nos fluxos
+  // antigo e intermediário); chamado sem fluxo fica de fora, contado; a conversão em Registro de Problema sai nula com o motivo.
+  'S11',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -73,33 +92,39 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 
 /**
- * Pedido 099 (B' da Q-099-7): motivo da parte por causa raiz do O17. A causa raiz é do Registro de Problemas e a base não tem o
- * vínculo ao incidente; a causa aparente não serve no lugar dela.
+ * Pedido 105 (K-372, decisão do dono de 16/11): motivo definitivo da parte por causa raiz do O17. O campo "Causa raiz" do fluxo de
+ * Problemas do Acelerato é texto livre, que nunca entra na base (ADR 0020); a causa raiz de incidente não é contada.
  */
 export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
-  'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
+  'A causa raiz do incidente é registrada em texto livre no Acelerato e por isso não é contada.'
 
+/** Pedido 105 (E7.214): dia em que a contagem da responsabilidade do atraso começa (campo 51 do BusinessMap, 2026-11-16), exibido como 16/11/2026. */
+export const O12_INICIO_RESPONSABILIDADE = '16/11/2026'
 /**
- * Pedido 099 (O12, Q-099-4 = A): motivo da parte de responsabilidade do atraso. O prazo do card diz quando venceu, não de quem foi o atraso.
- * Frase em minúsculas sem ponto final, completada pelo componente.
+ * Pedido 105 (E7.214): motivo da parte de responsabilidade do O12 enquanto nenhum card vencido tem o campo 51 preenchido (0 cards hoje). Frase em minúsculas
+ * sem ponto final, completada pelo componente. Sem preenchimento a parte não é publicada: nunca 0 nem meta avaliada.
  */
-export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL =
-  'aguardando o campo de responsabilidade do atraso no quadro do BusinessMap (o prazo do card diz quando venceu, não de quem foi o atraso)'
+export const MOTIVO_O12_RESPONSABILIDADE_SEM_DADO_REAL = `aguardando o preenchimento do campo "Responsabilidade do Atraso" nos cards vencidos; a contagem começa em ${O12_INICIO_RESPONSABILIDADE}`
 /**
- * Pedido 099 (O12): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['O12', 'VISAO_GERAL']`, quando o campo de
- * responsabilidade do atraso existir no quadro e vier preenchido da fonte. Falso: o O12 publica `porResponsabilidade` e `vencidosCausaInterna`
- * `null` com o motivo, e `statusMeta = 'sem-referencia'`; nunca 0.
+ * Pedido 105 (E7.214): ligado, o campo "Responsabilidade do Atraso" (51, dropdown) é coletado pelo `value_id` em `responsabilidade_atraso`, e o O12 publica
+ * `porResponsabilidade` e `vencidosCausaInterna` assim que algum card vencido vem classificado; até lá segue `null` com o motivo e
+ * `statusMeta = 'sem-referencia'` (nunca 0). Versão de critério `afeta = ['O12', 'VISAO_GERAL']`.
  */
-export const RESPONSABILIDADE_ATRASO_COM_FONTE = false
+export const RESPONSABILIDADE_ATRASO_COM_FONTE = true
 /**
- * Pedido 099 (A4, Q-099-4): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o campo
- * `tamanho_declarado` ainda não vem preenchido no quadro (WS1), então a divisão sai sem dado real.
+ * Pedido 099 (A4, Q-099-4) e 105 (E7.102): motivo da divisão do O8 por tamanho. O tempo em execução é real (pelas transições); o tamanho vem do
+ * `size` nativo do card pela régua de cada time (seis faixas); enquanto a régua aprovada não estiver carregada, nenhum card tem tamanho e a
+ * divisão sai sem dado real. Com algum card com tamanho o motivo é nulo (plano de tamanho, seção 4). Texto provisório, revisado pela UX.
  */
 export const MOTIVO_O8_POR_TAMANHO_SEM_DADO_REAL =
-  'aguardando o campo de tamanho no quadro (WS1): nenhum card tem tamanho declarado'
+  'aguardando a régua de tamanho aprovada: nenhum card tem tamanho pela régua do time'
 
-export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
-  'aguardando tipo e domínio do campo do chamado (P-DS-19)'
+/**
+ * Pedido 105 (D6a): motivo da conversão do S11 em Registro de Problema. Desde o E7.101 a conversão sai do campo "Avaliação de Problema" e o
+ * serviço não usa mais este motivo (resta para o resultado antigo com `conversao` nula; a conversão nunca é publicada como 0). Texto provisório, revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
+ */
+export const MOTIVO_S11_CONVERSAO_SEM_DADO_REAL =
+  'Aguardando o vínculo do chamado com o Registro de Problema.'
 /** Pedido 099 (L18, E3.298): motivo do S1 sem `ref_alvo_prioridade` carregada; nenhum prazo é presumido. */
 export const MOTIVO_ALVOS_NAO_CARREGADOS =
   'alvos de prazo por prioridade não carregados (ref_alvo_prioridade); o dono roda o ac:ref-sync'
@@ -119,18 +144,27 @@ export const BLOQUEIOS_COM_DADO_REAL = true
  */
 export const AJUSTE_PRIORIDADE_COM_FONTE = true
 
+/** Pedido 105 (E7.55): início do histórico de troca de responsável dos cards na base (2026-11-09), exibido como 09/11/2026. */
+export const O26_INICIO_HISTORICO_RESPONSAVEIS = '09/11/2026'
+/** Pedido 105 (E7.55): início do histórico (2026-11-09) mais 12 semanas, a janela da métrica (2027-02-01), exibido como 01/02/2027. */
+export const O26_DATA_DADO_REAL = '01/02/2027'
 /**
- * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 e O26 seguem mock até a F6b, sem motivo próprio.
- * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); a EI_SUST não consta do plano
- * 056, então não se calcula por inferência.
+ * Pedido 105 (E7.55, decisão 2 do dono de 16/11): o O26 (passagens de mão) segue sem dado real até juntar 12 semanas de histórico de
+ * responsáveis. Texto revisado pela UX. Frase completa (maiúscula e ponto final), exibida como está pelo componente.
+ */
+export const MOTIVO_O26_HISTORICO_RESPONSAVEIS = `A base guarda a troca de responsável dos cards desde ${O26_INICIO_HISTORICO_RESPONSAVEIS}; a métrica precisa de 12 semanas de histórico e passa a ter dado real a partir de ${O26_DATA_DADO_REAL}.`
+
+/**
+ * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 seguem mock até a F6b, sem motivo próprio; o O26 tem o seu (E7.55).
+ * Sustentação: a EI_SUST não consta do plano 056, então não se calcula por inferência. S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
-  S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
+  O26: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
-/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, O26, FL2, FL3, Visão geral e a tendência da sustentação). */
+/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, FL2, FL3, Visão geral e a tendência da sustentação). */
 export const MOTIVO_FONTE_REAL_NAO_DEFINIDA = 'fonte real ainda não definida'
 
 /**
@@ -173,7 +207,8 @@ export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
 
 /** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */
 export const TEXTO_NOTA_CARTAO = {
-  'sem-classe': 'Cartões sem etiqueta de classe de serviço ficam fora da separação por classe.',
+  'sem-classe':
+    'Cartões sem prioridade ficam fora da separação por prioridade e são contados à parte.',
   'sle-nao-definido': 'SLE não definido.',
 } as const
 export type NotaCartaoId = keyof typeof TEXTO_NOTA_CARTAO

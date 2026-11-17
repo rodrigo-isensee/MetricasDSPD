@@ -4,8 +4,8 @@ import type { Page } from '@playwright/test'
 // QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (65), preferências, axe AA a 375 e 1280.
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
-// Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios". O S12 saiu daqui no D9 (pedido 099): é real só com o volume.
-const MOCK = new Set(['O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11'])
+// Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios". O S12 saiu daqui no D9 (pedido 099): é real só com o volume. O S11 saiu no pedido 105 (avaliação real).
+const MOCK = new Set(['O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8'])
 
 const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 14, ids: ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16'] },

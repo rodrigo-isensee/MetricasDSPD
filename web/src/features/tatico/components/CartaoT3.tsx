@@ -26,7 +26,7 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
   const med = (n: NonNullable<typeof d>['naturezas'][number]) => n[contagem]
   const maiores = d
     ? [...d.naturezas]
-        .filter((n) => med(n).desvioPP !== null && med(n).pct !== null)
+        .filter((n) => n.acordadoPct !== null && med(n).desvioPP !== null && med(n).pct !== null)
         .sort(
           // O filtro acima só deixa passar desvio e percentual publicados.
           (a, b) => Math.abs(med(b).desvioPP as number) - Math.abs(med(a).desvioPP as number),
@@ -39,10 +39,13 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
       ? maiores
           .map(
             (n) =>
-              `${n.natureza} consumiu ${fmtPct(med(n).pct as number)} da capacidade (acordado: ${fmtPct(n.acordadoPct)}).`,
+              `${n.natureza} consumiu ${fmtPct(med(n).pct as number)} da capacidade (acordado: ${fmtPct(n.acordadoPct as number)}).`,
           )
           .join(' ')
-      : 'Percentuais indisponíveis: menos de 20 itens entregues no total.'
+      : ok
+        ? 'O cartão mostra como a capacidade foi dividida entre as naturezas, sem comparar com o combinado.'
+        : 'Percentuais indisponíveis: menos de 20 itens entregues no total.'
+  const semAcordado = !!d && d.naturezas.every((n) => n.acordadoPct === null)
   const unidade = contagem === 'itens' ? 'itens' : 'h úteis em execução'
   return (
     <CartaoMetrica
@@ -79,7 +82,7 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
         <div className="flex flex-col gap-3">
           {ok ? (
             <Barras
-              descricao={`Alocação da capacidade por natureza, acordado e realizado (${unidade})`}
+              descricao={`Alocação da capacidade por natureza${semAcordado ? ' realizada' : ', acordado e realizado'} (${unidade})`}
               orientacao="horizontal"
               unidade="% da capacidade"
               formatar={(v) => fmtPct(v)}
@@ -88,8 +91,17 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
                 valores: { acordado: n.acordadoPct, realizado: med(n).pct },
               }))}
               series={[
-                { chave: 'acordado', rotulo: 'Acordado', cor: 2, padrao: 'contorno' },
-                { chave: 'realizado', rotulo: 'Realizado', cor: 1, padrao: 'liso' },
+                ...(semAcordado
+                  ? []
+                  : [
+                      {
+                        chave: 'acordado',
+                        rotulo: 'Acordado',
+                        cor: 2,
+                        padrao: 'contorno',
+                      } as const,
+                    ]),
+                { chave: 'realizado', rotulo: 'Realizado', cor: 1, padrao: 'liso' } as const,
               ]}
             />
           ) : (
@@ -103,8 +115,8 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
                   <strong>{n.natureza}:</strong>
                   <span>
                     {ok && m.pct !== null
-                      ? `realizado ${fmtPct(m.pct)} · acordado ${fmtPct(n.acordadoPct)} · desvio ${m.desvioPP !== null && m.desvioPP > 0 ? '+' : ''}${fmtNumero(m.desvioPP ?? 0, 1)} p.p.`
-                      : `${fmtInteiro(m.quantidade)} ${unidade} · acordado ${fmtPct(n.acordadoPct)}`}
+                      ? `realizado ${fmtPct(m.pct)}${n.acordadoPct === null ? '' : ` · acordado ${fmtPct(n.acordadoPct)}`}${m.desvioPP === null ? '' : ` · desvio ${m.desvioPP > 0 ? '+' : ''}${fmtNumero(m.desvioPP, 1)} p.p.`}`
+                      : `${fmtInteiro(m.quantidade)} ${unidade}${n.acordadoPct === null ? '' : ` · acordado ${fmtPct(n.acordadoPct)}`}`}
                   </span>
                   {ok && m.statusMeta === 'fora' && <SeloDesvio />}
                 </li>

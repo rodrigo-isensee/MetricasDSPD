@@ -7,8 +7,8 @@ import type { ContextoAC } from './indice'
 
 /**
  * O17 (Sustentação, fonte Acelerato): incidentes encerrados no período por causa raiz e por sistema
- * (`categoria_sistema`, dado real). Contagem, sem mínimo. Pedido 099 (B' da Q-099-7): a causa raiz é do Registro de
- * Problemas e a base não tem o vínculo ao incidente; sem extensão (base real), `porCausa` é nulo com o motivo em
+ * (`categoria_sistema`, dado real). Contagem, sem mínimo. Pedido 105 (K-372): a causa raiz é registrada em texto
+ * livre no Acelerato e não é contada (ADR 0020); sem extensão (base real), `porCausa` é nulo com o motivo em
  * `motivoCausaRaiz`, nunca lista vazia nem "Não informada" inflado, e a causa aparente não entra no lugar dela.
  */
 export function calcularO17(

@@ -43,3 +43,43 @@ Motivo: o D3b (Decisão 13) passa o dia útil da Sustentação a 528 min (08:00-
 | hashAcelerato | b047a163 | 930570e9 |
 
 Motivo: o K-314 B1 acrescenta `exibir_primeiro_atendimento` e `exibir_restauracao` (min, h ou dia) a `config.alvos` do mock do Acelerato. BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar`. Consequência legítima do K-314 B1 (achado A1 do review 63aeca3).
+
+## Regravação de 2026-11-15 (pedido 105, S11 D6a, E6.32)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | 61ce1180 | b6a3c384 |
+| hashBusinessMap | 8d47d431 | 8d47d431 (intacto) |
+| hashAcelerato | 930570e9 | 797abc95 |
+
+Motivo: o D6a põe o domínio real do D1 no gerador do Acelerato (`avaliacao_problema` "Não aplicável" passa a "Não aplicável e com justificativa"). BusinessMap, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e). Consequência legítima do D6a; o gate do CI reprovou o hash antigo, como o brief previu.
+
+## Regravação de 2026-11-16 (pedido 105, PR 490, E7.205)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | b6a3c384 | ef67b23e |
+| hashBusinessMap | 8d47d431 | 1f3e6fd7 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: a prioridade nativa do BusinessMap (campo de urgência, faixa Sem prioridade) muda os cards do mock do BusinessMap; Acelerato, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar` (em e2e), pelo QA, como o brief E7.205 pediu. Consequência legítima da prioridade nativa (achado A2 do parecer).
+
+## Regravação de 2026-11-16 (pedido 105, motivos de bloqueio do BusinessMap, E7.184 e E7.210)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | b6a3c384 | 88a5c095 |
+| hashBusinessMap | 8d47d431 | 08e2b5e2 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: o gerador do BusinessMap passa a usar os 11 motivos de bloqueio habilitados (ids 1 a 3, 6, 7 e 9 a 14) e `MOTIVOS_FORNECEDOR`, no lugar dos 7 do briefing (decisão B do dono). Acelerato, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar ../docs/qa/evidencias/hash-base-fase-a.json` (em e2e). Consequência legítima da decisão B; fecha o achado A2 do QA.
+
+## Regravação de 2026-11-16 (pedido 105, merge da develop nos motivos de bloqueio, E7.253)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | ef67b23e (develop) e 88a5c095 (motivos) | 61a511eb |
+| hashBusinessMap | 1f3e6fd7 (develop) e 08e2b5e2 (motivos) | 69f65344 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: as duas regravações acima (prioridade nativa do E7.205 e motivos de bloqueio do E7.184) mudam o gerador do BusinessMap em pontos diferentes; juntas no merge dão um hash novo. Escala 0,2 passa a e8035bf0 e a base do BusinessMap sem passos do "também" a 858acf56. Acelerato, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar ../docs/qa/evidencias/hash-base-fase-a.json` (em e2e) pelo tech-lead no merge.

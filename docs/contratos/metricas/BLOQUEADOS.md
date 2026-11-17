@@ -1,6 +1,6 @@
 # Contrato da métrica BLOQUEADOS
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-11-15.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-11-16.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -133,13 +133,17 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.BLOQUEADOS`); a fotografia version
           "motivo": {
             "type": "string",
             "enum": [
+              "Aguardando ação interna do time",
+              "Aguardando outro setor/equipe",
+              "Bug identificado",
+              "Parada por repriorização de atividade",
+              "Aguardando publicação GMUD",
+              "Dependências das Áreas - Unifique",
+              "Dependências outro time Dev",
+              "Dependência Externa",
+              "Dependência do próprio time",
+              "Não conformidade",
               "Aguardando fornecedor",
-              "Aguardando validação do negócio",
-              "Aguardando ambiente ou infraestrutura",
-              "Dependência de outra demanda",
-              "Falta de informação no chamado",
-              "Janela de mudança",
-              "Aguardando licença ou contrato",
               "não classificado"
             ]
           },
@@ -179,7 +183,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
       "titulo": "Criar pedido de compra (Protheus)",
       "tipo": "Requisição",
       "etapa": "Em desenvolvimento",
-      "motivo": "Falta de informação no chamado",
+      "motivo": "Aguardando ação interna do time",
       "fornecedor": null,
       "bloqueadoHaDiasUteis": 0.52
     }
