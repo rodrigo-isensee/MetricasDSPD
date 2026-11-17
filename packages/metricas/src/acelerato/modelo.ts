@@ -38,6 +38,11 @@ export interface Chamado {
   impacto: 'Alto' | 'Médio' | 'Baixo'
   urgencia: 'Alta' | 'Média' | 'Baixa'
   prioridade?: Prioridade
+  /**
+   * Pedido 105 (E7.238): `true` = prioridade escrita na escala P1 a P5 da matriz (`P<n> - ...`); `false` = outra escala (famílias DSPD-* e SSSC-*, com prazos
+   * próprios, mapeadas para P pela D-12). Ausente = base sem a informação (mock e semeada): vale a escala P. Só o S1 lê.
+   */
+  escala_p?: boolean
   prioridade_ajustada_manualmente: boolean
   justificativa_ajuste: string | null
   /** Indicador derivado "justificativa preenchida", para quando o texto não está disponível (S7; o banco não guarda o texto). */

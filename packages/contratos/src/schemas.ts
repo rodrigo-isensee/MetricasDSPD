@@ -668,6 +668,13 @@ export const resultadoS1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
   excecoesForaDaApuracao: z.number(),
+  /**
+   * Pedido 105 (E7.238, decisão B do dono): o S1 mede só os chamados da escala P1 a P5 da matriz. Aqui, os chamados fechados na janela que ficaram fora da conta:
+   * de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prioridade (sem prazo). Só contagem, nunca estatística. Aditivo.
+   */
+  foraDaMatriz: z
+    .object({ outrasEscalas: z.number().int().min(0), semPrazo: z.number().int().min(0) })
+    .optional(),
   /** Horas do dia útil do calendário usado no cálculo (Decisão 13: 8,8 na Sustentação). Aditivo: a web converte horas em dias úteis por este número, nunca por constante. */
   horasPorDiaUtil: z.number(),
   /** Tempos em horas, no relógio de `unidade` de cada célula. */

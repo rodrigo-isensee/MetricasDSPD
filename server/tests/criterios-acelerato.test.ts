@@ -7,16 +7,16 @@ const S = montarEsquemas('');
 const AGORA = new Date('2026-11-02T12:00:00Z');
 
 describe('CT-49: marcas da D-7, da D-10 do 066 e do 069 em ref_versao_criterio (T2.6)', () => {
-  it('as nove entradas, com data, e as métricas afetadas (S4, S9, S10, S8, as cinco do L9-c, o S11 da 18b, a conversão do S11, o S8 só com resposta e a EI_SUST)', async () => {
+  it('as dez entradas, com data, e as métricas afetadas (S4, S9, S10, S8, as cinco do L9-c, o S11 da 18b, a conversão do S11, o S8 só com resposta, a EI_SUST e o S1 só na escala P)', async () => {
     let id = 0;
     const d = criarDublePg((q) => (q.texto.startsWith('SELECT 1') ? [] : q.texto.includes('RETURNING versao_id') ? [{ versao_id: String(++id) }] : []));
     const gravadas = await registrarCriteriosAcelerato(d.pool, S, '2026-11-02', AGORA);
-    expect(gravadas).toEqual(['056:D-7', '056:D-10', '066:S8-com-resposta', '069:L9-b-campos-etapa', '069:L9-c-ordem-fluxo', '105:S11-avaliacao-18b', '105:S11-conversao-avaliacao', '105:S8-so-respondidos', '105:EI_SUST']);
+    expect(gravadas).toEqual(['056:D-7', '056:D-10', '066:S8-com-resposta', '069:L9-b-campos-etapa', '069:L9-c-ordem-fluxo', '105:S11-avaliacao-18b', '105:S11-conversao-avaliacao', '105:S8-so-respondidos', '105:EI_SUST', '105:S1-escala-p']);
     const versoes = d.chamadas.filter((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio ('));
-    expect(versoes.map((c) => [c.valores[0], c.valores[3]])).toEqual([['2026-11-02', '056:D-7'], ['2026-11-02', '056:D-10'], ['2026-11-02', '066:S8-com-resposta'], ['2026-11-02', '069:L9-b-campos-etapa'], ['2026-11-02', '069:L9-c-ordem-fluxo'], ['2026-11-02', '105:S11-avaliacao-18b'], ['2026-11-02', '105:S11-conversao-avaliacao'], ['2026-11-02', '105:S8-so-respondidos'], ['2026-11-02', '105:EI_SUST']]);
+    expect(versoes.map((c) => [c.valores[0], c.valores[3]])).toEqual([['2026-11-02', '056:D-7'], ['2026-11-02', '056:D-10'], ['2026-11-02', '066:S8-com-resposta'], ['2026-11-02', '069:L9-b-campos-etapa'], ['2026-11-02', '069:L9-c-ordem-fluxo'], ['2026-11-02', '105:S11-avaliacao-18b'], ['2026-11-02', '105:S11-conversao-avaliacao'], ['2026-11-02', '105:S8-so-respondidos'], ['2026-11-02', '105:EI_SUST'], ['2026-11-02', '105:S1-escala-p']]);
     expect(versoes.every((c) => c.texto.includes("'acelerato'"))).toBe(true);
     const metricas = d.chamadas.filter((c) => c.texto.includes('ref_versao_criterio_metrica')).map((c) => [c.valores[0], c.valores[1]]);
-    expect(metricas).toEqual([['1', 'S4'], ['1', 'S9'], ['1', 'S10'], ['2', 'S8'], ['3', 'S8'], ['5', 'S5'], ['5', 'S6'], ['5', 'S7'], ['5', 'S9'], ['5', 'S11'], ['6', 'S11'], ['7', 'S11'], ['8', 'S8'], ['9', 'EI_SUST']]);
+    expect(metricas).toEqual([['1', 'S4'], ['1', 'S9'], ['1', 'S10'], ['2', 'S8'], ['3', 'S8'], ['5', 'S5'], ['5', 'S6'], ['5', 'S7'], ['5', 'S9'], ['5', 'S11'], ['6', 'S11'], ['7', 'S11'], ['8', 'S8'], ['9', 'EI_SUST'], ['10', 'S1']]);
   });
   it('idempotente: o que já existe pela referência não é gravado de novo', async () => {
     const d = criarDublePg((q) => (q.texto.startsWith('SELECT 1') ? [{ x: 1 }] : []));
