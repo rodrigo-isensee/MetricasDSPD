@@ -3,13 +3,24 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feat/105-t3-habilitador
-commit: dbf457a1bb79ff1d76b9f090def832c067fa8cd9
-parecer: reprovado
+commit: 15ae9f406d1ca5941272bd6b8807b9af0f919cb1
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-17
 ---
 
-# Code review: T3 com o Habilitador (105, E7.496; review E7.515)
+# Code review: T3 com o Habilitador (105, E7.496; review E7.515; revalidação E7.523)
+
+## Revalidação (E7.523, head 15ae9f40)
+**Veredito: aprovado.** Delta lido: `forge-check parecer delta`, intervalo `dbf457a1..15ae9f40`, 8 arquivos no domínio (changelog.d, `criterios.ts`, `criterios.habilitador.test.ts` novo, `graficos.test.tsx`, `tema.ts`, `CartaoT3.tsx`, `tatico.test.tsx`, `web/src/test/setup.ts`).
+- A1 resolvido: `afeta` agora tem O6, O14, O19, O20, T1, T2, T4, T5, T10, T11 e T12, e não tem mais O13, O18 e O27. A linha 3 do changelog.d acompanha.
+- A2 resolvido: `criterios.habilitador.test.ts` deriva a lista de `APLICABILIDADE_FLUXO` (chave `tipo`) mais as que segmentam por tipo, e afirma a ausência das que só leem bug. Mutante: retirar `'O20'` do `afeta` **morre** (1 falha em 3).
+- A3 resolvido: `asyncUtilTimeout` de volta a 5000.
+- A4 resolvido: unidade "% das entregas", série "Entregas". O caso "nenhuma fatia com 20" ganhou frase e teste.
+- Alto de UX (`ORDEM_TIPOS` sem Habilitador) corrigido em `tema.ts`, com teste de marca única.
+- Rodado na worktree em 15ae9f40: `criterios.habilitador.test.ts` 3/3; `graficos.test.tsx` e `tatico.test.tsx` 36/36. Suíte inteira: sem PR, vale o PQ do autor; não afirmo CI verde.
+
+## Review anterior (dbf457a1, reprovado)
 
 **Veredito: reprovado, por um bloqueante (A1).** O T3 faz o que a decisão E7.496 pede. O Enabler vira a categoria `habilitador` em todo o painel. O T3 passa ao dado real com as quatro fatias da opção 1, sem acordado, desvio nem selo, e a fatia abaixo de 20 mostra só a contagem. A migração 0041 e o `deploy/sql` estão certos. O defeito está na versão de critério T2.6: o `afeta` deixa de fora métricas que usam o tipo e marca outras que o tipo não alcança.
 
