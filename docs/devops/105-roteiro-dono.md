@@ -28,7 +28,7 @@ Rode **dessa pasta, no ramo `main`**, um comando por vez (todos os `cd` do rotei
 - 0 com `classe_servico`, 0 com `origem_bug`, 0 com `fase_deteccao`.
 - `dspd_bm.ref_dominio` com 10 linhas.
 - O coletor lê as três colunas: `has_column_privilege` = `t`.
-- Migrações: a última aplicada é a **0037**; faltam a **0038** (`dim_chamado.fluxo`, Acelerato), a **0039** (toque do BusinessMap) e a **0040** (`dim_chamado.escala_p`, S1), então o `db:migrate` do passo 0.2 é obrigatório.
+- Migrações: a última aplicada é a **0037**; faltam a **0038** (`dim_chamado.fluxo`, Acelerato), a **0039** (toque do BusinessMap), a **0040** (`dim_chamado.escala_p`, S1) e a **0041** (categoria `habilitador` em `ref_tipo_card`, BusinessMap), então o `db:migrate` do passo 0.2 é obrigatório.
 - `dspd_ac.dim_chamado` tem **5144 chamados**, todos com `fluxo` nulo (a coluna ainda não existe).
 
 ## 0. Antes de começar
@@ -56,9 +56,9 @@ O banco do Compose precisa estar de pé: `(set -a; . ~/Metricas/MetricasDSPD/.en
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run db:migrate); echo "rc=$?"
 ```
 - Tempo: segundos.
-- Antes de migrar, faça o backup do dia (seção 4, que também traz a volta das migrações 0038 a 0040).
-- Deve mostrar: as migrações `0038` (coluna `fluxo`), `0039` (tabelas do toque do BusinessMap) e `0040` (coluna `escala_p`) aplicadas, se ainda faltarem, e rc=0. Rodar de novo diz que não há migração pendente.
-- Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existem a **0038** (pedido 099, D1), a **0039** e a **0040** (pedido 105); por isso este passo é obrigatório.
+- Antes de migrar, faça o backup do dia (seção 4, que também traz a volta das migrações 0038 a 0041).
+- Deve mostrar: as migrações `0038` (coluna `fluxo`), `0039` (tabelas do toque do BusinessMap) `0040` (coluna `escala_p`) e `0041` (categoria `habilitador`) aplicadas, se ainda faltarem, e rc=0. Rodar de novo diz que não há migração pendente.
+- Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existem a **0038** (pedido 099, D1), a **0039**, a **0040** e a **0041** (pedido 105); por isso este passo é obrigatório.
 - Se der erro: pare e avise. Pode repetir.
 
 ### 0.3 Acelerato: preencher o fluxo dos chamados já na base (`ac:reprojetar-fluxo`)
@@ -195,26 +195,27 @@ Esperado: `chamados` = 5144 (ou mais, se a coleta já trouxe novos) e `com_fluxo
 2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
 3. Só então religue o que parou no 0.1 (no Windows, "Habilitar" a tarefa; no cron, tire o `#`). Se não havia agenda de coleta aqui, nada a religar.
 
-## 4. Voltar atrás: rollback das migrações 0038, 0039 e 0040
+## 4. Voltar atrás: rollback das migrações 0038 a 0041
 
-Só se algo der errado depois do `db:migrate` do passo 0.2. A subida aplica **três** migrações, nesta ordem (a lista real da `develop`; o `down 1` sempre desfaz a **última aplicada**, nunca uma do meio):
+Só se algo der errado depois do `db:migrate` do passo 0.2. A subida aplica **quatro** migrações, nesta ordem (a lista real da `develop`; o `down 1` sempre desfaz a **última aplicada**, nunca uma do meio):
 
 | Migração | O que criou | Se sair por `down` |
 |---|---|---|
 | 0038 | `dim_chamado.fluxo` (Acelerato) | só a coluna (derivada, a reprojeção refaz) |
 | 0039 | `stg_toque_instante`, `ctl_toque_leitura` e as colunas `dim_card.primeiro_toque_em` e `toque_situacao` (BusinessMap) | **derruba as duas tabelas do BusinessMap e tudo o que a coleta do toque gravou nelas** |
 | 0040 | `dim_chamado.escala_p` (Acelerato, S1) | só a coluna (derivada, a reprojeção refaz) |
+| 0041 | categoria `habilitador` em `dspd_bm.ref_tipo_card` (BusinessMap) | recria o CHECK de seis valores; **falha se existir linha `habilitador`** (ver a receita B) |
 
-**Regra:** o caminho recomendado, para qualquer das três, é **restaurar o backup tirado antes do `db:migrate`** (receita A). O `down 1` vale para a **última migração aplicada**: a 0040, se a 0041 (K-407, categoria `habilitador`) ainda não estiver aplicada (receita B); com a 0041 aplicada, a última é a 0041 e a 0040 só sai por restauração (receita A). Para a 0038 ou a 0039 sozinhas **não existe `down 1`**: com as três aplicadas, `down 1` tira a 0040, o segundo tira a 0039 (e derruba as tabelas do BusinessMap) e só o terceiro tira a 0038. Não faça `down 2` nem `down 3` sem falar com o Jarvis.
+**Regra:** o caminho recomendado, para qualquer das quatro, é **restaurar o backup tirado antes do `db:migrate`** (receita A). O `down 1` vale para a **última migração aplicada**: a 0041, se ela já estiver aplicada (o `db:migrate` do passo 0.2 a aplica); senão, a 0040 (receita B). Com a 0041 aplicada, a 0040 só sai depois da 0041, ou por restauração (receita A). Para a 0038 ou a 0039 sozinhas **não existe `down 1`**: com as quatro aplicadas, `down 1` tira a 0041, o segundo tira a 0040, o terceiro tira a 0039 (e derruba as tabelas do BusinessMap) e só o quarto tira a 0038. Não faça `down 2` nem mais sem falar com o Jarvis.
 
 1. Backup do dia (faça **antes** do `db:migrate`, e de novo aqui se já virou o dia em Brasília). Use uma pasta **fora** do projeto, em disco do WSL (ext4); o script recusa pasta dentro do repositório:
 ```
 (cd ~/Metricas/MetricasDSPD-main && DSPD_BACKUP_DIR=~/backups-metricas DSPD_PG_CONTAINER=metricasdspd-postgres-1 bash scripts/db-backup.sh); echo "rc=$?"
 ```
-   Deve terminar com `[backup] ok: ...` e rc=0; isso grava `ultimo-backup-ok` com a data de hoje na pasta. A senha vem do `~/.pgpass` ou de `PGPASSWORD` no ambiente; não escreva a senha no comando. Um backup tirado **depois** do `db:migrate` já tem as três migrações dentro e não serve para a receita A.
+   Deve terminar com `[backup] ok: ...` e rc=0; isso grava `ultimo-backup-ok` com a data de hoje na pasta. A senha vem do `~/.pgpass` ou de `PGPASSWORD` no ambiente; não escreva a senha no comando. Um backup tirado **depois** do `db:migrate` já tem as quatro migrações dentro e não serve para a receita A.
    **Atenção à porta:** `scripts/db-backup.sh` lê **`PGPORT`** (padrão 5432), não `PG_PORT`, que é o nome usado no `.env` pelo `db:migrate`. Com o Compose na porta padrão não muda nada; se o seu `.env` tem `PG_PORT` diferente de 5432, exporte também `PGPORT` com o mesmo valor, senão o backup mira a porta errada.
 
-2. **Receita A, recomendada (0038, 0039 e 0040 juntas, ou só uma delas): restaurar o backup anterior à subida.** Tira as **três** migrações de uma vez e perde **tudo o que entrou no banco depois daquele backup** (coletas, cartões, o que a reprojeção gravou). Decisão do Jarvis (item 4 abaixo). Com a coleta do Acelerato parada (0.1) e os serviços que usam o banco parados (`docker compose stop api worker coleta web`; o `postgres` fica de pé), use o `.dump` mais recente anterior à subida em `~/backups-metricas/`:
+2. **Receita A, recomendada (0038 a 0041 juntas, ou só uma delas): restaurar o backup anterior à subida.** Tira as **quatro** migrações de uma vez e perde **tudo o que entrou no banco depois daquele backup** (coletas, cartões, o que a reprojeção gravou). Decisão do Jarvis (item 4 abaixo). Com a coleta do Acelerato parada (0.1) e os serviços que usam o banco parados (`docker compose stop api worker coleta web`; o `postgres` fica de pé), use o `.dump` mais recente anterior à subida em `~/backups-metricas/`:
 ```
 docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE metricas WITH (FORCE)"
 docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d postgres -c "CREATE DATABASE metricas ENCODING 'UTF8' TEMPLATE template0"
@@ -222,15 +223,15 @@ docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d metricas 
 docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d metricas -c "GRANT CREATE, CONNECT ON DATABASE metricas TO dspd_migrador"
 docker compose exec -T postgres pg_restore -U postgres --exit-on-error -d metricas < ~/backups-metricas/ARQUIVO-DO-BACKUP.dump; echo "rc=$?"
 ```
-   Troque `ARQUIVO-DO-BACKUP.dump` pelo nome do arquivo (`ls -1 ~/backups-metricas/metricas-*.dump`). Não use `pg_restore --clean` por cima do banco existente: ele falha (rc=1) porque as tabelas da 0039 dependem de `ctl_coleta`. Deve dar rc=0. Conferir que as três saíram (deve imprimir `0`, `0` e `0`):
+   Troque `ARQUIVO-DO-BACKUP.dump` pelo nome do arquivo (`ls -1 ~/backups-metricas/metricas-*.dump`). Não use `pg_restore --clean` por cima do banco existente: ele falha (rc=1) porque as tabelas da 0039 dependem de `ctl_coleta`. Deve dar rc=0. Conferir que as quatro saíram (deve imprimir `0`, `0` e `0`):
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name in ('fluxo','escala_p')"
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.tables where table_schema='dspd_bm' and table_name in ('stg_toque_instante','ctl_toque_leitura')"
-docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from dspd_core.pgmigrations where name in ('0038_ac_dim_chamado_fluxo','0039_bm_toque_primeiro','0040_ac_dim_chamado_escala_p')"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from dspd_core.pgmigrations where name in ('0038_ac_dim_chamado_fluxo','0039_bm_toque_primeiro','0040_ac_dim_chamado_escala_p','0041_bm_ref_tipo_card_habilitador')"
 ```
    Depois, o código anterior. O código da release usa `fluxo`, `escala_p` e as tabelas do toque: sem as migrações, S1, S5, S6, S7 e o toque não funcionam até reaplicar (o `db:migrate` do passo 0.2) ou reverter o merge da release (`git revert`, pelo tech-lead).
 
-3. **Receita B, `down 1` da última migração aplicada (a 0040, S1, `dim_chamado.escala_p`, quando é a última).** Perde só a coluna derivada, que a reprojeção refaz; nada mais. Antes, confira qual é a última aplicada (para tirar a 0040, deve imprimir `0040_ac_dim_chamado_escala_p`; se imprimir outra coisa, **pare**: `down 1` tiraria a errada):
+3. **Receita B, `down 1` da última migração aplicada (a 0041 ou, se ela não estiver aplicada, a 0040).** Na 0040, perde só a coluna derivada, que a reprojeção refaz; na 0041, o efeito está abaixo. Antes, confira qual é a última aplicada (deve imprimir `0041_bm_ref_tipo_card_habilitador` ou `0040_ac_dim_chamado_escala_p`; se imprimir outra coisa, **pare**: `down 1` tiraria a errada):
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
 ```
@@ -238,19 +239,30 @@ docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name F
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT count(*) FROM dspd_bm.ref_tipo_card WHERE categoria = 'habilitador'"
 ```
-   Com contagem maior que 0, a volta é **só pelo backup anterior à subida (receita A)**; não rode `bm:ref-sync` nem outro passo para "limpar" o Enabler, que só gravaria vigência nova. Com contagem 0, o `down 1` abaixo tira a 0041 (a 0040 continua; para tirá-la, só pela receita A). Texto de referência: `docs/devops/105-implantacao-vm.md`, "Reversão da migração 0041".
+   Com contagem maior que 0, a volta é **só pelo backup anterior à subida (receita A)**; não rode `bm:ref-sync` nem outro passo para "limpar" o Enabler, que só gravaria vigência nova. Com contagem 0, o `down 1` abaixo tira a 0041 (a 0040 continua; para tirá-la, só pela receita A, ou por outro `down 1` depois de conferir a volta da 0041). Texto de referência: `docs/devops/105-implantacao-vm.md`, "Reversão da migração 0041".
 
    Depois, **um** `down 1`, com as duas travas (`DSPD_PERMITIR_DOWN=1` e o backup de hoje confirmado):
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; DSPD_PERMITIR_DOWN=1 DSPD_BACKUP_DIR=~/backups-metricas pnpm run db:migrate down 1); echo "rc=$?"
 ```
-   Deve mostrar `down: 1 migração(ões)` e rc=0. Sem as duas variáveis, ou com backup de outro dia, o comando recusa e nada é apagado. **Não repita o comando**: o segundo `down 1` tira a 0039. Conferir (a coluna saiu, a 0039 continua e é a última; deve imprimir `0`, `2` e `0039_bm_toque_primeiro`):
+   Deve mostrar `down: 1 migração(ões)` e rc=0. Sem as duas variáveis, ou com backup de outro dia, o comando recusa e nada é apagado. **Não repita o comando**: o segundo `down 1` tira a migração anterior (a 0040, se você tirou a 0041; a 0039, se você tirou a 0040). Conferir conforme o que você tirou.
+
+   Se tirou a **0040** (a coluna saiu, a 0039 continua e é a última; deve imprimir `0`, `2` e `0039_bm_toque_primeiro`):
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='escala_p'"
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.tables where table_schema='dspd_bm' and table_name in ('stg_toque_instante','ctl_toque_leitura')"
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
 ```
-   Com a 0040 desfeita, o S1 não funciona até reaplicar (`db:migrate` e `ac:reprojetar-escala`) ou reverter o merge da release. Nas duas receitas, **a coleta do Acelerato continua parada** até acabar.
+   Com a 0040 desfeita, o S1 não funciona até reaplicar (`db:migrate` e `ac:reprojetar-escala`) ou reverter o merge da release.
+
+   Se tirou a **0041** (`escala_p` continua e a última passa a ser a 0040; deve imprimir `1`, `2`, `0040_ac_dim_chamado_escala_p` e `0`, este último dizendo que o CHECK voltou a seis valores, sem `habilitador`):
+```
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='escala_p'"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.tables where table_schema='dspd_bm' and table_name in ('stg_toque_instante','ctl_toque_leitura')"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT count(*) FROM pg_constraint WHERE conname = 'ref_tipo_card_categoria_check' AND pg_get_constraintdef(oid) LIKE '%habilitador%'"
+```
+   Com a 0041 desfeita, o Enabler sai da categoria `habilitador` e o T3 deixa de tratá-lo como habilitador até reaplicar (`db:migrate`) ou reverter o merge da release. Nas duas receitas, **a coleta do Acelerato continua parada** até acabar.
 
 4. Restaurar o `.dump` (receita A) é decisão do Jarvis (perda de dado maior); `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
 
@@ -260,7 +272,7 @@ Depois do passo 0.3, grave as marcas de critério do Acelerato (idempotente; imp
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:criterios); echo "rc=$?"
 ```
-Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). O S1 (migração 0040, escala P1 a P5) já está na `develop` e vem na release: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só, **com a coleta do Acelerato parada (0.1)**: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-escala); echo "rc=$?"`, depois `ac:criterios` de novo (grava `105:S1-escala-p`) e só então religar a coleta (seção 3). O rollback é a seção 4: o recomendado é restaurar o backup anterior à subida (receita A); `down 1` só para a 0040 (receita B). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
+Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). O S1 (migração 0040, escala P1 a P5) já está na `develop` e vem na release: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só, **com a coleta do Acelerato parada (0.1)**: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-escala); echo "rc=$?"`, depois `ac:criterios` de novo (grava `105:S1-escala-p`) e só então religar a coleta (seção 3). O rollback é a seção 4: o recomendado é restaurar o backup anterior à subida (receita A); `down 1` só para a última migração aplicada (receita B). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
 
 ## O que fica fora deste roteiro
 
