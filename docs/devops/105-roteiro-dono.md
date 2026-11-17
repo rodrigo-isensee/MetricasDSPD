@@ -28,7 +28,7 @@ Rode **dessa pasta, no ramo `main`**, um comando por vez (todos os `cd` do rotei
 - 0 com `classe_servico`, 0 com `origem_bug`, 0 com `fase_deteccao`.
 - `dspd_bm.ref_dominio` com 10 linhas.
 - O coletor lê as três colunas: `has_column_privilege` = `t`.
-- Migrações: a última aplicada é a **0037**; a **0038** (`dim_chamado.fluxo`, Acelerato) **falta**, então o `db:migrate` do passo 0.2 é obrigatório.
+- Migrações: a última aplicada é a **0037**; faltam a **0038** (`dim_chamado.fluxo`, Acelerato), a **0039** (toque do BusinessMap) e a **0040** (`dim_chamado.escala_p`, S1), então o `db:migrate` do passo 0.2 é obrigatório.
 - `dspd_ac.dim_chamado` tem **5144 chamados**, todos com `fluxo` nulo (a coluna ainda não existe).
 
 ## 0. Antes de começar
@@ -57,8 +57,8 @@ O banco do Compose precisa estar de pé: `(set -a; . ~/Metricas/MetricasDSPD/.en
 ```
 - Tempo: segundos.
 - Antes de migrar, faça o backup do dia (seção 4, que também traz a volta das migrações 0038 a 0040).
-- Deve mostrar: a migração `0038` (coluna `fluxo` em `dim_chamado` do Acelerato) aplicada, se ainda faltar, e rc=0. Rodar de novo diz que não há migração pendente.
-- Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existe a **0038** (pedido 099, D1); por isso este passo é obrigatório.
+- Deve mostrar: as migrações `0038` (coluna `fluxo`), `0039` (tabelas do toque do BusinessMap) e `0040` (coluna `escala_p`) aplicadas, se ainda faltarem, e rc=0. Rodar de novo diz que não há migração pendente.
+- Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existem a **0038** (pedido 099, D1), a **0039** e a **0040** (pedido 105); por isso este passo é obrigatório.
 - Se der erro: pare e avise. Pode repetir.
 
 ### 0.3 Acelerato: preencher o fluxo dos chamados já na base (`ac:reprojetar-fluxo`)
