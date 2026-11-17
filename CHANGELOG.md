@@ -1,6 +1,6 @@
 # Changelog
 
-Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemVer (enquanto `0.x`, MINOR absorve o que seria MAJOR). Escrito à mão a partir dos Conventional Commits de `origin/homolog..origin/develop`.
+Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemVer (enquanto `0.x`, MINOR absorve o que seria MAJOR). Montado dos fragmentos `changelog.d/<branch>.md` que cada PR grava (`pnpm run changelog novo`); o `tech-lead` os junta aqui por PR para a `develop` antes da promoção (`docs/engineering/praticas.md`, "CHANGELOG por fragmentos"). Não edite o topo à mão.
 
 ## [Não publicado]
 

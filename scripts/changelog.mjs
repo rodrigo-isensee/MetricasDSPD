@@ -1,29 +1,47 @@
 #!/usr/bin/env node
-// CHANGELOG por fragmentos (pedido 105, K-377): cada PR grava o próprio arquivo em changelog.d/<branch-sem-prefixo>.md e
-// um comando junta os fragmentos no CHANGELOG.md na promoção, apagando-os. Assim dois PRs nunca editam a mesma linha.
-// Só biblioteca padrão. Roda na raiz do repositório (ou com --raiz <pasta>).
+// CHANGELOG por fragmentos (pedido 105, K-377): cada PR grava o próprio arquivo em changelog.d/<branch>.md (nome inteiro da
+// branch, com o prefixo trocado por `-`) e um comando junta os fragmentos no CHANGELOG.md na promoção, apagando-os. Assim
+// dois PRs nunca editam a mesma linha. Só biblioteca padrão. Roda na raiz do repositório (ou com --raiz <pasta>).
 //
-//   node scripts/changelog.mjs novo <Adicionado|Alterado|Corrigido> "<texto>"  grava na pasta, com o nome da branch
-//   node scripts/changelog.mjs conferir                                        formato de todos os fragmentos (rc 1 se errado)
-//   node scripts/changelog.mjs juntar                                          funde os fragmentos em "[Não publicado]" e os apaga
-//   node scripts/changelog.mjs juntar <versão> <AAAA-MM-DD>                    idem e fecha: "[Não publicado]" vira "[versão] - data"
-//   node scripts/changelog.mjs conferir-release                                gate da promoção: sobrou fragmento? (rc 1 se sobrou)
+//   node scripts/changelog.mjs novo "<seção>" "<texto>"       grava na pasta, com o nome da branch (seções abaixo)
+//   node scripts/changelog.mjs conferir                       formato de todos os fragmentos (rc 1 se errado)
+//   node scripts/changelog.mjs juntar                         funde os fragmentos em "[Não publicado]" e os apaga
+//   node scripts/changelog.mjs juntar <versão> <AAAA-MM-DD>   idem e fecha: "[Não publicado]" vira "[versão] - data"
+//   node scripts/changelog.mjs conferir-release               gate da promoção: sobrou fragmento? (rc 1 se sobrou)
 //
-// Fragmento: `### <tipo>` seguido de linhas `- texto` (continuação com recuo de espaço). Não reescreve o histórico: só mexe
+// Seções aceitas (lista fechada, declarada só aqui, em TIPOS e ACOES_DO_DONO, na ordem do Keep a Changelog e do projeto):
+// Adicionado, Alterado, Corrigido, Desempenho, Mudanças que quebram, Mudanças de critério de cálculo (T2.6),
+// Dependências e Forge e "Ações do dono na base real depois da release NNN". Seção nova no CHANGELOG pede mudar aqui.
+//
+// Fragmento: `### <seção>` seguido de linhas `- texto` (continuação com recuo de espaço). Não reescreve o histórico: só mexe
 // na seção "[Não publicado]".
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-export const TIPOS = ['Adicionado', 'Alterado', 'Corrigido']
+export const TIPOS = [
+  'Adicionado',
+  'Alterado',
+  'Corrigido',
+  'Desempenho',
+  'Mudanças que quebram',
+  'Mudanças de critério de cálculo',
+  'Dependências e Forge',
+]
+export const ACOES_DO_DONO = /^Ações do dono na base real depois da release \d+$/
+export const tipoValido = (t) => TIPOS.includes(t) || ACOES_DO_DONO.test(t)
+/** Posição da seção na ordem do CHANGELOG (as "Ações do dono" vão por último). */
+export const ordem = (t) => (TIPOS.includes(t) ? TIPOS.indexOf(t) : TIPOS.length)
+const porOrdem = (a, b) => ordem(a) - ordem(b)
+const escapar = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const ESQUEMA = `${TIPOS.join(', ')} ou "Ações do dono na base real depois da release NNN"`
 export const PASTA = 'changelog.d'
 const PROTEGIDAS = new Set(['main', 'homolog', 'develop', 'HEAD'])
 const CABECALHO = '## [Não publicado]'
 
-/** Nome do fragmento de uma branch: o que vem depois do primeiro `/`, só com letras, dígitos, `.`, `_` e `-`. */
+/** Nome do fragmento de uma branch: o nome inteiro (o prefixo fica, então feature/x e fix/x não colidem), só com letras, dígitos, `.`, `_` e `-`. */
 export function slugDaBranch(branch) {
-  const resto = branch.includes('/') ? branch.slice(branch.indexOf('/') + 1) : branch
-  return resto.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[-.]+|[-.]+$/g, '')
+  return branch.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[-.]+|[-.]+$/g, '')
 }
 
 /** {tipo: [entrada]} (entrada = linha `- texto` com as continuações); lança Error se o formato não é o esperado. */
@@ -32,9 +50,9 @@ export function lerFragmento(texto, nome) {
   let atual = null
   for (const linha of texto.split('\n')) {
     if (!linha.trim()) continue
-    const m = /^### (\w+)\s*$/.exec(linha)
+    const m = /^### (.+?)\s*$/.exec(linha)
     if (m) {
-      if (!TIPOS.includes(m[1])) throw new Error(`${nome}: tipo '${m[1]}' inválido (use ${TIPOS.join(', ')}).`)
+      if (!tipoValido(m[1])) throw new Error(`${nome}: tipo '${m[1]}' inválido (use ${ESQUEMA}).`)
       atual = secoes[m[1]] ??= []
     } else if (atual && /^- \S/.test(linha)) {
       atual.push(linha)
@@ -49,7 +67,9 @@ export function lerFragmento(texto, nome) {
 }
 
 export function escreverFragmento(secoes) {
-  return TIPOS.filter((t) => secoes[t]?.length)
+  return Object.keys(secoes)
+    .filter((t) => secoes[t]?.length)
+    .sort(porOrdem)
     .map((t) => `### ${t}\n\n${secoes[t].join('\n')}\n`)
     .join('\n')
 }
@@ -63,9 +83,9 @@ export function listarFragmentos(raiz) {
 }
 
 /**
- * Funde as entradas no topo de cada subseção da seção "[Não publicado]" (cria a que faltar); o resto do arquivo, do
- * histórico das versões fechadas em diante, fica byte a byte igual. Com `fechar`, a seção vira "[versão] - data" e abre-se
- * uma "[Não publicado]" vazia acima dela.
+ * Funde as entradas no topo de cada subseção da seção "[Não publicado]" (cria a que faltar, na ordem do projeto); o resto
+ * do arquivo, do histórico das versões fechadas em diante, fica byte a byte igual. Com `fechar`, a seção vira
+ * "[versão] - data" e abre-se uma "[Não publicado]" vazia acima dela.
  */
 export function fundirNoChangelog(texto, entradasPorTipo, fechar) {
   const ini = texto.indexOf(CABECALHO)
@@ -76,17 +96,22 @@ export function fundirNoChangelog(texto, entradasPorTipo, fechar) {
   const corpo = texto.slice(fimDoCab, fim)
 
   // Inserção mínima: as entradas novas entram no topo da primeira subseção do tipo (as já existentes não são reordenadas
-  // nem fundidas); o tipo que ainda não tem subseção ganha uma no fim da seção. Nada mais do corpo muda.
+  // nem fundidas); o tipo que ainda não tem subseção ganha uma antes da primeira de ordem posterior (ou no fim da seção).
+  // Nada mais do corpo muda.
   let novoCorpo = corpo
-  for (const t of TIPOS) {
+  for (const t of Object.keys(entradasPorTipo).sort(porOrdem)) {
     const novas = entradasPorTipo[t] ?? []
     if (!novas.length) continue
-    const m = new RegExp(`^### ${t}[ \\t]*\\n\\n?`, 'm').exec(novoCorpo)
+    const m = new RegExp(`^### ${escapar(t)}[ \\t]*\\n\\n?`, 'm').exec(novoCorpo)
     if (m) {
       const pos = m.index + m[0].length
       novoCorpo = `${novoCorpo.slice(0, pos)}${novas.join('\n')}\n${/^\n|^-/.test(novoCorpo.slice(pos)) ? '' : '\n'}${novoCorpo.slice(pos)}`
     } else {
-      novoCorpo = `${novoCorpo.replace(/\n*$/, '\n')}\n### ${t}\n\n${novas.join('\n')}\n`
+      const bloco = `### ${t}\n\n${novas.join('\n')}\n\n`
+      const depois = [...novoCorpo.matchAll(/^### (.+?)[ \t]*$/gm)].find((h) => ordem(h[1]) > ordem(t))
+      novoCorpo = depois
+        ? `${novoCorpo.slice(0, depois.index)}${bloco}${novoCorpo.slice(depois.index)}`
+        : `${novoCorpo.replace(/\n*$/, '\n')}\n${bloco.replace(/\n*$/, '\n')}`
     }
   }
   novoCorpo = novoCorpo.replace(/^\n*/, '\n').replace(/\n*$/, '\n')
@@ -116,7 +141,7 @@ export function juntar(raiz, fechar) {
   const acumulado = {}
   for (const n of nomes) {
     const s = lerFragmento(readFileSync(join(raiz, PASTA, n), 'utf8'), n)
-    for (const t of TIPOS) if (s[t]) (acumulado[t] ??= []).push(...s[t])
+    for (const t of Object.keys(s)) (acumulado[t] ??= []).push(...s[t])
   }
   const arq = join(raiz, 'CHANGELOG.md')
   const texto = readFileSync(arq, 'utf8')
@@ -135,8 +160,8 @@ function principal(argv) {
   try {
     if (cmd === 'novo') {
       const [tipo, texto] = r
-      if (!TIPOS.includes(tipo) || !texto?.trim() || texto.includes('\n'))
-        throw new Error(`uso: novo <${TIPOS.join('|')}> "<texto de uma linha>"`)
+      if (!tipoValido(tipo) || !texto?.trim() || texto.includes('\n'))
+        throw new Error(`uso: novo "<seção>" "<texto de uma linha>"; seção: ${ESQUEMA}`)
       const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: raiz, encoding: 'utf8' }).trim()
       if (PROTEGIDAS.has(branch)) throw new Error(`Branch '${branch}': rode numa branch de trabalho.`)
       const slug = slugDaBranch(branch)

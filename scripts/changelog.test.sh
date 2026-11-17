@@ -3,6 +3,8 @@
 # dois; formato inválido reprova; o histórico do CHANGELOG.md (da versão fechada em diante) fica intacto; o contraste mostra
 # que editar o topo do CHANGELOG.md em duas branches dá conflito. Sem rede, sem banco: repositório temporário.
 set -uo pipefail
+# Isola do repositório de fora: quando roda num gancho ou no `pronto`, GIT_DIR e afins apontariam os commits de teste para ele.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
 cd "$(dirname "$0")/.." || exit 1
 RAIZ="$PWD"
 TMP="$(mktemp -d)"
@@ -30,6 +32,9 @@ git commit -q -m base
 git switch -q -c feature/aaa-um develop
 node "$CLI" novo Adicionado "entrada da branch um (pedido 1)" >/dev/null
 node "$CLI" novo Corrigido "correção da branch um" >/dev/null
+node "$CLI" novo "Mudanças de critério de cálculo" "critério da branch um (T2.6)" >/dev/null
+node "$CLI" novo "Mudanças que quebram" "quebra da branch um" >/dev/null
+node "$CLI" novo "Ações do dono na base real depois da release 999" "ação do dono da branch um" >/dev/null
 git add -A && git commit -q -m um
 git switch -q -c feature/bbb-dois develop
 node "$CLI" novo Adicionado "entrada da branch dois (pedido 2)" >/dev/null
@@ -38,8 +43,14 @@ git switch -q develop
 git merge -q --no-edit feature/aaa-um
 git merge -q --no-edit feature/bbb-dois
 verifica "dois fragmentos de branches diferentes mesclam sem conflito" $?
-[ -f changelog.d/aaa-um.md ] && [ -f changelog.d/bbb-dois.md ]
-verifica "o fragmento tem o nome da branch sem prefixo" $?
+[ -f changelog.d/feature-aaa-um.md ] && [ -f changelog.d/feature-bbb-dois.md ]
+verifica "o fragmento tem o nome da branch, com o prefixo" $?
+git switch -q -c fix/aaa-um develop
+node "$CLI" novo Corrigido "mesma ponta, outro prefixo" >/dev/null
+[ -f changelog.d/fix-aaa-um.md ]
+verifica "feature/x e fix/x não colidem no nome do fragmento" $?
+git switch -q develop
+rm -rf changelog.d/fix-aaa-um.md
 
 # 2) conferir aceita; formato inválido reprova.
 node "$CLI" conferir >/dev/null
@@ -64,12 +75,18 @@ HIST_ANTES="$(sed -n '/^## \[0\.2\.0\]/,$p' CHANGELOG.md | sha256sum)"
 ENTRADAS_ANTES="$(grep -c '^- ' CHANGELOG.md)"
 node "$CLI" juntar >/dev/null
 verifica "juntar roda sem erro" $?
-[ "$(grep -c '^- ' CHANGELOG.md)" -eq $((ENTRADAS_ANTES + 3)) ]
+[ "$(grep -c '^- ' CHANGELOG.md)" -eq $((ENTRADAS_ANTES + 6)) ]
 verifica "juntar só acrescenta: nenhuma entrada existente se perde (subseções repetidas)" $?
 grep -q 'entrada da branch um (pedido 1)' CHANGELOG.md && grep -q 'entrada da branch dois (pedido 2)' CHANGELOG.md &&
   grep -q 'correção da branch um' CHANGELOG.md
 verifica "juntar traz as entradas das duas branches" $?
-[ ! -f changelog.d/aaa-um.md ] && [ ! -f changelog.d/bbb-dois.md ] && [ -f changelog.d/README.md ]
+grep -q 'critério da branch um' CHANGELOG.md && grep -q 'quebra da branch um' CHANGELOG.md && grep -q 'ação do dono da branch um' CHANGELOG.md
+verifica "juntar traz critério de cálculo, quebra e ação do dono" $?
+awk '/^### Mudanças de critério de cálculo/{f=1;next} /^### /{f=0} f&&/critério da branch um/{ok=1} END{exit !ok}' CHANGELOG.md
+verifica "o critério entra na subseção Mudanças de critério de cálculo" $?
+awk '/^### Ações do dono na base real depois da release 999/{a=NR} /^### Ações do dono na base real depois da release 105/{b=NR} /^## \[0\.2\.0\]/{c=NR} END{exit !(a && b && c && b<a && a<c)}' CHANGELOG.md
+verifica "seção nova de ação do dono criada no fim da Não publicado, antes da versão fechada" $?
+[ ! -f changelog.d/feature-aaa-um.md ] && [ ! -f changelog.d/feature-bbb-dois.md ] && [ -f changelog.d/README.md ]
 verifica "juntar apaga os fragmentos e preserva o README" $?
 [ "$(sed -n '/^## \[0\.2\.0\]/,$p' CHANGELOG.md | sha256sum)" = "$HIST_ANTES" ]
 verifica "o histórico (da 0.2.0 em diante) ficou intacto" $?
