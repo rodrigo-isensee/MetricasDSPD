@@ -37,6 +37,8 @@ interface Props<D extends Dto> {
   /** Filtros que atuam, quando diferem da aplicabilidade do contrato (E9 e E8 ignoram o período). */
   aplicaveis?: readonly FiltroCartaoChave[]
   className?: string
+  /** Nota de exclusão (o que ficou fora da conta) que a métrica já mostra no corpo; vale também no estado vazio (K-373). */
+  complementoVazio?: (d: D) => ReactNode
   children: (d: D) => ReactNode
 }
 
@@ -60,6 +62,7 @@ export function CartaoComplementar<D extends Dto>({
   semBase,
   aplicaveis,
   className = 'lg:col-span-6',
+  complementoVazio,
   children,
 }: Props<D>) {
   const m = entradaDoCatalogo(id)
@@ -92,6 +95,7 @@ export function CartaoComplementar<D extends Dto>({
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className={className}
+      {...(d && complementoVazio ? { complementoVazio: complementoVazio(d) } : {})}
     >
       {d && (semFonte ? <CampoSemFonte codigo={id} /> : children(d))}
     </CartaoMetrica>
