@@ -705,8 +705,8 @@ function notaPreenchimentoO25(n: number, vazio = false) {
   return (
     <AvisoInfo testid="o25-aviso-preenchimento">
       {vazio ? 'Fora da conta:' : 'Aviso de preenchimento:'} {fmtInteiro(n)}{' '}
-      {plural(n, 'card tem', 'cards têm')} motivo de descarte sem estar descartado nem excluído;
-      fora da taxa.
+      {plural(n, 'card tem', 'cards têm')} motivo de descarte sem estar descartado nem excluído
+      {vazio ? '.' : '; fora da taxa.'}
     </AvisoInfo>
   )
 }

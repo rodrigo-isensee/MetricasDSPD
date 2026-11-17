@@ -197,10 +197,13 @@ function notaSemDataE6(n: number, vazio = false) {
       {fmtInteiro(n)}{' '}
       {plural(
         n,
-        'projeto concluído sem data comprometida registrada ficou',
-        'projetos concluídos sem data comprometida registrada ficaram',
-      )}{' '}
-      fora desta conta.
+        vazio
+          ? 'projeto concluído sem data comprometida registrada.'
+          : 'projeto concluído sem data comprometida registrada ficou fora desta conta.',
+        vazio
+          ? 'projetos concluídos sem data comprometida registrada.'
+          : 'projetos concluídos sem data comprometida registrada ficaram fora desta conta.',
+      )}
     </Leia>
   )
 }

@@ -44,7 +44,8 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
         ? {
             complementoVazio: (
               <p className="text-sm" data-testid="t9-nota-vazio">
-                Fora da conta: {notaSemInicio}
+                Fora da conta: {fmtInteiro(semInicio)} {semInicio === 1 ? 'projeto' : 'projetos'}{' '}
+                sem data de início.
               </p>
             ),
           }

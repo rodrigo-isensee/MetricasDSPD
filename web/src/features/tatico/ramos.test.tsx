@@ -284,7 +284,7 @@ describe('T9: estados de borda (UX T9-1, T9-2, T9-3)', () => {
     })
     const el = await screen.findByTestId('metrica-T9')
     expect(await within(el).findByTestId('t9-nota-vazio')).toHaveTextContent(
-      'Fora da conta: 2 projetos sem data de início ficaram fora desta conta.',
+      'Fora da conta: 2 projetos sem data de início.',
     )
   })
 

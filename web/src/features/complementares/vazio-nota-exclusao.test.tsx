@@ -50,8 +50,7 @@ const CASOS: {
       x.base.n = 0
       x.avisoPreenchimento = { itens: fora }
     },
-    texto:
-      /^Fora da conta: 2 cards têm motivo de descarte sem estar descartado nem excluído; fora da taxa/,
+    texto: /^Fora da conta: 2 cards têm motivo de descarte sem estar descartado nem excluído\./,
   },
   {
     id: 'E6',
@@ -63,8 +62,7 @@ const CASOS: {
       x.base.n = 0
       x.semData = fora
     },
-    texto:
-      /Fora da conta: 2 projetos concluídos sem data comprometida registrada ficaram fora desta conta/,
+    texto: /^Fora da conta: 2 projetos concluídos sem data comprometida registrada\./,
   },
   {
     id: 'S8',
@@ -87,7 +85,7 @@ const CASOS: {
       x.base.n = 0
       x.semFluxo = fora
     },
-    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados (não têm|são de outro)/,
   },
   {
     id: 'S5',
@@ -98,7 +96,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDoFluxo = fora
     },
-    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados (não têm|são de outro)/,
   },
   {
     id: 'S6',
@@ -109,7 +107,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDoFluxo = fora
     },
-    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados (não têm|são de outro)/,
   },
   {
     id: 'S7',
@@ -120,7 +118,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDoFluxo = fora
     },
-    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados (não têm|são de outro)/,
   },
   {
     id: 'S1',
@@ -131,7 +129,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDaMatriz = { outrasEscalas: fora, semPrazo: 0 }
     },
-    texto: /Fora da conta: 2 de outras escalas/,
+    texto: /^Fora da conta: 2 de outras escalas/,
   },
 ]
 
@@ -149,7 +147,7 @@ describe('K-373: cartão vazio mostra a nota de exclusão da métrica', () => {
     it(`${caso.id}: vazio com itens de fora mostra a nota`, async () => {
       const el = await vazio(caso, 2)
       if (caso.testid) expect(within(el).getByTestId(caso.testid)).toHaveTextContent(caso.texto)
-      else expect(el).toHaveTextContent(caso.texto)
+      else expect(within(el).getByText(caso.texto)).toBeInTheDocument()
     })
 
     it(`${caso.id}: vazio sem itens de fora não mostra a nota`, async () => {
