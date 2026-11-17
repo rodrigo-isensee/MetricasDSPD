@@ -14,4 +14,11 @@ describe('notas complementares', () => {
       'O motivo da pendência não está sendo preenchido no Acelerato; por isso aparece como Não classificado.',
     )
   })
+
+  it('T15 não promete um time só: o "O que é" fala do recorte do filtro de time', () => {
+    expect(NOTAS_COMPLEMENTARES.T15.oQueE).toBe(
+      'Quantos dias úteis dura uma sprint, do começo ao fim, nas sprints do recorte do filtro de time.',
+    )
+    expect(NOTAS_COMPLEMENTARES.T15.oQueE).not.toContain('time escolhido')
+  })
 })

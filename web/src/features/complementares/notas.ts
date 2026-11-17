@@ -134,7 +134,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Limite do dado: o BusinessMap não guarda a data em que o filho foi ligado à sprint. Por isso o não planejado é o filho criado depois do início da sprint; quem foi criado antes e ligado depois conta como planejado. Não compara sprints entre times nem usa pontos como meta.',
   },
   T15: {
-    oQueE: 'Quantos dias úteis dura uma sprint, do começo ao fim, para o time escolhido.',
+    oQueE:
+      'Quantos dias úteis dura uma sprint, do começo ao fim, nas sprints do recorte do filtro de time.',
     comoSeCalcula:
       'Cada sprint dura do primeiro início de execução à primeira conclusão do próprio card Sprint, em dias úteis (a mesma janela do cartão Sprint). Mostra o P50 (mediana), o P85 e a média juntos. Sprint sem as duas datas, ou com mais de 30 dias úteis, fica fora da conta e é contada à parte.',
     comoLer:
