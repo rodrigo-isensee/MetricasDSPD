@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-t7-sem-limite
-commit: 7626f762bc250ac71ad90557d09ced3c4b8870a2
+commit: 41c275ef2936f483cdfa0ca2f9a07f64e76e53c0
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -34,3 +34,11 @@ Pedido de correção por decisão do dono (17/11), sem especificação nova: sem
 - Mutação: sem ferramenta registrada para este diff; os dois testes de aceite matam a volta à comparação (vermelho acima).
 - PQ do autor: pronto com timeouts alheios (informado no brief); não afirmo CI verde (sem PR ainda).
 - Acessibilidade: texto de status e número em texto, sem cor como único canal; sem componente novo.
+
+## Revalidação (volta, head 41c275ef)
+Delta (`forge-check parecer delta`, intervalo 7626f762..41c275ef): CartaoT7.tsx e tatico.test.tsx. Saiu o indicador "sem limite" repetido (grade de 3 para 2 colunas); rótulo passou a "projetos com frentes em andamento".
+- Teste atualizado (tatico.test.tsx): "Sem limite de frentes" presente, "sem limite" (indicador) ausente, rótulo novo presente, sem "não definido", "Sem meta numérica" nem "Acima do limite". Protege o indicador removido e o rótulo.
+- Execução local do tático (`vitest run src/features/tatico`): 2 arquivos, 40 testes, todos passaram (57 s). Rodou fora do sandbox, que bloqueia escrita na worktree.
+- A suíte inteira do web passou no head anterior (117 arquivos, 1906); o delta não toca outro arquivo. Não afirmo CI verde: sem PR.
+- PQ do autor: pronto com timeout alheio, aceito como carga da máquina (já visto no 1º parecer).
+- Resultado: aprovado, sem achados.
