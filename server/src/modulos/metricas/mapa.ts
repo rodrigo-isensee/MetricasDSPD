@@ -53,7 +53,7 @@ export function cardDe(l: LinhaCard, nomes: NomesColuna): DimCard {
     responsabilidade_atraso: campo(l.responsabilidade_atraso), origem_demanda: origemDeFalha(l.origem_demanda),
     fase_deteccao: campo(l.fase_deteccao), severidade: campo(l.severidade),
     // 105 (E7.100): a prioridade nativa do BusinessMap é a mesma coluna projetada (`severidade`), no estado atual do card; nula = sem prioridade (nunca Média por omissão)
-    prioridade: nivelDePrioridade(l.severidade), origem_bug: l.origem_bug,
+    prioridade: nivelDePrioridade(l.severidade), origem_bug: l.origem_bug, causa_raiz: l.causa_raiz,
     adicionado_apos_inicio_pai: l.adicionado_apos_inicio_pai === true,
   };
 }

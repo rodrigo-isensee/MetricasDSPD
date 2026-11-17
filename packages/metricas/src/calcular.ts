@@ -49,6 +49,7 @@ const CALCULOS: {
   O19: (f, c) => BM.calcularO19(c.bm, f),
   O22: (f, c) => BM.calcularO22(c.bm, f, c.tambem),
   O26: (f, c) => BM.calcularO26(c.bm, f, c.tambem),
+  O27: (f, c) => BM.calcularO27(c.bm, f),
   T1: (f, c) => BM.calcularT1(c.bm, f),
   T2: (f, c) => BM.calcularT2(c.bm, f),
   T3: (f, c) => BM.calcularT3(c.bm, f),

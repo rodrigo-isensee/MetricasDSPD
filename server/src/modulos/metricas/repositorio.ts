@@ -18,7 +18,7 @@ export type LinhaCard = {
   concluido_em: Instante; arquivado_em: Instante; motivo_descarte: Texto; tamanho_declarado: Texto; titulo: Texto;
   granularidade: Texto; equipe: Texto; quadro_id: Texto; coluna_atual_id: Texto; excluido_em: Instante;
   eh_subtarefa: boolean | null; data_acordada: Texto; responsabilidade_atraso: Texto; origem_demanda: Texto;
-  fase_deteccao: Texto; severidade: Texto; origem_bug: Texto; adicionado_apos_inicio_pai: boolean | null;
+  fase_deteccao: Texto; severidade: Texto; origem_bug: Texto; causa_raiz: Texto; adicionado_apos_inicio_pai: boolean | null;
 };
 export type LinhaTransicao = {
   card_id: string; quadro_id: Texto; coluna_origem_id: Texto; coluna_destino_id: string; tipo_coluna: Texto;
@@ -59,7 +59,7 @@ export const lerCards = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
     `SELECT card_id, tipo, classe_servico, sistema, area_solicitante, fornecedor, objetivo_estrategico, card_pai,
             criado_em, comprometido_em, iniciado_em, concluido_em, arquivado_em, motivo_descarte, tamanho_declarado,
             titulo, granularidade, equipe, quadro_id, coluna_atual_id, excluido_em, eh_subtarefa, data_acordada,
-            responsabilidade_atraso, origem_demanda, fase_deteccao, severidade, origem_bug, adicionado_apos_inicio_pai
+            responsabilidade_atraso, origem_demanda, fase_deteccao, severidade, origem_bug, causa_raiz, adicionado_apos_inicio_pai
        FROM ${S.bm}.dim_card
       WHERE ${CORTE_CARDS}
       ORDER BY card_id`)).rows;
