@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ei-sust
-commit: bb0b770baef8b9c17279eed5c12cb3d26696664f
+commit: f41125a4054935ec7f553d5245394cde3cc40c1c
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -90,3 +90,15 @@ Provas e limites: o pronto completo do autor terminou EXIT 0 (informado no brief
 Mudança: o tech-lead integrou a `origin/develop` (312a0152) para resolver um conflito só no `CHANGELOG.md`. `forge-check parecer delta` (intervalo bcbe9ff4..bb0b770b) listou 6 arquivos no domínio (`CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `origem.ts`, `origem.test.ts`, `painel-real-f6.test.ts`); a lista compara com a base antiga (57989aa0), por isso inclui o que a develop trouxe (#491, #496, #499, #500, #502) e que não é da EI_SUST. Conferi por arquivo: `git diff --numstat 57989aa0 bcbe9ff4` (aprovado) e `git diff --numstat origin/develop bb0b770b` (agora) dão os mesmos 30 arquivos e as mesmas contagens (+1533/-42 hoje); a única diferença são os dois pareceres (`docs/qa` e `docs/reviews`), que cresceram depois. O merge-base de bb0b770b com a origin/develop é a própria origin/develop (312a0152): a branch é a develop mais o patch da EI_SUST. Código e testes do patch inalterados; o resultado da passada anterior vale. A1 e A2 seguem recomendados, sem mudança.
 
 Limite: não reexecutei a suíte neste head (sem PR, sem check `bateria`); este parecer não afirma CI verde do sha bb0b770b, o que fica para o PR.
+
+## Revalidação no head f41125a4 (integração da develop com S8 e T10)
+Mudança: o tech-lead integrou a `origin/develop` (com o S8 #503 e o T10 #506); conflitos em `criterios-acelerato.ts`, `criterios-acelerato.test.ts` e `qa-f6-painel.test.ts`, resolvidos mantendo os dois lados. `forge-check parecer delta` (bb0b770b..f41125a4) listou 11 arquivos no domínio; os que importam à EI_SUST são os três conflitantes, `origem.ts`/`origem.test.ts`, `schemas.ts` e `painel-real-f6.test.ts`; o resto (CHANGELOG, OpenAPI, `origem.test.tsx`) veio da develop. A `origin/develop` é ancestral do head.
+
+| Obrigação | Teste | Resultado | Fronteira protegida |
+|---|---|---|---|
+| Versão `105:S8-so-respondidos` em 8º e `105:EI_SUST` em 9º, sem perder nenhuma | `criterios-acelerato.test.ts` (9 entradas, ordem e referências únicas) | verde | idempotência; ordem |
+| EI_SUST e T10 convivem nas métricas reais, sem mistura de fonte | `qa-f6-painel.test.ts`, `painel-real-f6.test.ts`, `origem.test.ts` (contratos) | verde | origem real só SUST para a EI_SUST |
+| Regra da EI_SUST intacta | `ei-sust.test.ts` e demais de `acelerato` | verde | finais, fila inicial, mínimo 20 |
+| Cartão e composição | `espera-invisivel.test.tsx`, `origem.test.tsx` | verde | composição só no SUST |
+
+Execução local no head (fora do sandbox, a worktree é só leitura nele): `packages/metricas src/acelerato` 6 arquivos, 53 testes verdes; `server` (criterios-acelerato, qa-f6-painel, painel-real-f6) 3 arquivos, 69 verdes; `packages/contratos src/origem.test.ts` 26 verdes; `web` (espera-invisivel, coleta/origem) 2 arquivos, 37 verdes. Código novo da EI_SUST sem mudança desde o parecer anterior (só a resolução dos conflitos), então vermelho antes do verde e mutantes valem como estão. A1 e A2 seguem recomendados, sem mudança. Sem PR, não há check `bateria`; este parecer não afirma CI verde do sha f41125a4. O `painel-real-f6.pg` (banco) não foi rodado aqui.
