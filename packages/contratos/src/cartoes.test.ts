@@ -54,7 +54,8 @@ describe('catálogo de cartões', () => {
       o26: ['o5', 'o3'],
       t2: ['o24'],
       o14: ['t12'],
-      o15: ['o13', 'o16', 'o17'],
+      o15: ['o13', 'o16', 'o27'],
+      o27: ['o15', 'o16', 'o17'],
       t1: ['t6', 't13'],
       t4: ['t8', 't11'],
       t5: ['o14'],
@@ -104,6 +105,7 @@ describe('catálogo de cartões', () => {
         'O24',
         'O25',
         'O26',
+        'O27',
         'T6',
         'T8',
         'T10',
@@ -131,7 +133,7 @@ describe('catálogo de cartões', () => {
     expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo')).toHaveLength(32)
   })
 
-  it('torna as 33 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
+  it('torna as 34 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo').flatMap(
       (c) => c.leiaJunto ?? [],

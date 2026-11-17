@@ -1,0 +1,250 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                },
+                "unidade": {
+                  "type": "string",
+                  "enum": [
+                    "semanas",
+                    "meses"
+                  ]
+                },
+                "quantidade": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "porTipo": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Bug interno",
+              "Defeito em produção"
+            ]
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "naoEBug": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "naoInformada": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "comCausa": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "causas": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "causa": {
+                      "type": "string",
+                      "enum": [
+                        "requisito_mal_definido",
+                        "requisito_alterado",
+                        "erro_logica_codificacao",
+                        "falha_integracao",
+                        "dados_massa_teste",
+                        "configuracao_ambiente",
+                        "efeito_colateral",
+                        "dependencia_externa",
+                        "teste_insuficiente",
+                        "layout_interface",
+                        "nao_e_bug",
+                        "outros"
+                      ]
+                    },
+                    "rotulo": {
+                      "type": "string",
+                      "enum": [
+                        "Requisitos mal definidos",
+                        "Requisito alterado",
+                        "Erro de lógica / codificação",
+                        "Falha de integração",
+                        "Dados / massa de teste",
+                        "Configuração de ambiente",
+                        "Efeito colateral",
+                        "Dependência externa",
+                        "Teste insuficiente",
+                        "Layout / Interface",
+                        "Não é bug",
+                        "Outros"
+                      ]
+                    },
+                    "n": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "pct": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "causa",
+                    "rotulo",
+                    "n",
+                    "pct"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "tipo",
+          "n",
+          "naoEBug",
+          "naoInformada",
+          "comCausa",
+          "causas"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "porSistema": {
+      "type": "null"
+    },
+    "motivoPorSistema": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "porTipo",
+    "porSistema",
+    "motivoPorSistema"
+  ],
+  "additionalProperties": false
+}

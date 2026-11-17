@@ -146,15 +146,17 @@ d('reprojeção das etapas D-7 em 8 h 48 (pg)', () => {
     expect([...marca.afeta].sort()).toEqual(['EI_SUST', 'S1', 'S10', 'S4', 'S9']);
   });
 
-  it('(e) (f) rodar duas vezes deixa uma versão só e as mesmas linhas de fato_etapa_chamado; cada rodada abre um ctl_coleta de projeção', async () => {
+  it('(e) (f) K-397: rodar de novo sem mudança deixa uma versão só, as mesmas linhas e NENHUM ctl_coleta novo (a marca d agua não se move)', async () => {
     const conteudo = await conteudoFato();
     const nFato = await n(E.ac, 'fato_etapa_chamado');
     expect(await n(E.ac, 'ctl_coleta', `tarefa = 'projecao' AND versao_coletor = '${VERSAO_REPROJECAO_D7}' AND status = 'sucesso'`)).toBe(1);
+    const totalCtl = await n(E.ac, 'ctl_coleta');
     const r = await reprojetar();
-    expect(r).toMatchObject({ versaoNova: false, chamados: 2, etapas: 2 });
+    expect(r).toMatchObject({ versaoNova: false, coletaId: null, chamados: 2, etapas: 2 });
     expect(await n(E.core, 'ref_versao_criterio', "referencia = '099:D-7-528'")).toBe(1);
     expect(await n(E.ac, 'fato_etapa_chamado')).toBe(nFato);
     expect(await conteudoFato()).toBe(conteudo);
-    expect(await n(E.ac, 'ctl_coleta', `tarefa = 'projecao' AND versao_coletor = '${VERSAO_REPROJECAO_D7}' AND status = 'sucesso'`)).toBe(2);
+    expect(await n(E.ac, 'ctl_coleta')).toBe(totalCtl);
+    expect(await n(E.ac, 'ctl_coleta', `tarefa = 'projecao' AND versao_coletor = '${VERSAO_REPROJECAO_D7}' AND status = 'sucesso'`)).toBe(1);
   });
 });

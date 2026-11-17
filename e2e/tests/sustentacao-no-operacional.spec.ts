@@ -270,10 +270,12 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
     }
   });
 
-  test('CA-18 Leia junto cruzado: O15 para O17 diz a visão e a fonte, troca a visão, abre Mais métricas e foca o cartão', async ({ page, painel }) => {
+  test('CA-18 Leia junto cruzado: O27 para O17 (D5: o O15 aponta ao O27) diz a visão e a fonte, troca a visão, abre Mais métricas e foca o cartão', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=semanal');
     await new PainelPage(page).esperarPronto();
-    const link = page.getByTestId('leia-junto-o15').getByRole('link', { name: /O17/ });
+    await page.getByTestId('mais-metricas').locator('summary').click();
+    await new PainelPage(page).esperarPronto();
+    const link = page.getByTestId('leia-junto-o27').getByRole('link', { name: /O17/ });
     await expect(link).toContainText('visão Sustentação, fonte Acelerato');
     await link.click();
     await expect(page).toHaveURL(/cadencia=sustentacao.*#o17$/);

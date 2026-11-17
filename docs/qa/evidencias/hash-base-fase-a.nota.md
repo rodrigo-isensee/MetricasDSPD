@@ -83,3 +83,13 @@ Motivo: o gerador do BusinessMap passa a usar os 11 motivos de bloqueio habilita
 | hashAcelerato | 797abc95 | 797abc95 (intacto) |
 
 Motivo: as duas regravações acima (prioridade nativa do E7.205 e motivos de bloqueio do E7.184) mudam o gerador do BusinessMap em pontos diferentes; juntas no merge dão um hash novo. Escala 0,2 passa a e8035bf0 e a base do BusinessMap sem passos do "também" a 858acf56. Acelerato, cards (5792) e chamados (6062) não mudam. Regravada por `node scripts/hash-base-mock.mjs --salvar ../docs/qa/evidencias/hash-base-fase-a.json` (em e2e) pelo tech-lead no merge.
+
+## Regravação de 2026-11-16 (pedido 105, O27 causa raiz dos bugs sobre a develop, E7.218)
+
+| | antes | agora |
+|---|---|---|
+| hashBase | 61a511eb (develop) | c2340ec0 |
+| hashBusinessMap | 69f65344 (develop) | 7987cda5 |
+| hashAcelerato | 797abc95 | 797abc95 (intacto) |
+
+Motivo: `dim_card` ganha `causa_raiz` na biblioteca e o gerador do BusinessMap preenche o campo nos bugs (Bug interno e Defeito em produção) por uma regra determinística do número do card, sem sortear. Junto da base da develop (prioridade nativa e motivos de bloqueio) dá um hash novo. Escala 0,2 passa a cd0baeed e a base do BusinessMap sem passos do "também" a f83ae813. Cards (5792) e chamados (6062) não mudam; o Acelerato não é tocado. Regravada por `node scripts/hash-base-mock.mjs --salvar ../docs/qa/evidencias/hash-base-fase-a.json` (em e2e).

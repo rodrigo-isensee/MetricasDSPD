@@ -58,7 +58,7 @@ export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquema
     coluna_atual_id: col(c.quadro_id, c.coluna_atual), excluido_em: dtn(c.excluido_em),
     eh_subtarefa: c.eh_subtarefa, data_acordada: c.data_acordada === null ? null : dia(c.data_acordada),
     responsabilidade_atraso: c.responsabilidade_atraso, origem_demanda: c.origem_demanda,
-    fase_deteccao: c.fase_deteccao, severidade: c.severidade ?? c.prioridade, origem_bug: c.origem_bug,
+    fase_deteccao: c.fase_deteccao, severidade: c.severidade ?? c.prioridade, origem_bug: c.origem_bug, causa_raiz: c.causa_raiz,
     adicionado_apos_inicio_pai: c.adicionado_apos_inicio_pai,
     coletado_em: coletado, atualizado_por_coleta_id: coletaId,
   }));
@@ -134,7 +134,7 @@ export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquema
   const dimChamado = base.ac.chamados.map((c): Linha => ({
     chamado_id: c.chamado_id, natureza: c.natureza, equipe: c.equipe, organizacao: c.organizacao,
     tipo: c.tipo_fila, categoria_sistema: c.categoria_sistema, excluido: c.excluido, status: c.status,
-    impacto: c.impacto, urgencia: c.urgencia, prioridade: c.prioridade ?? null,
+    impacto: c.impacto, urgencia: c.urgencia, prioridade: c.prioridade ?? null, escala_p: c.prioridade === undefined ? null : (c.escala_p ?? true),
     prioridade_ajustada_manualmente: c.prioridade_ajustada_manualmente,
     justificativa_informada: justificado(c.justificativa_ajuste), aberto_em: dt(c.aberto_em),
     primeiro_atendimento_em: dtn(c.primeiro_atendimento_em), restaurado_em: dtn(c.restaurado_em),

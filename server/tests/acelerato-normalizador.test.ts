@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Contadores, type RegistroChamado } from '../src/modulos/acelerato/allow-list.js';
 import {
-  ETAPAS_DA_BIBLIOTECA, etapaDaBiblioteca, instanteDe, naturezaDaCategoria, nivelDeResolucao, normalizarChamado, prioridadeDaEscala, vereditoSla,
+  ETAPAS_DA_BIBLIOTECA, escalaPDaPrioridade, etapaDaBiblioteca, instanteDe, naturezaDaCategoria, nivelDeResolucao, normalizarChamado, prioridadeDaEscala, vereditoSla,
   type EtapaTotal,
 } from '../src/modulos/acelerato/normalizador.js';
 
@@ -152,4 +152,12 @@ describe('normalizarChamado', () => {
     });
     expect(Object.fromEntries(c.entradas())).toMatchObject({ natureza_sem_prefixo: 1, prioridade_fora_da_escala_p: 1, sla_pa_sem_veredito: 1, sla_r_sem_veredito: 1 });
   });
+});
+
+describe('escalaPDaPrioridade (pedido 105, E7.238)', () => {
+  it.each([
+    ['P1 - Crítica', true], ['P5 - Baixa', true],
+    ['DSPD - INCIDENTE - URGENTE', false], ['SSSC - REQUISI\u00c7\u00c3O - BAIXA', false],
+    ['DHO - OUTRA', null], ['', null], [null, null],
+  ])('%s -> %s', (valor, esperado) => { expect(escalaPDaPrioridade(valor)).toBe(esperado); });
 });

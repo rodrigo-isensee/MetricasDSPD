@@ -91,6 +91,59 @@ const baseDe = (n: number, ajuste?: (i: number) => Partial<Chamado>): BaseAC => 
   }
 }
 
+describe('S1 só na escala P1 a P5 (pedido 105, E7.238)', () => {
+  const base = (): BaseAC => {
+    const b = baseDe(60, (i) => ({ escala_p: !(i >= 25 && i < 45) }))
+    for (const c of b.chamados.slice(52)) delete c.prioridade
+    return b
+  }
+
+  it('mede só a escala P; conta as outras escalas e os sem prazo, sem entrar na estatística', () => {
+    const r = calcularS1(criarContextoAC(base(), HOJE, CALENDARIO_PADRAO), F)
+    expect(r.foraDaMatriz).toEqual({ outrasEscalas: 20, semPrazo: 8 })
+    expect(r.base.n).toBe(32)
+    const p3 = r.prioridades.find((p) => p.prioridade === 'P3')!
+    expect(p3.primeiroAtendimento.n).toBe(32)
+    expect(p3.restauracao.n).toBe(32)
+  })
+
+  it('as exceções de registro posterior contam só dentro da escala P (as de outras escalas já estão fora)', () => {
+    const b = baseDe(30, (i) => ({ escala_p: i >= 10, excecao_sla_registro_posterior: i < 14 }))
+    const r = calcularS1(criarContextoAC(b, HOJE, CALENDARIO_PADRAO), F)
+    expect(r.excecoesForaDaApuracao).toBe(4)
+    expect(r.foraDaMatriz?.outrasEscalas).toBe(10)
+  })
+
+  it('sem a marca da escala (mock e base semeada) vale a escala P: nada fica fora além do sem prioridade', () => {
+    const r = calcularS1(criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO), F)
+    expect(r.foraDaMatriz).toEqual({ outrasEscalas: 0, semPrazo: 0 })
+    expect(r.base.n).toBe(25)
+  })
+
+  it('a contagem de fora não depende do filtro de prioridade', () => {
+    const r = calcularS1(criarContextoAC(base(), HOJE, CALENDARIO_PADRAO), {
+      ...F,
+      prioridade: ['P1'],
+    })
+    expect(r.foraDaMatriz).toEqual({ outrasEscalas: 20, semPrazo: 8 })
+  })
+
+  it('abaixo de 20 chamados da escala P a estatística não é publicada, mesmo com muitos fora', () => {
+    const r = calcularS1(
+      criarContextoAC(
+        baseDe(60, (i) => ({ escala_p: i < 10 })),
+        HOJE,
+        CALENDARIO_PADRAO,
+      ),
+      F,
+    )
+    expect(r.foraDaMatriz?.outrasEscalas).toBe(50)
+    expect(
+      r.prioridades.find((p) => p.prioridade === 'P3')!.primeiroAtendimento.estatistica.status,
+    ).toBe('insuficiente')
+  })
+})
+
 describe('Acelerato', () => {
   it('S5 (F2): a base é todo chamado escalado e o sem motivo vira "Não informado"', () => {
     const ctx = criarContextoAC(
@@ -331,7 +384,7 @@ describe('Acelerato', () => {
     expect(r.ajusteDePrioridade.justificados).toEqual({ k: 1, n: 3 })
   })
 
-  it('espera invisível da sustentação usa os totalizadores: cliente = vida; time = em atendimento', () => {
+  it('espera invisível da sustentação (E7.243): cliente = tempo das etapas sem as finais; time = cliente menos esperas e fila inicial', () => {
     const ctx = criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO)
     const r = calcularEIAcelerato(ctx, F)
     expect(r.fonte).toBe('Acelerato')

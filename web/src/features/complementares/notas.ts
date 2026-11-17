@@ -16,6 +16,7 @@ type Id =
   | 'O24'
   | 'O25'
   | 'O26'
+  | 'O27'
   | 'T6'
   | 'T10'
   | 'T11'
@@ -150,7 +151,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'A parcela dos incidentes abertos que são reincidentes, isto é, voltaram como novo chamado com o ticket anterior informado.',
     comoSeCalcula:
-      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta. Só publica com 20 ou mais incidentes com resposta.',
+      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta e o cartão diz quantos incidentes ficaram sem resposta no campo (decisão do dono, pedido 105). Só publica com 20 ou mais incidentes com resposta.',
     comoLer: 'Reabertura alta sugere correção que não resolveu.',
     meta: 'Abaixo de 5%.',
     cuidados:
@@ -260,11 +261,21 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     meta: 'Sem meta numérica.',
     cuidados: 'Não é avaliação de pessoa nem de time.',
   },
+  O27: {
+    oQueE: 'Por que os bugs do BusinessMap acontecem: a causa raiz registrada, por tipo de bug.',
+    comoSeCalcula:
+      'Bugs concluídos ou descartados nas últimas 12 semanas, inclusive arquivados. Bugs em aberto estão no O16. Filtros de equipe, sistema e setor valem; o filtro de tipo não. Uma coluna para Bug interno e outra para Defeito em produção, nunca somadas. Cada causa mostra o número de bugs e o percentual sobre os bugs com causa; "Não é bug" e "Outros" contam como causa. Bug sem causa informada é contado à parte e fica fora dos percentuais. Cada coluna só mostra a distribuição com 20 bugs com causa ou mais.',
+    comoLer:
+      'As causas seguem a ordem do campo no BusinessMap; as 3 maiores levam o destaque "3 maiores" e viram a ação trimestral. Leia junto com Onde os bugs são encontrados (O15), o estoque e a idade de bugs (O16) e a causa raiz dos incidentes (O17, do Acelerato).',
+    meta: 'Sem meta numérica; as 3 maiores causas viram ação trimestral.',
+    cuidados:
+      'É bug do BusinessMap, não incidente do Acelerato: não somar com o O17 nem com o S3. Nenhuma pessoa e nenhuma comparação entre equipes; a equipe é só filtro. A descrição de "Outros" nunca aparece.',
+  },
   T10: {
     oQueE:
       'Quanto tempo o trabalho fica bloqueado esperando fornecedores e quantas vezes isso aconteceu.',
     comoSeCalcula:
-      'Bloqueios encerrados com o motivo "Aguardando fornecedor", somados sem separar por fornecedor: o nome do fornecedor fica em texto livre, que não entra na base. Contagem e dias úteis somados pelo período do painel; P50, P85 e P95 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais.',
+      'Bloqueios encerrados com os motivos "Dependência Externa" e "Aguardando fornecedor", somados sem separar por fornecedor: o nome do fornecedor fica em texto livre, que não entra na base. Contagem e dias úteis somados pelo período do painel; P50, P85 e P95 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais.',
     comoLer:
       'Uma linha só, com o total esperando fornecedores. Leia junto com os bloqueados agora e os acordos e vencidos (O12).',
     meta: 'Sem meta numérica.',

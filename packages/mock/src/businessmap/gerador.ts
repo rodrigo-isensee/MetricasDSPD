@@ -7,6 +7,7 @@ import type {
   TipoCard,
 } from '@metricas-dspd/contratos'
 import {
+  CAUSAS_RAIZ_BUG,
   FASES_DETECCAO,
   MOTIVOS_FORNECEDOR,
   MOTIVOS_BLOQUEIO,
@@ -215,6 +216,7 @@ export function gerarBaseBusinessMap(
     severidade: null,
     prioridade: null,
     origem_bug: null,
+    causa_raiz: null,
     adicionado_apos_inicio_pai: false,
     ...p,
   })
@@ -390,6 +392,14 @@ export function gerarBaseBusinessMap(
     area?: string
   }
   let seqTitulo = 0
+  /**
+   * Causa raiz fictícia só dos bugs (O27), pelo número do card e sem sortear: sortear mudaria a sequência do gerador e, com ela, todo o mock.
+   * Um em cada sete fica sem causa (não informada); o resto anda pelas 12 opções do campo.
+   */
+  const causaRaizDoBug = (tipo: string, n: number): string | null =>
+    (tipo === 'Bug interno' || tipo === 'Defeito em produção') && n % 7 !== 0
+      ? (CAUSAS_RAIZ_BUG[(n * 5) % CAUSAS_RAIZ_BUG.length] as { codigo: string }).codigo
+      : null
   function criarStory(o: OpcStory): DimCard {
     const { r } = o
     const rapido = o.tipo === 'Incidente' || o.tipo === 'Requisição'
@@ -420,6 +430,7 @@ export function gerarBaseBusinessMap(
           ? null
           : origemDemanda(r, o.sistema),
       origem_bug: o.origemBug ?? null,
+      causa_raiz: causaRaizDoBug(o.tipo, seqTitulo),
       fase_deteccao: o.fase ?? null,
       severidade: o.fase ? escolha(r, ['Crítica', 'Alta', 'Média', 'Baixa'] as const) : null,
     })

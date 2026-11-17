@@ -1112,6 +1112,7 @@
                                 "O24",
                                 "O25",
                                 "O26",
+                                "O27",
                                 "T1",
                                 "T2",
                                 "T3",
@@ -1200,6 +1201,7 @@
                           "O24",
                           "O25",
                           "O26",
+                          "O27",
                           "T1",
                           "T2",
                           "T3",
@@ -1647,6 +1649,7 @@
                             "O24",
                             "O25",
                             "O26",
+                            "O27",
                             "T1",
                             "T2",
                             "T3",
@@ -19104,6 +19107,524 @@
         }
       }
     },
+    "/api/v1/metricas/O27": {
+      "get": {
+        "summary": "Métrica O27",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "setor",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "base": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            },
+                            "janela": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "inicio": {
+                                      "type": "string"
+                                    },
+                                    "fim": {
+                                      "type": "string"
+                                    },
+                                    "unidade": {
+                                      "type": "string",
+                                      "enum": [
+                                        "semanas",
+                                        "meses"
+                                      ]
+                                    },
+                                    "quantidade": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "inicio",
+                                    "fim"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "complemento": {
+                              "type": "object",
+                              "properties": {
+                                "n": {
+                                  "type": "number"
+                                },
+                                "unidade": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "n",
+                                "unidade"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "criterios": {
+                          "type": "object",
+                          "properties": {
+                            "serie": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "data": {
+                                    "type": "string"
+                                  },
+                                  "descricao": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "data",
+                                  "descricao"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "janela": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "data": {
+                                    "type": "string"
+                                  },
+                                  "descricao": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "data",
+                                  "descricao"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "serie",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "porTipo": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "tipo": {
+                                "type": "string",
+                                "enum": [
+                                  "Bug interno",
+                                  "Defeito em produção"
+                                ]
+                              },
+                              "n": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "naoEBug": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "naoInformada": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "comCausa": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "causas": {
+                                "anyOf": [
+                                  {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "causa": {
+                                          "type": "string",
+                                          "enum": [
+                                            "requisito_mal_definido",
+                                            "requisito_alterado",
+                                            "erro_logica_codificacao",
+                                            "falha_integracao",
+                                            "dados_massa_teste",
+                                            "configuracao_ambiente",
+                                            "efeito_colateral",
+                                            "dependencia_externa",
+                                            "teste_insuficiente",
+                                            "layout_interface",
+                                            "nao_e_bug",
+                                            "outros"
+                                          ]
+                                        },
+                                        "rotulo": {
+                                          "type": "string",
+                                          "enum": [
+                                            "Requisitos mal definidos",
+                                            "Requisito alterado",
+                                            "Erro de lógica / codificação",
+                                            "Falha de integração",
+                                            "Dados / massa de teste",
+                                            "Configuração de ambiente",
+                                            "Efeito colateral",
+                                            "Dependência externa",
+                                            "Teste insuficiente",
+                                            "Layout / Interface",
+                                            "Não é bug",
+                                            "Outros"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "maximum": 9007199254740991
+                                        },
+                                        "pct": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": [
+                                        "causa",
+                                        "rotulo",
+                                        "n",
+                                        "pct"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "tipo",
+                              "n",
+                              "naoEBug",
+                              "naoInformada",
+                              "comCausa",
+                              "causas"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "porSistema": {
+                          "type": "null"
+                        },
+                        "motivoPorSistema": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "base",
+                        "criterios",
+                        "porTipo",
+                        "porSistema",
+                        "motivoPorSistema"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "$ref": "#/components/schemas/SemDadoReal"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/metricas/T1": {
       "get": {
         "summary": "Métrica T1",
@@ -33798,6 +34319,26 @@
                         "excecoesForaDaApuracao": {
                           "type": "number"
                         },
+                        "foraDaMatriz": {
+                          "type": "object",
+                          "properties": {
+                            "outrasEscalas": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "semPrazo": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "outrasEscalas",
+                            "semPrazo"
+                          ],
+                          "additionalProperties": false
+                        },
                         "horasPorDiaUtil": {
                           "type": "number"
                         },
@@ -37906,6 +38447,11 @@
                             "total"
                           ],
                           "additionalProperties": false
+                        },
+                        "semResposta": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         },
                         "metaMaxPct": {
                           "type": "number"
@@ -42351,6 +42897,97 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "composicao": {
+                          "type": "object",
+                          "properties": {
+                            "chamados": {
+                              "type": "number"
+                            },
+                            "semEtapas": {
+                              "type": "number"
+                            },
+                            "filaInicial": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "finais": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "naoDecididas": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                },
+                                "etapas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "etapa": {
+                                        "type": "string"
+                                      },
+                                      "chamados": {
+                                        "type": "number"
+                                      },
+                                      "horasUteis": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "etapa",
+                                      "chamados",
+                                      "horasUteis"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis",
+                                "etapas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "chamados",
+                            "semEtapas",
+                            "filaInicial",
+                            "finais",
+                            "naoDecididas"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
@@ -43035,6 +43672,97 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "composicao": {
+                          "type": "object",
+                          "properties": {
+                            "chamados": {
+                              "type": "number"
+                            },
+                            "semEtapas": {
+                              "type": "number"
+                            },
+                            "filaInicial": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "finais": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "naoDecididas": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                },
+                                "etapas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "etapa": {
+                                        "type": "string"
+                                      },
+                                      "chamados": {
+                                        "type": "number"
+                                      },
+                                      "horasUteis": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "etapa",
+                                      "chamados",
+                                      "horasUteis"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis",
+                                "etapas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "chamados",
+                            "semEtapas",
+                            "filaInicial",
+                            "finais",
+                            "naoDecididas"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
@@ -43719,6 +44447,97 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "composicao": {
+                          "type": "object",
+                          "properties": {
+                            "chamados": {
+                              "type": "number"
+                            },
+                            "semEtapas": {
+                              "type": "number"
+                            },
+                            "filaInicial": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "finais": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "naoDecididas": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                },
+                                "etapas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "etapa": {
+                                        "type": "string"
+                                      },
+                                      "chamados": {
+                                        "type": "number"
+                                      },
+                                      "horasUteis": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "etapa",
+                                      "chamados",
+                                      "horasUteis"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis",
+                                "etapas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "chamados",
+                            "semEtapas",
+                            "filaInicial",
+                            "finais",
+                            "naoDecididas"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
@@ -44367,6 +45186,97 @@
                             ],
                             "additionalProperties": false
                           }
+                        },
+                        "composicao": {
+                          "type": "object",
+                          "properties": {
+                            "chamados": {
+                              "type": "number"
+                            },
+                            "semEtapas": {
+                              "type": "number"
+                            },
+                            "filaInicial": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "finais": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "naoDecididas": {
+                              "type": "object",
+                              "properties": {
+                                "chamados": {
+                                  "type": "number"
+                                },
+                                "horasUteis": {
+                                  "type": "number"
+                                },
+                                "etapas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "etapa": {
+                                        "type": "string"
+                                      },
+                                      "chamados": {
+                                        "type": "number"
+                                      },
+                                      "horasUteis": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "etapa",
+                                      "chamados",
+                                      "horasUteis"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "chamados",
+                                "horasUteis",
+                                "etapas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "chamados",
+                            "semEtapas",
+                            "filaInicial",
+                            "finais",
+                            "naoDecididas"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
@@ -44749,6 +45659,7 @@
                                         "O24",
                                         "O25",
                                         "O26",
+                                        "O27",
                                         "T1",
                                         "T2",
                                         "T3",

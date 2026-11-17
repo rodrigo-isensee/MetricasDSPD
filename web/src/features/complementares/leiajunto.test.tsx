@@ -2,7 +2,9 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { CATALOGO_CARTOES, cartaoPorIdGlobal } from '@metricas-dspd/contratos'
-import { renderizarApp } from '@/test/helpers'
+import { ContextoPreferenciasPainel, type PreferenciasPainel } from '@/components/ui'
+import { renderizarApp, renderizarCartao } from '@/test/helpers'
+import { LeiaJunto } from './LeiaJunto'
 
 vi.setConfig({ testTimeout: 60000 })
 
@@ -86,7 +88,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     expect(await screen.findByTestId('metrica-O20')).toBeInTheDocument()
   })
 
-  it('os links do núcleo alcançam as 33 complementares (em cadeia)', () => {
+  it('os links do núcleo alcançam as 34 complementares (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = comPares.flatMap((c) => c.leiaJunto ?? [])
     for (let id = fila.pop(); id; id = fila.pop()) {
@@ -95,7 +97,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
       fila.push(...(cartaoPorIdGlobal(id)?.leiaJunto ?? []))
     }
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').map((c) => c.id)
-    expect(compl).toHaveLength(33)
+    expect(compl).toHaveLength(34)
     // O21 não tem origem na especificação de UX (CA-15 o liga pela página Métricas).
     expect(compl.filter((id) => !alcancadas.has(id))).toEqual(['o21'])
   })
@@ -114,31 +116,23 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     await waitFor(() => expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus())
   })
 
-  it('O15 leva ao O17 na Sustentação e T9 leva ao E5 no Estratégico', async () => {
+  it('O15 leva ao O27 no mesmo painel e T9 leva ao E5 no Estratégico', async () => {
     const u = userEvent.setup()
     const a = renderizarApp('/operacional?cadencia=semanal')
     const leia = await screen.findByTestId('leia-junto-o15')
-    const link17 = within(leia).getByRole('link', {
-      name: /O17 .*visão Sustentação, fonte Acelerato/,
-    })
-    // O rótulo diz a visão e a fonte (leia junto não é calcular junto)
-    expect(link17).toHaveTextContent(
-      'O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato',
-    )
-    // WCAG 2.5.3: o nome acessível contém o texto visível
-    expect(link17).toHaveAccessibleName(
-      /^O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato\. Abre Mais métricas da visão Sustentação\.$/,
-    )
-    expect(link17).toHaveAttribute('href', '/operacional?cadencia=sustentacao#o17')
-    await u.click(link17)
-    expect(await screen.findByTestId('metrica-O17')).toBeInTheDocument()
-    expect(a.roteador.state.location.pathname).toBe('/operacional')
-    expect(a.roteador.state.location.search).toContain('cadencia=sustentacao')
-    expect(a.roteador.state.location.hash).toBe('#o17')
+    const link27 = within(leia).getByRole('link', { name: /O27 .*deste painel/ })
+    expect(link27).toHaveTextContent('O27 Causa raiz dos bugs')
+    expect(within(leia).queryByRole('link', { name: /O17/ })).not.toBeInTheDocument()
+    expect(link27).toHaveAttribute('href', '/operacional?cadencia=semanal#o27')
+    await u.click(link27)
+    expect(await screen.findByTestId('metrica-O27')).toBeInTheDocument()
     expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
     await waitFor(() =>
       expect(
-        within(screen.getByTestId('metrica-O17')).getByRole('heading', { level: 3 }),
+        within(screen.getByTestId('metrica-O27')).getByRole('heading', {
+          level: 3,
+          name: /Causa raiz dos bugs/,
+        }),
       ).toHaveFocus(),
     )
     a.unmount()
@@ -149,18 +143,48 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     expect(b.roteador.state.location.pathname).toBe('/estrategico')
   })
 
-  it('o link para outro painel some quando o destino está oculto lá', async () => {
+  it('o link some quando o destino está oculto', async () => {
     window.localStorage.setItem(
       'metricas-dspd:preferencias:v1',
       JSON.stringify({
         versao: 1,
-        paineis: { sustentacao: { ocultar: ['o17'] } },
+        paineis: { operacional: { ocultar: ['o27'] } },
         atualizadoEm: '2026-10-10T00:00:00.000Z',
       }),
     )
     renderizarApp('/operacional?cadencia=semanal')
     const leia = await screen.findByTestId('leia-junto-o15')
-    expect(within(leia).queryByRole('link', { name: /O17/ })).not.toBeInTheDocument()
+    expect(within(leia).queryByRole('link', { name: /O27/ })).not.toBeInTheDocument()
     expect(within(leia).getAllByRole('link')).toHaveLength(2)
+  })
+
+  it('um par de outra visão diz a visão e a fonte, e o link leva à Sustentação (nenhum cartão do núcleo aponta para lá hoje)', async () => {
+    const u = userEvent.setup()
+    const o15 = CATALOGO_CARTOES.find((c) => c.id === 'o15')
+    const painel = {
+      painel: 'operacional',
+      cartoes: [{ ...o15, leiaJunto: ['o17'] }],
+      estaOculto: () => false,
+      irParaComplementar: () => undefined,
+    } as unknown as PreferenciasPainel
+    const a = renderizarCartao(
+      <ContextoPreferenciasPainel.Provider value={painel}>
+        <LeiaJunto id="o15" />
+      </ContextoPreferenciasPainel.Provider>,
+      { url: '/operacional?cadencia=semanal' },
+    )
+    const link = await screen.findByRole('link', {
+      name: /O17 .*visão Sustentação, fonte Acelerato/,
+    })
+    expect(link).toHaveTextContent(
+      'O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato',
+    )
+    expect(link).toHaveAccessibleName(
+      /^O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato\. Abre Mais métricas da visão Sustentação\.$/,
+    )
+    expect(link).toHaveAttribute('href', '/operacional?cadencia=sustentacao#o17')
+    await u.click(link)
+    expect(a.roteador.state.location.search).toContain('cadencia=sustentacao')
+    expect(a.roteador.state.location.hash).toBe('#o17')
   })
 })

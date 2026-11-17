@@ -6,6 +6,7 @@
 import { z } from 'zod'
 import {
   CAUSAS_RAIZ,
+  CAUSAS_RAIZ_BUG,
   NIVEIS_PRIORIDADE_BM,
   MINIMOS_PESQUISA,
   NATUREZAS_PROJETO,
@@ -668,6 +669,13 @@ export const resultadoS1 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
   excecoesForaDaApuracao: z.number(),
+  /**
+   * Pedido 105 (E7.238, decisão B do dono): o S1 mede só os chamados da escala P1 a P5 da matriz. Aqui, os chamados fechados na janela que ficaram fora da conta:
+   * de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prioridade (sem prazo). Só contagem, nunca estatística. Aditivo.
+   */
+  foraDaMatriz: z
+    .object({ outrasEscalas: z.number().int().min(0), semPrazo: z.number().int().min(0) })
+    .optional(),
   /** Horas do dia útil do calendário usado no cálculo (Decisão 13: 8,8 na Sustentação). Aditivo: a web converte horas em dias úteis por este número, nunca por constante. */
   horasPorDiaUtil: z.number(),
   /** Tempos em horas, no relógio de `unidade` de cada célula. */
@@ -815,6 +823,22 @@ const segmentoEI = z.object({
     }),
   ),
 })
+/** Tempo (horas úteis, soma) e chamados que passaram por um grupo de etapas da EI_SUST; contagem, não estatística. */
+const parteEsperaSust = z.object({ chamados: z.number(), horasUteis: z.number() })
+/**
+ * Pedido 105 (E7.243): o que a EI_SUST deixou de fora ou classificou por suposição, na janela de percentis, para o cartão nunca mostrar
+ * zero em silêncio. `filaInicial` conta como espera invisível (P-EI-3); `naoDecididas` ficam como tempo do time; `finais` ficam fora das
+ * duas visões (P-EI-2); `semEtapas` são chamados fechados sem tempo por etapa, fora da estatística.
+ */
+const composicaoEsperaSust = z.object({
+  chamados: z.number(),
+  semEtapas: z.number(),
+  filaInicial: parteEsperaSust,
+  finais: parteEsperaSust,
+  naoDecididas: parteEsperaSust.extend({
+    etapas: z.array(z.object({ etapa: z.string(), chamados: z.number(), horasUteis: z.number() })),
+  }),
+})
 export const resultadoEI = z.object({
   ...comum,
   nivel: z.enum(['FL1', 'FL2', 'FL3', 'SUST']),
@@ -826,6 +850,8 @@ export const resultadoEI = z.object({
   segmentoPor: z.enum(['tipo', 'prioridade']).nullable(),
   /** Nunca agregados: uma estatística e uma série por segmento (briefing 4.2). A UI mostra um por vez. */
   segmentos: z.array(segmentoEI),
+  /** Só na SUST (Acelerato); ausente nos níveis do BusinessMap. */
+  composicao: composicaoEsperaSust.optional(),
 })
 
 /* ---------- Visão geral ---------- */
@@ -1018,6 +1044,48 @@ export const resultadoO13 = z.object({
   ),
 })
 
+const codigosCausaBug = CAUSAS_RAIZ_BUG.map((c) => c.codigo) as [
+  (typeof CAUSAS_RAIZ_BUG)[number]['codigo'],
+  ...(typeof CAUSAS_RAIZ_BUG)[number]['codigo'][],
+]
+const rotulosCausaBug = CAUSAS_RAIZ_BUG.map((c) => c.rotulo) as [
+  (typeof CAUSAS_RAIZ_BUG)[number]['rotulo'],
+  ...(typeof CAUSAS_RAIZ_BUG)[number]['rotulo'][],
+]
+
+/**
+ * O27 (Operacional, fonte BusinessMap): causa raiz dos bugs fechados (concluídos ou descartados) na janela de 12 semanas. Uma coluna por tipo
+ * (Bug interno e Defeito em produção), nunca uma soma dos dois. `n` = bugs fechados do tipo; `naoInformada` = sem causa ou com valor fora do
+ * domínio (fica fora do denominador); `comCausa` = `n - naoInformada`. "Não é bug" e "Outros" são causa como as outras (D1): entram em `causas`
+ * e em `comCausa`. `causas` = as 12 opções na ordem do campo (sem ordenar por tamanho, D4), com `n` e `pct` sobre `comCausa`; `null` abaixo de
+ * 20 bugs com causa (D3), e então só os totais (`n`, `naoEBug`, `naoInformada`) são publicados. `porSistema` é `null` com o motivo até o campo
+ * Sistema afetado existir no BusinessMap. Sem pessoa nem equipe como série; nenhum dado do Acelerato.
+ */
+export const resultadoO27 = z.object({
+  ...comum,
+  porTipo: z.array(
+    z.object({
+      tipo: z.enum(['Bug interno', 'Defeito em produção']),
+      n: z.number().int().min(0),
+      naoEBug: z.number().int().min(0),
+      naoInformada: z.number().int().min(0),
+      comCausa: z.number().int().min(0),
+      causas: z
+        .array(
+          z.object({
+            causa: z.enum(codigosCausaBug),
+            rotulo: z.enum(rotulosCausaBug),
+            n: z.number().int().min(0),
+            pct: z.number(),
+          }),
+        )
+        .nullable(),
+    }),
+  ),
+  porSistema: z.null(),
+  motivoPorSistema: z.string().min(1),
+})
+
 const linhaOrigem = z.object({
   nome: z.string(),
   entregues: z.number(),
@@ -1178,6 +1246,8 @@ export const resultadoS8 = z.object({
   campoDisponivel: z.boolean(),
   /** Cobertura do campo `reincidente`: n incidentes com o campo informado de N (nunca ausente = "não"). */
   cobertura: z.object({ n: z.number(), total: z.number() }),
+  /** Incidentes do período sem resposta no campo (fora do denominador): total menos n; 0 sem extensão. Opcional (pedido 105, E7.237). */
+  semResposta: z.number().int().min(0).optional(),
   metaMaxPct: z.number(),
   meses: z.array(
     z.object({

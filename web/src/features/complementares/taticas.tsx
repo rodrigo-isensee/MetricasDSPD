@@ -50,10 +50,10 @@ function leituraT10(d: ResultadoT10): string | undefined {
     e.duracao.status === 'ok'
       ? ` Nas últimas 12 semanas, em 85% dos casos a espera durou até ${dias(e.duracao.valor.p85)}.`
       : ' Ainda sem percentis: menos de 20 bloqueios na janela de 12 semanas.'
-  return `Os bloqueios encerrados com o motivo Aguardando fornecedor somaram ${dias(e.diasUteis)} no período, em ${fmtInteiro(e.bloqueios)} ${plural(e.bloqueios, 'bloqueio', 'bloqueios')}.${resposta} Prazo contratado não informado.`
+  return `Os bloqueios encerrados com os motivos Dependência Externa e Aguardando fornecedor somaram ${dias(e.diasUteis)} no período, em ${fmtInteiro(e.bloqueios)} ${plural(e.bloqueios, 'bloqueio', 'bloqueios')}.${resposta} Prazo contratado não informado.`
 }
 
-/** T10: tempo total esperando fornecedores (bloqueios com motivo "Aguardando fornecedor"), sem separar por fornecedor (pedido 105, E7.82). */
+/** T10: tempo total esperando fornecedores (bloqueios com os motivos "Dependência Externa" e "Aguardando fornecedor"), sem separar por fornecedor (pedido 105, E7.82). */
 export function CartaoT10({ filtros }: P) {
   const q0 = useMetrica('T10', filtros)
   const q = comoOk(q0, true)
@@ -74,8 +74,8 @@ export function CartaoT10({ filtros }: P) {
           return (
             <div className="flex flex-col gap-3">
               <AvisoInfo testid="t10-sem-fornecedor">
-                Nenhum bloqueio com o motivo &quot;Aguardando fornecedor&quot; foi encerrado no
-                período.
+                Nenhum bloqueio com os motivos &quot;Dependência Externa&quot; ou &quot;Aguardando
+                fornecedor&quot; foi encerrado no período.
               </AvisoInfo>
               {r.motivoSemFornecedores && (
                 <p className="text-sm text-texto-2" data-testid="t10-motivo">

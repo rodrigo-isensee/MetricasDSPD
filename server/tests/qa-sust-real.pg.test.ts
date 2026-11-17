@@ -13,8 +13,8 @@ import { poolDe, url } from './pg/ctx.js';
 // base REAL do Acelerato e que as demais da sustentação seguem a base do seed. Falha se o mapa de origem ou o roteamento voltar atrás.
 const d = describe.skipIf(!url);
 const AGORA = new Date('2026-10-10T15:00:00Z');
-const REAIS = ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as const;
-const MOCK = ['EI_SUST'] as const;
+const REAIS = ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12', 'EI_SUST'] as const; // EI_SUST: pedido 105 (E7.243)
+const MOCK: readonly string[] = [];
 /** Pedido 105 (D2 e D6a): leem a lista dos cinco fluxos do PROC; sem ela em `ref_dominio` (campo `fluxo_proc`) respondem sem dado real com o motivo. */
 const PROC = ['S5', 'S6', 'S7', 'S11'] as const;
 

@@ -85,3 +85,42 @@ export function pausaOSla(etapa: string): boolean {
     MOTIVO_DA_ESPERA.has(normaliza(etapa))
   )
 }
+
+/**
+ * Classe da etapa na espera invisível da Sustentação (pedido 105, E7.243; decisões P-EI-1 B e P-EI-2 A, suposição P-EI-3):
+ * `final` (Concluído, Encerramento, Causa Raiz, Revisão; Encerrado e Arquivar, de relógio parado) fica fora das duas visões e é contada;
+ * `espera` são as esperas da D5a (as mesmas que pausam o SLA do S1); `fila-inicial` (Novo, Novo Atendimento, Em triagem, Aguardando
+ * Atribuição) conta como espera invisível (P-EI-3); `nao-decidida` (Equipe Interna, Aprovação, Mudança, Data Acordada) segue como tempo do
+ * time e é contada, nunca em silêncio; o resto é tempo do time. Comparação sem diferença de caixa e espaços.
+ */
+export type ClasseEtapaEI = 'final' | 'espera' | 'fila-inicial' | 'nao-decidida' | 'time'
+
+const ETAPAS_FINAIS_EI: ReadonlySet<string> = new Set([
+  'concluído',
+  'encerramento',
+  'causa raiz',
+  'revisão',
+  'encerrado',
+  'arquivar',
+])
+const FILA_INICIAL_EI: ReadonlySet<string> = new Set([
+  'novo',
+  'novo atendimento',
+  'em triagem',
+  'aguardando atribuição',
+])
+const NAO_DECIDIDAS_EI: ReadonlySet<string> = new Set([
+  'aguardando equipe interna',
+  'aguardando aprovação',
+  'aguardando mudança',
+  'data acordada',
+])
+
+export function classeDaEtapaEI(etapa: string): ClasseEtapaEI {
+  const n = normaliza(etapa)
+  if (ETAPAS_FINAIS_EI.has(n)) return 'final'
+  if (pausaOSla(etapa) || n === 'aguardando validação') return 'espera'
+  if (FILA_INICIAL_EI.has(n)) return 'fila-inicial'
+  if (NAO_DECIDIDAS_EI.has(n)) return 'nao-decidida'
+  return 'time'
+}

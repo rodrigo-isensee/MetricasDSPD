@@ -14,10 +14,10 @@ const sustentacao = LINHAS.filter(
 ).length
 
 describe('Catálogo de métricas (/metricas)', () => {
-  it('lista 65 linhas (45 do briefing + a PV1 + 3 níveis extras de espera invisível; 33 complementares), espera invisível uma por nível', () => {
+  it('lista 66 linhas (45 do briefing + a PV1 + 3 níveis extras de espera invisível; 34 complementares), espera invisível uma por nível', () => {
     const l = linhasDoCatalogo()
-    expect(l).toHaveLength(65)
-    expect(l.filter((x) => x.grupo === 'Complementar')).toHaveLength(33)
+    expect(l).toHaveLength(66)
+    expect(l.filter((x) => x.grupo === 'Complementar')).toHaveLength(34)
     const ei = l.filter((x) => x.codigo === 'EI')
     expect(ei.map((x) => [x.nome, x.painelRotulo, x.fonte, x.destino])).toEqual([
       [
@@ -87,7 +87,7 @@ describe('Catálogo de métricas (/metricas)', () => {
         ),
       ),
     ).toBeInTheDocument()
-    expect(total).toBe(62)
+    expect(total).toBe(63)
     expect(screen.queryByText(/45 métricas/)).not.toBeInTheDocument()
     expect(
       screen.getByText(
