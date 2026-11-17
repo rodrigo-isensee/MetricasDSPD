@@ -189,17 +189,21 @@ const ordenarPorDeslize = <T extends { deslizeDiasUteis: number; cardId: string 
 
 /** E6: deslize de cada projeto concluído em relação à data comprometida (a registrada no compromisso). */
 /** E6: projeto concluído sem data comprometida fica fora da conta; a nota vale no corpo e no estado vazio (K-373). */
-function notaSemDataE6(n: number) {
+function notaSemDataE6(n: number, vazio = false) {
   if (n <= 0) return null
   return (
     <Leia>
+      {vazio && 'Fora da conta: '}
       {fmtInteiro(n)}{' '}
       {plural(
         n,
-        'projeto concluído sem data comprometida registrada ficou',
-        'projetos concluídos sem data comprometida registrada ficaram',
-      )}{' '}
-      fora desta conta.
+        vazio
+          ? 'projeto concluído sem data comprometida registrada.'
+          : 'projeto concluído sem data comprometida registrada ficou fora desta conta.',
+        vazio
+          ? 'projetos concluídos sem data comprometida registrada.'
+          : 'projetos concluídos sem data comprometida registrada ficaram fora desta conta.',
+      )}
     </Leia>
   )
 }
@@ -216,7 +220,7 @@ export function CartaoE6({ filtros }: P) {
       aplicaveis={['sistema', 'periodo']}
       className="lg:col-span-12"
       leitura={d ? leituraE6(d) : undefined}
-      complementoVazio={(r) => notaSemDataE6(r.semData)}
+      complementoVazio={(r) => notaSemDataE6(r.semData, true)}
     >
       {(r) => {
         const projetos = ordenarPorDeslize(r.projetos)
