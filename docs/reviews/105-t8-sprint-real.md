@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feat/105-t8-sprint-real
-commit: 453348a218247c5f9ca0e451a99cc210366c3db5
-parecer: reprovado
+commit: 7c403716af70267388fb1cf15cda3c28023178c3
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-17
 ---
@@ -38,8 +38,15 @@ Conferido e correto:
 ## Sondas
 - S1 · `calcularT8` real, período `12s`, uma sprint de 02/03 a 14/04/2026 (31 dias úteis) com filho · espera: `acimaDoTeto: 0` · obtido: `acimaDoTeto: 1`, `sprintsNoRecorte: 0`
 
+## Revalidação (E7.537, head 7c403716)
+Delta lido: `forge-check parecer delta` de `453348a2..7c403716`, 8 arquivos no domínio (`t8.ts`, `t8.test.ts`, `criterios.ts`, changelog, `painel-real-f6.test.ts`, `migracoes.estatico.test.ts`, `previsao.tsx`, `t8-dado-real.test.tsx`).
+- A1 resolvido pela decisão do dono (2 = A): `concluiNoPeriodo` (first_end dentro do período) roda antes de `janelaValida`, então `semDatas` e `acimaDoTeto` contam só sprints do período; sprint sem first_end fica de fora. Teste novo em `12s` (LONGA_FORA não conta, LONGA_DENTRO conta). Regra na `VERSAO_CRITERIO_T8_DADO_REAL` e no changelog (T2.6). Os testes antigos ajustados (S31 sai da contagem; S32 do server passa para dentro do período) seguem a regra nova, sem afrouxar.
+- A2 resolvido: `MINIMO_AMOSTRA` do contrato no cartão. A3 resolvido: legenda fala de sprints. A4 resolvido: comentário cita a 0042.
+- Rodei: `t8.test.ts` 10 passam; `t8-dado-real.test.tsx` 7 passam. Mutante: guarda `if (!concluiNoPeriodo(s)) return []` desligada (`false &&`): 3 testes falham, inclusive o novo de 12s. Morto.
+- Suíte inteira: sem PR, fica para o CI; não afirmo CI verde. A falha de numeração de migração segue esperada até o T3 (0041) entrar na develop.
+
 ## Achados
-- A1 (bloqueante) packages/metricas/src/businessmap/t8.ts:57 · "acima do teto" é contado antes do recorte pelo período: a nota soma sprints de todo o histórico e `sprintsNoRecorte` só as do período (S1). Recorte antes de contar e trave com teste em `12s`.
-- A2 (recomendado) web/src/features/complementares/previsao.tsx:149 · `nSprints < 20` repete o mínimo à mão; use `MINIMO_AMOSTRA` de `@metricas-dspd/contratos`, como o `AmostraInsuficiente`.
-- A3 (recomendado) web/src/features/complementares/previsao.tsx:183 · a legenda ainda diz "abaixo de 20 itens só k de n", regra do dado fictício; com dado real a conta é de sprints (mesmo ponto do B1 da UX).
-- A4 (recomendado) server/tests/migracoes.estatico.test.ts:48 · o comentário da contagem diz "0041 (105, E7.499)"; depois da renumeração é a 0042.
+- A1 (bloqueante, resolvido em 7c403716) packages/metricas/src/businessmap/t8.ts:57 · "acima do teto" é contado antes do recorte pelo período: a nota soma sprints de todo o histórico e `sprintsNoRecorte` só as do período (S1). Recorte antes de contar e trave com teste em `12s`.
+- A2 (recomendado, resolvido em 7c403716) web/src/features/complementares/previsao.tsx:149 · `nSprints < 20` repete o mínimo à mão; use `MINIMO_AMOSTRA` de `@metricas-dspd/contratos`, como o `AmostraInsuficiente`.
+- A3 (recomendado, resolvido em 7c403716) web/src/features/complementares/previsao.tsx:183 · a legenda ainda diz "abaixo de 20 itens só k de n", regra do dado fictício; com dado real a conta é de sprints (mesmo ponto do B1 da UX).
+- A4 (recomendado, resolvido em 7c403716) server/tests/migracoes.estatico.test.ts:48 · o comentário da contagem diz "0041 (105, E7.499)"; depois da renumeração é a 0042.
