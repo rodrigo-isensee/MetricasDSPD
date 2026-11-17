@@ -23,6 +23,7 @@ describe('arquivo de conferência do BusinessMap (docs/architecture/fontes)', ()
     expect(mapa.get('Incidente de Produção')?.categoria).toBe('defeito_producao');
     expect(mapa.get('Chamado')?.categoria).toBe('requisicao');
     expect(mapa.get('Débito técnico')?.categoria).toBe('divida_tecnica');
+    expect(mapa.get('Enabler')).toEqual({ nome: 'Enabler', eh_item: true, categoria: 'habilitador' }); // E7.496 (T3 = A do dono, 2026-11-17)
     expect(['Kaizen', 'Processos', 'Otimização processo'].map((n) => mapa.get(n)?.categoria)).toEqual(['melhoria', 'melhoria', 'melhoria']);
     expect(real.mapa_tipos.padrao).toEqual({ eh_item: true, categoria: 'produto' });
   });
@@ -43,7 +44,7 @@ describe('arquivo de conferência do BusinessMap (docs/architecture/fontes)', ()
     expect(() => analisarConferencia(texto((c) => { c.extra = 1; }))).toThrow(ErroConferencia);
     expect(() => analisarConferencia(texto((c) => { (c.excecoes_papel_coluna as { papel: string }[])[0]!.papel = 'homologacao'; }))).toThrow(/excecoes_papel_coluna\.0\.papel/);
     expect(() => analisarConferencia(texto((c) => { (c.colunas_descartado as unknown[]).push((c.colunas_descartado as unknown[])[0]); }))).toThrow(ErroConferencia);
-    expect(() => analisarConferencia(texto((c) => { (c.mapa_tipos as { tipos: { categoria: string | null }[] }).tipos[10]!.categoria = 'produto'; }))).toThrow(ErroConferencia);
+    expect(() => analisarConferencia(texto((c) => { (c.mapa_tipos as { tipos: { nome: string; categoria: string | null }[] }).tipos.find((t) => t.nome === 'Sprint')!.categoria = 'produto'; }))).toThrow(ErroConferencia);
     expect(() => analisarConferencia(texto((c) => { const t = (c.mapa_tipos as { tipos: unknown[] }).tipos; t.push(t[0]); }))).toThrow(ErroConferencia);
   });
 

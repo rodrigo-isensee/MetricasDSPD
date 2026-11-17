@@ -27,7 +27,6 @@ describe('textos da Visão geral', () => {
       ['O10_BACKLOG_180', '3 itens do backlog com mais de 180 dias'],
       ['T2_ABAIXO_85', 'Aderência ao SLE abaixo de 85% em 3 de 10 prioridades'],
       ['T4_RAZAO_FORA', 'fora de 0,9 a 1,0 em 3 de 10 prioridades'],
-      ['T3_DESVIO', 'acima de 10 p.p. em 3 de 10 naturezas'],
       ['T9_ESCOPO', '3 de 10 projetos com escopo adicionado'],
       ['E2_ABAIXO_60', 'Evolução vinculada a objetivo em 3% (meta: 60% ou mais)'],
       ['E3_SEM_RESULTADO', '3 de 10 iniciativas sem resultado declarado'],

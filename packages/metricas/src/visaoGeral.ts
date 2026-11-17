@@ -12,7 +12,6 @@ import {
   calcularO12,
   calcularO2,
   calcularT2,
-  calcularT3,
   calcularT4,
   calcularT9,
   type ContextoBM,
@@ -127,13 +126,11 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
   /* Tático */
   const t2 = calcularT2(bm, f12s)
   const t4 = calcularT4(bm, f12s)
-  const t3 = calcularT3(bm, f12s)
   const t9 = calcularT9(bm, f12s)
   const t2Ok = t2.classes.filter((c) => c.statusMeta !== 'sem-referencia')
   const t2Fora = t2Ok.filter((c) => c.statusMeta === 'fora').length
   const t4Ok = t4.classes.filter((c) => c.statusMeta !== 'sem-referencia')
   const t4Fora = t4Ok.filter((c) => c.statusMeta === 'fora').length
-  const t3Fora = t3.naturezas.filter((n) => n.itens.statusMeta === 'fora').length
   if (t2Fora > 0)
     add({
       nivel: 'tatico',
@@ -151,15 +148,6 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
       codigo: 'T4_RAZAO_FORA',
       valor: t4Fora,
       de: t4Ok.length,
-    })
-  if (t3Fora > 0)
-    add({
-      nivel: 'tatico',
-      metrica: 'T3',
-      ancora: 't3',
-      codigo: 'T3_DESVIO',
-      valor: t3Fora,
-      de: t3.naturezas.length,
     })
   if (t9.projetosComEscopoCrescido > 0)
     add({
