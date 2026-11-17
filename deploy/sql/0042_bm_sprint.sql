@@ -1,6 +1,6 @@
 -- GERADO por `pnpm run db:sql` a partir de server/migrations. Não edite à mão: mude a migração e gere de novo.
 -- Sem segredo neste arquivo.
--- 0041_bm_sprint.sql
+-- 0042_bm_sprint.sql
 BEGIN;
 CREATE TABLE dspd_bm.dim_sprint (
   sprint_id varchar(32) NOT NULL CHECK (sprint_id ~ '^[\x21-\x7E]+$') PRIMARY KEY,
@@ -30,5 +30,5 @@ CREATE TRIGGER tg_fato_sprint_filho_imutavel BEFORE UPDATE OR DELETE ON dspd_bm.
 
 CREATE TRIGGER tg_fato_sprint_filho_sem_truncate BEFORE TRUNCATE ON dspd_bm.fato_sprint_filho FOR EACH STATEMENT EXECUTE FUNCTION dspd_core.proibir_alteracao();
 
-INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0041_bm_sprint', now());
+INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0042_bm_sprint', now());
 COMMIT;

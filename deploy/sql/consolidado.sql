@@ -1598,7 +1598,7 @@ CREATE TRIGGER tg_fato_sprint_filho_imutavel BEFORE UPDATE OR DELETE ON dspd_bm.
 
 CREATE TRIGGER tg_fato_sprint_filho_sem_truncate BEFORE TRUNCATE ON dspd_bm.fato_sprint_filho FOR EACH STATEMENT EXECUTE FUNCTION dspd_core.proibir_alteracao();
 
-INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0041_bm_sprint', now());
+INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0042_bm_sprint', now());
 
 REVOKE ALL ON SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;
 
