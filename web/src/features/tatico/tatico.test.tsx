@@ -268,9 +268,9 @@ describe('T4 demanda x capacidade', () => {
     expect(el).not.toHaveTextContent(/semanas para zerar fila/i)
     const faixa = within(el).getByTestId('sem-prioridade-T4')
     expect(faixa).toHaveTextContent(
-      'Sem prioridade (BusinessMap): 0 de 80 cartões com chegada ou entrega no período (0%).',
+      'Sem prioridade (BusinessMap): nenhum cartão sem prioridade neste recorte.',
     )
-    expect(faixa).toHaveTextContent('A chegada total é maior que a soma das prioridades acima.')
+    expect(faixa).not.toHaveTextContent('A chegada total é maior que a soma das prioridades acima.')
     // a faixa vem logo depois da tabela de razão (M2), não depois do seletor
     expect(
       within(el).getByTestId('tabela-T4-classes').compareDocumentPosition(faixa) &
