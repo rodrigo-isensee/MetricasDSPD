@@ -3,10 +3,10 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-suite-duas-vagas
-commit: 1e0ec6f7215516be9395eaafe1ab6b49f667aaba
+commit: 0813ca6d4c07d4fa790d29c0dba7a686becd22a8
 parecer: aprovado
 resultado: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -36,3 +36,17 @@ Branch `fix/105-suite-duas-vagas`, head 1e0ec6f7, base ab12a37f. Diff: `scripts/
 - Primeira tentativa de teste real: o worktree principal estava em outra branch, cujo `pronto` não passa pela fila; só uma vaga foi segurada e o 3º processo entrou. Erro de montagem do meu cenário, não do código; repetido com os três `pronto` no head revisado (tabela acima).
 - O `pnpm run test:pg` real subiu e recriou o contêiner `metricasdspd-postgres-1` (compartilhado) durante o teste; cortado por timeout. Vermelho antes do verde não se aplica: não há teste de correção de regra fora do teste do script, e os mutantes acima o provam.
 - Os dois `pronto` foram cortados por timeout (45 s) e não rodaram até o fim: a conclusão da suíte inteira é do CI.
+
+## Revalidação no head 0813ca6d (E7.392, escopo incremental)
+Delta (`forge-check parecer delta`, intervalo 1e0ec6f7..0813ca6d): `package.json`, `scripts/suite-unica.sh`, `scripts/suite-unica.test.sh`, `docs/engineering/praticas.md`. O autor rodou o teste do script e o `pronto` com rc=0; a suíte inteira fica para o CI do PR (sem PR, não afirmo CI verde).
+
+| Obrigação (E7.377, e2e em fila própria) | Prova | Fronteira protegida | Resultado |
+|---|---|---|---|
+| Teste do script verde com o caso 6b | `bash scripts/suite-unica.test.sh`: 4 `ok` novos do e2e, "tudo certo", rc=0 | n/a | passou |
+| Duas chamadas de e2e não rodam juntas | `METRICAS_DSPD_SUITE_GRUPO=e2e` com a suíte cheia: A segurou `metricas-dspd-e2e-1.lock` (`pid … sh -c echo e2eA-ini…`); B esperou, rc=124, com aviso "as 1 vaga(s) estão ocupadas" e quem segura | 1 vaga do e2e | passou |
+| e2e ocupado não segura a fila da suíte | teste 6b ("e2e ocupado não segura a fila da suíte" e "…do pg"); a suíte com 2 vagas cheias também não bloqueou o e2e A, que entrou na hora | filas separadas | passou |
+| `test:e2e` usa a fila e2e | `package.json` com `METRICAS_DSPD_SUITE_GRUPO=e2e`; teste "test:e2e do package.json usa a fila e2e" | n/a | passou |
+| `praticas.md` (vaga do e2e, `PG_TESTE_URL`, vaga presa após `kill -9`) | lido: confere com o script (a trava é solta quando o processo morre) | n/a | conferido por leitura |
+| Mutação no diff | (1) `package.json` sem `GRUPO=e2e`: 1 falha; (2) vaga de grupo não-suite `VAGAS=1` para `2`: 3 falhas (pg x2, e2e) | vaga única do e2e | os 2 mutantes morreram; árvore restaurada |
+
+Vermelho antes do verde: sem teste de correção fora do teste do script; os mutantes acima o provam. Sem achado novo.
