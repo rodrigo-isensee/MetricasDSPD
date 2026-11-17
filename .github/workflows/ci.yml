@@ -50,7 +50,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Igual ao `pronto` sem o build: typecheck + cobertura 100% bloqueante em cada pacote.
       - run: pnpm -r --if-present run typecheck
+      # E7.541: no runner, buscas do web (findBy) passam de 5 s (5,2 a 8,5 s) só por lentidão; a folga vale só aqui.
       - run: pnpm run cobertura
+        env:
+          METRICAS_DSPD_ESPERA_ASYNC_MS: '15000'
       - name: Resumo de cobertura no job
         if: always()
         run: |
