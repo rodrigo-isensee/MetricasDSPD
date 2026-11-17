@@ -50,7 +50,7 @@ export const NOTAS_TATICO = {
     comoSeCalcula:
       'Mesmas definições do nível operacional, na granularidade de frente (feature e pacote contam igual).',
     comoLer: 'Um time pode ter WIP baixo de stories e estar dividido entre seis frentes.',
-    meta: 'Limite explícito de frentes.',
+    meta: 'Sem limite de frentes, por decisão do dono.',
     cuidados:
       'Frente que não cabe em 1 ou 2 sprints precisa ser quebrada; a granularidade de frente nunca entra no histograma de story.',
   },
