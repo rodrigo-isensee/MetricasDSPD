@@ -698,6 +698,17 @@ function leituraO25(d: ResultadoO25): string | undefined {
   return `${fmtInteiro(k)} ${plural(k, 'item foi descartado', 'itens foram descartados')} no período${pct}. Eles tinham consumido ${dias(dep.diasUteis)} depois de começar; ${fmtInteiro(fila)} ${plural(fila, 'foi descartado', 'foram descartados')} ainda na fila, sem trabalho iniciado.`
 }
 
+/** O25: cards com motivo de descarte sem estarem descartados ficam fora da taxa; vale no corpo e no vazio (K-399). */
+function notaPreenchimentoO25(n: number) {
+  if (n <= 0) return null
+  return (
+    <AvisoInfo testid="o25-aviso-preenchimento">
+      Aviso de preenchimento: {fmtInteiro(n)} {plural(n, 'card tem', 'cards têm')} motivo de
+      descarte sem estar descartado nem excluído; fora da taxa.
+    </AvisoInfo>
+  )
+}
+
 /** O25: taxa de descarte e o tempo já consumido, separando "antes do início" (saudável) de "depois do início". */
 export function CartaoO25({ filtros }: P) {
   const q = useMetrica('O25', filtros)
@@ -712,6 +723,7 @@ export function CartaoO25({ filtros }: P) {
       periodo={filtros.periodo}
       className="lg:col-span-12"
       leitura={d ? leituraO25(d) : undefined}
+      complementoVazio={(r) => notaPreenchimentoO25(r.avisoPreenchimento.itens)}
     >
       {(r) => {
         const dep = r.consumido.depoisDoInicio
@@ -787,13 +799,7 @@ export function CartaoO25({ filtros }: P) {
                 (última revisão do card).
               </AvisoInfo>
             )}
-            {r.avisoPreenchimento.itens > 0 && (
-              <AvisoInfo testid="o25-aviso-preenchimento">
-                Aviso de preenchimento: {fmtInteiro(r.avisoPreenchimento.itens)}{' '}
-                {plural(r.avisoPreenchimento.itens, 'card tem', 'cards têm')} motivo de descarte sem
-                estar descartado nem excluído; fora da taxa.
-              </AvisoInfo>
-            )}
+            {notaPreenchimentoO25(r.avisoPreenchimento.itens)}
             {r.porMotivo && r.porMotivo.length > 0 && (
               <TabelaDados
                 codigo="O25"
