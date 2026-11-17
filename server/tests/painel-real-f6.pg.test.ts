@@ -164,7 +164,7 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     for (const t of o8.tipos) expect(t.porTamanho).toBeNull();
   }, 60_000);
 
-  it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 (sem os fluxos do PROC carregados) e EI_SUST respondem sem dado real; mexer na real muda só as reais', async () => {
+  it('(e) Sustentação (E2.115): S1 (D4), S3, S9 e S12 leem a base real do Acelerato; S5 (sem os fluxos do PROC carregados) responde sem dado real, e a EI_SUST é real (pedido 105, E7.243); mexer na real muda só as reais', async () => {
     await mig.query(`UPDATE ${R.ac}.dim_chamado SET categoria_sistema = 'Sistema só da base real'`);
     const real = await app();
     for (const id of ['S1', 'S3', 'S9', 'S12']) {
@@ -176,11 +176,12 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     const s12 = (await real.inject('/api/v1/metricas/S12')).json();
     expect(s12.excecaoSla).toBeNull();
     expect(s12.notas).toEqual(['excecao-sla-s12-sem-fonte']);
-    for (const id of ['S5', 'EI_SUST']) {
-      const b = await real.inject(`/api/v1/metricas/${id}`);
-      expect(b.statusCode, id).toBe(200);
-      expect(b.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });
-    }
+    const s5 = await real.inject('/api/v1/metricas/S5');
+    expect(s5.statusCode).toBe(200);
+    expect(s5.json()).toMatchObject({ estado: 'sem-dado-real', metrica: 'S5' });
+    const ei = await real.inject('/api/v1/metricas/EI_SUST');
+    expect(ei.statusCode).toBe(200);
+    expect(ei.json()).not.toHaveProperty('estado');
   }, 60_000);
 
   it('o papel dspd_api lê os times ativos e as colunas com o time sem ver coluna de pessoa', async () => {

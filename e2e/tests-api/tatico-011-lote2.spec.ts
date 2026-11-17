@@ -136,7 +136,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     });
     await abrir(page, painel, '/tatico');
     const t10 = page.getByTestId('metrica-T10');
-    await expect(t10.getByTestId('t10-sem-fornecedor')).toHaveText('Nenhum bloqueio com o motivo "Aguardando fornecedor" foi encerrado no período.');
+    await expect(t10.getByTestId('t10-sem-fornecedor')).toHaveText('Nenhum bloqueio com os motivos "Dependência Externa" ou "Aguardando fornecedor" foi encerrado no período.');
     await expect(t10).toContainText('Prazo contratado não informado');
     await expect(t10.getByRole('row')).toHaveCount(0);
   });

@@ -58,6 +58,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     metricas: ['S8'],
   },
   {
+    referencia: '105:EI_SUST',
+    descricao: 'EI_SUST com dado real pelo tempo por etapa: cliente = soma do tempo das etapas, fora as finais; time = cliente menos as esperas da D5a e a fila inicial; etapas não decididas contadas',
+    motivo: 'Decisões do dono (pedido 105, E7.243): P-EI-1 B (time = total menos as esperas da D5a, as que pausam o SLA do S1), P-EI-2 A (Concluído, Encerramento, Causa Raiz e Revisão fora das duas visões, contadas); suposição P-EI-3 (a fila inicial conta como espera invisível). Antes a métrica não era publicada. Afeta EI_SUST.',
+    metricas: ['EI_SUST'],
+  },
+  {
     referencia: '105:S1-escala-p',
     descricao: 'S1 mede só os chamados da escala P1 a P5 da matriz; chamados de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prazo ficam fora e são contados',
     motivo: 'Decisão B do dono (pedido 105, E7.238, 16/11): a escala P1 a P5 cobre só 174 chamados; mais de 4.600 usam escalas com prazos próprios. Antes o S1 media todos contra os alvos da matriz. Afeta S1.',
