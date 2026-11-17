@@ -349,6 +349,19 @@ export const VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG: VersaoCriterio = {
   afeta: ['O27'],
 }
 
+/**
+ * Pedido 105 (E7.499, D-T8 "A" do dono, 2026-11-17): o T8 passa a ler o dado real do BusinessMap. A janela da sprint vai do primeiro início ao primeiro
+ * fim de execução do próprio card Sprint; janela com mais de 30 dias úteis, ou sem as duas datas, fica fora da conta (contada à parte); sem a data do vínculo,
+ * "não planejado" é o filho criado depois do início da sprint; abaixo de 20 sprints no recorte não se publica. Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_T8_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-17-t8-dado-real',
+  data: '2026-11-17',
+  descricao:
+    'T8 passou a ser calculado com o dado real do BusinessMap: a sprint vai do primeiro início à primeira conclusão de execução do card Sprint (mais de 30 dias úteis, ou sem as duas datas, fica fora da conta e é contada); entrada não planejada é o filho criado depois do início da sprint; sem publicar com menos de 20 sprints',
+  afeta: ['T8'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -379,6 +392,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_T11_DADO_REAL,
   VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
   VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG,
+  VERSAO_CRITERIO_T8_DADO_REAL,
 ]
 
 /**

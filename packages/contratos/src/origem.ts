@@ -51,6 +51,9 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   // Pedido 105 (E7.64, D-T11 "A" do dono, 2026-11-16): o T11 lê `dim_card` (criado_em; story que não é Bug interno, a chegada do T4 e do O7; arquivados entram;
   // excluídos e subtarefas ficam fora; sem pessoa nem `equipeResponsavel`); a base real tem 25 meses sem buraco (consulta tat-i). Abaixo de 20 demandas não publica.
   'T11',
+  // Pedido 105 (E7.499, D-T8 "A" do dono, 2026-11-17): o T8 lê a janela da sprint pelas datas de execução do card Sprint (primeiro início a primeira conclusão; teto de
+  // 30 dias úteis; sem as duas datas = "sem datas", fora da conta e contada) e o vínculo dos filhos com a Sprint (`fato_sprint_filho`). Só BusinessMap; abaixo de 20 sprints não publica.
+  'T8',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
   // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T12 segue fora (P-075-12, "B").
   'BLOQUEADOS',

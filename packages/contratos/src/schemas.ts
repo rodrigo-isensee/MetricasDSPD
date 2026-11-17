@@ -1201,6 +1201,22 @@ export const resultadoT8 = z.object({
     }),
   ),
   agregado: z.object({ entreguePct: taxaSchema, naoPlanejadoPct: taxaSchema }),
+  /**
+   * Pedido 105 (E7.499, D-T8 "A"): só com dado real. Sprints que ficam fora da conta, contadas à parte: `semDatas` = sem primeiro início ou sem primeira
+   * conclusão de execução; `acimaDoTeto` = janela com mais de `tetoDiasUteis` dias úteis. Ausente = dado fictício (a sprint do mock tem sempre as duas datas).
+   */
+  foraDaConta: z
+    .object({
+      semDatas: z.number().int().min(0),
+      acimaDoTeto: z.number().int().min(0),
+      tetoDiasUteis: z.number().int().min(1),
+    })
+    .optional(),
+  /**
+   * Pedido 105 (E7.499): sprints que entram na conta no recorte (datas válidas, dentro do teto, com itens do filtro). Abaixo do mínimo da biblioteca (20) nenhuma
+   * estatística é publicada: `sprints` vai vazia e `agregado` insuficiente. Ausente = dado fictício.
+   */
+  sprintsNoRecorte: z.number().int().min(0).optional(),
 })
 
 /** E4: projetos iniciados × concluídos por trimestre. */

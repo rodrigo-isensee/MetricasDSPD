@@ -35,7 +35,7 @@ describe('extensões mock das métricas complementares', () => {
     for (const sc of ext.bm.sprintCards) expect(ids.has(sc.sprint_id)).toBe(true)
     const inicio = new Map(ext.bm.sprints.map((x) => [x.sprint_id, x.inicio]))
     const naoPlan = ext.bm.sprintCards.filter(
-      (s) => s.ligado_em > (inicio.get(s.sprint_id) as string),
+      (s) => (s.ligado_em as string) > (inicio.get(s.sprint_id) as string),
     ).length
     expect(naoPlan / ext.bm.sprintCards.length).toBeGreaterThan(0.1)
     expect(naoPlan / ext.bm.sprintCards.length).toBeLessThan(0.2)

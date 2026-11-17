@@ -39,6 +39,7 @@ import * as m0037 from '../migrations/0037_ac_alvo_prioridade_exibicao.js';
 import * as m0038 from '../migrations/0038_ac_dim_chamado_fluxo.js';
 import * as m0039 from '../migrations/0039_bm_toque_primeiro.js';
 import * as m0040 from '../migrations/0040_ac_dim_chamado_escala_p.js';
+import * as m0041 from '../migrations/0041_bm_sprint.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -63,6 +64,7 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0038_ac_dim_chamado_fluxo': m0038,
   '0039_bm_toque_primeiro': m0039,
   '0040_ac_dim_chamado_escala_p': m0040,
+  '0041_bm_sprint': m0041,
 };
 
 export const arquivosDeMigracao = (): string[] =>

@@ -1570,6 +1570,36 @@ ALTER TABLE dspd_ac.dim_chamado ADD COLUMN IF NOT EXISTS escala_p boolean NULL;
 
 INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0040_ac_dim_chamado_escala_p', now());
 
+CREATE TABLE dspd_bm.dim_sprint (
+  sprint_id varchar(32) NOT NULL CHECK (sprint_id ~ '^[\x21-\x7E]+$') PRIMARY KEY,
+  quadro_id varchar(32) NULL CHECK (quadro_id ~ '^[\x21-\x7E]+$'),
+  inicio_em timestamptz(3) NULL, fim_em timestamptz(3) NULL,
+  descartada boolean NOT NULL,
+  coletado_em timestamptz(3) NOT NULL, atualizado_por_coleta_id bigint NOT NULL,
+  sistema_origem text NOT NULL DEFAULT 'businessmap',
+  CONSTRAINT ck_dim_sprint_sis CHECK (sistema_origem = 'businessmap')
+);
+
+CREATE TABLE dspd_bm.fato_sprint_filho (
+  vinculo_sk bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sprint_id varchar(32) NOT NULL CHECK (sprint_id ~ '^[\x21-\x7E]+$'), filho_id varchar(32) NOT NULL CHECK (filho_id ~ '^[\x21-\x7E]+$'),
+  coletado_em timestamptz(3) NOT NULL, coleta_id bigint NOT NULL,
+  CONSTRAINT uq_fato_sprint_filho UNIQUE (sprint_id, filho_id),
+  CONSTRAINT fk_fato_sprint_filho_coleta FOREIGN KEY (coleta_id) REFERENCES dspd_bm.ctl_coleta (coleta_id),
+  sistema_origem text NOT NULL DEFAULT 'businessmap',
+  CONSTRAINT ck_fato_sprint_filho_sis CHECK (sistema_origem = 'businessmap')
+);
+
+CREATE INDEX ix_fato_sprint_filho_filho ON dspd_bm.fato_sprint_filho (filho_id);
+
+CREATE INDEX ix_fato_sprint_filho_coleta ON dspd_bm.fato_sprint_filho (coleta_id);
+
+CREATE TRIGGER tg_fato_sprint_filho_imutavel BEFORE UPDATE OR DELETE ON dspd_bm.fato_sprint_filho FOR EACH ROW EXECUTE FUNCTION dspd_core.proibir_alteracao();
+
+CREATE TRIGGER tg_fato_sprint_filho_sem_truncate BEFORE TRUNCATE ON dspd_bm.fato_sprint_filho FOR EACH STATEMENT EXECUTE FUNCTION dspd_core.proibir_alteracao();
+
+INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0041_bm_sprint', now());
+
 REVOKE ALL ON SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;
@@ -1604,6 +1634,8 @@ GRANT SELECT, INSERT ON dspd_bm.evt_bloqueio TO dspd_coletor;
 
 GRANT SELECT, INSERT ON dspd_bm.evt_card TO dspd_coletor;
 
+GRANT SELECT, INSERT ON dspd_bm.fato_sprint_filho TO dspd_coletor;
+
 GRANT SELECT, INSERT ON dspd_bm.fato_transicao TO dspd_coletor;
 
 GRANT SELECT, INSERT ON dspd_bm.rec_transicao_par TO dspd_coletor;
@@ -1631,6 +1663,8 @@ GRANT SELECT, INSERT ON dspd_bm.stg_webhook_evento TO dspd_coletor;
 GRANT SELECT, INSERT ON dspd_bm.stg_webhook_processamento TO dspd_coletor;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON dspd_bm.dim_card TO dspd_coletor;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON dspd_bm.dim_sprint TO dspd_coletor;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON dspd_bm.fato_bloqueio TO dspd_coletor;
 
@@ -1692,7 +1726,11 @@ GRANT SELECT ON dspd_bm.ref_workflow TO dspd_coletor;
 
 GRANT SELECT (card_id, tipo, classe_servico, sistema, area_solicitante, fornecedor, objetivo_estrategico, card_pai, criado_em, comprometido_em, iniciado_em, concluido_em, arquivado_em, motivo_descarte, tamanho_declarado, titulo, granularidade, equipe, quadro_id, coluna_atual_id, excluido_em, eh_subtarefa, data_acordada, responsabilidade_atraso, origem_demanda, fase_deteccao, severidade, causa_raiz, origem_bug, adicionado_apos_inicio_pai, coletado_em, atualizado_por_coleta_id, sistema_origem, primeiro_toque_em, toque_situacao) ON dspd_bm.dim_card TO dspd_api;
 
+GRANT SELECT ON dspd_bm.dim_sprint TO dspd_api;
+
 GRANT SELECT ON dspd_bm.fato_bloqueio TO dspd_api;
+
+GRANT SELECT ON dspd_bm.fato_sprint_filho TO dspd_api;
 
 GRANT SELECT ON dspd_bm.fato_transicao TO dspd_api;
 
