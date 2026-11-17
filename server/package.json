@@ -23,6 +23,8 @@
     "ac:reprojetar-etapas": "tsx src/entradas/reprojetar-etapas-ac.ts",
     "ac:reprojetar-fluxo": "tsx src/entradas/reprojetar-fluxo-ac.ts",
     "ac:reprojetar-escala": "tsx src/entradas/reprojetar-escala-ac.ts",
+    "ac:criterios": "tsx src/entradas/criterios-ac.ts",
+    "vm:preparar": "tsx src/entradas/vm-preparar.ts",
     "ref:sync-calendario": "tsx src/entradas/ref-sync-calendario.ts",
     "bm:spike": "tsx src/entradas/spike-businessmap.ts",
     "bm:coleta": "tsx src/entradas/coleta-businessmap.ts",
