@@ -15,6 +15,7 @@ export const PASSOS: readonly Passo[] = [
   { nome: 'migrar', entrada: 'migrar' },
   { nome: 'ref:sync-calendario', entrada: 'ref-sync-calendario' },
   { nome: 'bm:ref-sync', entrada: 'ref-sync-businessmap' },
+  { nome: 'bm:ref-sync-sle', entrada: 'ref-sync-sle' },
   { nome: 'ac:ref-sync', entrada: 'ref-sync-ac' },
   { nome: 'ac:reprojetar-etapas', entrada: 'reprojetar-etapas-ac' },
   { nome: 'ac:reprojetar-fluxo', entrada: 'reprojetar-fluxo-ac' },

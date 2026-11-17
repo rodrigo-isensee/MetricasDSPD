@@ -12,6 +12,7 @@ describe('vm:preparar, ordem e conteúdo dos passos', () => {
     expect(nomes[0]).toBe('migrar');
     expect(nomes.indexOf('ref:sync-calendario')).toBeLessThan(nomes.indexOf('ac:ref-sync'));
     expect(nomes.indexOf('ac:reprojetar-fluxo')).toBeLessThan(nomes.indexOf('ac:criterios'));
+    expect(nomes.indexOf('bm:ref-sync-sle')).toBe(nomes.indexOf('bm:ref-sync') + 1);
     expect(nomes.at(-1)).toBe('ac:criterios');
     expect(nomes.join(' ')).not.toMatch(/coleta|carga|classe-servico/);
     expect(PASSOS.filter((p) => p.opcional).map((p) => p.nome)).toEqual(['ac:reprojetar-escala']);

@@ -362,6 +362,53 @@ export const VERSAO_CRITERIO_T8_DADO_REAL: VersaoCriterio = {
   afeta: ['T8'],
 }
 
+/**
+ * Pedido 105 (E7.496, T3 = A do dono, 2026-11-17): o Enabler deixou "Trabalho de produto" e virou a categoria Habilitador em todo o painel (filtro Tipo,
+ * P85 por tipo da tendência, O24 e T13 por tipo, e toda métrica segmentada por tipo). O T3 passou ao dado real com quatro fatias pelo tipo do card (Produto,
+ * Habilitador, Correção em produção, Saúde técnica e de processo = Dívida técnica + Melhoria), sem acordado, desvio nem selo de meta; fatia com menos de
+ * 20 entregas mostra só a contagem. A coluna `dim_card.tipo` muda para os cards Enabler com o `bm:ref-sync` e a reprojeção (versão nova em `dim_card_versao`,
+ * nada sobrescrito). Data do PR (a do merge corrige se escorregar).
+ */
+export const VERSAO_CRITERIO_HABILITADOR_T3: VersaoCriterio = {
+  id: 'criterio-2026-11-17-habilitador-t3',
+  data: '2026-11-17',
+  descricao:
+    'O tipo Enabler passou a ser a categoria Habilitador (antes dentro de Trabalho de produto) no filtro Tipo e em toda métrica segmentada por tipo; o T3 passou ao dado real com as fatias Produto, Habilitador, Correção em produção e Saúde técnica e de processo, e a fatia com menos de 20 entregas mostra só a contagem',
+  afeta: [
+    'O1',
+    'O2',
+    'O3',
+    'O4',
+    'O5',
+    'O6',
+    'O7',
+    'O8',
+    'O9',
+    'O10',
+    'O11',
+    'O14',
+    'O19',
+    'O20',
+    'O21',
+    'O22',
+    'O24',
+    'O25',
+    'O26',
+    'T1',
+    'T2',
+    'T3',
+    'T4',
+    'T5',
+    'T10',
+    'T11',
+    'T12',
+    'T13',
+    'BLOQUEADOS',
+    'EI_FL1',
+    'TENDENCIA_FLUXO',
+  ],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -392,6 +439,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_T11_DADO_REAL,
   VERSAO_CRITERIO_O12_RESPONSABILIDADE_DADO_REAL,
   VERSAO_CRITERIO_O27_CAUSA_RAIZ_BUG,
+  VERSAO_CRITERIO_HABILITADOR_T3,
   VERSAO_CRITERIO_T8_DADO_REAL,
 ]
 

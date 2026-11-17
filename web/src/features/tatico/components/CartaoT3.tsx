@@ -3,20 +3,11 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
 import { AmostraInsuficiente, CartaoMetrica, Dica } from '@/components/ui'
 import { useMetrica } from '@/data'
-import { fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
+import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
 
 type Contagem = 'itens' | 'tempo'
-
-/** Selo de desvio da natureza. */
-function SeloDesvio() {
-  return (
-    <span className="rounded bg-alerta-fundo px-2 py-0.5 text-xs font-semibold text-alerta">
-      Desvio acima de 10 p.p.
-    </span>
-  )
-}
 
 export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('T3', filtros)
@@ -24,29 +15,14 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
   const d = q.dados
   const ok = d?.status === 'ok'
   const med = (n: NonNullable<typeof d>['naturezas'][number]) => n[contagem]
-  const maiores = d
-    ? [...d.naturezas]
-        .filter((n) => n.acordadoPct !== null && med(n).desvioPP !== null && med(n).pct !== null)
-        .sort(
-          // O filtro acima só deixa passar desvio e percentual publicados.
-          (a, b) => Math.abs(med(b).desvioPP as number) - Math.abs(med(a).desvioPP as number),
-        )
-        .slice(0, 2)
-    : []
+  const publicadas = d ? d.naturezas.filter((n) => med(n).pct !== null) : []
+  const algumaAbaixo = !!d && d.naturezas.some((n) => n.abaixoDe20)
   const leitura = !d
     ? undefined
-    : ok && maiores.length
-      ? maiores
-          .map(
-            (n) =>
-              `${n.natureza} consumiu ${fmtPct(med(n).pct as number)} da capacidade (acordado: ${fmtPct(n.acordadoPct as number)}).`,
-          )
-          .join(' ')
-      : ok
-        ? 'O cartão mostra como a capacidade foi dividida entre as naturezas, sem comparar com o combinado.'
-        : 'Percentuais indisponíveis: menos de 20 itens entregues no total.'
-  const semAcordado = !!d && d.naturezas.every((n) => n.acordadoPct === null)
-  const unidade = contagem === 'itens' ? 'itens' : 'h úteis em execução'
+    : ok
+      ? `O cartão mostra como as entregas se dividiram entre as fatias, sem comparar com combinado.${algumaAbaixo ? ' Fatia com menos de 20 entregas mostra só a contagem; a soma dos percentuais mostrados fica abaixo de 100%.' : ''}`
+      : 'Percentuais indisponíveis: menos de 20 itens entregues no total.'
+  const unidade = contagem === 'itens' ? 'itens' : 'dias úteis em execução'
   return (
     <CartaoMetrica
       {...propsCartao('T3', q, NOTAS_TATICO.T3)}
@@ -80,34 +56,26 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
     >
       {d && (
         <div className="flex flex-col gap-3">
-          {ok ? (
+          {ok && publicadas.length === 0 ? (
+            <p className="text-sm" data-testid="t3-sem-fatia">
+              Nenhuma fatia chegou a 20 entregas: só a contagem de cada uma aparece abaixo.
+            </p>
+          ) : ok ? (
             <Barras
-              descricao={`Alocação da capacidade por natureza${semAcordado ? ' realizada' : ', acordado e realizado'} (${unidade})`}
+              descricao={`Divisão das entregas por fatia, realizado (${unidade})`}
               orientacao="horizontal"
-              unidade="% da capacidade"
+              unidade="% das entregas"
               formatar={(v) => fmtPct(v)}
-              categorias={d.naturezas.map((n) => ({
+              categorias={publicadas.map((n) => ({
                 rotulo: n.natureza,
-                valores: { acordado: n.acordadoPct, realizado: med(n).pct },
+                valores: { realizado: med(n).pct },
               }))}
-              series={[
-                ...(semAcordado
-                  ? []
-                  : [
-                      {
-                        chave: 'acordado',
-                        rotulo: 'Acordado',
-                        cor: 2,
-                        padrao: 'contorno',
-                      } as const,
-                    ]),
-                { chave: 'realizado', rotulo: 'Realizado', cor: 1, padrao: 'liso' } as const,
-              ]}
+              series={[{ chave: 'realizado', rotulo: 'Entregas', cor: 1, padrao: 'liso' } as const]}
             />
           ) : (
             <AmostraInsuficiente n={d.base.n} codigo="T3" oQue="Percentuais de alocação" />
           )}
-          <ul className="flex flex-col gap-1 text-sm" aria-label="Desvio por natureza">
+          <ul className="flex flex-col gap-1 text-sm" aria-label="Divisão por fatia">
             {d.naturezas.map((n) => {
               const m = med(n)
               return (
@@ -115,10 +83,9 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
                   <strong>{n.natureza}:</strong>
                   <span>
                     {ok && m.pct !== null
-                      ? `realizado ${fmtPct(m.pct)}${n.acordadoPct === null ? '' : ` · acordado ${fmtPct(n.acordadoPct)}`}${m.desvioPP === null ? '' : ` · desvio ${m.desvioPP > 0 ? '+' : ''}${fmtNumero(m.desvioPP, 1)} p.p.`}`
-                      : `${fmtInteiro(m.quantidade)} ${unidade}${n.acordadoPct === null ? '' : ` · acordado ${fmtPct(n.acordadoPct)}`}`}
+                      ? `realizado ${fmtPct(m.pct)} · ${fmtInteiro(m.quantidade)} ${unidade}`
+                      : `${fmtInteiro(m.quantidade)} ${unidade}${n.abaixoDe20 ? ' · menos de 20 entregas' : ''}`}
                   </span>
-                  {ok && m.statusMeta === 'fora' && <SeloDesvio />}
                 </li>
               )
             })}
