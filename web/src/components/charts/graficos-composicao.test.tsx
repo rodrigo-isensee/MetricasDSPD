@@ -113,7 +113,7 @@ describe('Barras', () => {
     ).toEqual(['3', '0'])
   })
 
-  it('série vazia no meio: cor e padrão das demais são recalculados por posição', () => {
+  it('série vazia no meio: cor e padrão das demais mantêm cor e padrão da posição na lista completa', () => {
     const cats = [{ rotulo: 'Sem 1', valores: { a: 1, vazia: null, b: 2, c: 3 } }]
     const ss = [
       { chave: 'a', rotulo: 'Alfa' },
@@ -127,8 +127,8 @@ describe('Barras', () => {
     const preenchimento = (rotulo: string) =>
       within(legenda).getByText(rotulo).querySelector('rect[rx]')?.getAttribute('fill')
     expect(preenchimento('Alfa')).toBe('var(--serie-1)')
-    expect(preenchimento('Beta')).toMatch(/-listras-2\)$/)
-    expect(preenchimento('Gama')).toMatch(/-pontos-3\)$/)
+    expect(preenchimento('Beta')).toMatch(/-pontos-3\)$/)
+    expect(preenchimento('Gama')).toMatch(/-hachura-4\)$/)
   })
 
   it('tooltip da linha usa o formatador próprio da linha', async () => {

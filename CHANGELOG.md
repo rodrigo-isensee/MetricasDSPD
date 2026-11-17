@@ -1,6 +1,6 @@
 # Changelog
 
-Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemVer (enquanto `0.x`, MINOR absorve o que seria MAJOR). Escrito à mão a partir dos Conventional Commits de `origin/homolog..origin/develop`.
+Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemVer (enquanto `0.x`, MINOR absorve o que seria MAJOR). Montado dos fragmentos `changelog.d/<branch>.md` que cada PR grava (`pnpm run changelog novo`); o `tech-lead` os junta aqui por PR para a `develop` antes da promoção (`docs/engineering/praticas.md`, "CHANGELOG por fragmentos"). Não edite o topo à mão.
 
 ## [Não publicado]
 
@@ -10,10 +10,17 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 
 ### Alterado
 
+- CHANGELOG em fragmentos (pedido 105, K-377, E7.440): cada PR grava `changelog.d/<branch>.md` em vez de editar o topo do `CHANGELOG.md` (fim dos conflitos entre PRs); `node scripts/changelog.mjs juntar <versão> <data>` junta os fragmentos na promoção e os apaga; `conferir` valida o formato (dentro do `pronto`, em `test:trava`) e `conferir-release` barra fragmento esquecido. O histórico do `CHANGELOG.md` não foi reescrito; a seção "Não publicado" existente continua valendo e recebe os fragmentos. Volta 1: o fragmento aceita todas as seções do CHANGELOG (incluindo Mudanças de critério de cálculo e Mudanças que quebram), o fluxo diz quem junta e por qual PR, e o nome do fragmento leva o prefixo da branch.
 - S1 (MTTA e MTTR): mede só os chamados da escala P1 a P5 da matriz (decisão B do dono, pedido 105, E7.238); chamados de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prazo saem da conta e são contados em `foraDaMatriz` (campo opcional novo no resultado), e o cartão e a nota dizem quantos são. Nova coluna `dim_chamado.escala_p` (migração 0040, nula até a reprojeção), nova versão de critério `105:S1-escala-p` e novo comando `ac:reprojetar-escala`, do dono: preenche a coluna a partir do staging, só onde é nula, sem chamar o Acelerato. Enquanto a coluna não é preenchida, o S1 real responde "sem dado real" com o motivo. Passo para o dono: migrar, rodar `pnpm --filter @metricas-dspd/server run ac:reprojetar-escala` com a coleta parada e registrar o critério com `criterios-ac`.
 
 ### Corrigido
 
+- Gráfico de barras: cor e padrão presos à série na lista completa recebida, não à posição depois do filtro; quando uma série some, as demais mantêm cor e padrão, na legenda e no desenho (pedido 105, K-366, E7.452).
+- O25 em estado vazio mostra o aviso de preenchimento (cards com motivo de descarte que ficaram fora da taxa), como já fazia com dado (pedido 105, K-399, E7.463).
+- Faixa Sem prioridade com n = 0 mostra só "nenhum cartão sem prioridade neste recorte", sem a frase fixa nem o complemento (pedido 105, K-378, E7.451).
+- Cartão no estado vazio: a nota de exclusão tem o mesmo espaço da caixa tracejada em todos os cartões, inclusive S8 e T9 (pedido 105, K-400, E7.467).
+- Cartão em estado vazio mostra a nota de exclusão (quantos itens ficaram de fora) no O19, E6, S1, S5, S6, S7, S8 e S11, como já fazia o T9 (pedido 105, K-373, E7.450).
+- Domínio do BusinessMap: texto acima do limite do esquema (ex.: `regra`, 3000 caracteres) é recusado com mensagem que nomeia o campo e o tamanho (`campo regra tem 3012 caracteres, limite 3000`), sem o valor; o limite e o arquivo não mudam (pedido 105, K-385, E7.446).
 - Coleta do BusinessMap: os campos 48 (Causa Raiz) e 49 (Origem da Demanda) casam pelo `value_id`, que é o que a API manda nos cards (sem rótulo); antes o 48 casava pelo rótulo e a carga viraria tudo desconhecido. O arquivo de domínio guarda o `value_id` de cada opção (12 no 48, 6 no 49), `value_id` fora do catálogo vira desconhecido e é contado, e `origem_demanda` passa a ser coletada para o O14 ("Demanda nova" é demanda de valor, não falha). Versão de critério de 2026-11-16 marca O14 e O17 (pedido 105, E7.203).
 - `bm:ref-sync` grava por campo: campo igual ao vigente fica como está (sem nova vigência, sem erro); campo novo ou mudado grava; campo mudado que já tem vigência aberta na data é recusado sozinho, com a mesma mensagem, e listado em `recusados` na saída, e os outros gravam. Antes uma recusa derrubava a carga toda (os motivos de bloqueio não entravam depois da Causa Raiz do mesmo dia). Histórico só cresce (append-only); a versão de critério segue uma vez por texto (pedido 105, K-383, E7.269).
 - S8 (taxa de reabertura) só com incidentes com o campo de reincidência respondido, decisão A do dono (pedido 105, E7.237): "sem resposta" sai do denominador e o cartão diz "N incidentes sem resposta no campo"; abaixo de 20 respondidos, amostra insuficiente pela biblioteca (testes nas bordas 19 e 20); campo novo e opcional `semResposta` no contrato (compatível); versão de critério `105:S8-so-respondidos` (afeta S8), gravada pelo `ac:ref-sync`. Substitui a D-10.

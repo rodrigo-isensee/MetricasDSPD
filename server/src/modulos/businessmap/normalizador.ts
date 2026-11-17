@@ -139,7 +139,7 @@ const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null
 
 /**
  * L2-b: colunas de lista a partir de `custom_fields` do staging (`{ field_id, valor: código }`, já reduzido pela allow-list). Só preenche coluna do enum
- * e campo do mapa; `desconhecido` (ou valor que não é texto) vira `null` com a nota `campo_fora_do_dominio` (contagem, nunca o valor). Sem mapa, tudo nulo.
+ * e campo do mapa; `desconhecido` (ou valor que não é texto) vira `null` com a nota `campo_fora_do_dominio`, e campo sem seleção (nulo ou vazio) vira `null` com `campo_sem_selecao` (contagem, nunca o valor). Sem mapa, tudo nulo.
  */
 export function colunasDeLista(card: Record<string, unknown>, mapa: ReadonlyMap<string, string>, notas: string[]): Record<(typeof COLUNAS_LISTA)[number], string | null> {
   const r: Record<(typeof COLUNAS_LISTA)[number], string | null> = { ...COLUNAS_LISTA_NULAS };
@@ -151,7 +151,8 @@ export function colunasDeLista(card: Record<string, unknown>, mapa: ReadonlyMap<
     const coluna = id === null ? undefined : mapa.get(id);
     if (coluna === undefined || !(COLUNAS_LISTA as readonly string[]).includes(coluna)) continue;
     const valor = typeof v.valor === 'string' && v.valor !== '' && v.valor !== VALOR_DESCONHECIDO ? v.valor.slice(0, 80) : null;
-    if (valor === null) notas.push('campo_fora_do_dominio');
+    // K-393: campo presente sem seleção (nulo ou vazio) é não preenchido; `desconhecido` ou valor que não é texto é preenchido fora do domínio
+    if (valor === null) notas.push(v.valor === null || v.valor === undefined || v.valor === '' ? 'campo_sem_selecao' : 'campo_fora_do_dominio');
     r[coluna as (typeof COLUNAS_LISTA)[number]] = valor;
   }
   return r;

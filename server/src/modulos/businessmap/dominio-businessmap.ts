@@ -168,6 +168,18 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
 export type ArquivoDominioBm = z.infer<ReturnType<typeof criarEsquemaDominioBm>>;
 export interface DominioBmLido { arquivo: ArquivoDominioBm; sha256: string }
 
+/**
+ * K-385: texto acima do limite do esquema nomeia o campo (caminho do esquema, índices como `#`) e o tamanho, nunca o valor.
+ * Ex.: `campo regra tem 3012 caracteres, limite 3000`.
+ */
+function descreverExcessoDeTexto(bruto: unknown, issue: { code: string; path: PropertyKey[]; origin?: unknown; maximum?: unknown }): string[] {
+  if (issue.code !== 'too_big' || issue.origin !== 'string') return [];
+  // too_big de string: o caminho existe no bruto e aponta para uma string (o esquema só a leu por ali).
+  const texto = issue.path.reduce<unknown>((a, p) => (a as Record<PropertyKey, unknown>)[p], bruto) as string;
+  const nome = issue.path.map((p) => (typeof p === 'number' ? '#' : String(p))).join('.');
+  return [`campo ${nome} tem ${texto.length} caracteres, limite ${String(issue.maximum)}`];
+}
+
 /** Lê e valida o texto (nunca grava nada). O hash é o do texto exato do arquivo. */
 export function analisarDominioBm(texto: string, tipos: readonly string[] = TIPOS_SELECAO_UNICA): DominioBmLido {
   if (texto.length > TAMANHO_MAXIMO_ARQUIVO) throw new ErroDominio('arquivo', 'o arquivo de domínio do BusinessMap passa do tamanho máximo');
@@ -180,7 +192,8 @@ export function analisarDominioBm(texto: string, tipos: readonly string[] = TIPO
   const r = criarEsquemaDominioBm(tipos).safeParse(bruto);
   if (!r.success) {
     const onde = [...new Set(r.error.issues.map((i) => i.path.slice(0, 3).map((p) => (typeof p === 'number' ? '#' : 'item')).join('.') || 'raiz'))].join(', ');
-    throw new ErroDominio('arquivo', `o arquivo de domínio do BusinessMap é inválido (${onde})`);
+    const excessos = r.error.issues.flatMap((i) => descreverExcessoDeTexto(bruto, i));
+    throw new ErroDominio('arquivo', `o arquivo de domínio do BusinessMap é inválido (${onde})${excessos.length > 0 ? `: ${excessos.join('; ')}` : ''}`);
   }
   return { arquivo: r.data, sha256: createHash('sha256').update(texto, 'utf8').digest('hex') };
 }

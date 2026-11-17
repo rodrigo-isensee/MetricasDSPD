@@ -34,6 +34,19 @@ const recusa = (texto: string, tipos: readonly string[] = TIPOS_DO_TESTE): strin
   throw new Error('deveria recusar');
 };
 
+describe('K-385: texto acima do limite nomeia o campo e o tamanho', () => {
+  it('regra com 3001 caracteres: a mensagem diz o campo e o tamanho, sem o valor', () => {
+    const msg = recusa(arquivo([campo()], { regra: 'x'.repeat(3001) }));
+    expect(msg).toContain('campo regra tem 3001 caracteres, limite 3000');
+    expect(msg).not.toContain('xxxxx');
+  });
+  it('texto aninhado acima do limite também nomeia o campo; regra no limite (3000) passa', () => {
+    expect(() => analisarDominioBm(arquivo([campo()], { regra: 'x'.repeat(3000) }), TIPOS_DO_TESTE)).not.toThrow();
+    const msg = recusa(arquivo([campo({ valores: [{ codigo: 'a1', rotulo: 'r'.repeat(121) }] })]));
+    expect(msg).toContain('campo campos.#.valores.#.rotulo tem 121 caracteres, limite 120');
+  });
+});
+
 describe('bm:ref-sync: o arquivo versionado', () => {
   it('E7.203: os campos 48 e 49 trazem o value_id de cada opção (catálogo do spike); o 49 tem as 6 opções; value_id vira lista valor_id_<coluna> no ref_dominio', () => {
     const lido = lerDominioBm();
