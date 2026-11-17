@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s1-escala-p1-p5
-commit: 07cfc675032c45616599d29a0dc9ec8de547bd8c
+commit: 549dfd8b9d8c7e7f85eca204ac7db7740a2f561c
 parecer: aprovado
 resultado: aprovado
 escopo: incremental
@@ -45,9 +45,21 @@ Execução (banco descartável `qa105b` no PostgreSQL 17 do Compose, criado e re
 | CA-4 | casos 4 e 5 | nulo x preenchido; idempotência; mais de um lote | passou |
 | CA-5 | `acelerato.test.ts` (S1), com o teste novo de U5 | 19 x 20; escala fora da matriz | passou |
 | CA-6 | `painel-real-f6.test.ts` | escala não projetada | passou |
-| CA-7 | `criterios-acelerato.test.ts` | histórico preservado | passou |
+| CA-7 | `criterios-acelerato.test.ts` (dez entradas: S8, EI_SUST 9º, S1 10º) | histórico preservado; ordem da junção | passou no head 549dfd8b |
 | CA-8 | `sustentacao.test.tsx`, com o teste novo de U8 | números no lugar certo | passou |
 | Migração (pg) | `acelerato-l9c.pg`, `catalogo.pg` | down/up e snapshot | passou local |
 
 ## Vermelho antes do verde e mutação
 Da 1ª rodada (código da base `57989aa0` sobre os testes do head): os testes novos do S1, da escala, do critério e do cartão caem sem a implementação. Mutantes M1 a M4 e U1 a U8: todos mortos, exceto M1 (equivalente observável, aceito: o SELECT já filtra nulos na mesma transação). U5 e U8 passaram de sobreviventes a mortos nesta rodada.
+
+## Revalidação da junção (head 549dfd8b, só a junção com a develop)
+Head revisado: 549dfd8b (merge da develop edfff4d8, com #505 EI_SUST e #515 K-394, sobre 07cfc675). Escopo incremental, só a junção.
+
+Delta: o `forge-check parecer delta` lista no domínio os arquivos que o S1 e a EI_SUST tocam em comum (criterios-acelerato.ts e seu teste, origem.ts, schemas.ts, openapi.json, metricas.md, CHANGELOG.md, acelerato.test.ts, painel-real-f6.test.ts). Conferi que o S1 não mudou: comparei as linhas mudadas de ab12a37f..07cfc675 com as de origin/develop..549dfd8b. Mesmos arquivos, mais docs/devops/105-s1-escala-p.md (documento); no código e nos testes a única diferença é a ordem da lista de critérios (EI_SUST 9º, S1 10º) e o teste de criterios-acelerato com dez entradas e o par 10/S1. Migração 0040, normalizador, projetor, S1, serviço e cartão idênticos aos aprovados.
+
+Execução local no head (só os cenários; a suíte inteira fica para o CI do PR; não afirmo CI verde, sem PR):
+- server: criterios-acelerato.test.ts e painel-real-f6.test.ts, 2 arquivos, 64 testes passaram.
+- packages/metricas: acelerato.test.ts (S1), 27 passaram.
+- web: sustentacao.test.tsx (cartão do S1), 25 passaram.
+
+Resultado: aprovado, sem achados. A marca 105:S1-escala-p segue com a métrica S1 e a EI_SUST fica na 9ª posição.
