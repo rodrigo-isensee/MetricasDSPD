@@ -11,7 +11,7 @@ import {
   FonteAjustada,
 } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
-import { CartaoO19 } from './operacionais'
+import { CartaoO19, CartaoO25 } from './operacionais'
 import { CartaoE6 } from './estrategicas'
 import { CartaoS11, CartaoS8 } from './sustentacao'
 
@@ -38,6 +38,20 @@ const CASOS: {
       x.abertosForaDaSoma = fora
     },
     texto: /2 bloqueios ainda abertos não entram na soma/,
+  },
+  {
+    id: 'O25',
+    cartao: (f) => <CartaoO25 filtros={f} />,
+    filtros: FILTROS_FLUXO,
+    testid: 'o25-aviso-preenchimento',
+    esvaziar: (x, fora) => {
+      x.encerrados.n = 0
+      x.encerrados.k = 0
+      x.base.n = 0
+      x.avisoPreenchimento = { itens: fora }
+    },
+    texto:
+      /Aviso de preenchimento: 2 cards têm motivo de descarte sem estar descartado nem excluído; fora da taxa/,
   },
   {
     id: 'E6',
