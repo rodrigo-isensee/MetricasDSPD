@@ -82,3 +82,68 @@ Meta: espera assíncrona de volta a 5000 no CI e variável `METRICAS_DSPD_ESPERA
 - Sem acesso a `nproc` do runner nos logs: a contagem de 2 vCPU vem da documentação do GitHub para repositório privado; o passo 1 a confirma.
 - Os dois runs medidos foram os únicos com o passo `cobertura` completo disponíveis na janela recente; os demais foram cancelados por `concurrency`. Amostra de 2: a conclusão de contenção é por convergência de evidências (linha do tempo da sobreposição, mediana, estação 2,6x mais rápida), não por experimento controlado.
 - Nenhuma ferramenta foi instalada; nada foi executado no CI além de ler logs.
+
+## 6. Custo em minutos (decisão do dono, 17/11)
+
+Decisão do dono, literal: "voce nao deve fazer nada que gasta dinheiro, porque voce esta dizendo sobre dinheiro real". Nada abaixo paga, sobe limite ou pede mais franquia (`R-CUSTO`). Só leitura (`gh run list`, `gh run view`); nenhum workflow foi mudado nem rerun pedido. Esta seção é documento: as propostas são etapas próprias, com review e parecer de devops.
+
+### 6.1 Quanto o CI gasta (medido)
+
+Método: `gh run list --workflow ci.yml --limit 100` e `gh run view <id> --json jobs`; minuto cobrado = duração de cada job arredondada para cima, somada por run (Linux, multiplicador 1; job `skipped` não conta). Janela: 17/11, de 19:18Z a 21:10Z (49 runs do `ci.yml` que de fato executaram). Amostra de um dia intenso (várias branches do pedido 105), não média mensal; o `homolog.yml` vem à parte.
+
+| Gatilho | Runs | Min por run (média) | Min no total |
+|---|---|---|---|
+| push em branch de trabalho (`ci/`, `docs/`, `feat/`, `test/`) | 39 | 21 (completo: 32; cancelado no meio: 15) | 820 |
+| push em `develop` | 4 | 14 | 58 |
+| `pull_request` | 6 | 68 (completo: 90; cancelado: 58) | 409 |
+| soma | 49 | 26 | 1287 |
+
+Onde está o grosso, em média por run completo:
+- **push:** `testes` 20,4 min de um total de 32; `banco` 3,1; `rapida` 3,4; `build` 1,8; `openapi`, `imagem`, `seguranca` e `filtro` cerca de 1 cada. `e2e-parte` e `perf` não rodam em push.
+- **pull_request:** `e2e-parte` 56,5 min (as duas partes somadas, cerca de 28 cada) mais `testes` 20,0; o resto como no push. O PR custa 87 a 94 min contra 29 a 36 do push.
+- **`perf`:** só em PR para `homolog`/`main` e no cron das 05:00Z (teto 30 min); não apareceu na janela.
+- **homolog (`homolog.yml`):** 10 runs recentes entre 47 e 60 min cada (push e noturna), com 90 min na noturna de 14:45Z de hoje, que foi cancelada. A noturna roda todo dia (cerca de 55 min/dia) e hoje é informativa.
+- **Desperdício já medido:** 35 runs cancelados por `concurrency` consumiram 710 dos 1287 min (55%). O cancelamento acontece, mas depois de os jobs já terem corrido vários minutos: `cancel-in-progress` limita o dano, não o zera.
+- **Duplicidade:** `on: push` sem filtro de branch mais `pull_request` fazem cada commit de branch com PR disparar dois runs, em grupos de `concurrency` diferentes (`ci-<ref>` e `ci-<nº do PR>`, `ci.yml:11`). Exemplo: `ci/105-k405-diagnostico`, push às 21:06Z (31 min, `testes` verde) e PR às 21:07Z (86 min). O push de branch de trabalho custou 820 min na amostra; quase todo ele tem PR aberto logo em seguida.
+- **Documentação:** as 13 execuções de branches `docs/` (12 push, 1 PR) gastaram 317 min, 25% do total, rodando `testes`, `banco`, `e2e` etc. para mudança que, pelo nome da branch, é só documento. O `ci.yml` só filtra o job `banco` por caminho (`ci.yml:104-115`); o `homolog.yml` já separa documento de código no job `escopo`.
+
+Franquia: não consigo ler o plano nem o saldo (ver 6.4). Os valores documentados do GitHub são 2000 min/mês no plano Free e 3000 no Pro e no Team para repositório privado; o plano deste repositório não está visível aqui. Só como ordem de grandeza: 1287 min em menos de 2 horas, medidos nesta janela, equivalem a 64% de 2000.
+
+### 6.2 O #549 aumenta os minutos cobrados?
+
+Cobra-se a soma dos jobs, não o tempo de parede. O #549 não cria job: troca um passo por três dentro do job `testes` (e do `qualidade` do homolog). Logo o custo é a duração desse job.
+
+- Hoje server e web correm juntos e o passo leva 13,6 a 21,3 min (seção 1); o job `testes` leva 20,4 min em média nos 12 pushes completos da janela.
+- Em sequência o passo vira (mock + metricas, cerca de 2,3 min) + server sozinho + web sozinho. Com os números disponíveis: 2,3 + até 10,6 (o server medido em paralelo, 638 s; sozinho tende a ser menor) + de 5,8 a 7,5 (o web sozinho, hipótese de 350 a 450 s, sem confirmação) = cerca de 19 a 20 min. **No melhor caso fica igual ao de hoje; no pior (o web sozinho não acelera), sobe.** Em 2 vCPU tirar a concorrência não cria vazão: o ganho só existe se a contenção custar mais do que o paralelismo rende. É isso que o #549 existe para medir, e só mede gastando um run completo (cerca de 20 min no `testes`, mais os demais jobs).
+- Sobe também o risco de o `qualidade` do homolog (teto 20 min, `homolog.yml:69`) estourar, o que gera rerun e mais minuto.
+- O #549 não economiza nada por si. O benefício esperado é parar a falha por espera de 5 s (o run vermelho de 21 min 15 s mais o rerun custa cerca de 2 x 23 min).
+
+Recomendação de custo zero ou menor:
+1. **Manter o #549 segurado** enquanto a cota não voltar: o passo 1 (que só mede) custa um run a mais e o 2a não tem benefício garantido.
+2. Quando houver cota, aplicar **só o "Medir o runner"** (`nproc`, `free -m`, `uptime`, três comandos de leitura, segundos de custo) **sem separar o web**: responde "quantos núcleos" sem mudar a duração do job. A separação do web (2a) só se o dono quiser o número "web sozinho" e aceitar um run a mais.
+3. **2b sem separar:** `maxWorkers: process.env.CI ? 2 : 4` em `web/vite.config.ts:79` mantém o passo único e não adiciona job. Efeito nos minutos: neutro ou menor (menos troca de contexto em 2 vCPU), só confirmável medindo; arquivo de produto web, dono `react-frontend`, fora de `.github/` (sem rótulo do dono).
+4. O passo 4 do diagnóstico (shard 3x) **fica fora**: triplica os minutos do web, contra a decisão do dono.
+
+### 6.3 Formas de gastar menos sem afrouxar portão
+
+Estimativas sobre a amostra de 1287 min. "Arquivo protegido" = muda `.github/workflows/ci.yml` ou `homolog.yml`: pede o rótulo `afrouxa-regra` do dono no PR e envio pelo dono (o token do bot não tem o escopo `workflow`).
+
+| # | Medida | Economia estimada | Risco | Arquivo protegido |
+|---|---|---|---|---|
+| 1 | CI completo só no PR: restringir `on.push` a `branches: [develop, homolog]`. O PR já roda tudo, mais o e2e que o push não tem | Os 820 min de push em branches de trabalho (64% do medido) caem para perto de zero nas que viram PR. Perde-se só o feedback de branch sem PR, que o `pnpm run pronto` local e o `pre-push` cobrem | Entre o push e a abertura do PR não há run na branch. O check exigido segue vindo do evento `pull_request` com os mesmos nomes de job; confirmar com o dono que o ruleset não depende do evento `push` | Sim (`ci.yml:3-8`) |
+| 2 | `concurrency` única por branch para push e PR (grupo pelo nome da branch), no lugar da medida 1 | Cancelaria o run superado, mas não é determinístico: o último a nascer cancela o outro, e o push mais novo pode cancelar o run do PR, deixando o PR sem o check exigido. Descartada em favor da 1 | Alto: PR sem check | Sim |
+| 3 | Pular jobs pesados quando só muda documento (`docs/**`, `*.md`, `KANBAN.md`, `changelog.d/**`...), no padrão do `escopo` do `homolog.yml`, mantendo `rapida` e `docs:check` | Run só de documento cai de 31 min (push) e 95 min (PR) para cerca de 5 min. Na amostra, as 13 execuções `docs/` custaram 317 min (25%), o teto do ganho | Médio: a lista de caminhos precisa ser exata (o `homolog.yml` usa `tools/homolog escopo`, que já faz isso); job `skipped` conta como aprovado nos checks exigidos. Não é teste pulado para ficar verde: o código não mudou (`R-VERIFY`) | Sim |
+| 4 | `cancel-in-progress` já existe (`ci.yml:12`); os cancelados gastaram 710 min porque o cancelamento chega tarde | Indireta, via medida 1 (menos runs por commit); isolado, não há mais o que ligar | Nenhum | Não muda arquivo |
+| 5 | Desligar a noturna do `homolog.yml` (`cron 30 5`) enquanto a cota estiver curta: é informativa hoje (`CLAUDE.md`, passo 7) | Cerca de 55 min por dia (49 a 59 min por run) | Perde a regressão diária de homologação; decisão do dono | Sim (`homolog.yml:10-11`) |
+| 6 | `perf` noturno do `ci.yml` (`cron 0 5`, teto 30 min) | Até 30 min por dia | Perde o desempenho diário; só se a medida 5 não bastar | Sim |
+
+Ordem sugerida, sem custo: 1, depois 3, depois 5 se o dono decidir. As medidas 1 e 3 não afrouxam portão: o PR segue rodando tudo para o que mudou de código. Nenhuma é aplicada agora.
+
+### 6.4 O que dá para saber da virada da cota
+
+Sem permissão de cobrança, o que se lê:
+- **Primeiro run que não começou:** run 44179619337, criado às 21:25:13Z em `feat/105-tamanho-sprints`; todos os jobs terminam em 2 s com `failure` e a anotação "The job was not started because recent account payments have failed or your spending limit needs to be increased". **Isso é 21:25Z, não 22:08Z:** os 14 runs de 21:25Z a 22:45Z falham do mesmo jeito, em segundos, e o último que executou de verdade foi o 44177028702 (criado 21:10:35Z, `testes` até 21:34:34Z). A virada fica entre 21:10Z e 21:25Z; os 22:08Z do relato são apenas um dos runs sem início.
+- **Efeito da virada:** jobs já em andamento continuaram (o `e2e-parte (2/2)` do PR de 21:07Z rodou até 21:43Z); jobs novos não iniciam.
+- **O que não dá para ler:** saldo, plano, data de renovação e minutos usados no mês. `gh api users/<dono>/settings/billing/actions` devolve 404 (pede o escopo `user`, que o bot não recebe de propósito e não será pedido). `GET /repos/.../actions/runs/<id>/timing` devolve `billable` zerado até em run verde de 19 min, então não serve para custo em repositório privado. O número confiável só está em Settings > Billing, com o dono; a soma de jobs arredondados acima é a melhor leitura sem permissão.
+- **Cache:** `GET /repos/.../actions/cache/usage` mostra 10,73 GB ativos em 44 caches, acima dos 10 GB de armazenamento gratuito; o despejo dos mais antigos é automático e não há limite pago configurado. Só observação, sem ação.
+- Sem cota, qualquer push gera um run que falha em segundos sem gastar minuto (não pedir rerun). A verificação possível até a renovação é local (`pnpm run pronto`); se isso basta para mesclar é decisão do dono (`R-CONFORMIDADE`).
