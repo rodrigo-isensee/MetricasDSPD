@@ -283,9 +283,11 @@ export function CartaoS11({ filtros }: P) {
       q={q}
       semTabela
       baseVariante={d?.escopo.status === 'ok' ? 'ok' : 'insuficiente'}
-      complementoVazio={(r) => (
-        <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
-      )}
+      complementoVazio={(r) =>
+        r.semFluxo > 0 ? (
+          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
+        ) : null
+      }
       leitura={
         d
           ? `${textoTaxa(d.escopo)} dos chamados P1, P2 e encerrados por contorno têm avaliação de Problema.`
