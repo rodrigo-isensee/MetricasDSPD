@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: ci/105-timeout-testes
-commit: 504266a0699ee28e6ef66180c33e892ba99143bd
+commit: 18f168415b1c98a22b4ee28f031240d27ee9c704
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-17
@@ -22,5 +22,14 @@ Diff `808a163c..504266a0`: `.github/workflows/ci.yml` (2 linhas) e `changelog.d/
 - Ferramentas e CI: sem PR para a branch, a suíte fica para o CI do PR; não afirmo CI verde neste head e o brief não traz PQ do autor. O `docs/engineering/praticas.md` não traz regra "decidida por" que alcance estes arquivos.
 - Pipeline: o parecer de pipeline é do `devops-engineer`; não o refaço.
 
+## Revalidação (18f16841, E7.543)
+Delta lido: `forge-check parecer delta docs/reviews/105-ci-timeout-testes.md` (504266a0..18f16841): `ci.yml`, `homolog.yml`, `changelog.d/ci-105-timeout-testes.md`, `web/src/test/setup.ts`, `web/vite.config.ts`.
+
+- Lentidão local segue visível: o `test.env` do `vite.config.ts` usa `process.env.METRICAS_DSPD_ESPERA_ASYNC_MS ?? '5000'`; sem a variável, a espera fica em 5 s na estação, como antes.
+- Variável só no CI: `git grep` no 18f16841 acha a definição apenas no passo `pnpm run cobertura` de `ci.yml:56` e `homolog.yml:81`.
+- Cobertura de ramos: `setup.ts` não ganha ramo (uma chamada `Number(...)`); o `??` está em `vite.config.ts`, fora do `include` da cobertura (`src/**`). Limiares de 100% intocados.
+- Nada pulado, sem retry nem `continue-on-error`; motivo no changelog e nos comentários. Pipeline: parecer do `devops-engineer`, não refeito.
+- CI do #546 na leitura: build, filtro, imagem, openapi e seguranca verdes; rapida, banco e e2e-parte pendentes. Não afirmo CI verde; o merge depende dele.
+
 ## Achados
-Nenhum.
+- A1 (recomendado) web/src/test/setup.ts:24 · `Number(...)` vira `NaN` se a variável vier vazia ou não numérica (o `??` de `vite.config.ts:76` não cobre string vazia) e as buscas esgotam na hora com erro enganoso; sugestão: validar (`Number.isFinite` e > 0) e falhar com mensagem clara. Sem gatilho na configuração atual, não bloqueia.
