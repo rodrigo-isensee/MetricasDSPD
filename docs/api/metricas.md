@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O22, O24..O26, BLOQUEADOS, T1..T14, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 69 ids, inclui as 17 complementares abaixo, as 16 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O22, O24..O27, BLOQUEADOS, T1..T14, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 70 ids, inclui as 17 complementares abaixo, as 16 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -108,12 +108,14 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | O13 | `meses[{mes,defeitos,vazaoTotal,pct:Taxa}]` | equipe, sistema, período |
 | O14 | `porArea` e `porSistema`: `{itens[{nome,entregues,criados,porTipo}] (top 10), demais}` | equipe, sistema, período |
 | O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
+| O27 | `porTipo[{ tipo ('Bug interno' ou 'Defeito em produção'), n, naoEBug, naoInformada, comCausa, causas[{ causa (código), rotulo, n, pct }] ou null }]`, `porSistema` (sempre `null`), `motivoPorSistema`. Causa raiz dos bugs do BusinessMap fechados (concluídos ou descartados) nas 12 semanas, uma coluna por tipo, nunca somadas. As 12 opções do campo, na ordem do campo; "Não é bug" e "Outros" contam como causa; sem causa (ou valor fora do domínio) fica em `naoInformada`, fora do denominador. `causas` é `null` com menos de 20 bugs com causa no tipo (só os totais). Nada do Acelerato, nenhuma pessoa; não é o O17 | equipe, sistema, período (tipo não atua). Ainda sem cartão no catálogo (`CATALOGO_CARTOES`): o cartão, o "leia junto" do O15 e o registro na tela entram com a tela (L3) |
 | O17 (Sustentação, Acelerato) | `campoDisponivel`, `porCausa[{causa,n}]` ou `null` (incidentes encerrados; null sem dado real), `motivoCausaRaiz` (texto ou `null`; motivo de `porCausa` nulo), `porSistema[{sistema,n}]` (categoria do chamado, dado real) | equipe, prioridade, período (filtros da sustentação; não mais de fluxo) |
 | T6 | `entradas{itens,semanas}`, `semPrioridade{n,total}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
 | T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
 | E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |
 | E5 | `vazaoSemanal{n,mediana}`, `projetos[{projetoId,projeto,frentesRestantes,frentesAdicionadasAposInicio,previsao}]` | sistema, período |
 | S8 | `campoDisponivel`, `cobertura{n,total}`, `metaMaxPct`, `meses[{encerrados (incidentes abertos no mês),informados (com o campo `reincidente` informado: denominador do mês),reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
+| S1 (pedido 105, E7.238) | `foraDaMatriz?{outrasEscalas:number,semPrazo:number}` (campo novo opcional, aditivo): o S1 mede só os chamados da escala P1 a P5 da matriz (`dim_chamado.escala_p`, migração 0040; critério `105:S1-escala-p`); aqui, os chamados fechados na janela e nos filtros de equipe que ficaram fora: de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prioridade (sem prazo). Só contagem, não depende do filtro de prioridade. `base.n` e `excecoesForaDaApuracao` contam só a escala P. Sem a coluna preenchida (reprojeção `ac:reprojetar-escala` ainda não rodada), o S1 real responde `sem-dado-real` com o motivo `MOTIVO_ESCALA_NAO_PROJETADA` | equipe, prioridade, período |
 | S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
 | S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
 | S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `semFluxo:number`, `conversao:Taxa` ou nulo, `motivoConversao:string` ou nulo | equipe, período (prioridade não atua) |

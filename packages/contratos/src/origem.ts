@@ -136,6 +136,12 @@ export const MOTIVO_ALVOS_NAO_CARREGADOS =
  */
 export const MOTIVO_FLUXOS_PROC_NAO_CARREGADOS =
   'fluxos do PROC não carregados (ref_dominio, campo fluxo_proc); o dono roda o ac:ref-sync'
+/**
+ * Pedido 105 (E7.238, S1 B do dono): o S1 mede só a escala P1 a P5 da matriz e precisa saber a escala de cada chamado (`dim_chamado.escala_p`, migração 0040).
+ * Chamado com prioridade e sem a coluna preenchida = reprojeção ainda não rodada: nada é presumido e o estado é "sem dado real" com este motivo.
+ */
+export const MOTIVO_ESCALA_NAO_PROJETADA =
+  'escala da prioridade dos chamados não projetada (dim_chamado.escala_p); o dono roda o ac:reprojetar-escala'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
 export const BLOQUEIOS_COM_DADO_REAL = true
@@ -157,12 +163,20 @@ export const O26_DATA_DADO_REAL = '01/02/2027'
 export const MOTIVO_O26_HISTORICO_RESPONSAVEIS = `A base guarda a troca de responsável dos cards desde ${O26_INICIO_HISTORICO_RESPONSAVEIS}; a métrica precisa de 12 semanas de histórico e passa a ter dado real a partir de ${O26_DATA_DADO_REAL}.`
 
 /**
+ * Pedido 105 (E7.218, O27): o O27 só entra no mapa real depois da carga real do campo Causa Raiz (bm:ref-sync, recoleta completa dos bugs e
+ * bm:projetar); até lá, publicar seria uma coluna inteira de "não informada". Frase em minúsculas sem ponto final.
+ */
+export const MOTIVO_O27_AGUARDANDO_CARGA =
+  'aguardando a carga do campo Causa Raiz dos bugs do BusinessMap'
+
+/**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 seguem mock até a F6b, sem motivo próprio; o O26 tem o seu (E7.55).
  * Sustentação: a EI_SUST saiu no pedido 105 (E7.243). S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O26: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
+  O27: MOTIVO_O27_AGUARDANDO_CARGA,
 }
 
 /** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, FL2, FL3, Visão geral e a tendência da sustentação). */

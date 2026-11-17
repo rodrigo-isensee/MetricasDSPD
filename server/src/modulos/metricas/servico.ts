@@ -1,5 +1,5 @@
 import {
-  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_ESCALA_NAO_PROJETADA, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
@@ -289,6 +289,10 @@ export class ServicoMetricas {
       // L18 (dono, 15/11, E3.298): na API padrão o S1 sem alvos responde "sem dado real" com o motivo; o 503 fica só no modo mock explícito.
       if (this.deps.modoMock !== true) return { ...semDado(), resultado: { ...corpoSemDadoReal(id), motivo: MOTIVO_ALVOS_NAO_CARREGADOS }, chave: `${id}|sem-alvos` };
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
+    }
+    // Pedido 105 (E7.238, S1 B do dono): o S1 mede só a escala P1 a P5; chamado com prioridade e sem `escala_p` (reprojeção pendente) = sem dado real, nada presumido.
+    if (ac !== null && this.deps.modoMock !== true && id === 'S1' && ac.base.chamados.some((c) => c.prioridade !== undefined && c.escala_p === undefined)) {
+      return { ...semDado(), resultado: { ...corpoSemDadoReal(id), motivo: MOTIVO_ESCALA_NAO_PROJETADA }, chave: `${id}|sem-escala-p` };
     }
     // Pedido 105 (D2, P1 = B): S5, S6 e S7 valem só para os cinco fluxos do PROC; sem a lista na base real nada é presumido.
     if (ac !== null && this.deps.modoMock !== true && ac.base.config.fluxos_proc === undefined && METRICAS_COM_FLUXOS_PROC.includes(id)) {

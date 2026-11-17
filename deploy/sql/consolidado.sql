@@ -1566,6 +1566,10 @@ ALTER TABLE dspd_bm.dim_card ADD COLUMN primeiro_toque_em timestamptz(3) NULL,
 
 INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0039_bm_toque_primeiro', now());
 
+ALTER TABLE dspd_ac.dim_chamado ADD COLUMN IF NOT EXISTS escala_p boolean NULL;
+
+INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0040_ac_dim_chamado_escala_p', now());
+
 REVOKE ALL ON SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;

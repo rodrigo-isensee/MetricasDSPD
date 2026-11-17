@@ -9,3 +9,4 @@ export { NOMES_ETAPA_LISTA } from './listas-fechadas.js';
 export { expandir } from './sql.js';
 export { reprojetarEtapasAcelerato, ErroReprojecao, type ResultadoReprojecao } from './reprojecao-etapas.js';
 export { reprojetarFluxoAcelerato, type ResultadoReprojecaoFluxo } from './reprojecao-fluxo.js';
+export { reprojetarEscalaAcelerato, type ResultadoReprojecaoEscala } from './reprojecao-escala.js';

@@ -94,12 +94,12 @@ d('reprojeção do fluxo (D2) dos chamados já projetados (pg)', () => {
     ]);
   });
 
-  it('segunda execução não muda nenhuma tabela de dados (só registra a execução)', async () => {
+  it('K-397: segunda execução não muda tabela alguma e não registra execução (a marca d agua não se move)', async () => {
     const antes = await dados();
     const execAntes = await execucoes();
     const r = await reprojetarFluxoAcelerato(dono, E, () => relogio);
-    expect(r).toMatchObject({ lidos: 2, preenchidos: 0, fluxoMultiplo: 1, semFluxo: 1 });
+    expect(r).toMatchObject({ coletaId: null, lidos: 2, preenchidos: 0, fluxoMultiplo: 1, semFluxo: 1 });
     expect(await dados()).toEqual(antes);
-    expect(await execucoes()).toBe(execAntes + 1);
+    expect(await execucoes()).toBe(execAntes);
   });
 });

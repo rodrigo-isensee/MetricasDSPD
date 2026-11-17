@@ -77,6 +77,7 @@
  "dspd_ac.dim_chamado.fora_do_recorte boolean NOT NULL DEFAULT false",
  "dspd_ac.dim_chamado.categoria_key bigint NULL",
  "dspd_ac.dim_chamado.fluxo text NULL",
+ "dspd_ac.dim_chamado.escala_p boolean NULL",
  "dspd_ac.dim_chamado_versao.chamado_versao_sk bigint NOT NULL",
  "dspd_ac.dim_chamado_versao.chamado_id character varying(32) NOT NULL",
  "dspd_ac.dim_chamado_versao.vigente_de timestamp with time zone NOT NULL",
