@@ -41,12 +41,18 @@ export function SemPrioridade({
       {destaque ? <Icone nome="alerta" className="mt-0.5 size-4 shrink-0" /> : null}
       <span>
         <strong>Sem prioridade (BusinessMap):</strong>{' '}
-        {total > 0
-          ? `${fmtInteiro(n)} de ${fmtInteiro(total)} ${universo} (${fmtPct(pct)}).`
-          : `${fmtInteiro(n)} ${universo}.`}{' '}
-        Esses cartões foram trabalhados normalmente; só não têm prioridade preenchida no
-        BusinessMap, por isso ficam fora da separação por prioridade.
-        {complemento ? ` ${complemento}` : ''}
+        {n === 0 ? (
+          'nenhum cartão sem prioridade neste recorte.'
+        ) : (
+          <>
+            {total > 0
+              ? `${fmtInteiro(n)} de ${fmtInteiro(total)} ${universo} (${fmtPct(pct)}).`
+              : `${fmtInteiro(n)} ${universo}.`}{' '}
+            Esses cartões foram trabalhados normalmente; só não têm prioridade preenchida no
+            BusinessMap, por isso ficam fora da separação por prioridade.
+            {complemento ? ` ${complemento}` : ''}
+          </>
+        )}
       </span>
     </p>
   )
