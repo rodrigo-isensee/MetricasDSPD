@@ -69,6 +69,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão B do dono (pedido 105, E7.238, 16/11): a escala P1 a P5 cobre só 174 chamados; mais de 4.600 usam escalas com prazos próprios. Antes o S1 media todos contra os alvos da matriz. Afeta S1.',
     metricas: ['S1'],
   },
+  {
+    referencia: '105:S1-pausa-validacao',
+    descricao: 'S1 pausa o relógio de SLA na etapa "Aguardando Validação": a comparação da etapa passa a ignorar caixa, espaços e acentos; a lista de etapas que pausam não muda',
+    motivo: 'K-389 (A3 do review do EI_SUST, pedido 105, E7.412): a comparação era de caixa exata e a etapa real é "Aguardando Validação", então o SLA não pausava nela. Os chamados que passaram por essa etapa têm o tempo de SLA do S1 recalculado. Afeta S1.',
+    metricas: ['S1'],
+  },
 ];
 
 /**
