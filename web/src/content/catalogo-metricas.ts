@@ -534,7 +534,7 @@ const COMPLEMENTARES: readonly Compl[] = [
   [
     'T15',
     'Tamanho das sprints',
-    'Quantos dias úteis dura uma sprint do time?',
+    'Quantos dias úteis dura uma sprint?',
     'tatico',
     'BusinessMap',
     'demanda',

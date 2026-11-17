@@ -38,7 +38,19 @@ describe('T15: tamanho das sprints', () => {
     expect(el).toHaveTextContent(/P50/)
     expect(el).toHaveTextContent(/P85/)
     expect(el).toHaveTextContent(/Média/)
-    expect(el).toHaveTextContent(/as sprints dos times se somam; para ver um time, filtre por ele/)
+    // Cada frase no seu lugar: trocar só a do cartão ou só a da nota derruba o teste.
+    const nota = within(el).getByTestId('nota-T15')
+    const paragrafos = (raiz: HTMLElement) =>
+      Array.from(raiz.querySelectorAll('p')).map((p) => p.textContent)
+    const fraseCartao =
+      'Com mais de um time no filtro (ou nenhum), as sprints dos times se somam; para ver um time, filtre por ele. Sem meta e sem comparar times. A média só vale lida com o P50 e o P85.'
+    const fraseNota =
+      'Com mais de um time no filtro (ou nenhum), as sprints dos times se somam; para ver um time, filtre por ele. Não compara times nem ordena sprints. Só BusinessMap.'
+    const foraDaNota = Array.from(el.querySelectorAll('p')).filter((p) => !nota.contains(p))
+    expect(foraDaNota.map((p) => p.textContent)).toContain(fraseCartao)
+    expect(paragrafos(nota)).not.toContain(fraseCartao)
+    expect(paragrafos(nota)).toContain(fraseNota)
+    expect(foraDaNota.map((p) => p.textContent)).not.toContain(fraseNota)
   })
 
   it('abaixo de 20 sprints só a contagem, sem P50, P85 nem média', async () => {
