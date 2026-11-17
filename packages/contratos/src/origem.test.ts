@@ -70,11 +70,12 @@ describe('origemDaMetrica (H-13)', () => {
         ...['T10'], // pedido 105 (E7.77): tempo total esperando fornecedores
         ...['T9'], // pedido 105 (E7.68, D-T9 "T9 A")
         ...['T11'], // pedido 105 (E7.64, D-T11 "A")
+        ...['EI_SUST'], // pedido 105 (E7.243, P-EI-1 B, P-EI-2 A, P-EI-3)
       ].sort(),
     )
   })
 
-  it('sustentação: EI_SUST segue sem dado real com o seu motivo; S1 (D4), S9 (D5a), S5, S6 e S7 (pedido 105, D2) e S11 (pedido 105, D6a) são reais', () => {
+  it('sustentação: EI_SUST é real (pedido 105, E7.243) e sem motivo de mock; S1 (D4), S9 (D5a), S5, S6 e S7 (pedido 105, D2) e S11 (pedido 105, D6a) são reais', () => {
     expect(origemDaMetrica('S1')).toBe('real')
     expect(motivoDaOrigemSemDado('S1')).toBeNull()
     for (const id of ['S5', 'S6', 'S7'] as const) {
@@ -93,8 +94,9 @@ describe('origemDaMetrica (H-13)', () => {
     // Pedido 099 (D9): S12 é real só com o volume; sem motivo de dado fictício.
     expect(origemDaMetrica('S12')).toBe('real')
     expect(motivoDaOrigemSemDado('S12')).toBeNull()
-    expect(origemDaMetrica('EI_SUST')).toBe('sem-dado')
-    expect(motivoDaOrigemSemDado('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
+    expect(origemDaMetrica('EI_SUST')).toBe('real')
+    expect(motivoDaOrigemSemDado('EI_SUST')).toBeNull()
+    expect(MOTIVO_ORIGEM_MOCK).not.toHaveProperty('EI_SUST')
   })
 
   it('métrica de sustentação real não tem motivo de dado fictício', () => {
