@@ -331,7 +331,7 @@ describe('Acelerato', () => {
     expect(r.ajusteDePrioridade.justificados).toEqual({ k: 1, n: 3 })
   })
 
-  it('espera invisível da sustentação usa os totalizadores: cliente = vida; time = em atendimento', () => {
+  it('espera invisível da sustentação (E7.243): cliente = tempo das etapas sem as finais; time = cliente menos esperas e fila inicial', () => {
     const ctx = criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO)
     const r = calcularEIAcelerato(ctx, F)
     expect(r.fonte).toBe('Acelerato')
