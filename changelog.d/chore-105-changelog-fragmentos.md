@@ -1,0 +1,3 @@
+### Alterado
+
+- CHANGELOG em fragmentos (pedido 105, K-377, E7.440): cada PR grava `changelog.d/<branch>.md` em vez de editar o topo do `CHANGELOG.md` (fim dos conflitos entre PRs); `node scripts/changelog.mjs juntar <versão> <data>` junta os fragmentos na promoção e os apaga; `conferir` valida o formato (dentro do `pronto`, em `test:trava`) e `conferir-release` barra fragmento esquecido. O histórico do `CHANGELOG.md` não foi reescrito; a seção "Não publicado" existente continua valendo e recebe os fragmentos. Volta 1: o fragmento aceita todas as seções do CHANGELOG (incluindo Mudanças de critério de cálculo e Mudanças que quebram), o fluxo diz quem junta e por qual PR, e o nome do fragmento leva o prefixo da branch.
