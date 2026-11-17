@@ -70,6 +70,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S1',
   // Pedido 099 (D9): S12 real só com o volume por sistema; reincidência e exceção de SLA por registro posterior saem sem fonte (nulas, com nota).
   'S12',
+  // Pedido 105 (E7.243, P-EI-1 B, P-EI-2 A, P-EI-3): EI_SUST pelo tempo por etapa e o de-para D5a; versão de critério `105:EI_SUST`.
+  'EI_SUST',
   // Pedido 099 (O12, E3.223): acordos e vencidos pelo prazo nativo do card; a parte de responsabilidade do atraso sai nula com o motivo (`RESPONSABILIDADE_ATRASO_COM_FONTE`).
   'O12',
   // Pedido 105 (E7.5): O15 real pela coluna do card da demanda na abertura do bug (`dim_card.fase_deteccao`, tabela `fase_deteccao_coluna` aprovada pelo dono); só entram os bugs com pai na base, com a nota de quantos ficaram fora.
@@ -163,13 +165,12 @@ export const MOTIVO_O27_AGUARDANDO_CARGA =
 
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 seguem mock até a F6b, sem motivo próprio; o O26 tem o seu (E7.55).
- * Sustentação: a EI_SUST não consta do plano 056, então não se calcula por inferência. S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
+ * Sustentação: a EI_SUST saiu no pedido 105 (E7.243). S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O26: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
   O27: MOTIVO_O27_AGUARDANDO_CARGA,
-  EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
 /** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, FL2, FL3, Visão geral e a tendência da sustentação). */

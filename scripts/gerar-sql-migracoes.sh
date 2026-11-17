@@ -9,7 +9,7 @@ NOME="sql-gerador-$$"
 TMP="$(mktemp -d)"
 cleanup() { docker rm -f "$NOME" >/dev/null 2>&1 || true; rm -rf "$TMP"; }
 trap cleanup EXIT
-gerar() { pnpm --filter @metricas-dspd/server exec tsx "$PWD/scripts/gerar-sql-migracoes.mjs" "$@"; }
+gerar() { DSPD_GERADOR_VIA_WRAPPER=1 pnpm --filter @metricas-dspd/server exec tsx "$PWD/scripts/gerar-sql-migracoes.mjs" "$@"; }
 psqla() { docker exec -i "$NOME" psql -v ON_ERROR_STOP=1 -q -U postgres "$@"; }
 
 gerar arquivos

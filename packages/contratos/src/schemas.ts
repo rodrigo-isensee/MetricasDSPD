@@ -816,6 +816,22 @@ const segmentoEI = z.object({
     }),
   ),
 })
+/** Tempo (horas úteis, soma) e chamados que passaram por um grupo de etapas da EI_SUST; contagem, não estatística. */
+const parteEsperaSust = z.object({ chamados: z.number(), horasUteis: z.number() })
+/**
+ * Pedido 105 (E7.243): o que a EI_SUST deixou de fora ou classificou por suposição, na janela de percentis, para o cartão nunca mostrar
+ * zero em silêncio. `filaInicial` conta como espera invisível (P-EI-3); `naoDecididas` ficam como tempo do time; `finais` ficam fora das
+ * duas visões (P-EI-2); `semEtapas` são chamados fechados sem tempo por etapa, fora da estatística.
+ */
+const composicaoEsperaSust = z.object({
+  chamados: z.number(),
+  semEtapas: z.number(),
+  filaInicial: parteEsperaSust,
+  finais: parteEsperaSust,
+  naoDecididas: parteEsperaSust.extend({
+    etapas: z.array(z.object({ etapa: z.string(), chamados: z.number(), horasUteis: z.number() })),
+  }),
+})
 export const resultadoEI = z.object({
   ...comum,
   nivel: z.enum(['FL1', 'FL2', 'FL3', 'SUST']),
@@ -827,6 +843,8 @@ export const resultadoEI = z.object({
   segmentoPor: z.enum(['tipo', 'prioridade']).nullable(),
   /** Nunca agregados: uma estatística e uma série por segmento (briefing 4.2). A UI mostra um por vez. */
   segmentos: z.array(segmentoEI),
+  /** Só na SUST (Acelerato); ausente nos níveis do BusinessMap. */
+  composicao: composicaoEsperaSust.optional(),
 })
 
 /* ---------- Visão geral ---------- */

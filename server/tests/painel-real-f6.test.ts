@@ -227,7 +227,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(d.chamadas).toHaveLength(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; EI_SUST responde sem dado real; S5, S6, S7 e S11 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
+  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; EI_SUST (pedido 105, E7.243) é real; S5, S6, S7 e S11 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
     for (const id of ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
@@ -246,10 +246,11 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
       expect(r.json(), id).toEqual({ estado: 'sem-dado-real', metrica: id, motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS });
     }
     for (const id of ['EI_SUST'] as MetricaId[]) {
-      expect(origemDaMetrica(id), id).toBe('sem-dado');
+      expect(origemDaMetrica(id), id).toBe('real');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
-      expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real' });
+      expect(r.json(), id).not.toHaveProperty('estado');
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
     }
     expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, AC_REAL)).toBe(1);
