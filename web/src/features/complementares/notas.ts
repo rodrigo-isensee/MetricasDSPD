@@ -150,7 +150,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'A parcela dos incidentes abertos que são reincidentes, isto é, voltaram como novo chamado com o ticket anterior informado.',
     comoSeCalcula:
-      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta. Só publica com 20 ou mais incidentes com resposta.',
+      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta e o cartão diz quantos incidentes ficaram sem resposta no campo (decisão do dono, pedido 105). Só publica com 20 ou mais incidentes com resposta.',
     comoLer: 'Reabertura alta sugere correção que não resolveu.',
     meta: 'Abaixo de 5%.',
     cuidados:
@@ -163,7 +163,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Horas úteis na etapa Pendente (P50, P85 e P95 por motivo) e retornos até a previsão ÷ pendências com previsão.',
     comoLer: 'Mostra onde o chamado espera por alguém de fora da sustentação.',
     meta: SEM_ALVO,
-    cuidados: 'Motivos com menos de 20 pendências não publicam percentis.',
+    cuidados:
+      'Motivos com menos de 20 pendências não publicam percentis. O motivo da pendência não está sendo preenchido no Acelerato; por isso aparece como Não classificado.',
   },
   S10: {
     oQueE: 'Quanto o chamado espera entre a escalação e o aceite por alguém.',

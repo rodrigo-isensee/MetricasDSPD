@@ -51,6 +51,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão do dono (pedido 105, E7.101, 16/11): conversão pela decisão registrada no chamado, não pelo vínculo com o Registro de Problema. "Não aplicável e com justificativa" fica só no denominador; fluxos antigos ficam fora e são contados. Antes a conversão saía nula. Afeta S11.',
     metricas: ['S11'],
   },
+  {
+    referencia: '105:S8-so-respondidos',
+    descricao: 'S8 conta só os incidentes com o campo "Este problema já ocorreu nos últimos 90 dias?" respondido (sim ou não); sem resposta sai do denominador e é contado no cartão; abaixo de 20 respondidos não publica',
+    motivo: 'Decisão A do dono (pedido 105, S8, 16/11): substitui a D-10 (sem resposta = não reincidente). Hoje 195 incidentes, 186 sem resposta, 9 "não". Campo novo e opcional semResposta no contrato. Afeta S8.',
+    metricas: ['S8'],
+  },
 ];
 
 /**

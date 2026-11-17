@@ -53,6 +53,8 @@ export function calcularS8(ctx: ContextoAC, f: FiltrosSustentacao, ext?: Extensa
     metaMaxPct: META_REABERTURA_MAX_PCT,
     campoDisponivel: ext !== undefined,
     cobertura: { n: ext === undefined ? 0 : informados, total: n },
+    // Pedido 105 (E7.237, decisão A): os sem resposta saem do denominador e são contados no cartão.
+    semResposta: ext === undefined ? 0 : n - informados,
     meses: linhas,
     total,
     statusMeta:
