@@ -52,15 +52,20 @@ function criarDuble(linhas: Linha[] = []): { pool: PoolLike; linhas: Linha[]; ve
 }
 
 describe('arquivo versionado do SLE do BusinessMap', () => {
-  it('o arquivo real nasce vazio e válido: nada a gravar, o T2 segue "não definido"', async () => {
+  it('o arquivo real traz os quatro prazos aprovados em 2026-11-17 e grava na base vazia (E7.497)', async () => {
     const lido = lerSleBm();
-    expect(lido.arquivo.prazos).toEqual([]);
+    expect(lido.arquivo.prazos).toEqual([
+      { prioridade: 'Crítica', dias_uteis: 12.5, aprovado_em: '2026-11-17' },
+      { prioridade: 'Alta', dias_uteis: 5.8, aprovado_em: '2026-11-17' },
+      { prioridade: 'Média', dias_uteis: 11.2, aprovado_em: '2026-11-17' },
+      { prioridade: 'Baixa', dias_uteis: 2.1, aprovado_em: '2026-11-17' },
+    ]);
     expect(lido.sha256).toBe(analisarSleBm(readFileSync(ARQUIVO_SLE_BM, 'utf8')).sha256);
     const d = criarDuble();
     const r = await sincronizarSleBm(d.pool, S, lido, HOJE, AGORA);
-    expect(r).toMatchObject({ prazos: 0, inseridas: 0, fechadas: 0, versaoRegistrada: false });
-    expect(d.escritas).toEqual([]);
-    expect(d.versoes).toEqual([]);
+    expect(r).toMatchObject({ prazos: 4, inseridas: 4, fechadas: 0, versaoRegistrada: true });
+    const r2 = await sincronizarSleBm(d.pool, S, lido, HOJE, AGORA);
+    expect(r2).toMatchObject({ inseridas: 0, fechadas: 0 });
   });
 
   it('arquivo vazio não fecha nem apaga prazo já gravado (o histórico fica)', async () => {
