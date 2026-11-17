@@ -76,7 +76,17 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm run typecheck
       # E7.541: no runner, buscas do web (findBy) passam de 5 s (5,2 a 8,5 s) só por lentidão; a folga vale só aqui.
-      - run: pnpm run cobertura
+      # E7.546 (K-405, passo 1): mede o runner antes da cobertura.
+      - name: Medir o runner
+        run: |
+          nproc
+          free -m
+          uptime
+      # E7.546 (K-405, passo 2a): o web roda em passo próprio, depois dos demais pacotes.
+      - name: Cobertura (todos menos o web)
+        run: pnpm -r --if-present --filter '!@metricas-dspd/web' run cobertura
+      - name: Cobertura do web
+        run: time pnpm --filter @metricas-dspd/web run cobertura
         env:
           METRICAS_DSPD_ESPERA_ASYNC_MS: '15000'
       - run: pnpm run spec:check
