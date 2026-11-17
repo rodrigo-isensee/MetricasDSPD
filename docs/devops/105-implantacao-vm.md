@@ -78,7 +78,7 @@ Também em `coleta.env`. Só leitura, e o certificado do servidor é obrigatóri
 
 ### 1.6 Homologação (`.env.homolog`)
 
-Modelo: `.env.homolog.example`. Tem `HOMOLOG_PG_SUPERUSER_PWD` (senha do administrador, obrigatória) e as mesmas `DSPD_PWD_*` da seção 1.1 (as do banco local de homologação, que sobe o próprio Postgres), todas obrigatórias e sem valor padrão. Opcionais: `HOMOLOG_PG_PORT` (15432), `HOMOLOG_API_PORT` (13000), `HOMOLOG_WEB_PORT` (18080). **A homologação usa só dados fictícios**: não leva chave do BusinessMap nem senha do Acelerato.
+Modelo: `.env.homolog.example`. Tem `HOMOLOG_PG_SUPERUSER_PWD` (senha do administrador, obrigatória) e as oito senhas do banco local de homologação (que sobe o próprio Postgres), todas obrigatórias, sem valor padrão, com 12 ou mais caracteres e nunca `*_dev`: `DSPD_PWD_MIGRADOR`, `DSPD_PWD_COLETOR`, `DSPD_PWD_API`, `DSPD_PWD_REF`, `DSPD_PWD_WEBHOOK`, `DSPD_PWD_AUTOMACAO`, `DSPD_PWD_PESQUISA` e `DSPD_PWD_APONTAMENTO`. A seção 1.1 lista só cinco; `WEBHOOK`, `AUTOMACAO` e `PESQUISA` também são exigidas aqui (conferido contra `docker-compose.homolog.yml`). Opcionais: `HOMOLOG_PG_PORT` (15432), `HOMOLOG_API_PORT` (13000), `HOMOLOG_WEB_PORT` (18080). **A homologação usa só dados fictícios**: não leva chave do BusinessMap nem senha do Acelerato.
 
 ## 2. Comandos
 
