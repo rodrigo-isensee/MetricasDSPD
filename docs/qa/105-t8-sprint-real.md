@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feat/105-t8-sprint-real
-commit: 453348a218247c5f9ca0e451a99cc210366c3db5
+commit: 7c403716af70267388fb1cf15cda3c28023178c3
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -48,3 +48,23 @@ Não usei `forge-testes` (comando do Forge, não deste projeto).
 
 ## Achados
 - A1 (recomendado) server/tests/migracoes.estatico.test.ts:1 · revalidar após o T3 (0041) entrar na develop; se a numeração ainda falhar, vira bloqueante.
+
+## Revalidação (head 7c403716, delta desde 453348a2)
+parecer: aprovado. A regra nova do dono (decisão 2 = A: a sprint entra no período pela conclusão, `first_end` dentro do período; recorte antes de `semDatas` e `acimaDoTeto`; sem `first_end` fica de fora) confere em `t8.ts` (`concluiNoPeriodo` antes de `janelaValida`), com a versão de critério e o changelog. Sem PR e sem CI: não afirmo suíte inteira verde.
+
+| Obrigação | Teste | Resultado | Fronteira protegida |
+|---|---|---|---|
+| Sprint longa concluída fora das 12 semanas não conta em `acimaDoTeto`; a de dentro conta; sem `first_end` fica fora | `t8.test.ts` "E7.536: sprint acima do teto fora do período..." | verde no head; vermelho com o `t8.ts` anterior | borda do período; `first_end` nulo |
+| Sprint sem `first_end` não entra em `semDatas` (3 para 2) | `t8.test.ts` "sem as duas datas ou acima do teto..." (ajustado) | verde no head; vermelho com o `t8.ts` anterior | datas nulas |
+| Cartão: `MINIMO_AMOSTRA` do contrato, legenda em sprints, frase de ampliar o período | `t8-dado-real.test.tsx` | verde (web complementares: 14 arquivos, 393 testes) | menos de 20 |
+
+### Vermelho antes do verde (regra nova)
+Cópia descartável em `$TMPDIR` (árvore do autor intocada), testes do head com o `t8.ts` de `453348a2`: `vitest run src/businessmap/t8.test.ts` deu `Tests 2 failed | 8 passed (10)`:
+- "sem as duas datas ou acima do teto": `expected { semDatas: 3, acimaDoTeto: 1 } to deeply equal { semDatas: 2, acimaDoTeto: 1 }`.
+- "E7.536 ... 12 semanas": `expected { semDatas: 1, acimaDoTeto: 2 } to deeply equal { semDatas: 0, acimaDoTeto: 1 }`.
+Com o `t8.ts` do head: `Tests 10 passed (10)`. Não usei `forge-testes` (não é deste projeto).
+
+### Execução no head
+- `packages/metricas`: 58 arquivos, 1496 testes verdes. `web` (complementares): 393 verdes.
+- `server`: `painel-real-f6.test.ts` verde; `migracoes.estatico.test.ts` com a falha esperada `0042_bm_sprint: expected 42 to be 41` (A1 segue aberto: reteste depois que a 0041 do T3 entrar na develop; não é defeito do T8).
+- Não repeti o `test:pg` (o delta não toca banco nem migração).
