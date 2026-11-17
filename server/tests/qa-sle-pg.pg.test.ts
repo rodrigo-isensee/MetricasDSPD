@@ -31,12 +31,17 @@ d('QA K-214 sle contra PG (dspd_ref)', () => {
     Number((await c.query(`SELECT count(*) n FROM ${S.core}.ref_versao_criterio`)).rows[0].n),
     Number((await c.query(`SELECT count(*) n FROM ${S.core}.ref_versao_criterio_metrica`)).rows[0].n)];
 
-  it('CT-1 arquivo real (vazio): nada gravado', async () => {
+  it('CT-1 arquivo real: grava os 4 prazos aprovados; 2ª rodada sem duplicar', async () => {
     await comoRef(ref, async (pool, c) => {
       const antes = await cont(c);
-      const r = await sincronizarSleBm(pool, S, lerSleBm(), HOJE, AGORA);
-      expect(r).toMatchObject({ prazos: 0, inseridas: 0, fechadas: 0, versaoRegistrada: false });
-      expect(await cont(c)).toEqual(antes);
+      const lido = lerSleBm();
+      const r = await sincronizarSleBm(pool, S, lido, HOJE, AGORA);
+      expect(r).toMatchObject({ prazos: 4, inseridas: 4, fechadas: 0, versaoRegistrada: true });
+      const depois = await cont(c);
+      expect(depois).toEqual([antes[0]! + 4, antes[1]! + 1, antes[2]! + 2]);
+      const r2 = await sincronizarSleBm(pool, S, lido, HOJE, AGORA);
+      expect(r2).toMatchObject({ prazos: 4, inseridas: 0, fechadas: 0, versaoRegistrada: false });
+      expect(await cont(c)).toEqual(depois);
     });
   });
   it('CT-2 uma linha: grava ref_sle (*, P85, classe=prioridade), versao T2+O3; lerSle enxerga', async () => {

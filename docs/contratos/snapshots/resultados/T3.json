@@ -138,17 +138,14 @@
           "natureza": {
             "type": "string",
             "enum": [
-              "Sustentação",
-              "Evolução",
-              "Projetos",
-              "Dívida técnica"
+              "Produto",
+              "Habilitador",
+              "Correção em produção",
+              "Saúde técnica e de processo"
             ]
           },
-          "acordadoPct": {
-            "type": [
-              "number",
-              "null"
-            ]
+          "abaixoDe20": {
+            "type": "boolean"
           },
           "itens": {
             "type": "object",
@@ -161,27 +158,11 @@
                   "number",
                   "null"
                 ]
-              },
-              "desvioPP": {
-                "type": [
-                  "number",
-                  "null"
-                ]
-              },
-              "statusMeta": {
-                "type": "string",
-                "enum": [
-                  "dentro",
-                  "fora",
-                  "sem-referencia"
-                ]
               }
             },
             "required": [
               "quantidade",
-              "pct",
-              "desvioPP",
-              "statusMeta"
+              "pct"
             ],
             "additionalProperties": false
           },
@@ -196,34 +177,18 @@
                   "number",
                   "null"
                 ]
-              },
-              "desvioPP": {
-                "type": [
-                  "number",
-                  "null"
-                ]
-              },
-              "statusMeta": {
-                "type": "string",
-                "enum": [
-                  "dentro",
-                  "fora",
-                  "sem-referencia"
-                ]
               }
             },
             "required": [
               "quantidade",
-              "pct",
-              "desvioPP",
-              "statusMeta"
+              "pct"
             ],
             "additionalProperties": false
           }
         },
         "required": [
           "natureza",
-          "acordadoPct",
+          "abaixoDe20",
           "itens",
           "tempo"
         ],

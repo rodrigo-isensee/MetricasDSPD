@@ -291,7 +291,9 @@ test.describe('K-023 Operacional semanal', () => {
     await expect(page.locator('#o12')).toHaveCount(1)
     // O12 com a responsabilidade do atraso (105, E7.214): com número de vencidos por causa interna o item aparece na faixa, com o link "Ver O12",
     // e não há lacuna (sem número a faixa diz a lacuna no lugar dele; atencao.test.ts cobre os dois casos).
-    await expect(painel.faixaAtencao).not.toContainText(/O12: vencidos por causa interna sem dado real/)
+    await expect(painel.faixaAtencao).not.toContainText(
+      /O12: vencidos por causa interna sem dado real/,
+    )
     await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveCount(1)
     // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12')
@@ -338,19 +340,21 @@ test.describe('K-007 Tático', () => {
     await expect(page).toHaveURL(/#t1/)
   })
 
-  test('TAT-05 T3: selo de desvio só quando > 10 p.p. (consistência com os números)', async ({
+  test('TAT-05 T3: quatro fatias pelo tipo, sem acordado, desvio nem selo (E7.496)', async ({
     painel,
   }) => {
     await painel.ir('/tatico')
     const t3 = painel.cartao('T3')
     await t3.esperarPronto()
     const txt = await t3.raiz.innerText()
-    const desvios = [...txt.matchAll(/desvio ([+-−]?\d+,\d) p\.p\./g)].map((m) =>
-      Math.abs(Number(m[1]!.replace('−', '-').replace(',', '.'))),
-    )
-    const selos = (txt.match(/Desvio acima de 10 p\.p\./g) ?? []).length
-    expect(desvios.length).toBeGreaterThan(0)
-    expect(selos).toBe(desvios.filter((d) => d > 10).length)
+    for (const f of [
+      'Produto',
+      'Habilitador',
+      'Correção em produção',
+      'Saúde técnica e de processo',
+    ])
+      expect(txt).toContain(f)
+    expect(txt).not.toMatch(/acordado|desvio [+-−]?\d|Desvio acima/i)
   })
 
   test('TAT-06 T4 por prioridade: "A fila cresce" sem "semanas para zerar" numérico', async ({

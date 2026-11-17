@@ -22,12 +22,14 @@ export const NOTAS_TATICO = {
       'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por prioridade. Enquanto o dono não aprovar os prazos, o SLE fica não definido. A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a separação passou a ser pela prioridade do cartão.',
   },
   T3: {
-    oQueE: 'Distribuição das entregas por natureza do trabalho contra o acordo.',
+    oQueE: 'Como as entregas se dividiram entre quatro fatias do trabalho, pelo tipo do card.',
     comoSeCalcula:
-      'Itens entregues no período agrupados por natureza; acordo é o definido pela coordenação.',
-    comoLer: 'A distância entre as barras é a decisão a tomar.',
-    meta: 'Desvio máximo de 10 pontos percentuais.',
-    cuidados: 'Contar cards distorce quando os tamanhos diferem muito.',
+      'Itens entregues no período agrupados pelo tipo do card: Produto (Item de trabalho, História, Gestão, Acompanhamento de atividades e qualquer tipo sem categoria própria), Habilitador (Enabler), Correção em produção (Incidente de Produção, Bug de Produção, Chamado) e Saúde técnica e de processo (Débito técnico, Processos, Kaizen, Otimização de processo). Bug interno fica fora, projeto e frente acima não mudam a fatia, e o setor é só filtro.',
+    comoLer:
+      'Mostra a divisão realizada, sem comparar com combinado. Fatia com menos de 20 entregas mostra só a contagem, sem percentual, e a soma dos percentuais mostrados pode ficar abaixo de 100%.',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Contar cards distorce quando os tamanhos diferem muito; use o tempo em execução para conferir. Critério com data: o Enabler passou a ser Habilitador em 17/11/2026 (marca no gráfico).',
   },
   T4: {
     oQueE: 'Chegada de pedidos contra a vazão.',
@@ -50,7 +52,7 @@ export const NOTAS_TATICO = {
     comoSeCalcula:
       'Mesmas definições do nível operacional, na granularidade de frente (feature e pacote contam igual).',
     comoLer: 'Um time pode ter WIP baixo de stories e estar dividido entre seis frentes.',
-    meta: 'Limite explícito de frentes.',
+    meta: 'Sem limite de frentes, por decisão do dono.',
     cuidados:
       'Frente que não cabe em 1 ou 2 sprints precisa ser quebrada; a granularidade de frente nunca entra no histograma de story.',
   },

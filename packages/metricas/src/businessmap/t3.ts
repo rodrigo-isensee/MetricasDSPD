@@ -1,16 +1,30 @@
 import type { ResultadoT3 } from '@metricas-dspd/contratos'
-import type { StatusMeta } from '@metricas-dspd/contratos'
-import { META_DESVIO_ALOCACAO_PP } from '@metricas-dspd/contratos'
+import { FATIAS_T3, type FatiaT3, type TipoCard } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { publicavel } from '../core/estatistica'
 import { baseAmostral, criterios, dentro, du, ehDemanda, periodoDe, r2, selecionar } from './comum'
 import type { ContextoBM, MarcosCard } from './indice'
 
 type Natureza = 'Sustentação' | 'Evolução' | 'Projetos' | 'Dívida técnica'
-const NATUREZAS: readonly Natureza[] = ['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica']
-const DESVIO_MAXIMO_PP = META_DESVIO_ALOCACAO_PP
 
-/** Mapeamento tipo → natureza (P8 provisório): item com projeto acima = Projetos; senão pelo tipo. */
+/**
+ * T3 (pedido 105, E7.496, T3 = A do dono de 2026-11-17): a fatia sai só do tipo do card, sem olhar projeto nem frente acima. Tipo sem categoria
+ * especial (Trabalho de produto, Iniciativa) = Produto; Bug interno não é demanda (`ehDemanda`) e nunca chega aqui.
+ */
+const FATIA_DO_TIPO: Record<TipoCard, FatiaT3> = {
+  'Trabalho de produto': 'Produto',
+  Iniciativa: 'Produto',
+  Habilitador: 'Habilitador',
+  'Defeito em produção': 'Correção em produção',
+  Incidente: 'Correção em produção',
+  Requisição: 'Correção em produção',
+  'Dívida técnica': 'Saúde técnica e de processo',
+  Melhoria: 'Saúde técnica e de processo',
+  'Bug interno': 'Produto',
+}
+export const fatiaT3De = (m: MarcosCard): FatiaT3 => FATIA_DO_TIPO[m.card.tipo]
+
+/** Mapeamento tipo → natureza do E7 (P8 provisório; o T3 deixou de usá-lo): item com projeto acima = Projetos; senão pelo tipo. */
 export function naturezaDe(m: MarcosCard): Natureza {
   if (m.projetoId !== null) return 'Projetos'
   switch (m.card.tipo) {
@@ -25,7 +39,7 @@ export function naturezaDe(m: MarcosCard): Natureza {
   }
 }
 
-/** T3: alocação da capacidade, acordado x realizado, por itens e por tempo em execução. */
+/** T3: como as entregas se dividiram entre as quatro fatias, por itens e por tempo em execução. Sem acordado, sem desvio, sem selo de meta (D-T3b). */
 export function calcularT3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT3 {
   const periodo = periodoDe(ctx, f)
   const xs = selecionar(ctx, f, 'story', { semTipo: true })
@@ -34,33 +48,22 @@ export function calcularT3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT3 {
   const totalItens = xs.length
   const totalHoras = xs.reduce((s, m) => s + (m.cicloHU as number), 0)
   const ok = publicavel(totalItens)
-  const medida = (q: number, total: number, acordado: number | null) => {
-    const pct = ok && total > 0 ? r2((q / total) * 100) : null
-    const desvio = pct === null || acordado === null ? null : r2(pct - acordado)
-    const statusMeta: StatusMeta =
-      desvio === null ? 'sem-referencia' : Math.abs(desvio) <= DESVIO_MAXIMO_PP ? 'dentro' : 'fora'
-    return { quantidade: r2(q), pct, desvioPP: desvio, statusMeta }
-  }
   return {
     base: baseAmostral(totalItens, 'itens entregues', periodo),
     criterios: criterios('T3', periodo, periodo, ctx),
     status: ok ? 'ok' : 'insuficiente',
-    naturezas: NATUREZAS.map((natureza) => {
-      const acordado =
-        ctx.idx.base.config.alocacao.find((a) => a.natureza === natureza)?.pct ?? null
-      const dele = xs.filter((m) => naturezaDe(m) === natureza)
+    naturezas: FATIAS_T3.map((natureza) => {
+      const dele = xs.filter((m) => fatiaT3De(m) === natureza)
+      // Fatia com menos de 20 entregas mostra só a contagem: sem percentual de itens nem de tempo, e nunca se junta a outra.
+      const fatiaOk = ok && publicavel(dele.length)
+      const horas = dele.reduce((s, m) => s + (m.cicloHU as number), 0)
+      const pct = (q: number, total: number) =>
+        fatiaOk && total > 0 ? r2((q / total) * 100) : null
       return {
         natureza,
-        acordadoPct: acordado,
-        itens: medida(dele.length, totalItens, acordado),
-        tempo: medida(
-          du(
-            ctx,
-            dele.reduce((s, m) => s + (m.cicloHU as number), 0),
-          ),
-          du(ctx, totalHoras),
-          acordado,
-        ),
+        abaixoDe20: !publicavel(dele.length),
+        itens: { quantidade: r2(dele.length), pct: pct(dele.length, totalItens) },
+        tempo: { quantidade: r2(du(ctx, horas)), pct: pct(du(ctx, horas), du(ctx, totalHoras)) },
       }
     }),
   }

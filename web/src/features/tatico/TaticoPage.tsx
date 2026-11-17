@@ -17,8 +17,6 @@ import { cartaoDeFluxo } from '@/features/complementares/registro'
 function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   const qT2 = useMetrica('T2', filtros)
   const t2 = qT2.dados
-  const qT3 = useMetrica('T3', filtros)
-  const t3 = qT3.dados
   const qT4 = useMetrica('T4', filtros)
   const t4 = qT4.dados
   const qT9 = useMetrica('T9', filtros)
@@ -38,21 +36,13 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
       texto: `Razão chegada/vazão fora de 0,9 a 1,0 em ${fora4} ${fora4 === 1 ? 'prioridade' : 'prioridades'}`,
       para: '#t4',
     })
-  const fora3 =
-    t3?.status === 'ok' ? t3.naturezas.filter((n) => n.itens.statusMeta === 'fora').length : 0
-  if (fora3)
-    itens.push({
-      id: 't3',
-      texto: `Alocação com desvio acima de 10 p.p. em ${fora3} ${fora3 === 1 ? 'natureza' : 'naturezas'}`,
-      para: '#t3',
-    })
   if (t9?.projetosComEscopoCrescido)
     itens.push({
       id: 't9',
       texto: `${t9.projetosComEscopoCrescido} ${t9.projetosComEscopoCrescido === 1 ? 'projeto' : 'projetos'} com escopo crescido`,
       para: '#t9',
     })
-  const { estado, recarregar } = estadoFaixa([qT2, qT3, qT4, qT9])
+  const { estado, recarregar } = estadoFaixa([qT2, qT4, qT9])
   return (
     <FaixaAtencao
       momento="semana"

@@ -118,7 +118,8 @@ const FILA_ANTES: Record<TipoCard, [number, number]> = {
   'Bug interno': [4, 1.0],
   'Defeito em produção': [6, 1.0],
   'Dívida técnica': [320, 0.9],
-  // O gerador nunca sorteia este tipo (só o dado real o usa); a entrada existe para o Record fechar.
+  // O gerador nunca sorteia estes dois tipos (só o dado real os usa); as entradas existem para o Record fechar.
+  Habilitador: [160, 0.9],
   'Trabalho de produto': [160, 0.9],
 }
 const MULT_TIPO: Record<TipoCard, number> = {
@@ -129,6 +130,7 @@ const MULT_TIPO: Record<TipoCard, number> = {
   'Bug interno': 0.6,
   'Defeito em produção': 0.8,
   'Dívida técnica': 2,
+  Habilitador: 1.6,
   'Trabalho de produto': 1.6,
 }
 
