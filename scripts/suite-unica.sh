@@ -6,8 +6,8 @@
 # As vagas ficam em /tmp/claude-<uid> (o diretório do TMPDIR dos agentes, que o sandbox grava; o dono no terminal
 # usa o mesmo caminho, pois ele não depende da variável TMPDIR): uma fila por estação.
 # METRICAS_DSPD_SUITE_VAGAS define quantas vagas (padrão 2, inteiro de 1 a 16).
-# METRICAS_DSPD_SUITE_GRUPO escolhe a fila: suite (padrão, usa as vagas acima) ou outro nome (ex.: pg no
-# test:pg), que tem UMA vaga própria, separada, porque o banco de teste é compartilhado (até o K-392).
+# METRICAS_DSPD_SUITE_GRUPO escolhe a fila: suite (padrão, usa as vagas acima) ou outro nome, que tem UMA vaga própria, separada: pg (test:pg; o banco de teste é compartilhado, até o K-392)
+# e e2e (test:e2e; o Playwright usa portas fixas 4173, 4174 e 4175).
 # Não aninha: se este processo (ou um ancestral) já segura uma vaga, roda o comando direto.
 # METRICAS_DSPD_SUITE_LOCK troca o prefixo do arquivo da vaga (<prefixo>-<n>.lock) e METRICAS_DSPD_SUITE_DIR troca
 # só o diretório (os dois são usados só pelo teste do script, para não disputar as vagas que o próprio pronto segura).

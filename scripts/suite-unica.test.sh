@@ -1,7 +1,7 @@
 #!/bin/bash
 # Teste do scripts/suite-unica.sh: sem banco e sem navegador.
 # 1) duas vagas: duas chamadas rodam juntas e a terceira espera; 2) uma vaga roda em série; 3) aninhada não trava;
-# 4) rc repassado; 5) caminho padrão das vagas; 6) fila pg separada, com uma vaga; 7) entradas inválidas e link simbólico.
+# 4) rc repassado; 5) caminho padrão das vagas; 6) filas pg e e2e separadas, com uma vaga cada; 7) entradas inválidas e link simbólico.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -116,6 +116,21 @@ METRICAS_DSPD_SUITE_VAGAS=8 METRICAS_DSPD_SUITE_GRUPO=pg timeout 1 bash scripts/
 [ "$?" -eq 124 ]
 verifica "pg segue com uma vaga mesmo com METRICAS_DSPD_SUITE_VAGAS=8" $?
 wait "$pG"
+
+# 6b) fila e2e: uma vaga própria (portas fixas do Playwright), separada da suíte e do pg.
+METRICAS_DSPD_SUITE_GRUPO=e2e bash scripts/suite-unica.sh sleep 4 2>/dev/null &
+pE=$!
+sleep 0.5
+METRICAS_DSPD_SUITE_GRUPO=e2e timeout 1 bash scripts/suite-unica.sh true 2>/dev/null
+[ "$?" -eq 124 ]
+verifica "e2e: a segunda chamada do e2e espera (uma vaga só)" $?
+timeout 5 bash scripts/suite-unica.sh true 2>/dev/null
+verifica "e2e ocupado não segura a fila da suíte" $?
+METRICAS_DSPD_SUITE_GRUPO=pg timeout 5 bash scripts/suite-unica.sh true 2>/dev/null
+verifica "e2e ocupado não segura a fila do pg" $?
+grep -q 'METRICAS_DSPD_SUITE_GRUPO=e2e bash scripts/suite-unica.sh' package.json
+verifica "test:e2e do package.json usa a fila e2e" $?
+wait "$pE"
 
 # 7) entradas inválidas e link simbólico.
 METRICAS_DSPD_SUITE_VAGAS=0 bash scripts/suite-unica.sh true 2>/dev/null
