@@ -3,31 +3,30 @@ tipo: qa
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-vazio-espaco-nota
-commit: 5bdb0a25769c03837fb88a7ed3ebe8698c426e39
+commit: 288a04d7aa8953004e20901efd5073fc19e7b9d2
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
-bugs_baixos: 1
+bugs_baixos: 0
 data: 2026-11-17
 ---
-# QA: 105-vazio-espaco-nota (K-400, E7.469)
+# QA: 105-vazio-espaco-nota (K-400, E7.469 e revalidação E7.474)
 
-Mudança só de espaçamento: `CartaoMetrica.tsx` envolve `complementoVazio` num `div mt-2`; S8 e T9 perdem o `mt-2` próprio. Sem teste novo (o autor declarou); sem especificação nova de UX, então não há plano antecipado.
+Mudança só de espaçamento: `CartaoMetrica.tsx` envolve `complementoVazio` num `div mt-2`; S8 e T9 perdem o `mt-2` próprio. Volta 1 (288a04d7): S5, S6, S7 e S11 só passam a nota ao `complementoVazio` com n > 0; 4 casos novos em `vazio-nota-exclusao.test.tsx`.
 
-## Achados
-- A1 (recomendado) web/src/components/ui/CartaoMetrica.tsx:395 · `complementoVazio` de S5, S6, S7 e S11 é elemento sempre truthy que rende null com n=0 (NotaForaDoFluxo); o div mt-2 sai vazio, contra "só quando há conteúdo". Bug 105-001.
+Sem achados abertos: o A1 da rodada anterior (bug 105-001) está fechado, pois S5, S6, S7 e S11 não passam mais o elemento com n=0.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| Nota do vazio com o mesmo espaço em todos os cartões | vazio-nota-exclusao.test.tsx (O19, O25, E6, S11, S8, T9; 16 testes) | vazio com nota, vazio sem nota | passou (16/16) |
-| Nenhum cartão sem nota ganha div vazio | leitura de código dos usos de `complementoVazio` | nota ausente | parcial: O19, O25, E6, S8, S1 ok; S5, S6, S7 e S11 geram div vazio com n=0 (A1) |
+| Nota do vazio com o mesmo espaço em todos os cartões | vazio-nota-exclusao.test.tsx (O19, O25, E6, S11, S8, T9) | vazio com nota | passou |
+| Nenhum cartão sem nota ganha div vazio | vazio-nota-exclusao.test.tsx, 4 casos novos (S5, S6, S7, S11 com n=0: nenhum `div.mt-2` sem filho e sem texto) | nota ausente (n=0) | passou (4/4) |
 
 ## Cenários e resultado real
-- Diff 5b2c4292..5bdb0a25: 4 arquivos (CartaoMetrica, sustentacao.tsx, CartaoT9, changelog.d); escopo confere com o brief.
-- `vitest run vazio-nota-exclusao` na worktree, head 5bdb0a25: Test Files 1 passed, Tests 16 passed (16).
-- O19, O25 e E6 devolvem null com zero e S8 devolve `false`: nada de div. S1 sempre traz texto. S5, S6 e S7 passam o prop quando há dado e S11 sempre; os quatro passam `<NotaForaDoFluxo>`, que devolve null com n<=0, mas o elemento é truthy: o div `mt-2` sai vazio (8 px de margem sem conteúdo). Antes do K-400 não rendia nada. Efeito cosmético.
-- Vermelho antes do verde: não se aplica (sem teste novo, só espaçamento). Mutação: não rodada (classes CSS, sem regra).
+- Diff 5bdb0a25..288a04d7 (delta do domínio): sustentacao.tsx (S11), CartaoS5/S6/S7 (`d && d.foraDoFluxo > 0`) e o teste; confere com o brief.
+- `vitest run vazio-nota-exclusao` no head 288a04d7: Test Files 1 passed, Tests 20 passed (20).
+- Vermelho antes do verde (`forge-testes` não existe neste projeto; feito à mão): os 4 arquivos de produção voltados ao 5bdb0a25, mesmo teste: `Tests 4 failed | 16 passed (20)`; falharam os 4 novos ("S5/S6/S7/S11: vazio com n = 0 não deixa o div da nota vazio no cartão"). Árvore restaurada ao 288a04d7, limpa.
+- Mutação: não rodada (condição `> 0` coberta pelo vermelho acima; sem ferramenta no escopo).
 - Suíte inteira: no CI do PR (ainda sem PR); o PQ do autor é `pronto rc=0`, citado, não reexecutado. Não afirmo CI verde.
