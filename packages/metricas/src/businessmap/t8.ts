@@ -13,7 +13,8 @@ import type { ContextoBM, MarcosCard } from './indice'
 
 /**
  * Janela única das sprints do T8 e do T15 (E7.504: "a janela vem da mesma função do T8"): só a sprint que tem filho nos filtros, com as duas datas, dentro do teto de
- * dias úteis e que toca o período. Sem as duas datas (ou janela invertida) e acima do teto são contadas à parte.
+ * dias úteis. A sprint entra no período pela conclusão (first_end dentro do período, E7.536, decisão 2 = A); o recorte vem antes da contagem de `semDatas` e `acimaDoTeto`,
+ * e sprint sem first_end fica de fora até concluir. Sem as duas datas (ou janela invertida) e acima do teto são contadas à parte.
  */
 export function sprintsDoRecorte(ctx: ContextoBM, f: FiltrosFluxo, ext: ExtensaoBM) {
   const periodo = periodoDe(ctx, f)
@@ -33,6 +34,9 @@ export function sprintsDoRecorte(ctx: ContextoBM, f: FiltrosFluxo, ext: Extensao
 
   let semDatas = 0
   let acimaDoTeto = 0
+  /** Regra do dono (E7.536, decisão 2 = A): a sprint entra no período pela conclusão, o first_end dentro do período; sem first_end, fica de fora até concluir. */
+  const concluiNoPeriodo = (s: Sprint): boolean =>
+    s.fim !== null && diaDeIso(s.fim) >= ini && diaDeIso(s.fim) <= fim
   const janelaValida = (s: Sprint): { inicio: string; fim: string } | null => {
     if (s.inicio === null || s.fim === null || diaDeIso(s.fim) < diaDeIso(s.inicio)) {
       semDatas++
@@ -52,11 +56,10 @@ export function sprintsDoRecorte(ctx: ContextoBM, f: FiltrosFluxo, ext: Extensao
     const itens = filhosDe.get(s.sprint_id) ?? []
     // só a sprint que tem filho nos filtros conta, inclusive para a contagem de "fora da conta"
     if (itens.length === 0) return []
+    // primeiro o recorte do período pela conclusão; só depois a validação e a contagem de "fora da conta"
+    if (!concluiNoPeriodo(s)) return []
     const janela = janelaValida(s)
-    if (janela === null) return []
-    return diaDeIso(janela.fim) >= ini && diaDeIso(janela.inicio) <= fim
-      ? [{ s, janela, itens }]
-      : []
+    return janela === null ? [] : [{ s, janela, itens }]
   })
   return { periodo, porId, dentro, semDatas, acimaDoTeto }
 }
