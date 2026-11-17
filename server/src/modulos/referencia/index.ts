@@ -17,3 +17,6 @@ export {
   ARQUIVO_ALVOS, ErroAlvos, METRICAS_ALVOS, analisarAlvos, lerArquivoAlvos, planejarAlvos, sincronizarAlvos, type ResultadoAlvos,
 } from './alvos-acelerato.js';
 export { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
+export {
+  ARQUIVO_SLE_BM, ErroSle, METRICAS_SLE, analisarSleBm, lerSleBm, planejarSle, sincronizarSleBm, type ResultadoSleBm,
+} from './sle-businessmap.js';

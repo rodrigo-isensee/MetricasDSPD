@@ -34,6 +34,7 @@
     "bm:carga-toque": "tsx src/entradas/carga-toque-businessmap.ts",
     "bm:eliminar-pessoa": "tsx src/entradas/eliminar-pessoa-apontamento.ts",
     "bm:ref-sync": "tsx src/entradas/ref-sync-businessmap.ts",
+    "bm:ref-sync-sle": "tsx src/entradas/ref-sync-sle.ts",
     "bm:ref-sync-apontamento": "tsx src/entradas/ref-sync-apontamento.ts",
     "bm:criterios-apontamento": "tsx src/entradas/criterios-apontamento.ts",
     "bm:criterios-classe-servico": "tsx src/entradas/criterios-classe-servico.ts",

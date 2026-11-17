@@ -1,0 +1,9 @@
+{
+  "versao": 1,
+  "regra": "Prazo de referência (SLE) do BusinessMap por prioridade nativa do card (Crítica, Alta, Média, Baixa), em dias úteis, percentil 85 (pedido 105, K-214, decisão D-T2 do dono). Só entra linha que o dono aprovou, com a data da aprovação; sem linha o T2 segue 'não definido'. Mudar um prazo é nova linha com data de aprovação posterior à vigente: o prazo antigo fica no histórico. Remover linha do arquivo não apaga nada da base. Nenhum dado de pessoa.",
+  "versao_criterio": {
+    "descricao": "Prazo de referência (SLE) do T2 por prioridade nativa do BusinessMap, aprovado pelo dono",
+    "motivo": "Pedido 105 (K-214, D-T2): o time propõe o P85 das últimas 12 semanas por prioridade e o dono aprova; o prazo aprovado passa a valer na data da aprovação e muda a aderência do T2 a partir dela."
+  },
+  "prazos": []
+}
