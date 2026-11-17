@@ -77,13 +77,21 @@ export function motivoDaPendencia(etapa: string, motivo: MotivoPendencia | null)
   return MOTIVO_DA_ESPERA.get(normaliza(etapa)) ?? null
 }
 
-/** Etapa que pausa o relógio de SLA da S1: as de `ETAPAS_PAUSA` e as esperas decididas (mesmo de-para da S9). */
+const semAcento = (etapa: string): string =>
+  normaliza(etapa)
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+
+const CHAVES_PAUSA_SLA: ReadonlySet<string> = new Set(
+  [...ETAPAS_PAUSA, 'Pendente', ...MOTIVO_DA_ESPERA.keys()].map(semAcento),
+)
+
+/**
+ * Etapa que pausa o relógio de SLA da S1: as de `ETAPAS_PAUSA` e as esperas decididas (mesmo de-para da S9). Comparação sem diferença de
+ * caixa, espaços nem acentos (K-389: a etapa real é "Aguardando Validação"; a lista de etapas decidida não muda).
+ */
 export function pausaOSla(etapa: string): boolean {
-  return (
-    (ETAPAS_PAUSA as readonly string[]).includes(etapa) ||
-    normaliza(etapa) === 'pendente' ||
-    MOTIVO_DA_ESPERA.has(normaliza(etapa))
-  )
+  return CHAVES_PAUSA_SLA.has(semAcento(etapa))
 }
 
 /**
