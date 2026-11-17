@@ -17,7 +17,7 @@ import {
   MOTIVOS_BLOQUEIO_PUBLICADOS,
   MOTIVOS_ENCERRAMENTO_PUBLICADOS,
   MOTIVOS_ESCALACAO_PUBLICADOS,
-  NATUREZAS_ENTREGA,
+  FATIAS_T3,
   NIVEIS_RESOLUCAO,
   ORIGENS_DEMANDA,
   PRIORIDADES,
@@ -421,24 +421,23 @@ export const resultadoT2 = z.object({
   ),
 })
 
-const natureza = z.enum(NATUREZAS_ENTREGA)
-const medidaAlocacao = z.object({
-  /** itens ou horas úteis em execução. */
+/** Pedido 105 (E7.496): a fatia do T3 traz a contagem sempre; o percentual só quando a fatia tem 20 entregas ou mais (nulo = "menos de 20 entregas"). */
+const medidaFatia = z.object({
+  /** itens ou dias úteis em execução. */
   quantidade: z.number(),
   pct: z.number().nullable(),
-  desvioPP: z.number().nullable(),
-  statusMeta: statusMetaSchema,
 })
 export const resultadoT3 = z.object({
   ...comum,
   status: z.enum(['ok', 'insuficiente']),
+  /** As quatro fatias, na ordem de `FATIAS_T3`. Sem acordado, desvio nem selo de meta (D-T3b). */
   naturezas: z.array(
     z.object({
-      natureza,
-      /** Nulo = sem referência vigente (nunca 0): statusMeta sai sem-referencia. */
-      acordadoPct: z.number().nullable(),
-      itens: medidaAlocacao,
-      tempo: medidaAlocacao,
+      natureza: z.enum(FATIAS_T3),
+      /** Fatia com menos de 20 entregas: só a contagem, sem percentual de itens nem de tempo; nunca somada a outra. */
+      abaixoDe20: z.boolean(),
+      itens: medidaFatia,
+      tempo: medidaFatia,
     }),
   ),
 })
@@ -862,7 +861,6 @@ export const alertaCodigo = z.enum([
   'O10_BACKLOG_180',
   'T2_ABAIXO_85',
   'T4_RAZAO_FORA',
-  'T3_DESVIO',
   'T9_ESCOPO',
   'E2_ABAIXO_60',
   'E3_SEM_RESULTADO',

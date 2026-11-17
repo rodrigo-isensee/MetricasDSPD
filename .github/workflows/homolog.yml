@@ -75,7 +75,10 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run format:check
       - run: pnpm run typecheck
+      # E7.541: no runner, buscas do web (findBy) passam de 5 s (5,2 a 8,5 s) só por lentidão; a folga vale só aqui.
       - run: pnpm run cobertura
+        env:
+          METRICAS_DSPD_ESPERA_ASYNC_MS: '15000'
       - run: pnpm run spec:check
       - run: pnpm run docs:check
       - run: pnpm --filter @metricas-dspd/server run openapi:verificar

@@ -40,6 +40,7 @@ export const TIPOS_CARD = [
   'Bug interno',
   'Defeito em produção',
   'Dívida técnica',
+  'Habilitador',
   'Trabalho de produto',
 ] as const
 export type TipoCard = (typeof TIPOS_CARD)[number]
@@ -52,6 +53,7 @@ export const TIPOS_FILTRO = [
   'Bug interno',
   'Defeito em produção',
   'Dívida técnica',
+  'Habilitador',
   'Trabalho de produto',
 ] as const satisfies readonly TipoCard[]
 
@@ -62,6 +64,7 @@ export const CATEGORIAS_TIPO_CARD = [
   'requisicao',
   'divida_tecnica',
   'melhoria',
+  'habilitador',
   'produto',
 ] as const
 export type CategoriaTipoCard = (typeof CATEGORIAS_TIPO_CARD)[number]
@@ -73,6 +76,7 @@ export const TIPO_DA_CATEGORIA: Record<CategoriaTipoCard, TipoCard> = {
   requisicao: 'Requisição',
   divida_tecnica: 'Dívida técnica',
   melhoria: 'Melhoria',
+  habilitador: 'Habilitador',
   produto: 'Trabalho de produto',
 }
 
@@ -212,6 +216,19 @@ export const CAUSA_RAIZ_BUG_NAO_E_BUG: CausaRaizBugCodigo = 'nao_e_bug'
 /** Naturezas de entrega do T3, reaproveitadas pelo E7 (`naturezaDe`, CA-23): lista única. */
 export const NATUREZAS_ENTREGA = ['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'] as const
 export type NaturezaEntrega = (typeof NATUREZAS_ENTREGA)[number]
+
+/**
+ * Pedido 105 (E7.496, T3 = A do dono, 2026-11-17): as quatro fatias do T3, pelo tipo do card (opção 1 da proposta). Produto = Trabalho de produto
+ * (e qualquer tipo sem categoria especial); Habilitador = Enabler; Correção em produção = Defeito em produção; Saúde técnica e de processo =
+ * Dívida técnica + Melhoria. Bug interno fica fora (retrabalho dentro de uma entrega). Lista própria do T3: o E7 segue em `NATUREZAS_ENTREGA`.
+ */
+export const FATIAS_T3 = [
+  'Produto',
+  'Habilitador',
+  'Correção em produção',
+  'Saúde técnica e de processo',
+] as const
+export type FatiaT3 = (typeof FATIAS_T3)[number]
 
 export const NATUREZAS_PROJETO = ['Manter', 'Evoluir'] as const
 export type NaturezaProjeto = (typeof NATUREZAS_PROJETO)[number]

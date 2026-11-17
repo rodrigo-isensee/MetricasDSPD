@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feat/105-t8-sprint-real
-commit: 7c403716af70267388fb1cf15cda3c28023178c3
+commit: 3aed3d5994c0ec6e8d6b511adc345afcfc3de1f9
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-17
@@ -44,6 +44,18 @@ Delta lido: `forge-check parecer delta` de `453348a2..7c403716`, 8 arquivos no d
 - A2 resolvido: `MINIMO_AMOSTRA` do contrato no cartão. A3 resolvido: legenda fala de sprints. A4 resolvido: comentário cita a 0042.
 - Rodei: `t8.test.ts` 10 passam; `t8-dado-real.test.tsx` 7 passam. Mutante: guarda `if (!concluiNoPeriodo(s)) return []` desligada (`false &&`): 3 testes falham, inclusive o novo de 12s. Morto.
 - Suíte inteira: sem PR, fica para o CI; não afirmo CI verde. A falha de numeração de migração segue esperada até o T3 (0041) entrar na develop.
+
+## Revalidação do merge (E7.557, head 3aed3d59)
+Delta lido: `forge-check parecer delta` (intervalo `7c403716..3aed3d59`, sem o que veio da develop; de `7c403716` a `fc485340` só mudaram pareceres) e `git show --cc 3aed3d59`, que traz só os 5 arquivos em conflito; os demais do domínio fundiram sem conflito, cada trecho igual a um dos pais.
+- `server/migrations/checksums.json`: 42 entradas, 0041 com o hash da develop (`1986186d…`) e 0042 com o do T8 (`85de3930…`), sem mudança.
+- `server/migrations/0042_bm_sprint.ts`: sem diferença contra `fc485340` (mesmo conteúdo); `0041_bm_ref_tipo_card_habilitador.ts` sem diferença contra a develop (`acb62951`). Numeração sequencial 0001 a 0042, sem salto nem repetição, em `server/migrations/` e nos `INSERT INTO pgmigrations` do `consolidado.sql`.
+- `server/tests/migracoes.ts`: importa e registra `m0041` e `m0042`, nessa ordem.
+- `deploy/sql/consolidado.sql`: bloco da 0041 (CHECK com `habilitador`) antes do da 0042 (`dim_sprint`, `fato_sprint_filho`, índices e gatilhos), os dois iguais aos lados de origem; `0042_bm_sprint.sql` e `9000_grants.sql` sem diferença contra `fc485340`.
+- `packages/metricas/src/core/criterios.ts`: `VERSAO_CRITERIO_T8_DADO_REAL` e `VERSAO_CRITERIO_HABILITADOR_T3` íntegras e as duas em `VERSOES_DA_BIBLIOTECA`, sem repetir id.
+- `server/tests/qa-f6-painel.test.ts`: T3 e T8 juntos na lista das reais e na exceção do FL2; `origem.ts` (fusão limpa) traz `T3` e `T8` em `METRICAS_ORIGEM_REAL`. Nada do T3 nem do T8 se perdeu.
+- Rodei: `qa-f6-painel.test.ts` e `migracoes.estatico.test.ts` 29 passam (a falha de numeração esperada até a 0041 sumiu); `criterios.habilitador.test.ts` 3 passam.
+- Suíte inteira: sem PR, fica para o CI; não afirmo CI verde. PQ do autor: `pnpm run pronto` da raiz verde e `db:sql` OK com 42 migrações no `3aed3d59` (E7.549).
+- Sem achado novo. Parecer mantido: aprovado.
 
 ## Achados
 - A1 (bloqueante) packages/metricas/src/businessmap/t8.ts:57 · resolvido em 7c403716; "acima do teto" é contado antes do recorte pelo período: a nota soma sprints de todo o histórico e `sprintsNoRecorte` só as do período (S1). Recorte antes de contar e trave com teste em `12s`.

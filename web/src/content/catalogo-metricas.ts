@@ -159,11 +159,12 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     id: 'T3',
     codigo: 'T3',
     nome: 'Alocação da capacidade',
-    pergunta: 'Nossa capacidade está sendo consumida onde acordamos que seria?',
+    pergunta:
+      'Como as entregas se dividiram entre produto, habilitador, correção em produção e saúde técnica?',
     painel: 'tatico',
     fonte: 'BusinessMap',
     granularidade: 'demanda',
-    meta: 'Desvio máximo de 10 pontos percentuais',
+    meta: 'Sem meta numérica',
   },
   {
     id: 'T4',

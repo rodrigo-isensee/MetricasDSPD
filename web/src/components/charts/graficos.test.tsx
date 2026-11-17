@@ -6,6 +6,7 @@ import {
   AreaEmpilhada,
   GraficoMensal,
   Legenda,
+  ORDEM_TIPOS,
   TooltipTema,
   corNaPosicao,
   idPadrao,
@@ -148,6 +149,16 @@ describe('tema dos gráficos', () => {
     expect(marcaDoTipo('Melhoria')).toEqual({ cor: 3, padrao: 'pontos' })
     expect(marcaDoTipo('Tipo desconhecido')).toEqual({ cor: 1, padrao: 'liso' })
     expect(marcaDoTipo('Dívida técnica')).toEqual({ cor: 1, padrao: 'listras' })
+  })
+
+  it('nenhum tipo repete a marca (cor e padrão), inclusive Habilitador e Trabalho de produto (WCAG 1.4.1)', () => {
+    expect(ORDEM_TIPOS).toContain('Habilitador')
+    expect(ORDEM_TIPOS).toContain('Trabalho de produto')
+    const marcas = ORDEM_TIPOS.map((t) => {
+      const m = marcaDoTipo(t)
+      return `${m.cor}|${m.padrao}`
+    })
+    expect(new Set(marcas).size).toBe(ORDEM_TIPOS.length)
   })
 
   it('preenchimento: liso, contorno ou referência ao padrão; ids sem caracteres inválidos', () => {

@@ -302,7 +302,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['T12', 'O14', 'O26', 'T3', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['T12', 'O14', 'O26', 'E1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -336,14 +336,14 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
 
   it('o estado "sem dado real" leva cache e ETag como as demais, a data pedida vale e data futura segue 400 (nada é lido)', async () => {
     const { app, d } = await montar();
-    const r = await app.inject('/api/v1/metricas/T3?dataReferencia=2026-10-01');
+    const r = await app.inject('/api/v1/metricas/E1?dataReferencia=2026-10-01');
     expect(r.statusCode).toBe(200);
     expect(r.headers['cache-control']).toBe('private, max-age=60');
     expect(r.headers['x-data-referencia']).toBe('2026-10-01');
     expect(r.headers['x-versao-criterio']).toBe('0');
     const etag = String(r.headers.etag);
-    expect((await app.inject({ url: '/api/v1/metricas/T3?dataReferencia=2026-10-01', headers: { 'if-none-match': etag } })).statusCode).toBe(304);
-    expect((await app.inject('/api/v1/metricas/T3?dataReferencia=2026-10-11')).statusCode).toBe(400);
+    expect((await app.inject({ url: '/api/v1/metricas/E1?dataReferencia=2026-10-01', headers: { 'if-none-match': etag } })).statusCode).toBe(304);
+    expect((await app.inject('/api/v1/metricas/E1?dataReferencia=2026-10-11')).statusCode).toBe(400);
     expect(d.chamadas).toHaveLength(0);
   });
 

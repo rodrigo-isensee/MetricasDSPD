@@ -9,7 +9,6 @@ import {
   paginaColetasSchema,
   JANELA_PERCENTIS_PADRAO,
   META_ADERENCIA_SLE_PCT,
-  META_DESVIO_ALOCACAO_PP,
   META_RAZAO_MAX,
   META_RAZAO_MIN,
   METRICAS_SUSTENTACAO,
@@ -137,7 +136,6 @@ describe('metas, janela e aplicabilidade', () => {
   it('metas do briefing e janela de 12 semanas vêm de constantes únicas', () => {
     expect(META_ADERENCIA_SLE_PCT).toBe(85)
     expect([META_RAZAO_MIN, META_RAZAO_MAX]).toEqual([0.9, 1.0])
-    expect(META_DESVIO_ALOCACAO_PP).toBe(10)
     expect(JANELA_PERCENTIS_PADRAO).toEqual({ unidade: 'semanas', quantidade: 12 })
   })
 

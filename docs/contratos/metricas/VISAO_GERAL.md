@@ -87,7 +87,6 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
               "O10_BACKLOG_180",
               "T2_ABAIXO_85",
               "T4_RAZAO_FORA",
-              "T3_DESVIO",
               "T9_ESCOPO",
               "E2_ABAIXO_60",
               "E3_SEM_RESULTADO",

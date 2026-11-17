@@ -15,7 +15,7 @@ export const EIXO = {
   grade: 'var(--borda)',
 } as const
 
-const ORDEM_TIPOS = [
+export const ORDEM_TIPOS = [
   'Incidente',
   'Requisição',
   'Melhoria',
@@ -23,11 +23,14 @@ const ORDEM_TIPOS = [
   'Bug interno',
   'Defeito em produção',
   'Dívida técnica',
+  'Habilitador',
+  'Trabalho de produto',
 ] as const
 
 /** Cor e padrão FIXOS por tipo de demanda, iguais em todo o sistema (spec 5; cor nunca é o único canal). */
 export function marcaDoTipo(tipo: string): { cor: IndiceCor; padrao: Padrao } {
   const i = Math.max(0, (ORDEM_TIPOS as readonly string[]).indexOf(tipo))
+  // Cor (ciclo de 6) e padrão (ciclo de 5) combinados dão marcas únicas até 30 tipos.
   return { cor: corNaPosicao(i), padrao: PADROES[i % PADROES.length] as Padrao }
 }
 

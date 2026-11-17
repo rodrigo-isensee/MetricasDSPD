@@ -36,6 +36,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'T2',
   'T4',
   'T6',
+  // Pedido 105 (E7.496, T3 = A do dono, 2026-11-17): o T3 lê `dim_card.tipo` do BusinessMap (quatro fatias pelo tipo: Produto, Habilitador, Correção em produção, Saúde técnica e de processo); sem acordado, desvio nem selo de meta; fatia abaixo de 20 mostra só a contagem. Versão de critério `criterio-2026-11-17-habilitador-t3`.
+  'T3',
   // Pedido 099 (lote C8, E3.237): O16 real pelos bugs (`ref_tipo_card`) e transições; o bug sem severidade aparece como "Sem severidade" até o `bm:ref-sync` com a reprojeção do C8a.
   'O16',
   // Pedido 099 (lote A1, E3.219): o O21 Fluxo reverso lê a `direcao` (avanço, retorno) das transições já na base (Q-RO-1) e o ciclo do O3.

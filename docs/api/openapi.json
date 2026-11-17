@@ -2709,6 +2709,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -2872,6 +2873,7 @@
                                 "Bug interno",
                                 "Defeito em produção",
                                 "Dívida técnica",
+                                "Habilitador",
                                 "Trabalho de produto"
                               ]
                             },
@@ -2901,6 +2903,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -3536,6 +3539,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -4035,6 +4039,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -4733,6 +4738,7 @@
                                         "Bug interno",
                                         "Defeito em produção",
                                         "Dívida técnica",
+                                        "Habilitador",
                                         "Trabalho de produto"
                                       ]
                                     },
@@ -5348,6 +5354,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -5865,6 +5872,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -7216,6 +7224,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -10169,6 +10178,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -11379,6 +11389,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -12018,6 +12029,7 @@
                                         "Bug interno",
                                         "Defeito em produção",
                                         "Dívida técnica",
+                                        "Habilitador",
                                         "Trabalho de produto"
                                       ]
                                     },
@@ -12981,6 +12993,7 @@
                                             "Bug interno",
                                             "Defeito em produção",
                                             "Dívida técnica",
+                                            "Habilitador",
                                             "Trabalho de produto"
                                           ]
                                         },
@@ -13034,6 +13047,7 @@
                                               "Bug interno",
                                               "Defeito em produção",
                                               "Dívida técnica",
+                                              "Habilitador",
                                               "Trabalho de produto"
                                             ]
                                           },
@@ -13101,6 +13115,7 @@
                                             "Bug interno",
                                             "Defeito em produção",
                                             "Dívida técnica",
+                                            "Habilitador",
                                             "Trabalho de produto"
                                           ]
                                         },
@@ -13154,6 +13169,7 @@
                                               "Bug interno",
                                               "Defeito em produção",
                                               "Dívida técnica",
+                                              "Habilitador",
                                               "Trabalho de produto"
                                             ]
                                           },
@@ -13673,6 +13689,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -15840,6 +15857,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -16550,6 +16568,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -17293,6 +17312,7 @@
                                       "Bug interno",
                                       "Defeito em produção",
                                       "Dívida técnica",
+                                      "Habilitador",
                                       "Trabalho de produto"
                                     ]
                                   },
@@ -18073,6 +18093,7 @@
                                           "Bug interno",
                                           "Defeito em produção",
                                           "Dívida técnica",
+                                          "Habilitador",
                                           "Trabalho de produto"
                                         ]
                                       },
@@ -18714,6 +18735,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -21137,17 +21159,14 @@
                               "natureza": {
                                 "type": "string",
                                 "enum": [
-                                  "Sustentação",
-                                  "Evolução",
-                                  "Projetos",
-                                  "Dívida técnica"
+                                  "Produto",
+                                  "Habilitador",
+                                  "Correção em produção",
+                                  "Saúde técnica e de processo"
                                 ]
                               },
-                              "acordadoPct": {
-                                "type": [
-                                  "number",
-                                  "null"
-                                ]
+                              "abaixoDe20": {
+                                "type": "boolean"
                               },
                               "itens": {
                                 "type": "object",
@@ -21160,27 +21179,11 @@
                                       "number",
                                       "null"
                                     ]
-                                  },
-                                  "desvioPP": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "statusMeta": {
-                                    "type": "string",
-                                    "enum": [
-                                      "dentro",
-                                      "fora",
-                                      "sem-referencia"
-                                    ]
                                   }
                                 },
                                 "required": [
                                   "quantidade",
-                                  "pct",
-                                  "desvioPP",
-                                  "statusMeta"
+                                  "pct"
                                 ],
                                 "additionalProperties": false
                               },
@@ -21195,34 +21198,18 @@
                                       "number",
                                       "null"
                                     ]
-                                  },
-                                  "desvioPP": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "statusMeta": {
-                                    "type": "string",
-                                    "enum": [
-                                      "dentro",
-                                      "fora",
-                                      "sem-referencia"
-                                    ]
                                   }
                                 },
                                 "required": [
                                   "quantidade",
-                                  "pct",
-                                  "desvioPP",
-                                  "statusMeta"
+                                  "pct"
                                 ],
                                 "additionalProperties": false
                               }
                             },
                             "required": [
                               "natureza",
-                              "acordadoPct",
+                              "abaixoDe20",
                               "itens",
                               "tempo"
                             ],
@@ -27862,6 +27849,7 @@
                                         "Bug interno",
                                         "Defeito em produção",
                                         "Dívida técnica",
+                                        "Habilitador",
                                         "Trabalho de produto"
                                       ]
                                     },
@@ -34350,6 +34338,7 @@
                                   "Bug interno",
                                   "Defeito em produção",
                                   "Dívida técnica",
+                                  "Habilitador",
                                   "Trabalho de produto"
                                 ]
                               },
@@ -46166,7 +46155,6 @@
                                   "O10_BACKLOG_180",
                                   "T2_ABAIXO_85",
                                   "T4_RAZAO_FORA",
-                                  "T3_DESVIO",
                                   "T9_ESCOPO",
                                   "E2_ABAIXO_60",
                                   "E3_SEM_RESULTADO",
@@ -46973,6 +46961,7 @@
                                         "Bug interno",
                                         "Defeito em produção",
                                         "Dívida técnica",
+                                        "Habilitador",
                                         "Trabalho de produto"
                                       ]
                                     },

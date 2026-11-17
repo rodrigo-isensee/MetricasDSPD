@@ -53,7 +53,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O20'], // pedido 099 (lote A2)
         ...['O25'], // pedido 099 (lote A3)
         ...['O24'], // pedido 105 (E7.100): fila da prioridade Média do BusinessMap
-        ...['T1', 'T2', 'T4', 'T6'], // pedido 105 (E7.100, P-7): separação pela prioridade nativa do BusinessMap
+        ...['T1', 'T2', 'T3', 'T4', 'T6'], // T3: pedido 105 (E7.496); T1, T2, T4 e T6: pedido 105 (E7.100, P-7): separação pela prioridade nativa do BusinessMap
         ...['O21'], // pedido 099 (lote A1)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10', 'S12'], // S12 só com o volume (pedido 099, D9)
@@ -154,7 +154,7 @@ describe('origemDaMetrica (H-13)', () => {
   })
 
   it('FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
-    for (const id of ['T3', 'E1', 'VISAO_GERAL'] as const) {
+    for (const id of ['E1', 'VISAO_GERAL'] as const) {
       expect(origemDaMetrica(id)).toBe('sem-dado')
       expect(motivoDaOrigemSemDado(id)).toBeNull()
     }
@@ -194,7 +194,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     }
     expect(motivoSemDadoReal('O14')).toBe('aguardando campo no quadro')
     expect(motivoSemDadoReal('VISAO_GERAL')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
-    expect(motivoSemDadoReal('T3')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
+    expect(motivoSemDadoReal('E1')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
   })
 
   it('o corpo não carrega número nem campo fora de estado, métrica e motivo', () => {
