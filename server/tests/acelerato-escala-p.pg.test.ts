@@ -7,6 +7,7 @@ import { CONFIG, LISTAS_BANCO, TLS, criarMysqlFalso, linha } from './acelerato-d
 import { criarPool, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { novaColeta, poolDe, url } from './pg/ctx.js';
 import { quantasDesde } from './pg/migracoes-por-numero.js';
+import { lerMarcaDagua } from '../src/modulos/operacao/repositorio.js';
 
 const d = describe.skipIf(!url);
 
@@ -94,9 +95,16 @@ d('QA 105 S1 escala P (pg)', () => {
     expect(r1).toMatchObject({ lidos: 6, escalaP: 1, outrasEscalas: 2, semEscala: 3 });
     expect(await fotos()).toEqual(f0);
     const d1 = await foto('dim_chamado');
-    const r2 = await reprojetarEscalaAcelerato(dono, E, () => relogio);
-    expect(r2).toMatchObject({ lidos: 3, escalaP: 0, outrasEscalas: 0, semEscala: 3 });
+    expect(r1.coletaId).not.toBeNull();
+    const ctl1 = await foto('ctl_coleta'), ctlc1 = await foto('ctl_coleta_contagem'), marca1 = await lerMarcaDagua(dono, 'acelerato', E);
+    expect(marca1?.coletaId).toBe(String(r1.coletaId));
+    const r2 = await reprojetarEscalaAcelerato(dono, E, () => new Date(relogio.getTime() + 3_600_000));
+    // K-398: sem linha preenchida, nada em ctl_coleta e a marca d agua (coletaId e data de referencia) fica igual
+    expect(r2).toMatchObject({ coletaId: null, lidos: 3, escalaP: 0, outrasEscalas: 0, semEscala: 3 });
     expect(await foto('dim_chamado')).toBe(d1);
+    expect(await foto('ctl_coleta')).toBe(ctl1);
+    expect(await foto('ctl_coleta_contagem')).toBe(ctlc1);
+    expect(await lerMarcaDagua(dono, 'acelerato', E)).toEqual(marca1);
     expect(await fotos()).toEqual(f0);
   });
 

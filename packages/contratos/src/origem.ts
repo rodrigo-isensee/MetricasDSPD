@@ -163,12 +163,20 @@ export const O26_DATA_DADO_REAL = '01/02/2027'
 export const MOTIVO_O26_HISTORICO_RESPONSAVEIS = `A base guarda a troca de responsável dos cards desde ${O26_INICIO_HISTORICO_RESPONSAVEIS}; a métrica precisa de 12 semanas de histórico e passa a ter dado real a partir de ${O26_DATA_DADO_REAL}.`
 
 /**
+ * Pedido 105 (E7.218, O27): o O27 só entra no mapa real depois da carga real do campo Causa Raiz (bm:ref-sync, recoleta completa dos bugs e
+ * bm:projetar); até lá, publicar seria uma coluna inteira de "não informada". Frase em minúsculas sem ponto final.
+ */
+export const MOTIVO_O27_AGUARDANDO_CARGA =
+  'aguardando a carga do campo Causa Raiz dos bugs do BusinessMap'
+
+/**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O22 a O24 seguem mock até a F6b, sem motivo próprio; o O26 tem o seu (E7.55).
  * Sustentação: a EI_SUST saiu no pedido 105 (E7.243). S5, S6 e S7 (D2) e S11 (D6a) saíram no pedido 105.
  */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O26: MOTIVO_O26_HISTORICO_RESPONSAVEIS,
+  O27: MOTIVO_O27_AGUARDANDO_CARGA,
 }
 
 /** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O22 a O24, FL2, FL3, Visão geral e a tendência da sustentação). */

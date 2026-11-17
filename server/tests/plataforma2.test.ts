@@ -254,7 +254,7 @@ describe('OpenAPI', () => {
     const caminhos = Object.keys(JSON.parse(gerado).paths);
     expect(caminhos.slice(0, 8)).toEqual(['/health/live', '/health/ready', '/health', '/api/v1/filtros/{dominio}', '/api/v1/referencia',
       '/api/v1/fontes/{dominio}/estado', '/api/v1/fontes/{dominio}/coletas', '/api/v1/criterios']);
-    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(70); // 69 métricas + o 404 genérico
+    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(71); // 70 métricas + o 404 genérico
     expect(caminhos).toContain('/webhooks/businessmap');
     expect(caminhos).toContain('/api/apontamento'); // aba Apontamento (pedido 059): única rota fora de /api/v1 com pessoa
   });

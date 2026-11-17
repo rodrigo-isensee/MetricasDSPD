@@ -53,13 +53,29 @@ describe('reprojetarEscalaAcelerato', () => {
 
   it('lote só com prioridade fora do mapa: nada é gravado na dimensão e todos contam como sem escala', async () => {
     const d = montar([ids('3')], [stg('3', 'DHO - X')]);
-    expect(await reprojetarEscalaAcelerato(d.pool, S, tempos())).toEqual({ coletaId: 88, lidos: 1, escalaP: 0, outrasEscalas: 0, semEscala: 1 });
+    expect(await reprojetarEscalaAcelerato(d.pool, S, tempos())).toEqual({ coletaId: null, lidos: 1, escalaP: 0, outrasEscalas: 0, semEscala: 1 });
     expect(com(d, 'UPDATE dspd_ac.dim_chamado')).toHaveLength(0);
+    expect(com(d, 'INSERT INTO dspd_ac.ctl_coleta')).toHaveLength(0);
+  });
+
+  it('K-398: UPDATE que não muda linha (rowCount 0) não grava ctl_coleta nem contagens', async () => {
+    const d = criarDublePg((q: Chamada) => {
+      const t = q.texto;
+      if (t.startsWith('SELECT count(*)')) return [{ n: '0' }];
+      if (t.includes('FROM dspd_ac.dim_chamado')) return t.includes('chamado_id > $1') && q.valores?.[0] === '' ? ids('1') : [];
+      if (t.includes('FROM dspd_ac.stg_chamado')) return [stg('1', 'P2 - Alta')];
+      if (t.startsWith('UPDATE dspd_ac.dim_chamado')) return { rows: [], rowCount: 0 };
+      return [];
+    });
+    expect((await reprojetarEscalaAcelerato(d.pool, S, tempos())).coletaId).toBeNull();
+    expect(d.chamadas.filter((x) => x.texto.includes('INSERT INTO dspd_ac.ctl_coleta'))).toHaveLength(0);
+    expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');
   });
 
   it('sem chamado a preencher não há UPDATE de dimensão', async () => {
     const d = montar([], []);
-    expect(await reprojetarEscalaAcelerato(d.pool, S, tempos())).toEqual({ coletaId: 88, lidos: 0, escalaP: 0, outrasEscalas: 0, semEscala: 0 });
+    expect(await reprojetarEscalaAcelerato(d.pool, S, tempos())).toEqual({ coletaId: null, lidos: 0, escalaP: 0, outrasEscalas: 0, semEscala: 0 });
     expect(com(d, 'UPDATE dspd_ac.dim_chamado')).toHaveLength(0);
+    expect(com(d, 'INSERT INTO dspd_ac.ctl_coleta')).toHaveLength(0);
   });
 });
