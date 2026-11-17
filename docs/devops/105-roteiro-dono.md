@@ -217,6 +217,14 @@ docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(
 4. Para reaplicar depois, rode o `db:migrate` do passo 0.2 de novo. O código da release usa `fluxo`: com a 0038 desfeita, S5, S6 e S7 não funcionam até reaplicar ou reverter o merge da release (`git revert`, pelo tech-lead).
 5. Restaurar o `.dump` do backup (perda de dado maior) é decisão do Jarvis; `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
 
+## 5. Marcas de critério do Acelerato e, se a 0040 existir, o S1 (K-396)
+
+Depois do passo 0.3, grave as marcas de critério do Acelerato (idempotente; imprime só as referências novas):
+```
+(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:criterios); echo "rc=$?"
+```
+Rc=0 é sucesso. Condicional, só quando a migração 0040 (escala P do S1) estiver na versão que você implantou: backup (seção 4, item 1), `db:migrate`, coleta do Acelerato parada, `ac:reprojetar-escala`, `ac:criterios` de novo (grava `105:S1-escala-p`) e religar a coleta. O rollback da 0040 segue a seção 4 (`DSPD_PERMITIR_DOWN=1`, backup de hoje, `down 1`). Detalhe: `docs/devops/105-implantacao-vm.md`, seção 2.1, item 4a.
+
 ## O que fica fora deste roteiro
 
 - `ac:reprojetar-etapas`, `ref:sync-calendario` e `coleta ac --reconhecer-mudanca` são das releases 103 e 104 (`docs/devops/104-roteiro-dono.md`); só rode se aquele roteiro ainda não foi cumprido.
