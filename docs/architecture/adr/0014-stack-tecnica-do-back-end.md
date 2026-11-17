@@ -2,6 +2,7 @@
 Estado: vigente (acesso a dados e tipos substituídos pela [0015](0015-bibliotecas-e-praticas-do-back-end.md))
 - Status: **aceita**, revisão 2 (stack e custo definidos pelo usuário, `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §7 e §8)
 - Data: 2026-10-10 · **Revisão 2: 2026-10-10** (substitui por inteiro o texto da revisão 1, que mantinha MySQL com `mysql2` e migrador próprio)
+- **Nota de revisão 2026-11-16 (K-392):** o `test:pg` local passou a subir um Postgres descartável por execução. Ver "Testes" e "Histórico".
 - **Substitui:** ADR 0004 (MySQL) por inteiro.
 - **Substitui parcialmente:** ADR 0005 (Kysely, `Migrator`, `kysely-codegen` e `mysql2` saem; entram `pg` e node-pg-migrate), ADR 0013 (AWS, Lambdas e RDS viram alvo futuro; hoje tudo roda em Docker Compose; P14 respondida), ADR 0010 (CI no GitHub Actions com o Postgres do compose; deploy adiado), ADR 0002 (npm → pnpm), ADR 0007 e 0008 (Fastify 5 volta).
 - **Substituída parcialmente pela ADR 0015 (2026-10-11):** acesso a dados (`pg` puro sem query builder → Kysely sobre `pg`) e tipos (sem codegen → kysely-codegen). Os trechos afetados estão marcados com **[0015]**. O restante continua valendo.
@@ -27,7 +28,7 @@ Situação do código: o `server/` tem migrações MySQL 0001–0010 (Kysely + `
 | Validação | **Zod 4** (`>=4.1.5`) em toda fronteira, schemas de `@metricas-dspd/contratos` |
 | OpenAPI | **fastify-type-provider-zod 7** + **@fastify/swagger 9** (`>=9.5.1`) + **openapi-types** (`^12.1.3`), versionado em `docs/api/openapi.json` |
 | Logs | **Pino** (logger do Fastify), `requestId`, redação de segredos |
-| Testes | **Vitest**, **sem Testcontainers**; Postgres do Docker Compose com **um conjunto de schemas por execução de teste** |
+| Testes | **Vitest**, **sem Testcontainers**; Postgres do Docker Compose com **um conjunto de schemas por execução de teste** (local: instância descartável por execução, nota de 2026-11-16) |
 | Execução | **Docker Compose local**: `postgres`, `migrate` (avulso), `api`, `worker`, `web`. Uma imagem do servidor, várias entradas |
 | CI | GitHub Actions |
 
@@ -86,13 +87,15 @@ Alternativas de migração: **migrador próprio** (revisão 1) perde o lock, a t
 - **Nuvem adiada:** a ADR 0013 (Lambdas, RDS, CDK) passa a ser um alvo possível, não o plano. Quando a implantação voltar, uma ADR nova escolhe entre contêiner (o caminho natural desta imagem) e Lambda. Nada de `infra/` agora.
 
 ### Testes: um conjunto de schemas por execução
-- **Decisão: prefixo nos três schemas** (`t<6 caracteres base36>_dspd_bm`, `_dspd_ac`, `_dspd_core`), no database `metricas_test` do mesmo `postgres` do compose.
+> **Nota de revisão 2026-11-16 (K-392):** localmente, o banco de teste deixou de ser o `postgres` compartilhado do compose. O `scripts/test-pg.sh` sobe, a cada execução, uma instância descartável do serviço `postgres` do mesmo compose (projeto Compose próprio, volume próprio, porta livre) e a derruba no fim (`down -v`). Com `PG_TESTE_URL` no ambiente (a CI), usa essa URL e não sobe nada. Os itens abaixo continuam valendo dentro dessa instância. Detalhe, motivo e critério de reversão em "Histórico".
+
+- **Decisão: prefixo nos três schemas** (`t<6 caracteres base36>_dspd_bm`, `_dspd_ac`, `_dspd_core`), no database `metricas_test` do `postgres` (local: a instância descartável da execução; CI: o banco do job).
 - `globalSetup` do Vitest gera o prefixo, roda o runner do node-pg-migrate com esse `S` (os schemas são criados pela migração 0001) e aplica `gerarGrants(S)`. Os papéis são do cluster e compartilhados entre execuções (criados pelo init); os grants são por objeto, então execuções simultâneas não colidem. `globalTeardown` faz `DROP SCHEMA ... CASCADE` dos três (`DSPD_TESTE_MANTER=1` preserva). `pnpm db:limpar-testes` remove schemas `t%_dspd_%` de execuções interrompidas.
-- Testes de banco num projeto Vitest `pg`, sem paralelismo de arquivos; cada teste cria seus dados e não supõe tabela vazia. Sem Postgres de pé, são pulados localmente; no CI são obrigatórios.
+- Testes de banco num projeto Vitest `pg`, sem paralelismo de arquivos; cada teste cria seus dados e não supõe tabela vazia. Pelo `pnpm test:pg` local, rodam na instância descartável e, sem Docker, o script para com erro em vez de pular; só o Vitest chamado direto sem `PG_TESTE_URL` os pula (`describe.skipIf`). No CI são obrigatórios.
 - **Por que não `search_path`:** `dspd_bm` e `dspd_ac` têm tabelas com o mesmo nome (`ctl_coleta`, `ref_dominio`...), então o `search_path` deixaria ambíguo qual schema cada consulta toca e esconderia uma mistura BM × AC. O nome qualificado é também o que o teste "schemas usados por repositório" lê.
 
 ### CI (GitHub Actions)
-Jobs `check` (typecheck, lint, testes unitários), `db` (`docker compose up -d --wait postgres`, testes `pg`, `migrate up → down → up`, snapshot de esquema, checksums, teste de grants), `openapi`, `e2e`, `image` (build da imagem, sem publicar). pnpm com `pnpm/action-setup`, `actions/setup-node` com `cache: pnpm`, `pnpm install --frozen-lockfile`. Sem deploy.
+Jobs `check` (typecheck, lint, testes unitários), `banco` (Postgres 17 como service container do job, papéis e databases pelo mesmo `docker/postgres/init/01-databases-papeis.sh` do compose, `PG_TESTE_URL` no ambiente, testes `pg`, `migrate up → down → up`, snapshot de esquema, checksums, teste de grants), `openapi`, `e2e`, `image` (build da imagem, sem publicar). pnpm com `pnpm/action-setup`, `actions/setup-node` com `cache: pnpm`, `pnpm install --frozen-lockfile`. Sem deploy.
 
 ## Alternativas consideradas
 - **Manter MySQL com `mysql2` e migrador próprio (revisão 1):** descartada pelo usuário.
@@ -116,3 +119,9 @@ Jobs `check` (typecheck, lint, testes unitários), `db` (`docker compose up -d -
 
 ## Histórico
 - Revisão 1 (2026-10-10): stack com MySQL 8.4 mantido, `mysql2` puro, migrador próprio, Lambda (P14 em aberto). Substituída pela revisão 2 após as decisões §7 e §8 do usuário.
+- **Nota de revisão 2026-11-16 (K-392): Postgres descartável por execução no `test:pg` local.** Sem ADR nova: muda só onde o banco de teste local roda; a decisão de isolamento (prefixo de schemas) é a mesma.
+  - **O que mudou:** `scripts/test-pg.sh`, sem `PG_TESTE_URL` no ambiente, sobe o serviço `postgres` do compose num projeto Compose próprio por execução (`metricasdspd-teste-<id>`, volume próprio, porta livre em `127.0.0.1`, senha de administrador aleatória da instância), com o init de sempre criando `metricas_test`, os schemas e os papéis com as senhas definidas num único lugar (o próprio script, ou o `.env` do dono, valendo igual para o init e para os testes). Ao fim, um `trap` faz `docker compose down -v`. Com `PG_TESTE_URL` **no ambiente** (CI), usa a URL e não sobe nada; uma `PG_TESTE_URL` vinda só do `.env` é ignorada, para quem copiou o `.env.example` não pular o descartável. Localmente o `test:pg` passa a exigir Docker (sem ele, o script para com mensagem, em vez de rodar contra um banco qualquer). Execução morta por `kill -9` deixa o projeto de pé; a limpeza é `docker compose -p metricasdspd-teste-<id> down -v`.
+  - **Por quê:** no banco compartilhado do compose, o K-392 registrou 12 falhas falsas no `test:pg` local, vindas de senha de papel divergente entre o volume já inicializado e o `.env` da worktree, e de schemas residuais `t%_dspd_%` de execuções anteriores. Como os papéis são do cluster e o init só roda na criação do volume, a divergência persistia entre worktrees e execuções. Uma instância por execução elimina os dois estados compartilhados.
+  - **O que não muda:** o prefixo de schema por execução (`t<id>_dspd_*`, `globalSetup`/`globalTeardown`, `DSPD_TESTE_MANTER`) continua; **Testcontainers continua fora** (o descartável é o serviço do compose controlado pelo script, sem biblioteca nova nem Docker por teste); `search_path` continua proibido; a CI segue no banco do job `banco` (service container), recebendo a URL por `PG_TESTE_URL`, sem subir nada pelo script; `pnpm dev` e o compose de desenvolvimento continuam usando o `postgres` compartilhado com o volume `dspd-pg-data`.
+  - **Critério de reversão:** voltar ao banco compartilhado (com senhas alinhadas por outro meio) se, em uma semana de uso, o tempo de subida da instância descartável passar de metade do tempo total do `test:pg` local em três execuções seguidas, ou se aparecer falha de teste de banco local causada pelo descartável (porta, volume, init ou `trap`) que não se reproduz na CI.
+  - **Leituras:** `scripts/test-pg.sh` (cabeçalho e fluxo, head d65ebd16 do K-392); pareceres de review, QA e devops do K-392.
