@@ -98,3 +98,7 @@ Para a restauração de domingo, repita trocando `db-backup.sh` por `db-restaura
 | `migrar` | Cliente com `lock_timeout=5s` (falha com `55P03` em vez de enfileirar leituras) e `singleTransaction: true` explícito |
 
 Testes: `server/tests/timeouts.pg.test.ts` e os unitários de `plataforma*.test.ts`, `migrar.test.ts`, `trava-down.test.ts`.
+
+## test:pg usa um Postgres descartável (K-392)
+
+`pnpm run test:pg` (`scripts/test-pg.sh`) sobe, a cada execução, o próprio Postgres (projeto Compose `metricasdspd-teste-<id>`, volume e porta livre próprios) e o derruba no fim. As senhas dos papéis de teste vêm de um só lugar, o script: criam os papéis no init e entram nos testes. Não depende de `.env` nem do banco compartilhado `metricas_test` (que acumulava schemas e senhas divergentes). Com `PG_TESTE_URL` definida no ambiente, usa essa URL e não sobe nada; o valor vindo só do `.env` é ignorado. A CI não passa pelo script: roda `pnpm --filter @metricas-dspd/server run test:pg` direto, contra o banco do próprio job. Se a execução for morta com `kill -9` (o trap não roda), sobra o projeto: `docker compose -p metricasdspd-teste-<id> down -v` (liste com `docker ps --filter name=metricasdspd-teste`). SIGHUP, SIGINT e SIGTERM são tratados.
