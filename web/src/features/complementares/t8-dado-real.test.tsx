@@ -68,7 +68,7 @@ describe('T8 com dado real: sprints fora da conta e mínimo de sprints', () => {
       }
     })
     expect(el).toHaveTextContent(
-      'Só 7 sprints no recorte: abaixo de 20 não se publica estatística.',
+      'Só 7 sprints no recorte: abaixo de 20 não se publica estatística; amplie o período para ver a taxa.',
     )
     expect(el).not.toHaveTextContent(/0 de 7 do comprometido/)
   })
@@ -82,7 +82,7 @@ describe('T8 com dado real: sprints fora da conta e mínimo de sprints', () => {
         naoPlanejadoPct: { status: 'insuficiente', k: 0, n: 1, minimo: 20 },
       }
     })
-    expect(el).toHaveTextContent('Só 1 sprint no recorte: abaixo de 20 não se publica estatística.')
+    expect(el).toHaveTextContent('Só 1 sprint no recorte: abaixo de 20 não se publica estatística; amplie o período para ver a taxa.')
   })
 
   it('vazio: a nota abre com "Fora da conta:"', async () => {

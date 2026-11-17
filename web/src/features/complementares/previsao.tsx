@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { MINIMO_AMOSTRA, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
 import { AmostraInsuficiente, SemPrioridade, SeletorLocal, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
@@ -146,7 +146,7 @@ export function CartaoT8({ filtros }: P) {
   const pct = (t: { status: string; pct?: number }) => (t.status === 'ok' ? (t.pct ?? null) : null)
   // dado real: abaixo de 20 sprints no recorte nada é publicado, e o "k de n" do agregado conta sprints, não itens
   const nSprints = d?.sprintsNoRecorte
-  const poucas = nSprints !== undefined && nSprints < 20
+  const poucas = nSprints !== undefined && nSprints < MINIMO_AMOSTRA
   return (
     <CartaoComplementar
       id="T8"
@@ -155,7 +155,7 @@ export function CartaoT8({ filtros }: P) {
       complementoVazio={(r) => notaForaDaContaT8(r.foraDaConta, true)}
       leitura={
         poucas
-          ? `Só ${fmtInteiro(nSprints)} ${plural(nSprints, 'sprint', 'sprints')} no recorte: abaixo de 20 não se publica estatística.`
+          ? `Só ${fmtInteiro(nSprints)} ${plural(nSprints, 'sprint', 'sprints')} no recorte: abaixo de ${MINIMO_AMOSTRA} não se publica estatística; amplie o período para ver a taxa.`
           : ag
             ? `No conjunto das sprints, ${textoTaxa(ag.entreguePct)} do comprometido foi entregue e ${textoTaxa(ag.naoPlanejadoPct)} da entrada não foi planejada.`
             : undefined
@@ -180,7 +180,7 @@ export function CartaoT8({ filtros }: P) {
           />
           <TabelaDados
             codigo="T8-detalhe"
-            legenda="Sprints: comprometido, entregue, carry-over e entrada não planejada, por sprint; abaixo de 20 itens só k de n"
+            legenda="Sprints: comprometido, entregue, carry-over e entrada não planejada, por sprint; abaixo de 20 sprints no recorte nada é publicado"
             colunas={[
               { chave: 'n', titulo: 'Sprint' },
               { chave: 's', titulo: 'Fim' },
