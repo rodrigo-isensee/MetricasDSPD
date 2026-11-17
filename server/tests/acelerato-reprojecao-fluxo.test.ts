@@ -63,18 +63,17 @@ describe('reprojetarFluxoAcelerato', () => {
     expect(fim.valores).toEqual([77, FIM]);
   });
 
-  it('lote vazio: nada a preencher, sem UPDATE de dimensão, contagens zeradas e a execução registrada', async () => {
+  it('K-397: lote vazio (sem mudança) não grava nada, nem ctl_coleta que moveria a marca d agua', async () => {
     const d = montar();
-    expect(await reprojetarFluxoAcelerato(d.pool, S, tempos())).toEqual({ coletaId: 77, lidos: 0, preenchidos: 0, fluxoMultiplo: 0, semFluxo: 0 });
-    expect(com(d, 'UPDATE dspd_ac.dim_chamado')).toHaveLength(0);
-    expect(com(d, 'INSERT INTO dspd_ac.ctl_coleta ')).toHaveLength(1);
+    expect(await reprojetarFluxoAcelerato(d.pool, S, tempos())).toEqual({ coletaId: null, lidos: 0, preenchidos: 0, fluxoMultiplo: 0, semFluxo: 0 });
+    expect(d.chamadas.filter((x) => /^(INSERT|UPDATE|DELETE)/.test(x.texto))).toEqual([]);
     expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');
   });
 
-  it('só chamados sem fluxo derivável: lote lido, nenhum UPDATE', async () => {
+  it('K-397: só chamados sem fluxo derivável (nenhuma linha mudada): lote lido, nenhuma escrita', async () => {
     const d = montar({ lotes: [ids('1')], etapas: [] });
-    expect(await reprojetarFluxoAcelerato(d.pool, S, tempos())).toMatchObject({ lidos: 1, preenchidos: 0, semFluxo: 1 });
-    expect(com(d, 'UPDATE dspd_ac.dim_chamado')).toHaveLength(0);
+    expect(await reprojetarFluxoAcelerato(d.pool, S, tempos())).toMatchObject({ coletaId: null, lidos: 1, preenchidos: 0, semFluxo: 1 });
+    expect(d.chamadas.filter((x) => /^(INSERT|UPDATE|DELETE)/.test(x.texto))).toEqual([]);
   });
 
   it('vários lotes: o cursor avança pelo último chamado_id', async () => {
