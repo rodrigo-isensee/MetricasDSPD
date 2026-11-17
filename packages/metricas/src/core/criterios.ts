@@ -412,7 +412,7 @@ export const VERSAO_CRITERIO_HABILITADOR_T3: VersaoCriterio = {
 
 /**
  * Pedido 105 (E7.504, dono, 2026-11-17): métrica nova T15, tamanho das sprints. Duração da sprint em dias úteis (primeiro início à primeira conclusão do card Sprint, a mesma
- * janela do T8, teto de 30 dias úteis), com P50, P85 e a média juntos; um time por vez; abaixo de 20 sprints só a contagem. Data do PR (a do merge corrige se escorregar).
+ * janela do T8, teto de 30 dias úteis), com P50, P85 e a média juntos; recorte pelo filtro de time (mais de um time ou nenhum: as sprints se somam); abaixo de 20 sprints só a contagem. Data do PR (a do merge corrige se escorregar).
  */
 export const VERSAO_CRITERIO_T15_TAMANHO_SPRINT: VersaoCriterio = {
   id: 'criterio-2026-11-17-t15-tamanho-sprint',

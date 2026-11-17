@@ -250,7 +250,7 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O27: ['equipe', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
-  // T15 (E7.504): um time por vez, só pelo filtro de equipe; a mesma janela do T8.
+  // T15 (E7.504): o recorte é o filtro de equipe (mais de um time ou nenhum: as sprints se somam); a mesma janela do T8.
   T15: ['equipe', 'sistema', 'periodo'],
   T10: ['equipe', 'tipo', 'sistema', 'periodo'],
   // T11: janela fixa de 24 meses mais o corrente; o período é aceito e ignorado (CA-12, "Não afetado por: Período"), como no E9.

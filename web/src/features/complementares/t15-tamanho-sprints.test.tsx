@@ -38,7 +38,7 @@ describe('T15: tamanho das sprints', () => {
     expect(el).toHaveTextContent(/P50/)
     expect(el).toHaveTextContent(/P85/)
     expect(el).toHaveTextContent(/Média/)
-    expect(el).toHaveTextContent(/Um time por vez/)
+    expect(el).toHaveTextContent(/as sprints dos times se somam; para ver um time, filtre por ele/)
   })
 
   it('abaixo de 20 sprints só a contagem, sem P50, P85 nem média', async () => {
@@ -50,7 +50,7 @@ describe('T15: tamanho das sprints', () => {
     expect(el).toHaveTextContent(
       'Só 7 sprints no recorte: abaixo de 20 não se publica estatística.',
     )
-    expect(within(el).queryByText(/Média \(só com P50 e P85\)/)).toBeNull()
+    expect(within(el).queryByText(/Média/)).toBeNull()
   })
 
   it('diz quantas sprints ficaram fora da conta', async () => {

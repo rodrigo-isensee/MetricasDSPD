@@ -141,7 +141,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Leia o P50 e o P85 primeiro: a média sozinha engana quando há sprints muito longas ou muito curtas. Com menos de 20 sprints no recorte só se mostra a contagem.',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Um time por vez, pelo filtro de time. Não compara times nem ordena sprints. Só BusinessMap.',
+      'Com mais de um time no filtro (ou nenhum), as sprints dos times se somam; para ver um time, filtre por ele. Não compara times nem ordena sprints. Só BusinessMap.',
   },
   E4: {
     oQueE: 'Quantos projetos começaram e quantos terminaram por trimestre.',

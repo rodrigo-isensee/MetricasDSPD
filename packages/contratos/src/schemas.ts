@@ -1218,8 +1218,8 @@ export const resultadoT8 = z.object({
 })
 
 /**
- * T15: tamanho das sprints (pedido 105, E7.504). Duração em dias úteis (P50, P85, P95 e a média juntos, nunca a média sozinha), de um time por vez (só o filtro de
- * equipe). Abaixo de 20 sprints no recorte a estatística vem `insuficiente` (só a contagem). `foraDaConta` é o mesmo do T8: sem as duas datas e acima do teto.
+ * T15: tamanho das sprints (pedido 105, E7.504). Duração em dias úteis (P50, P85, P95 e a média juntos, nunca a média sozinha), das sprints do recorte do filtro de equipe (com mais de um time ou nenhum, as sprints se
+ * somam). Abaixo de 20 sprints no recorte a estatística vem `insuficiente` (só a contagem). `foraDaConta` é o mesmo do T8: sem as duas datas e acima do teto.
  */
 export const resultadoT15 = z.object({
   ...comum,

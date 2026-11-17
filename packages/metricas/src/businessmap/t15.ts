@@ -10,7 +10,7 @@ import { sprintsDoRecorte } from './t8'
 /**
  * T15: tamanho das sprints (pedido 105, E7.504). A duração de cada sprint em dias úteis, do primeiro início de execução à primeira conclusão do card Sprint
  * (a janela é a mesma função do T8: `sprintsDoRecorte`, com o teto de 30 dias úteis; sem as duas datas ou acima do teto a sprint fica fora da conta e é contada).
- * P50, P85 e a média juntos (nunca a média sozinha, 7.1), pela biblioteca (`resumoComMedia`). Um time por vez, só pelo filtro de equipe: não há quebra por
+ * P50, P85 e a média juntos (nunca a média sozinha, 7.1), pela biblioteca (`resumoComMedia`). O recorte é o filtro de equipe (mais de um time ou nenhum: as sprints se somam): não há quebra por
  * time, ranking nem comparação. Abaixo de 20 sprints no recorte só a contagem, sem estatística. Só BusinessMap.
  */
 export function calcularT15(
@@ -23,7 +23,7 @@ export function calcularT15(
     ({ janela }) =>
       diasUteisNoIntervalo(diaDeIso(janela.inicio), diaDeIso(janela.fim), ctx.cal).length,
   )
-  // o recorte é o período do T8 (sprints que tocam o período); a janela da estatística é esse mesmo período
+  // o recorte é o período do T8 (a sprint entra pela conclusão, `first_end` dentro do período); a janela da estatística é esse mesmo período
   const res = resumoComMedia(amostraBM('sprint', dias, periodo))
   const estatistica =
     res.status === 'ok'

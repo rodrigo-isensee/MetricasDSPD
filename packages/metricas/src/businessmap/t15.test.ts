@@ -75,13 +75,15 @@ describe('T15: tamanho das sprints', () => {
   it('sem first_end fica fora do período; sem início ou acima do teto fica fora da conta e é contada; a conta é a do T8', () => {
     const m = mundo(Array(20).fill(5))
     m.sprints.push(sprint(30, 5, { fim: null }), sprint(31, 5, { inicio: null }))
-    m.sprints.push({
-      sprint_id: 'LONGA',
-      nome: 'Sprint LONGA',
-      inicio: inicioDe(0),
-      fim: isoDeDia(SEGUNDA + 7 * (TETO_DIAS_UTEIS_SPRINT / 5 + 2)),
-    })
-    for (const id of ['S30', 'S31', 'LONGA']) {
+    for (const id of ['LONGA', 'LONGA2']) {
+      m.sprints.push({
+        sprint_id: id,
+        nome: `Sprint ${id}`,
+        inicio: inicioDe(0),
+        fim: isoDeDia(SEGUNDA + 7 * (TETO_DIAS_UTEIS_SPRINT / 5 + 2)),
+      })
+    }
+    for (const id of ['S30', 'S31', 'LONGA', 'LONGA2']) {
       m.cards.push(card(`F${id}`, `${isoDeDia(SEGUNDA - 3)}T09:00-03:00`))
       m.vinc.push({ card_id: `F${id}`, sprint_id: id, ligado_em: null })
     }
@@ -90,7 +92,7 @@ describe('T15: tamanho das sprints', () => {
     const t8 = calcularT8(ctxDe(m.cards), F, ext)
     expect(r.sprintsNoRecorte).toBe(20)
     // regra do dono (E7.536, 2 = A): o recorte é pela conclusão e vem antes da contagem; S30 (sem first_end) nem entra no período, só S31 (sem início) é contada
-    expect(r.foraDaConta).toEqual({ semDatas: 1, acimaDoTeto: 1, tetoDiasUteis: 30 })
+    expect(r.foraDaConta).toEqual({ semDatas: 1, acimaDoTeto: 2, tetoDiasUteis: 30 })
     expect(r.foraDaConta).toEqual(t8.foraDaConta)
     expect(r.sprintsNoRecorte).toBe(t8.sprintsNoRecorte)
   })

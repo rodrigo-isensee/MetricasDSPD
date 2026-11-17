@@ -221,7 +221,7 @@ export function CartaoT8({ filtros }: P) {
 }
 
 /**
- * T15 (E7.504): tamanho das sprints em dias úteis. P50, P85 e a média sempre juntos (nunca a média sozinha), de um time por vez (pelo filtro); abaixo de 20 sprints
+ * T15 (E7.504): tamanho das sprints em dias úteis. P50, P85 e a média sempre juntos (nunca a média sozinha), das sprints do recorte do filtro de time (com mais de um time ou nenhum, as sprints se somam); abaixo de 20 sprints
  * só a contagem. Reusa a nota "fora da conta" do T8 (mesma janela).
  */
 export function CartaoT15({ filtros }: P) {
@@ -250,12 +250,12 @@ export function CartaoT15({ filtros }: P) {
           {ok ? (
             <TabelaDados
               codigo="T15"
-              legenda="Duração das sprints em dias úteis: P50, P85 e média juntos"
+              legenda="Duração das sprints em dias úteis no recorte do filtro de time: P50, P85 e média juntos"
               colunas={[
                 { chave: 'n', titulo: 'Sprints', alinhar: 'direita' },
                 { chave: 'p50', titulo: 'P50 (mediana)', alinhar: 'direita' },
                 { chave: 'p85', titulo: 'P85', alinhar: 'direita' },
-                { chave: 'media', titulo: 'Média (só com P50 e P85)', alinhar: 'direita' },
+                { chave: 'media', titulo: 'Média', alinhar: 'direita' },
               ]}
               linhas={[
                 {
@@ -273,7 +273,11 @@ export function CartaoT15({ filtros }: P) {
               oQue="P50, P85 e média do tamanho das sprints"
             />
           )}
-          <Leia>Um time por vez, pelo filtro de time. Sem meta e sem comparar times.</Leia>
+          <Leia>
+            Com mais de um time no filtro (ou nenhum), as sprints dos times se somam; para ver um
+            time, filtre por ele. Sem meta e sem comparar times. A média só vale lida com o P50 e o
+            P85.
+          </Leia>
         </div>
       )}
     </CartaoComplementar>
