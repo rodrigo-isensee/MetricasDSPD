@@ -384,8 +384,9 @@ describe('T7 fluxo de frentes', () => {
       }),
     )
     const el = await cartao('T7')
-    expect(await within(el).findByText('sem limite')).toBeInTheDocument()
-    expect(within(el).getByText('Sem limite de frentes')).toBeInTheDocument()
+    expect(await within(el).findByText('Sem limite de frentes')).toBeInTheDocument()
+    expect(within(el).queryByText('sem limite')).not.toBeInTheDocument()
+    expect(within(el).getByText('projetos com frentes em andamento')).toBeInTheDocument()
     expect(within(el).queryByText(/não definido/)).not.toBeInTheDocument()
     expect(within(el).queryByText('Sem meta numérica')).not.toBeInTheDocument()
     expect(within(el).queryByText('Acima do limite')).not.toBeInTheDocument()

@@ -44,7 +44,7 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
     >
       {d && (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <NumeroGrande
               valor={fmtInteiro(d.kpis.frentesEmAndamento)}
               rotulo="frentes em andamento"
@@ -52,13 +52,8 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
             />
             <NumeroGrande
               valor={fmtInteiro(d.kpis.projetosComFrentes)}
-              rotulo="projetos com frentes ao mesmo tempo"
-              textoCompleto={`${d.kpis.projetosComFrentes} projetos com frentes ao mesmo tempo`}
-            />
-            <NumeroGrande
-              valor="sem limite"
-              rotulo="limite de frentes simultâneas"
-              textoCompleto="Não há limite de frentes simultâneas, por decisão do dono"
+              rotulo="projetos com frentes em andamento"
+              textoCompleto={`${d.kpis.projetosComFrentes} projetos com frentes em andamento`}
             />
           </div>
           {projetos.length > 0 && (
