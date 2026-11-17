@@ -3,15 +3,24 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-ei-sust
-commit: bb0b770baef8b9c17279eed5c12cb3d26696664f
+commit: f41125a4054935ec7f553d5245394cde3cc40c1c
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: EI_SUST com dado real pelo tempo por etapa, E7.243 (review E7.289, revalidações E7.322 e E7.329)
+# Code review: EI_SUST com dado real pelo tempo por etapa, E7.243 (review E7.289, revalidações E7.322, E7.329 e E7.399)
 
 Branch `feature/105-ei-sust` contra `develop` (base `57989aa0`). A primeira rodada revisou o head `7614d58a`, com um commit. São 26 arquivos e 1304 linhas no total. Sem `.md`, snapshots e `openapi.json` sobram 378 linhas de código e teste, acima da orientação de 150 (M14). O comportamento é um só (a regra da EI_SUST), e o resto é o contrato gerado e o ajuste dos testes que fixavam a EI_SUST como "sem dado". Quando houver PR, o corpo leva `teto: excedido`.
+
+## Revalidação no head f41125a4 (E7.399)
+Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `bb0b770b..f41125a4` (merge da `origin/develop` em `ab12a37f`, com o S8 #503 e o T10 #506), sem o que veio da base. No domínio: `CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `packages/contratos/src/origem.ts`, `origem.test.ts`, `schemas.ts`, `server/src/modulos/referencia/criterios-acelerato.ts`, `server/tests/criterios-acelerato.test.ts`, `painel-real-f6.test.ts`, `qa-f6-painel.test.ts` e `web/src/features/coleta/origem.test.tsx`. Fora os três arquivos com conflito, o delta é só o que veio da develop (S8, T10 e S9) pela resolução do merge.
+- Conferi a junção com `git diff origin/develop f41125a4` nos três arquivos com conflito. É uma união dos dois lados, sem perda:
+  - `criterios-acelerato.ts`: a entrada `105:S8-so-respondidos` da develop fica em 8º, com o texto igual ao da develop. A `105:EI_SUST` fica em 9º, com o texto aprovado. O registro é idempotente pela referência, então a ordem só decide a ordem de gravação na primeira carga.
+  - `criterios-acelerato.test.ts`: são nove entradas, e as métricas casam com o id do duble (`['8','S8']`, `['9','EI_SUST']`).
+  - `qa-f6-painel.test.ts`: a lista de reais tem `EI_SUST` e `T10`, e a exclusão do FL2 inclui o `T10`. O título herda da develop uma vírgula a menos antes de "T10". É só cosmético e não vira achado.
+- Rodei os testes tocados. No server, `vitest run tests/criterios-acelerato.test.ts tests/qa-f6-painel.test.ts tests/painel-real-f6.test.ts` deu 69 de 69 verdes. Nos contratos, `vitest run src/origem.test.ts` deu 26 de 26.
+- Nenhum achado novo. A2 a A5 seguem recomendados.
 
 ## Revalidação no head bb0b770b (E7.329)
 Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `bcbe9ff4..bb0b770b` (merge da `origin/develop` em `312a0152`), sem o que veio da base. No domínio: `CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `packages/contratos/src/origem.ts`, `packages/contratos/src/origem.test.ts` e `server/tests/painel-real-f6.test.ts`. Os cinco últimos trazem mudanças da develop: o O12 pelo campo 51 (E7.214) e os motivos de bloqueio do BusinessMap (E7.184). O delta os mostra por causa da resolução do merge, e o EI_SUST não mexe neles.
@@ -27,7 +36,7 @@ Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `
 - A2 a A5 seguem recomendados e ficam fora deste delta. O A3 pede cartão para o S1.
 
 ## Parecer
-**Aprovado** no head `bb0b770b`. A revalidação foi pelo delta, e o patch do EI_SUST é o mesmo aprovado em `bcbe9ff4`, onde o A1 foi resolvido (veja acima). A primeira rodada, no head `7614d58a`, foi reprovada por um bloqueante (A1). O cálculo segue as decisões do dono:
+**Aprovado** no head `f41125a4`. As revalidações foram pelo delta. A junção com o S8 e o T10 foi conferida, e o patch do EI_SUST é o mesmo aprovado em `bcbe9ff4`, onde o A1 foi resolvido (veja acima). A primeira rodada, no head `7614d58a`, foi reprovada por um bloqueante (A1). O cálculo segue as decisões do dono:
 - P-EI-1 B: cliente = soma de `porEtapa`; time = cliente menos as esperas da D5a.
 - P-EI-2 A: as finais ficam fora das duas visões e são contadas.
 - Suposição P-EI-3 da ordem do dono das 12:51: a fila inicial conta como espera.
@@ -57,4 +66,4 @@ Delta lido: `forge-check parecer delta docs/reviews/105-ei-sust.md`, intervalo `
 - Mutantes: M1 (`time: cliente - espera`, sem a fila inicial) derruba 1 teste. M2 (`cliente < 0`) derruba 1 teste. M3 é o do A2 e sobrevive. M4 está na revalidação.
 
 ## CI e suíte
-Não há PR para esta branch. A suíte inteira fica para o CI do PR. Na primeira rodada, o autor não tinha fechado um `pnpm run pronto` completo depois da última correção (só o pacote docs-contratos). O CI do push no head `7614d58a`, run 43933986407, passou em `rapida`, `build`, `banco`, `openapi`, `seguranca` e `imagem`, e o job `testes` foi cancelado pelo push seguinte. O run 43935238784 roda em `d54e6e41`, que tem o mesmo código, e terminou com `success`. No head `bcbe9ff4`, o autor informa que o `pnpm run pronto` completo terminou com EXIT 0 (PQ do autor). No head `bb0b770b`, que só integra a develop, não rodei a suíte e não afirmo CI verde: ela fica para o CI do PR.
+Não há PR para esta branch. A suíte inteira fica para o CI do PR. Na primeira rodada, o autor não tinha fechado um `pnpm run pronto` completo depois da última correção (só o pacote docs-contratos). O CI do push no head `7614d58a`, run 43933986407, passou em `rapida`, `build`, `banco`, `openapi`, `seguranca` e `imagem`, e o job `testes` foi cancelado pelo push seguinte. O run 43935238784 roda em `d54e6e41`, que tem o mesmo código, e terminou com `success`. No head `bcbe9ff4`, o autor informa que o `pnpm run pronto` completo terminou com EXIT 0 (PQ do autor). No head `bb0b770b`, que só integra a develop, não rodei a suíte e não afirmo CI verde. No head `f41125a4`, o autor informa `pnpm run pronto` com rc=0 (PQ do autor). O CI do push (runs 43986655096 e 43986647268) estava na fila durante a revalidação, então não afirmo CI verde: a suíte fica para o CI do PR.
