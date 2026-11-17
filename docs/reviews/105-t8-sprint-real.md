@@ -46,7 +46,7 @@ Delta lido: `forge-check parecer delta` de `453348a2..7c403716`, 8 arquivos no d
 - Suíte inteira: sem PR, fica para o CI; não afirmo CI verde. A falha de numeração de migração segue esperada até o T3 (0041) entrar na develop.
 
 ## Achados
-- A1 (bloqueante, resolvido em 7c403716) packages/metricas/src/businessmap/t8.ts:57 · "acima do teto" é contado antes do recorte pelo período: a nota soma sprints de todo o histórico e `sprintsNoRecorte` só as do período (S1). Recorte antes de contar e trave com teste em `12s`.
-- A2 (recomendado, resolvido em 7c403716) web/src/features/complementares/previsao.tsx:149 · `nSprints < 20` repete o mínimo à mão; use `MINIMO_AMOSTRA` de `@metricas-dspd/contratos`, como o `AmostraInsuficiente`.
-- A3 (recomendado, resolvido em 7c403716) web/src/features/complementares/previsao.tsx:183 · a legenda ainda diz "abaixo de 20 itens só k de n", regra do dado fictício; com dado real a conta é de sprints (mesmo ponto do B1 da UX).
-- A4 (recomendado, resolvido em 7c403716) server/tests/migracoes.estatico.test.ts:48 · o comentário da contagem diz "0041 (105, E7.499)"; depois da renumeração é a 0042.
+- A1 (bloqueante) packages/metricas/src/businessmap/t8.ts:57 · resolvido em 7c403716; "acima do teto" é contado antes do recorte pelo período: a nota soma sprints de todo o histórico e `sprintsNoRecorte` só as do período (S1). Recorte antes de contar e trave com teste em `12s`.
+- A2 (recomendado) web/src/features/complementares/previsao.tsx:149 · resolvido em 7c403716; `nSprints < 20` repete o mínimo à mão; use `MINIMO_AMOSTRA` de `@metricas-dspd/contratos`, como o `AmostraInsuficiente`.
+- A3 (recomendado) web/src/features/complementares/previsao.tsx:183 · resolvido em 7c403716; a legenda ainda diz "abaixo de 20 itens só k de n", regra do dado fictício; com dado real a conta é de sprints (mesmo ponto do B1 da UX).
+- A4 (recomendado) server/tests/migracoes.estatico.test.ts:48 · resolvido em 7c403716; o comentário da contagem diz "0041 (105, E7.499)"; depois da renumeração é a 0042.
