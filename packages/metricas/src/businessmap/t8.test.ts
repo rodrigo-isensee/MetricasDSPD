@@ -125,7 +125,7 @@ describe('T8 com dado real (E7.499, D-T8 "A")', () => {
     const extras: Sprint[] = [
       sprint(30, { inicio: null }),
       sprint(31, { fim: null }),
-      sprint(32, { inicio: fimDe(32), fim: inicioDe(32) }),
+      sprint(32, { inicio: fimDe(10), fim: inicioDe(10) }),
       sprint(33, { inicio: '2026-03-02', fim: '2026-04-14' }),
       sprint(34, { inicio: '2026-03-02', fim: '2026-04-13' }), // 30 dias úteis exatos: entra
     ]
@@ -140,7 +140,8 @@ describe('T8 com dado real (E7.499, D-T8 "A")', () => {
       diasUteisNoIntervalo(diaDeIso('2026-03-02'), diaDeIso('2026-04-13'), CALENDARIO_PADRAO),
     ).toHaveLength(30)
     const r = calcularT8(ctxDe(m.cards), F, extReal([...m.sprints, ...extras], m.vinc))
-    expect(r.foraDaConta).toEqual({ semDatas: 3, acimaDoTeto: 1, tetoDiasUteis: 30 })
+    // S31 (sem first_end) não tem conclusão para recortar: não entra nem na contagem
+    expect(r.foraDaConta).toEqual({ semDatas: 2, acimaDoTeto: 1, tetoDiasUteis: 30 })
     expect(r.sprintsNoRecorte).toBe(21)
     expect(r.sprints.map((s) => s.sprintId)).not.toContain('S33')
     expect(r.sprints.map((s) => s.sprintId)).toContain('S34')
@@ -186,6 +187,29 @@ describe('T8 com dado real (E7.499, D-T8 "A")', () => {
     // 12 semanas até 2026-10-09 começam em 2026-07-17: nenhuma sprint de março a julho entra
     expect(r.sprints).toEqual([])
     expect(r.sprintsNoRecorte).toBe(0)
+  })
+
+  it('E7.536: sprint acima do teto fora do período de 12 semanas não aparece em acimaDoTeto; a de dentro aparece', () => {
+    const m = mundo(20)
+    const ctx = ctxDe(m.cards)
+    const f12: FiltrosFluxo = { ...F, periodo: { tipo: '12s' } }
+    const hoje = isoDeDia(ctx.hojeDia)
+    const dentro = isoDeDia(ctx.hojeDia - 7)
+    const extras: Sprint[] = [
+      // concluída em março, fora das 12 semanas, e acima do teto
+      { sprint_id: 'LONGA_FORA', nome: 'fora', inicio: '2026-01-05', fim: '2026-04-14' },
+      // concluída dentro do período e acima do teto
+      { sprint_id: 'LONGA_DENTRO', nome: 'dentro', inicio: '2026-06-01', fim: dentro },
+      // sem first_end: não tem conclusão, fica de fora
+      { sprint_id: 'ABERTA', nome: 'aberta', inicio: dentro, fim: null },
+    ]
+    for (const s of extras) {
+      m.cards.push(card(`K${s.sprint_id}`, '2026-01-02T09:00-03:00', null))
+      m.vinc.push({ card_id: `K${s.sprint_id}`, sprint_id: s.sprint_id, ligado_em: null })
+    }
+    expect(hoje >= dentro).toBe(true)
+    const r = calcularT8(ctxDe(m.cards), f12, extReal([...m.sprints, ...extras], m.vinc))
+    expect(r.foraDaConta).toEqual({ semDatas: 0, acimaDoTeto: 1, tetoDiasUteis: 30 })
   })
 
   it('mock (sem a marca de dado real): sem mínimo de sprints e sem a contagem de fora da conta', () => {

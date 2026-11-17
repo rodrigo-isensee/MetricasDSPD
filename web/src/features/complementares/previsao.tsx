@@ -110,7 +110,7 @@ export function CartaoT6({ filtros }: P) {
 }
 
 /**
- * T8 com dado real (E7.499): sprint sem as duas datas de execução ou com mais de 30 dias úteis fica fora da conta e é contada aqui. No corpo e no estado vazio (K-373).
+ * T8 com dado real (E7.499): sprint sem as duas datas de execução ou com mais de 30 dias úteis fica fora da conta e é contada aqui, só entre as sprints concluídas no período (E7.536). No corpo e no estado vazio (K-373).
  * Sem a contagem (dado fictício) nada aparece.
  */
 function notaForaDaContaT8(

@@ -192,13 +192,14 @@ describe('pedido 105 (E7.499, D-T8 "A"): T8 com dado real pelas sprints e pelo v
     const m = mundo(20);
     const extras = [
       sprint(30, { inicio_em: null }), sprint(31, { fim_em: null }),
-      sprint(32, { inicio_em: new Date('2026-03-02T12:00:00Z'), fim_em: new Date('2026-06-30T12:00:00Z') }),
+      sprint(32, { inicio_em: new Date('2026-07-20T12:00:00Z'), fim_em: new Date('2026-09-30T12:00:00Z') }),
     ];
     const { j } = await t8({
       ...m, cards: [...m.cards, card('G0', 'Melhoria'), card('G1', 'Melhoria'), card('G2', 'Melhoria')], sprints: [...m.sprints, ...extras],
       sprintFilhos: [...m.sprintFilhos, ...extras.map((s, i) => ({ sprint_id: s.sprint_id, filho_id: `G${i}` }))],
     });
-    expect(j.foraDaConta).toEqual({ semDatas: 2, acimaDoTeto: 1, tetoDiasUteis: 30 });
+    // E7.536: S31 (sem first_end) não tem conclusão para recortar e não entra na contagem
+    expect(j.foraDaConta).toEqual({ semDatas: 1, acimaDoTeto: 1, tetoDiasUteis: 30 });
     expect(j.sprintsNoRecorte).toBe(20);
     expect(j.sprints.map((x) => x.sprintId)).not.toContain('S32');
   });
