@@ -3,13 +3,20 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s1-escala-p1-p5
-commit: 549dfd8b9d8c7e7f85eca204ac7db7740a2f561c
+commit: fb20f3fb51388ddcffe8d745920481836c563fb6
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: S1 só com a escala P1 a P5 (E7.238, review E7.308, revalidação E7.382, junção E7.421)
+# Code review: S1 só com a escala P1 a P5 (E7.238, review E7.308, revalidação E7.382, junção E7.421, junção com o #517 E7.425)
+
+## Revalidação da junção com o #517 no head `fb20f3fb` (delta lido)
+- Delta lido: `forge-check parecer delta docs/reviews/105-s1-escala-p.md`, intervalo `549dfd8b..fb20f3fb`, sem o que veio da `develop` (#517 `vm:preparar`). No domínio só `server/package.json`, com `+ac:criterios` e `+vm:preparar` depois do `ac:reprojetar-escala` (os dois vêm do #517). `git diff origin/develop -- server/package.json` mostra só a linha do `ac:reprojetar-escala`: **os três scripts ficam**, sem marcador de conflito e sem perda de nenhum lado.
+- **O `vm:preparar` passa a rodar o `ac:reprojetar-escala`, e isso está certo.** `PASSOS` (`server/src/plataforma/db/vm-preparar.ts:21`) já trazia o passo como `opcional`, filtrado pelo `existsSync` de `src/entradas/reprojetar-escala-ac.ts` (`server/src/entradas/vm-preparar.ts:39`); com o S1 o arquivo existe, e o filtro, executado neste head, seleciona 8 passos: `migrar > ref:sync-calendario > bm:ref-sync > ac:ref-sync > ac:reprojetar-etapas > ac:reprojetar-fluxo > ac:reprojetar-escala > ac:criterios`. A ordem serve: a 0040 (`escala_p`) entra no `migrar`, antes da reprojeção; o `ac:criterios` vem depois e grava `105:S1-escala-p` com a escala já preenchida. A entrada usa a credencial do migrador, que o serviço `migrate` já recebe, e imprime só contagens; é idempotente (só onde a coluna é nula), então repetir a subida não muda nada. A imagem leva `server/src` (`COPY --from=deps /repo/server`), então o `existsSync` acha o `.ts` na VM.
+- Rodei `server/tests/vm-preparar.test.ts` e `server/tests/reprojetar-escala-ac-entrada.test.ts`: 14 passaram.
+- Migração: `git diff 549dfd8b fb20f3fb -- server/migrations deploy/sql` vazio; o #517 não trouxe migração, e o SQL do DBA não precisa ser regenerado.
+- **CI do head `fb20f3fb`**: runs `44000616821` (push) e `44000624508` (pull_request) na fila na hora deste parecer; o merge espera o CI verde. O parecer não afirma CI verde.
 
 ## Revalidação da junção no head `549dfd8b` (delta lido)
 - Delta lido: `forge-check parecer delta docs/reviews/105-s1-escala-p.md`, intervalo `07cfc675..549dfd8b`, sem o que veio da `develop` (`edfff4d8`, com #505 EI_SUST, #514 e #515 K-394). No domínio: `CHANGELOG.md`, `docs/api/metricas.md`, `docs/api/openapi.json`, `packages/contratos/src/{origem.ts,origem.test.ts,schemas.ts}`, `packages/metricas/src/acelerato/acelerato.test.ts`, `server/src/modulos/referencia/criterios-acelerato.ts`, `server/tests/criterios-acelerato.test.ts`, `server/tests/painel-real-f6.test.ts`; todos são linhas do EI_SUST trazidas pela junção. `.env.example` e `package.json` vêm só da `develop`.
@@ -40,8 +47,9 @@ data: 2026-11-16
 - A2 (bloqueante) server/tests/acelerato-l9c.pg.test.ts:25 · corrigido em `18e842c7`; `banco` verde no run `43982920812`.
 - A3 (recomendado) deploy/sql/consolidado.sql:1571 · corrigido em `18e842c7` e `07cfc675`: 0040 e consolidado gerados; regenerar só se outra migração entrar na `develop` antes do merge.
 - A4 (recomendado) server/tests/acelerato-escala-p.pg.test.ts:83 · resolvido: o "não sobrescreve" é provado no banco.
+- A5 (recomendado) docs/devops/105-implantacao-vm.md:103 · com o S1 na `develop`, o trecho "ainda não está na `develop`" fica velho; o documento é do devops, que o ajusta no próximo toque (o resto do item, parar a coleta do Acelerato antes do `up`, continua valendo).
 
 ## Riscos e pendências fora do review
-- Passo do dono depois do merge: migrar, rodar `ac:reprojetar-escala` com a coleta parada e registrar o critério com `criterios-ac`. Até lá o S1 real fica "sem dado real" com o motivo, como decidido.
+- Passo do dono depois do merge: na VM, o `up` faz migrar, `ac:reprojetar-escala` e `ac:criterios` pelo `vm:preparar`, **com a coleta do Acelerato parada antes do `up`** (`docs/devops/105-implantacao-vm.md`, seção 2.1, "Versão com a migração 0040"); fora da VM, à mão, como no roteiro do dono. Até lá o S1 real fica "sem dado real" com o motivo, como decidido.
 - Chamado com versão nova no staging ainda não projetada, com prioridade fora do mapa, fica nulo e segura o S1 até a próxima projeção; raro e autocorrigido (registrado para o QA na rodada 1).
-- Job `testes` do run `43982920812` ainda em andamento: o merge espera o CI do PR verde.
+- CI do head `fb20f3fb` na fila: o merge espera o CI verde.
