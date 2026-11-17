@@ -40,8 +40,6 @@ export function textoAlerta(a: Alerta): string {
       return `Aderência ao SLE abaixo de 85% em ${kde(a.valor, a.de)} prioridades`
     case 'T4_RAZAO_FORA':
       return `Razão chegada/vazão fora de 0,9 a 1,0 em ${kde(a.valor, a.de)} prioridades`
-    case 'T3_DESVIO':
-      return `Desvio de alocação acima de 10 p.p. em ${kde(a.valor, a.de)} naturezas`
     case 'T9_ESCOPO':
       return `${kde(a.valor, a.de)} projetos com escopo adicionado depois do início`
     case 'E2_ABAIXO_60':

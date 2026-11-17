@@ -78,27 +78,33 @@ describe('T2: fronteira de 20 itens', () => {
   })
 })
 
-describe('T3: alocação sem desvio calculado', () => {
-  it('percentual publicado sem desvio: não mostra desvio 0 nem a leitura de menos de 20 itens', async () => {
+describe('T3: divisão das entregas por fatia', () => {
+  it('fatia publicada mostra o percentual sem desvio e sem selo; a abaixo de 20 mostra só a contagem', async () => {
     renderizarCartao(<CartaoT3 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
         T3: (r: {
           status: string
-          naturezas: { itens: { pct: number; desvioPP: number | null } }[]
+          naturezas: {
+            abaixoDe20: boolean
+            itens: { quantidade: number; pct: number | null }
+          }[]
         }) => {
           r.status = 'ok'
-          r.naturezas.forEach((n) => {
-            n.itens.pct = 10
-            n.itens.desvioPP = null
+          r.naturezas.forEach((n, i) => {
+            n.abaixoDe20 = i === 1
+            n.itens.pct = i === 1 ? null : 10
+            n.itens.quantidade = i === 1 ? 7 : 30
           })
         },
       }),
     })
     const el = await pronto('T3')
     expect(within(el).getAllByText(/realizado 10/).length).toBeGreaterThan(0)
+    expect(within(el).getByText(/7 itens · menos de 20 entregas/)).toBeInTheDocument()
     expect(within(el).queryByText(/desvio [+\d-]/)).not.toBeInTheDocument()
-    expect(within(el).queryByText(/menos de 20 itens entregues/)).not.toBeInTheDocument()
-    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('como a capacidade foi dividida')
+    expect(within(el).queryByText(/acordado/i)).not.toBeInTheDocument()
+    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('como as entregas se dividiram')
+    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('abaixo de 100%')
   })
 })
 
@@ -352,22 +358,19 @@ describe('T9: estados de borda (UX T9-1, T9-2, T9-3)', () => {
 })
 
 describe('Painel Tático: faixa "Pede atenção"', () => {
-  it('mais de uma prioridade fora da meta e mais de uma natureza com desvio: plural', async () => {
+  it('mais de uma prioridade fora da meta: plural; a alocação não gera alerta de desvio (E7.496)', async () => {
     renderizarApp(
       '/tatico',
       new FonteAjustada({
         T2: (x: { classes: { statusMeta: string }[] }) =>
           x.classes.forEach((c) => (c.statusMeta = 'fora')),
-        T3: (x: { status: string; naturezas: { itens: { statusMeta: string } }[] }) => {
+        T3: (x: { status: string }) => {
           x.status = 'ok'
-          x.naturezas.forEach((n) => (n.itens.statusMeta = 'fora'))
         },
       }),
     )
     await screen.findByTestId('faixa-atencao')
     expect(await screen.findByText(/abaixo da meta em \d+ prioridades/)).toBeInTheDocument()
-    expect(
-      await screen.findByText(/desvio acima de 10 p\.p\. em \d+ naturezas/),
-    ).toBeInTheDocument()
+    expect(screen.queryByText(/desvio acima de 10 p\.p\./)).not.toBeInTheDocument()
   })
 })

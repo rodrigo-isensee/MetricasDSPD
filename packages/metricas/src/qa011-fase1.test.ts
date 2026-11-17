@@ -207,7 +207,7 @@ describe('AL-1 / INV-9: nenhum indicador da fase 1 pede atenção na Visão gera
       expect(fase1.has(c.split('_')[0]!), c).toBe(false)
       expect(c, c).not.toMatch(/PARADO|O23/)
     }
-    expect(alertaCodigo.options.length).toBeGreaterThanOrEqual(12)
+    expect(alertaCodigo.options.length).toBeGreaterThanOrEqual(11)
     const ctx = ctxMock(base.config.hoje)
     const vg = calcularVisaoGeral(
       ctx.bm,

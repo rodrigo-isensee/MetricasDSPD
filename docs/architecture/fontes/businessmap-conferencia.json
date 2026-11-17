@@ -58,6 +58,7 @@
       { "nome": "Kaizen", "eh_item": true, "categoria": "melhoria" },
       { "nome": "Processos", "eh_item": true, "categoria": "melhoria" },
       { "nome": "Otimização processo", "eh_item": true, "categoria": "melhoria" },
+      { "nome": "Enabler", "eh_item": true, "categoria": "habilitador" },
       { "nome": "Sprint", "eh_item": false, "categoria": null }
     ]
   },

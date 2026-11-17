@@ -1570,6 +1570,12 @@ ALTER TABLE dspd_ac.dim_chamado ADD COLUMN IF NOT EXISTS escala_p boolean NULL;
 
 INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0040_ac_dim_chamado_escala_p', now());
 
+ALTER TABLE dspd_bm.ref_tipo_card DROP CONSTRAINT IF EXISTS ref_tipo_card_categoria_check;
+
+ALTER TABLE dspd_bm.ref_tipo_card ADD CONSTRAINT ref_tipo_card_categoria_check CHECK (categoria IN ('bug_interno','defeito_producao','requisicao','divida_tecnica','melhoria','habilitador','produto'));
+
+INSERT INTO dspd_core.pgmigrations (name, run_on) VALUES ('0041_bm_ref_tipo_card_habilitador', now());
+
 REVOKE ALL ON SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA dspd_bm FROM PUBLIC, dspd_coletor, dspd_api, dspd_ref, dspd_webhook, dspd_automacao, dspd_pesquisa, dspd_api_apontamento;

@@ -140,62 +140,78 @@ describe('T2 aderência ao SLE', () => {
   })
 })
 
-const nat = (natureza: string, ac: number, pct: number, st: 'dentro' | 'fora') => ({
+const nat = (natureza: string, pct: number | null, quantidade = 30) => ({
   natureza,
-  acordadoPct: ac,
-  itens: { quantidade: 10, pct, desvioPP: pct - ac, statusMeta: st },
-  tempo: { quantidade: 80, pct: ac, desvioPP: 0, statusMeta: 'dentro' as const },
+  abaixoDe20: pct === null,
+  itens: { quantidade, pct },
+  tempo: { quantidade: 80, pct },
 })
 const t3 = (st: 'ok' | 'insuficiente') => ({
   ...COMUM,
   status: st,
   naturezas: [
-    nat('Sustentação', 40, 51, 'fora'),
-    nat('Evolução', 40, 50, 'dentro'),
-    nat('Dívida técnica', 5, 1, 'dentro'),
+    nat('Produto', 51),
+    nat('Habilitador', 30),
+    nat('Correção em produção', 19),
+    nat('Saúde técnica e de processo', null, 4),
   ],
 })
 
 describe('T3 alocação', () => {
-  it('E7.62: sem acordado não mostra acordado nem desvio, só a divisão realizada', async () => {
+  it('E7.496: quatro fatias, só a divisão realizada, sem acordado, desvio nem selo', async () => {
+    renderizarApp('/tatico', new FonteFixa({ T3: t3('ok') }))
+    const el = await cartao('T3')
+    expect((await within(el).findAllByText(/^realizado 51/)).length).toBeGreaterThan(0)
+    for (const f of [
+      'Produto',
+      'Habilitador',
+      'Correção em produção',
+      'Saúde técnica e de processo',
+    ])
+      expect(within(el).getAllByText(new RegExp(`^${f}`)).length).toBeGreaterThan(0)
+    expect(within(el).queryByText(/acordado/i)).not.toBeInTheDocument()
+    expect(within(el).queryByText(/desvio [+\d-]/i)).not.toBeInTheDocument()
+    expect(within(el).queryByText(/Desvio acima/)).not.toBeInTheDocument()
+    expect(within(el).getByRole('radio', { name: 'Itens' })).toBeChecked()
+  })
+  it('fatia com menos de 20 entregas mostra a contagem e "menos de 20 entregas", sem percentual', async () => {
+    renderizarApp('/tatico', new FonteFixa({ T3: t3('ok') }))
+    const el = await cartao('T3')
+    expect(await within(el).findByText(/^4 itens · menos de 20 entregas$/)).toBeInTheDocument()
+    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('abaixo de 100%')
+  })
+  it('alternador Tempo em execução troca a unidade; sem 20 itens no total, a fatia não cita "menos de 20 entregas" quando não está abaixo', async () => {
+    renderizarApp('/tatico', new FonteFixa({ T3: t3('ok') }))
+    const el = await cartao('T3')
+    await userEvent.click(await within(el).findByRole('radio', { name: 'Tempo em execução' }))
+    expect((await within(el).findAllByText(/dias úteis em execução/)).length).toBeGreaterThan(0)
+  })
+  it('todas as fatias com 20 ou mais entregas: a leitura não cita fatia abaixo de 20', async () => {
     const base = t3('ok')
+    const naturezas = base.naturezas.map((n) => nat(n.natureza, 25, 30))
+    renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
+    const el = await cartao('T3')
+    await within(el).findAllByText(/^realizado 25/)
+    expect(within(el).getByTestId('leitura-T3')).not.toHaveTextContent('menos de 20 entregas')
+  })
+  it('total insuficiente com fatia não marcada abaixo de 20: só a contagem', async () => {
+    const base = t3('insuficiente')
     const naturezas = base.naturezas.map((n) => ({
-      ...n,
-      acordadoPct: null,
-      itens: { ...n.itens, desvioPP: null, statusMeta: 'sem-referencia' as const },
+      ...nat(n.natureza, null, 3),
+      abaixoDe20: false,
     }))
     renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
     const el = await cartao('T3')
-    expect((await within(el).findAllByText(/^realizado 51/)).length).toBeGreaterThan(0)
-    expect(within(el).queryByText(/acordado/)).not.toBeInTheDocument()
-    expect(within(el).queryByText(/desvio [+\d-]/i)).not.toBeInTheDocument()
-    expect(within(el).queryByText(/menos de 20 itens entregues/)).not.toBeInTheDocument()
-    expect(within(el).getByTestId('leitura-T3')).toHaveTextContent('como a capacidade foi dividida')
-    expect(within(el).queryByText('Desvio acima de 10 p.p.')).not.toBeInTheDocument()
+    expect((await within(el).findAllByText(/^3 itens$/)).length).toBe(4)
   })
-  it('com menos de 20 itens e sem acordado, a lista mostra só a quantidade', async () => {
+  it('percentuais somem com menos de 20 itens no total (T-N20)', async () => {
     const base = t3('insuficiente')
-    const naturezas = base.naturezas.map((n) => ({ ...n, acordadoPct: null }))
+    const naturezas = base.naturezas.map((n) => nat(n.natureza, null, 3))
     renderizarApp('/tatico', new FonteFixa({ T3: { ...base, naturezas } }))
     const el = await cartao('T3')
     expect(await within(el).findByTestId('amostra-insuficiente-T3')).toBeInTheDocument()
-    expect(within(el).queryByText(/acordado/)).not.toBeInTheDocument()
-    expect(within(el).getAllByText(/^10 itens$/).length).toBe(3)
-  })
-  it('C1/C2: selo só acima de 10 p.p.; alternador com padrão Itens', async () => {
-    renderizarApp('/tatico', new FonteFixa({ T3: t3('ok') }))
-    const el = await cartao('T3')
-    expect(await within(el).findByText('Desvio acima de 10 p.p.')).toBeInTheDocument()
-    expect(within(el).getAllByText('Desvio acima de 10 p.p.')).toHaveLength(1)
-    expect(within(el).getByRole('radio', { name: 'Itens' })).toBeChecked()
-    await userEvent.click(within(el).getByRole('radio', { name: 'Tempo em execução' }))
-    expect(within(el).queryByText('Desvio acima de 10 p.p.')).not.toBeInTheDocument()
-  })
-  it('percentuais somem com menos de 20 itens (T-N20)', async () => {
-    renderizarApp('/tatico', new FonteFixa({ T3: t3('insuficiente') }))
-    const el = await cartao('T3')
-    expect(await within(el).findByTestId('amostra-insuficiente-T3')).toBeInTheDocument()
     expect(el).not.toHaveTextContent('realizado')
+    expect(within(el).getAllByText(/^3 itens · menos de 20 entregas$/).length).toBe(4)
   })
 })
 

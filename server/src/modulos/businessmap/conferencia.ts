@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 export const ARQUIVO_CONFERENCIA = new URL('../../../../docs/architecture/fontes/businessmap-conferencia.json', import.meta.url);
 
-export const CATEGORIAS = ['bug_interno', 'defeito_producao', 'requisicao', 'divida_tecnica', 'melhoria', 'produto'] as const;
+export const CATEGORIAS = ['bug_interno', 'defeito_producao', 'requisicao', 'divida_tecnica', 'melhoria', 'habilitador', 'produto'] as const;
 const id = z.string().regex(/^\d{1,12}$/);
 const unicos = <T>(lista: readonly T[], chave: (x: T) => string): boolean => new Set(lista.map(chave)).size === lista.length;
 const coluna = z.object({ workflow_id: id, coluna_id: id, nome: z.string().min(1).max(80), papel: z.enum(['fila', 'execucao']), base: z.string().min(1) }).strict();
