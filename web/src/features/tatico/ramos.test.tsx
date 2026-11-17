@@ -214,25 +214,16 @@ describe('T5: parcela de falha', () => {
 })
 
 describe('T7 e T9', () => {
-  it('T7 dentro do limite de frentes', async () => {
-    renderizarCartao(<CartaoT7 filtros={FILTROS_FLUXO} />, {
-      fonte: new FonteAjustada({
-        T7: (x: { kpis: { acimaDoLimite: boolean } }) => (x.kpis.acimaDoLimite = false),
-      }),
-    })
-    const el = await pronto('T7')
-    expect(within(el).getByText('Dentro do limite')).toBeInTheDocument()
-    expect(el).toHaveTextContent('Dentro da meta')
-  })
-
-  it('T7 acima do limite de frentes', async () => {
+  it('T7 não compara com limite mesmo se a fonte trouxer um', async () => {
     renderizarCartao(<CartaoT7 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({
         T7: (x: { kpis: { acimaDoLimite: boolean } }) => (x.kpis.acimaDoLimite = true),
       }),
     })
     const el = await pronto('T7')
-    expect(within(el).getByText('Acima do limite')).toBeInTheDocument()
+    expect(within(el).getByText('Sem limite de frentes')).toBeInTheDocument()
+    expect(within(el).queryByText('Acima do limite')).not.toBeInTheDocument()
+    expect(within(el).queryByText('Dentro do limite')).not.toBeInTheDocument()
   })
 
   it('T9: uma frente adicionada no singular', async () => {

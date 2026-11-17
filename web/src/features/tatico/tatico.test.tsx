@@ -375,7 +375,7 @@ const t7 = (n: number) => ({
 })
 
 describe('T7 fluxo de frentes', () => {
-  it('E7.62: sem limite vigente mostra "não definido", sem 0 e sem selo de limite', async () => {
+  it('E7.498: sem limite de frentes, sem comparação nem selo de limite', async () => {
     const base = t7(27)
     renderizarApp(
       '/tatico',
@@ -384,8 +384,10 @@ describe('T7 fluxo de frentes', () => {
       }),
     )
     const el = await cartao('T7')
-    expect(await within(el).findByText('não definido')).toBeInTheDocument()
-    expect(within(el).getByText('Limite não definido')).toBeInTheDocument()
+    expect(await within(el).findByText('Sem limite de frentes')).toBeInTheDocument()
+    expect(within(el).queryByText('sem limite')).not.toBeInTheDocument()
+    expect(within(el).getByText('projetos com frentes em andamento')).toBeInTheDocument()
+    expect(within(el).queryByText(/não definido/)).not.toBeInTheDocument()
     expect(within(el).queryByText('Sem meta numérica')).not.toBeInTheDocument()
     expect(within(el).queryByText('Acima do limite')).not.toBeInTheDocument()
     expect(within(el).queryByText('Dentro do limite')).not.toBeInTheDocument()
