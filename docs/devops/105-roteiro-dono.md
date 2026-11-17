@@ -205,7 +205,7 @@ Só se algo der errado depois do `db:migrate` do passo 0.2. A subida aplica **tr
 | 0039 | `stg_toque_instante`, `ctl_toque_leitura` e as colunas `dim_card.primeiro_toque_em` e `toque_situacao` (BusinessMap) | **derruba as duas tabelas do BusinessMap e tudo o que a coleta do toque gravou nelas** |
 | 0040 | `dim_chamado.escala_p` (Acelerato, S1) | só a coluna (derivada, a reprojeção refaz) |
 
-**Regra:** o caminho recomendado, para qualquer das três, é **restaurar o backup tirado antes do `db:migrate`** (receita A). O `down` só é aceito para a **última** migração, a 0040 (receita B). Para a 0038 ou a 0039 sozinhas **não existe `down 1`**: com as três aplicadas, `down 1` tira a 0040, o segundo tira a 0039 (e derruba as tabelas do BusinessMap) e só o terceiro tira a 0038. Não faça `down 2` nem `down 3` sem falar com o Jarvis.
+**Regra:** o caminho recomendado, para qualquer das três, é **restaurar o backup tirado antes do `db:migrate`** (receita A). O `down 1` vale para a **última migração aplicada**: a 0040, se a 0041 (K-407, categoria `habilitador`) ainda não estiver aplicada (receita B); com a 0041 aplicada, a última é a 0041 e a 0040 só sai por restauração (receita A). Para a 0038 ou a 0039 sozinhas **não existe `down 1`**: com as três aplicadas, `down 1` tira a 0040, o segundo tira a 0039 (e derruba as tabelas do BusinessMap) e só o terceiro tira a 0038. Não faça `down 2` nem `down 3` sem falar com o Jarvis.
 
 1. Backup do dia (faça **antes** do `db:migrate`, e de novo aqui se já virou o dia em Brasília). Use uma pasta **fora** do projeto, em disco do WSL (ext4); o script recusa pasta dentro do repositório:
 ```
@@ -230,10 +230,16 @@ docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(
 ```
    Depois, o código anterior. O código da release usa `fluxo`, `escala_p` e as tabelas do toque: sem as migrações, S1, S5, S6, S7 e o toque não funcionam até reaplicar (o `db:migrate` do passo 0.2) ou reverter o merge da release (`git revert`, pelo tech-lead).
 
-3. **Receita B, só a 0040 (S1, `dim_chamado.escala_p`): `down 1`.** Perde só a coluna derivada, que a reprojeção refaz; nada mais. Antes, confira que a 0040 é mesmo a última aplicada (deve imprimir `0040_ac_dim_chamado_escala_p`; se imprimir outra coisa, **pare**: `down 1` tiraria a errada):
+3. **Receita B, `down 1` da última migração aplicada (a 0040, S1, `dim_chamado.escala_p`, quando é a última).** Perde só a coluna derivada, que a reprojeção refaz; nada mais. Antes, confira qual é a última aplicada (para tirar a 0040, deve imprimir `0040_ac_dim_chamado_escala_p`; se imprimir outra coisa, **pare**: `down 1` tiraria a errada):
 ```
 docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
 ```
+   **Se imprimir `0041_bm_ref_tipo_card_habilitador`** (a 0041 já está aplicada): o `down 1` tira a 0041, não a 0040. O `down` da 0041 recria o CHECK de seis valores de `dspd_bm.ref_tipo_card.categoria` e **falha se existir linha `habilitador`**, aberta ou fechada (fechar a vigência não resolve). Conte antes:
+```
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT count(*) FROM dspd_bm.ref_tipo_card WHERE categoria = 'habilitador'"
+```
+   Com contagem maior que 0, a volta é **só pelo backup anterior à subida (receita A)**; não rode `bm:ref-sync` nem outro passo para "limpar" o Enabler, que só gravaria vigência nova. Com contagem 0, o `down 1` abaixo tira a 0041 (a 0040 continua; para tirá-la, só pela receita A). Texto de referência: `docs/devops/105-implantacao-vm.md`, "Reversão da migração 0041".
+
    Depois, **um** `down 1`, com as duas travas (`DSPD_PERMITIR_DOWN=1` e o backup de hoje confirmado):
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; DSPD_PERMITIR_DOWN=1 DSPD_BACKUP_DIR=~/backups-metricas pnpm run db:migrate down 1); echo "rc=$?"
