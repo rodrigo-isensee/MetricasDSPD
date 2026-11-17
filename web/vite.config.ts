@@ -70,6 +70,10 @@ export default defineConfig(({ command }) => ({
     // (E2E perf), não por timeout de teste unitário.
     testTimeout: 90000,
     hookTimeout: 90000,
+    // E7.541: espera das buscas assíncronas (findBy/waitFor), lida em `src/test/setup.ts`. Fica em 5 s na estação,
+    // para a lentidão local aparecer; só o job de cobertura do CI e do homolog define METRICAS_DSPD_ESPERA_ASYNC_MS,
+    // porque no runner os arquivos do web levam de 100 a 110 s e 7 buscas passaram de 5 s (5,2 a 8,5 s) sem erro de valor.
+    env: { METRICAS_DSPD_ESPERA_ASYNC_MS: process.env.METRICAS_DSPD_ESPERA_ASYNC_MS ?? '5000' },
     // K-054: render pesado (jsdom + Recharts) é CPU-bound; com todos os núcleos o tempo por teste
     // estourava sob carga. 4 workers mantêm o tempo total e baixam o pico por teste de ~15 s para ~4 s.
     maxWorkers: 4,
