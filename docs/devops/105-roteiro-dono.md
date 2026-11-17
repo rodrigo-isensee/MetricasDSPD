@@ -28,7 +28,7 @@ Rode **dessa pasta, no ramo `main`**, um comando por vez (todos os `cd` do rotei
 - 0 com `classe_servico`, 0 com `origem_bug`, 0 com `fase_deteccao`.
 - `dspd_bm.ref_dominio` com 10 linhas.
 - O coletor lê as três colunas: `has_column_privilege` = `t`.
-- Migrações: a última aplicada é a **0037**; a **0038** (`dim_chamado.fluxo`, Acelerato) **falta**, então o `db:migrate` do passo 0.2 é obrigatório.
+- Migrações: a última aplicada é a **0037**; faltam a **0038** (`dim_chamado.fluxo`, Acelerato), a **0039** (toque do BusinessMap) e a **0040** (`dim_chamado.escala_p`, S1), então o `db:migrate` do passo 0.2 é obrigatório.
 - `dspd_ac.dim_chamado` tem **5144 chamados**, todos com `fluxo` nulo (a coluna ainda não existe).
 
 ## 0. Antes de começar
@@ -56,9 +56,9 @@ O banco do Compose precisa estar de pé: `(set -a; . ~/Metricas/MetricasDSPD/.en
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run db:migrate); echo "rc=$?"
 ```
 - Tempo: segundos.
-- Antes de migrar, faça o backup do dia (seção 4, que também traz a volta da 0038).
-- Deve mostrar: a migração `0038` (coluna `fluxo` em `dim_chamado` do Acelerato) aplicada, se ainda faltar, e rc=0. Rodar de novo diz que não há migração pendente.
-- Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existe a **0038** (pedido 099, D1); por isso este passo é obrigatório.
+- Antes de migrar, faça o backup do dia (seção 4, que também traz a volta das migrações 0038 a 0040).
+- Deve mostrar: as migrações `0038` (coluna `fluxo`), `0039` (tabelas do toque do BusinessMap) e `0040` (coluna `escala_p`) aplicadas, se ainda faltarem, e rc=0. Rodar de novo diz que não há migração pendente.
+- Atenção: o rascunho do assistente dizia "nenhuma migração nova". Na `develop` existem a **0038** (pedido 099, D1), a **0039** e a **0040** (pedido 105); por isso este passo é obrigatório.
 - Se der erro: pare e avise. Pode repetir.
 
 ### 0.3 Acelerato: preencher o fluxo dos chamados já na base (`ac:reprojetar-fluxo`)
@@ -69,9 +69,9 @@ Rode **uma vez**, com a coleta parada, **depois do `db:migrate` (0.2) e antes da
 ```
 - O que faz: a migração 0038 criou `dim_chamado.fluxo` vazia e a coleta de costume só projeta versões novas do staging; este comando reaplica a regra de fluxo que já existe às etapas guardadas no staging e preenche `fluxo` **só onde ele é nulo**. Nunca troca valor existente, não chama o Acelerato e não toca no staging. Roda em lotes, numa transação só (tudo ou nada), com a credencial do migrador.
 - Não recebe argumento. Imprime só contagens, em uma linha JSON: `coletaId`, `lidos`, `preenchidos`, `fluxoMultiplo`, `semFluxo`. Rc=0 é sucesso; rc=1 é erro (`ac:reprojetar-fluxo falhou: <categoria>`): pare e avise. Como é uma transação só, o erro não deixa nada pela metade.
-- Repetir é seguro e não muda nenhum dado (só soma uma linha de execução em `ctl_coleta`); mesmo assim, não precisa repetir.
+- Repetir é seguro e não muda nenhum dado; repetição sem mudança nem grava linha em `ctl_coleta` (K-397). Mesmo assim, não precisa repetir.
 - Resultado esperado: `lidos` = 5144 e `preenchidos` quase todos. Chamado com **fluxo múltiplo** e chamado **sem etapa** seguem nulos de propósito (aparecem em `fluxoMultiplo` e `semFluxo`).
-- Atenção: o "última carga" da tela do Acelerato passa a mostrar a hora desta reprojeção até a próxima coleta do Acelerato. Não é erro nem dado novo.
+- Atenção: só nesta primeira rodada, que preenche linhas, o "última carga" da tela do Acelerato mostra a hora da reprojeção até a próxima coleta do Acelerato. Não é erro nem dado novo. Rodada sem mudança (repetição) não move o "última carga" (K-397). O `ac:reprojetar-escala` da seção 5 ainda grava uma linha a cada rodada.
 - Tempo: não medido; anote a duração e devolva.
 
 ## 1. Passos
@@ -195,35 +195,66 @@ Esperado: `chamados` = 5144 (ou mais, se a coleta já trouxe novos) e `com_fluxo
 2. Com tudo certo, faça a coleta de costume, uma de cada vez: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run bm:coleta incremental --projetar); echo "rc=$?"` e `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm run coleta ac); echo "rc=$?"`. Deve dar rc=0 (rc=3 é parcial: avise).
 3. Só então religue o que parou no 0.1 (no Windows, "Habilitar" a tarefa; no cron, tire o `#`). Se não havia agenda de coleta aqui, nada a religar.
 
-## 4. Voltar atrás: rollback da migração 0038
+## 4. Voltar atrás: rollback das migrações 0038, 0039 e 0040
 
-Só se algo der errado depois do `db:migrate` do passo 0.2. A 0038 só criou a coluna `dim_chamado.fluxo`; ela tem volta (`down` tira a coluna, que é derivada e refeita pela reprojeção), mas o `down` apaga dado de verdade, então o sistema o recusa sem duas travas: `DSPD_PERMITIR_DOWN=1` **e** o backup de hoje confirmado.
+Só se algo der errado depois do `db:migrate` do passo 0.2. A subida aplica **três** migrações, nesta ordem (a lista real da `develop`; o `down 1` sempre desfaz a **última aplicada**, nunca uma do meio):
+
+| Migração | O que criou | Se sair por `down` |
+|---|---|---|
+| 0038 | `dim_chamado.fluxo` (Acelerato) | só a coluna (derivada, a reprojeção refaz) |
+| 0039 | `stg_toque_instante`, `ctl_toque_leitura` e as colunas `dim_card.primeiro_toque_em` e `toque_situacao` (BusinessMap) | **derruba as duas tabelas do BusinessMap e tudo o que a coleta do toque gravou nelas** |
+| 0040 | `dim_chamado.escala_p` (Acelerato, S1) | só a coluna (derivada, a reprojeção refaz) |
+
+**Regra:** o caminho recomendado, para qualquer das três, é **restaurar o backup tirado antes do `db:migrate`** (receita A). O `down` só é aceito para a **última** migração, a 0040 (receita B). Para a 0038 ou a 0039 sozinhas **não existe `down 1`**: com as três aplicadas, `down 1` tira a 0040, o segundo tira a 0039 (e derruba as tabelas do BusinessMap) e só o terceiro tira a 0038. Não faça `down 2` nem `down 3` sem falar com o Jarvis.
 
 1. Backup do dia (faça **antes** do `db:migrate`, e de novo aqui se já virou o dia em Brasília). Use uma pasta **fora** do projeto, em disco do WSL (ext4); o script recusa pasta dentro do repositório:
 ```
 (cd ~/Metricas/MetricasDSPD-main && DSPD_BACKUP_DIR=~/backups-metricas DSPD_PG_CONTAINER=metricasdspd-postgres-1 bash scripts/db-backup.sh); echo "rc=$?"
 ```
-   Deve terminar com `[backup] ok: ...` e rc=0; isso grava `ultimo-backup-ok` com a data de hoje na pasta. A senha vem do `~/.pgpass` ou de `PGPASSWORD` no ambiente; não escreva a senha no comando.
+   Deve terminar com `[backup] ok: ...` e rc=0; isso grava `ultimo-backup-ok` com a data de hoje na pasta. A senha vem do `~/.pgpass` ou de `PGPASSWORD` no ambiente; não escreva a senha no comando. Um backup tirado **depois** do `db:migrate` já tem as três migrações dentro e não serve para a receita A.
    **Atenção à porta:** `scripts/db-backup.sh` lê **`PGPORT`** (padrão 5432), não `PG_PORT`, que é o nome usado no `.env` pelo `db:migrate`. Com o Compose na porta padrão não muda nada; se o seu `.env` tem `PG_PORT` diferente de 5432, exporte também `PGPORT` com o mesmo valor, senão o backup mira a porta errada.
-2. Desfazer só a 0038 (uma migração):
+
+2. **Receita A, recomendada (0038, 0039 e 0040 juntas, ou só uma delas): restaurar o backup anterior à subida.** Tira as **três** migrações de uma vez e perde **tudo o que entrou no banco depois daquele backup** (coletas, cartões, o que a reprojeção gravou). Decisão do Jarvis (item 4 abaixo). Com a coleta do Acelerato parada (0.1) e os serviços que usam o banco parados (`docker compose stop api worker coleta web`; o `postgres` fica de pé), use o `.dump` mais recente anterior à subida em `~/backups-metricas/`:
+```
+docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE metricas WITH (FORCE)"
+docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d postgres -c "CREATE DATABASE metricas ENCODING 'UTF8' TEMPLATE template0"
+docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d metricas -c "ALTER DATABASE metricas SET timezone TO 'UTC'"
+docker compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -d metricas -c "GRANT CREATE, CONNECT ON DATABASE metricas TO dspd_migrador"
+docker compose exec -T postgres pg_restore -U postgres --exit-on-error -d metricas < ~/backups-metricas/ARQUIVO-DO-BACKUP.dump; echo "rc=$?"
+```
+   Troque `ARQUIVO-DO-BACKUP.dump` pelo nome do arquivo (`ls -1 ~/backups-metricas/metricas-*.dump`). Não use `pg_restore --clean` por cima do banco existente: ele falha (rc=1) porque as tabelas da 0039 dependem de `ctl_coleta`. Deve dar rc=0. Conferir que as três saíram (deve imprimir `0`, `0` e `0`):
+```
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name in ('fluxo','escala_p')"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.tables where table_schema='dspd_bm' and table_name in ('stg_toque_instante','ctl_toque_leitura')"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from dspd_core.pgmigrations where name in ('0038_ac_dim_chamado_fluxo','0039_bm_toque_primeiro','0040_ac_dim_chamado_escala_p')"
+```
+   Depois, o código anterior. O código da release usa `fluxo`, `escala_p` e as tabelas do toque: sem as migrações, S1, S5, S6, S7 e o toque não funcionam até reaplicar (o `db:migrate` do passo 0.2) ou reverter o merge da release (`git revert`, pelo tech-lead).
+
+3. **Receita B, só a 0040 (S1, `dim_chamado.escala_p`): `down 1`.** Perde só a coluna derivada, que a reprojeção refaz; nada mais. Antes, confira que a 0040 é mesmo a última aplicada (deve imprimir `0040_ac_dim_chamado_escala_p`; se imprimir outra coisa, **pare**: `down 1` tiraria a errada):
+```
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
+```
+   Depois, **um** `down 1`, com as duas travas (`DSPD_PERMITIR_DOWN=1` e o backup de hoje confirmado):
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; DSPD_PERMITIR_DOWN=1 DSPD_BACKUP_DIR=~/backups-metricas pnpm run db:migrate down 1); echo "rc=$?"
 ```
-   Deve mostrar `down: 1 migração(ões)` e rc=0. Sem as duas variáveis, ou com backup de outro dia, o comando recusa e nada é apagado. Não use `down` com número maior que 1 sem falar com o Jarvis.
-3. Conferir que a coluna saiu (deve imprimir `0`):
+   Deve mostrar `down: 1 migração(ões)` e rc=0. Sem as duas variáveis, ou com backup de outro dia, o comando recusa e nada é apagado. **Não repita o comando**: o segundo `down 1` tira a 0039. Conferir (a coluna saiu, a 0039 continua e é a última; deve imprimir `0`, `2` e `0039_bm_toque_primeiro`):
 ```
-docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='fluxo'"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.columns where table_schema='dspd_ac' and table_name='dim_chamado' and column_name='escala_p'"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "select count(*) from information_schema.tables where table_schema='dspd_bm' and table_name in ('stg_toque_instante','ctl_toque_leitura')"
+docker compose exec -T postgres psql -U postgres -d metricas -tAc "SELECT name FROM dspd_core.pgmigrations ORDER BY id DESC LIMIT 1"
 ```
-4. Para reaplicar depois, rode o `db:migrate` do passo 0.2 de novo. O código da release usa `fluxo`: com a 0038 desfeita, S5, S6 e S7 não funcionam até reaplicar ou reverter o merge da release (`git revert`, pelo tech-lead).
-5. Restaurar o `.dump` do backup (perda de dado maior) é decisão do Jarvis; `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
+   Com a 0040 desfeita, o S1 não funciona até reaplicar (`db:migrate` e `ac:reprojetar-escala`) ou reverter o merge da release. Nas duas receitas, **a coleta do Acelerato continua parada** até acabar.
 
-## 5. Marcas de critério do Acelerato e, se a 0040 existir, o S1 (K-396)
+4. Restaurar o `.dump` (receita A) é decisão do Jarvis (perda de dado maior); `scripts/db-restaurar-verificada.sh` só ensaia a restauração num banco novo e nunca altera o `metricas`.
+
+## 5. Marcas de critério do Acelerato e o S1 (K-396)
 
 Depois do passo 0.3, grave as marcas de critério do Acelerato (idempotente; imprime só as referências novas):
 ```
 (set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:criterios); echo "rc=$?"
 ```
-Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). Condicional, só quando a migração 0040 (escala P do S1) estiver na versão que você implantou: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só: com a coleta do Acelerato parada (0.1), `ac:reprojetar-escala`, `ac:criterios` de novo (grava `105:S1-escala-p`) e religar a coleta (seção 3). O rollback da 0040 segue a seção 4 (`DSPD_PERMITIR_DOWN=1`, backup de hoje, `down 1`). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
+Rc=0 é sucesso. O `ac:criterios` lê o `.env` só por esse `set -a; . ...` (os `ac:*` não o leem sozinhos). O S1 (migração 0040, escala P1 a P5) já está na `develop` e vem na release: **o backup e o `db:migrate` já foram feitos no passo 0.2** (que aplica a 0040 junto com as outras; não repita), então aqui só, **com a coleta do Acelerato parada (0.1)**: `(set -a; . ~/Metricas/MetricasDSPD/.env; set +a; pnpm --filter @metricas-dspd/server run ac:reprojetar-escala); echo "rc=$?"`, depois `ac:criterios` de novo (grava `105:S1-escala-p`) e só então religar a coleta (seção 3). O rollback é a seção 4: o recomendado é restaurar o backup anterior à subida (receita A); `down 1` só para a 0040 (receita B). Na VM o caminho é outro (o `up` migra e roda o `vm:preparar`, com o backup antes): `docs/devops/105-implantacao-vm.md`, seção 2.1, itens 2 a 4.
 
 ## O que fica fora deste roteiro
 
