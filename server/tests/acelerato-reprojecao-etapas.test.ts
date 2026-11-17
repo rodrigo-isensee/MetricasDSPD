@@ -1,6 +1,7 @@
 import { acelerato } from '@metricas-dspd/metricas';
 import { FERIADOS_NACIONAIS, horasUteisEntre } from '@metricas-dspd/metricas/core';
 import { describe, expect, it } from 'vitest';
+import { intervalosDasEtapas } from '../src/modulos/acelerato/etapas-sinteticas.js';
 import { TAMANHO_LOTE } from '../src/modulos/acelerato/projetor.js';
 import { ErroReprojecao, VERSAO_REPROJECAO_D7, reprojetarEtapasAcelerato } from '../src/modulos/acelerato/reprojecao-etapas.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
@@ -20,9 +21,9 @@ const turnosDeSemana = (base: { inicio_min: number; fim_min: number }[]) => [1, 
 type Cenario = {
   calendario?: { offset_minutos: number; feriados: string[] } | null; turnos?: { dia_semana: number; inicio_min: number; fim_min: number }[];
   lotes?: ReturnType<typeof dim>[][]; etapas?: ReturnType<typeof etapaStg>[]; versaoExiste?: boolean; falharEm?: string;
+  gravados?: { chamado_id: string; etapa: string; entrada: Date; saida: Date }[];
 };
 function montar(c: Cenario = {}) {
-  let lote = 0;
   const cal = c.calendario === undefined ? { offset_minutos: -180, feriados: [...FERIADOS_NACIONAIS] } : c.calendario;
   return criarDublePg((q: Chamada) => {
     const t = q.texto;
@@ -34,7 +35,9 @@ function montar(c: Cenario = {}) {
     if (t.includes('SELECT 1 FROM dspd_core.ref_versao_criterio')) return c.versaoExiste === true ? [{ x: 1 }] : [];
     if (t.includes('INSERT INTO dspd_core.ref_versao_criterio (')) return [{ versao_id: '9' }];
     if (t.includes('INSERT INTO dspd_ac.ctl_coleta ')) return [{ coleta_id: '88' }];
-    if (t.includes('FROM dspd_ac.dim_chamado')) return c.lotes?.[lote++] ?? [];
+    if (t.includes('FROM dspd_ac.fato_etapa_chamado')) return c.gravados ?? [];
+    // o lote é escolhido pelo cursor (a reprojeção percorre os chamados mais de uma vez)
+    if (t.includes('FROM dspd_ac.dim_chamado')) return c.lotes?.[q.valores[0] === '' ? 0 : (c.lotes ?? []).findIndex((l) => l.at(-1)?.chamado_id === q.valores[0]) + 1] ?? [];
     if (t.includes('FROM dspd_ac.stg_etapa')) return c.etapas ?? [];
     return [];
   });
@@ -119,6 +122,40 @@ describe('reprojetarEtapasAcelerato: reprojeção', () => {
     const d = montar({ versaoExiste: true, lotes: [[dim('1')]], etapas: [etapaStg('1', '5', 'Pendente', 3600)] });
     expect(await reprojetarEtapasAcelerato(d.pool, S, () => AGORA)).toMatchObject({ versaoNova: false, chamados: 1, etapas: 1 });
     expect(com(d, 'INSERT INTO dspd_core.ref_versao_criterio')).toHaveLength(0);
+    expect(com(d, 'INSERT INTO dspd_ac.ctl_coleta ')).toHaveLength(1);
+  });
+  const gravadosDe = (id: string, tempo: number) => {
+    const etapas = [{ descricao: 'Pendente', tempo_sla_segundos: tempo, quantidade_vezes: 1, descricao_workflow: null }];
+    return intervalosDasEtapas(dim(id).data_finalizado, etapas, SUST).intervalos.map((i) => ({ chamado_id: id, etapa: i.etapa, entrada: i.entrada, saida: i.saida }));
+  };
+  it('K-397: sem mudança (versão já registrada e intervalos iguais aos gravados) não grava nada, nem ctl_coleta', async () => {
+    const gravados = gravadosDe('1', 3600);
+    expect(gravados).toHaveLength(1);
+    const d = montar({ versaoExiste: true, lotes: [[dim('1')]], etapas: [etapaStg('1', '5', 'Pendente', 3600)], gravados });
+    expect(await reprojetarEtapasAcelerato(d.pool, S, () => AGORA)).toEqual({ vigenteDesde: '2026-11-13', versaoNova: false, coletaId: null, chamados: 1, etapas: 1, semIntervalo: 0 });
+    expect(gravacoes(d)).toEqual([]);
+    expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');
+  });
+  it('K-397: com mudança nos intervalos (mesma versão) segue como hoje: ctl_coleta, refaz o fato e fecha com sucesso', async () => {
+    const d = montar({ versaoExiste: true, lotes: [[dim('1')]], etapas: [etapaStg('1', '5', 'Pendente', 3600)], gravados: gravadosDe('1', 7200) });
+    expect(await reprojetarEtapasAcelerato(d.pool, S, () => AGORA)).toMatchObject({ coletaId: 88, versaoNova: false, chamados: 1, etapas: 1 });
+    expect(com(d, 'INSERT INTO dspd_ac.ctl_coleta ')).toHaveLength(1);
+    expect(com(d, 'DELETE FROM dspd_ac.fato_etapa_chamado')).toHaveLength(1);
+    expect(com(d, 'UPDATE dspd_ac.ctl_coleta')[0]!.valores[0]).toBe(88);
+  });
+  it('K-397: chamado sem etapa no staging não gera intervalo e não conta como mudança', async () => {
+    const d = montar({ versaoExiste: true, lotes: [[dim('1'), dim('2')]], etapas: [etapaStg('1', '5', 'Pendente', 3600)], gravados: gravadosDe('1', 3600) });
+    expect(await reprojetarEtapasAcelerato(d.pool, S, () => AGORA)).toMatchObject({ coletaId: null, chamados: 2, etapas: 1 });
+  });
+  it('K-397: a mudança no primeiro lote basta (os lotes seguintes só são contados) e a reprojeção segue como hoje', async () => {
+    const l1 = Array.from({ length: TAMANHO_LOTE }, (_, i) => dim(String(1000 + i)));
+    const d = montar({ versaoExiste: true, lotes: [l1, [dim('9999')]], etapas: [etapaStg('1000', '5', 'Pendente', 3600)] });
+    expect(await reprojetarEtapasAcelerato(d.pool, S, () => AGORA)).toMatchObject({ coletaId: 88, chamados: TAMANHO_LOTE + 1 });
+    expect(com(d, 'SELECT chamado_id, etapa, entrada, saida FROM dspd_ac.fato_etapa_chamado')).toHaveLength(1);
+  });
+  it('K-397: versão de critério nova conta como mudança mesmo com os intervalos iguais', async () => {
+    const d = montar({ versaoExiste: false, lotes: [[dim('1')]], etapas: [etapaStg('1', '5', 'Pendente', 3600)], gravados: gravadosDe('1', 3600) });
+    expect(await reprojetarEtapasAcelerato(d.pool, S, () => AGORA)).toMatchObject({ coletaId: 88, versaoNova: true });
     expect(com(d, 'INSERT INTO dspd_ac.ctl_coleta ')).toHaveLength(1);
   });
   it('turnos gravados vazios valem como os da Sustentação (mesma regra da medição nas métricas)', async () => {

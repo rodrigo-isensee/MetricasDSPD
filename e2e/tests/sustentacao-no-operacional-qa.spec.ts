@@ -668,9 +668,14 @@ test.describe('CT-63, CT-64, CT-65 regras invioláveis na tela', () => {
     ).toBe(0)
     await painel.ir('/operacional?cadencia=semanal')
     await new PainelPage(page).esperarPronto()
-    const leia = await page.getByTestId('leia-junto-o15').innerText()
+    // D5: o cruzamento rotulado para a Sustentação sai do O27 (o O15 aponta ao O27, sem Acelerato)
+    const leiaO15 = await page.getByTestId('leia-junto-o15').innerText()
+    expect(leiaO15).not.toContain('Acelerato')
+    await page.getByTestId('mais-metricas').locator('summary').click()
+    await new PainelPage(page).esperarPronto()
+    const leia = await page.getByTestId('leia-junto-o27').innerText()
     expect(leia).toContain('Acelerato')
-    expect(leia.replace(/O17|O15|\b12\b|visão|fonte/gi, '')).not.toMatch(
+    expect(leia.replace(/O17|O15|O27|\b12\b|visão|fonte/gi, '')).not.toMatch(
       /\d+[,.]?\d*\s*(%|dias|horas|itens|chamados)/i,
     )
   })

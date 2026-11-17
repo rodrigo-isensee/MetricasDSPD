@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O22, O24..O26, BLOQUEADOS, T1..T14, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 69 ids, inclui as 17 complementares abaixo, as 16 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O22, O24..O27, BLOQUEADOS, T1..T14, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 70 ids, inclui as 17 complementares abaixo, as 16 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -108,12 +108,14 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | O13 | `meses[{mes,defeitos,vazaoTotal,pct:Taxa}]` | equipe, sistema, período |
 | O14 | `porArea` e `porSistema`: `{itens[{nome,entregues,criados,porTipo}] (top 10), demais}` | equipe, sistema, período |
 | O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
+| O27 | `porTipo[{ tipo ('Bug interno' ou 'Defeito em produção'), n, naoEBug, naoInformada, comCausa, causas[{ causa (código), rotulo, n, pct }] ou null }]`, `porSistema` (sempre `null`), `motivoPorSistema`. Causa raiz dos bugs do BusinessMap fechados (concluídos ou descartados) nas 12 semanas, uma coluna por tipo, nunca somadas. As 12 opções do campo, na ordem do campo; "Não é bug" e "Outros" contam como causa; sem causa (ou valor fora do domínio) fica em `naoInformada`, fora do denominador. `causas` é `null` com menos de 20 bugs com causa no tipo (só os totais). Nada do Acelerato, nenhuma pessoa; não é o O17 | equipe, sistema, período (tipo não atua). Ainda sem cartão no catálogo (`CATALOGO_CARTOES`): o cartão, o "leia junto" do O15 e o registro na tela entram com a tela (L3) |
 | O17 (Sustentação, Acelerato) | `campoDisponivel`, `porCausa[{causa,n}]` ou `null` (incidentes encerrados; null sem dado real), `motivoCausaRaiz` (texto ou `null`; motivo de `porCausa` nulo), `porSistema[{sistema,n}]` (categoria do chamado, dado real) | equipe, prioridade, período (filtros da sustentação; não mais de fluxo) |
 | T6 | `entradas{itens,semanas}`, `semPrioridade{n,total}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
 | T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
 | E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |
 | E5 | `vazaoSemanal{n,mediana}`, `projetos[{projetoId,projeto,frentesRestantes,frentesAdicionadasAposInicio,previsao}]` | sistema, período |
 | S8 | `campoDisponivel`, `cobertura{n,total}`, `metaMaxPct`, `meses[{encerrados (incidentes abertos no mês),informados (com o campo `reincidente` informado: denominador do mês),reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
+| S1 (pedido 105, E7.238) | `foraDaMatriz?{outrasEscalas:number,semPrazo:number}` (campo novo opcional, aditivo): o S1 mede só os chamados da escala P1 a P5 da matriz (`dim_chamado.escala_p`, migração 0040; critério `105:S1-escala-p`); aqui, os chamados fechados na janela e nos filtros de equipe que ficaram fora: de outras escalas (DSPD-*, SSSC-*, prazos próprios) e sem prioridade (sem prazo). Só contagem, não depende do filtro de prioridade. `base.n` e `excecoesForaDaApuracao` contam só a escala P. Sem a coluna preenchida (reprojeção `ac:reprojetar-escala` ainda não rodada), o S1 real responde `sem-dado-real` com o motivo `MOTIVO_ESCALA_NAO_PROJETADA` | equipe, prioridade, período |
 | S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
 | S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
 | S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `semFluxo:number`, `conversao:Taxa` ou nulo, `motivoConversao:string` ou nulo | equipe, período (prioridade não atua) |
@@ -410,6 +412,10 @@ Plano: `docs/architecture/plano-sustentacao-no-operacional.md`. Decisão: [ADR 0
 ### S8: só incidentes com resposta (pedido 066, 2026-11-04)
 - Contrato igual (nenhum campo novo, removido ou com tipo diferente); muda só o valor. Na base real, informado = resposta `sim` ou `nao` no campo "Este problema já ocorreu nos últimos 90 dias?"; `sem_resposta` e sem valor ficam fora do denominador. `cobertura.n`, `meses[].informados` e `total.n` passam a contar os incidentes com resposta.
 - Abaixo de 20 incidentes com resposta, `total` e cada mês saem `insuficiente` (nunca 0%); `statusMeta` = `sem-referencia`.
+
+### S8: contagem dos sem resposta (pedido 105, E7.237, decisão A do dono, 16/11)
+- Confirma a regra acima e substitui de vez a D-10 (sem resposta = não reincidente). Campo novo **opcional** em `resultadoS8`: `semResposta` (inteiro maior ou igual a 0) = incidentes do período sem resposta no campo, fora do denominador (`cobertura.total - cobertura.n`; 0 sem extensão). Mudança compatível (política de mudança de contrato, §2). O cartão mostra "N incidentes sem resposta no campo". Hoje: 195 incidentes, 186 sem resposta, 9 "não": amostra insuficiente (menos de 20 respondidos).
+- Versão de critério `105:S8-so-respondidos` (domínio `acelerato`, `afeta: ['S8']`), gravada pelo `ac:ref-sync`; marca o gráfico.
 - Critério versionado (T2.6): `066:S8-com-resposta`, afeta o S8, aparece em `criterios`; a `056:D-10` fica como histórico.
 
 ## Painel operacional com dado real (F6 do plano 052, E2.69)
@@ -550,3 +556,11 @@ Decisão do dono (2026-11-16, opção A), que substitui a P-075-11 "B": o fornec
 - **T2.6:** versão de critério `105:classe-pela-prioridade` (`afeta: O6, O24, T1, T2, T4, T6`), gravada por `bm:criterios-classe-servico <data em que o eixo vai ao ar>` com o migrador; substitui a `105:classe-por-etiqueta`, que nunca foi gravada. Os 60 dias de dado limpo do SLE contam a partir dessa data.
 - **Mock:** a prioridade vem da classe do mock sem sortear (Urgente = Crítica, Prioritário e Prazo fixo = Alta, Padrão = Média; Dívida técnica prioritária = Baixa e Melhoria urgente = sem prioridade, para haver nível abaixo de 20 e a faixa com dado).
 - **Fora desta entrega:** tirar as etiquetas da coleta (L4) e a tela (rótulos, nota e a observação do T2 sobre o cálculo, com o `react-frontend`).
+
+## Pedido 105, E7.243: EI_SUST com dado real
+
+- `EI_SUST` entra em `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK` (antes: 200 `sem-dado-real` com "cálculo ainda não definido para o Acelerato"). Só Acelerato, horas úteis da Sustentação, por prioridade (nunca agregada), medianas pela biblioteca; abaixo de 20 chamados na prioridade nenhuma das duas visões é publicada.
+- Regra (decisões do dono P-EI-1 B e P-EI-2 A; suposição P-EI-3 do arquiteto): visão do cliente = soma do tempo de todas as etapas do chamado fechado, sem as etapas finais (Concluído, Encerramento, Causa Raiz, Revisão; também Encerrado e Arquivar, de relógio parado). Visão do time = cliente menos as esperas da D5a (Pendente, Aguardando Solicitante, Suporte Terceiros, Fornecedor, Janela de Mudança, Validação; as mesmas que pausam o SLA do S1) e menos a fila inicial (Novo, Novo Atendimento, Em triagem, Aguardando Atribuição). Aguardando Equipe Interna, Aprovação, Mudança e Data Acordada seguem como tempo do time (resultado conservador) e vão contadas. Chamado fechado sem tempo por etapa fica fora e é contado.
+- Campo novo, opcional, só na SUST: `composicao` = `{ chamados, semEtapas, filaInicial: {chamados, horasUteis}, finais: {chamados, horasUteis}, naoDecididas: {chamados, horasUteis, etapas: [{etapa, chamados, horasUteis}]} }`, sobre os chamados da janela de percentis (todas as prioridades do filtro). São somas e contagens, não estatística. Ausente nos níveis do BusinessMap.
+- Versão de critério `105:EI_SUST` (afeta EI_SUST), registrada em `ref_versao_criterio` pelo migrador; marca o gráfico da série.
+- Para o front: o cartão pode mostrar `composicao.naoDecididas` ("tempo ainda não classificado") e `composicao.semEtapas`; a nota do cartão (`NOTAS_EI.SUST`) já descreve a regra.

@@ -1,7 +1,7 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { CartaoEI } from './components/CartaoEI'
+import { CartaoEI, ComposicaoSust } from './components/CartaoEI'
 import { fonteDeTeste, renderizarApp, renderizarCartao } from '@/test/helpers'
 
 const URL_DO: Record<string, string> = {
@@ -96,6 +96,26 @@ describe('Espera invisível por nível, segmentada', () => {
     expect(within(el).getByTestId('ei-time-sust-p3')).toBeInTheDocument()
     expect(within(el).getByText('Fonte: Acelerato')).toBeInTheDocument()
     expect(within(el).queryByText('Fonte: BusinessMap')).toBeNull()
+  })
+
+  it('Sustentação: a composição mostra chamados, sem etapas, fila inicial, finais e etapas não decididas, em tabela rotulada', async () => {
+    const { el } = await pronto('EI-SUST')
+    const comp = within(el).getByTestId('ei-composicao-sust')
+    const tabela = within(comp).getByRole('table', { name: /Composição da espera invisível/ })
+    for (const rotulo of [
+      /Chamados na janela/,
+      /Sem tempo por etapa/,
+      /Fila inicial/,
+      /Etapas finais/,
+      /Etapas ainda não decididas/,
+    ])
+      expect(within(tabela).getByRole('rowheader', { name: rotulo })).toBeInTheDocument()
+    expect(within(tabela).getByRole('columnheader', { name: 'Horas úteis' })).toBeInTheDocument()
+  })
+
+  it('os níveis do BusinessMap não mostram composição da Sustentação', async () => {
+    const { el } = await pronto('EI-FL1')
+    expect(within(el).queryByTestId('ei-composicao-sust')).toBeNull()
   })
 
   it('o painel Sustentação traz o cartão compacto, com a aba nomeada no título e o botão de evolução', async () => {
@@ -207,5 +227,35 @@ describe('Espera invisível por nível, segmentada', () => {
     await userEvent.keyboard('{Escape}')
     expect(screen.queryByTestId(/^ei-evolucao-/)).toBeNull()
     expect(botao).toHaveFocus()
+  })
+})
+
+describe('Composição da EI_SUST', () => {
+  it('lista cada etapa não decidida pelo nome, com chamados e horas úteis', () => {
+    render(
+      <ComposicaoSust
+        c={{
+          chamados: 120,
+          semEtapas: 3,
+          filaInicial: { chamados: 100, horasUteis: 40.5 },
+          finais: { chamados: 110, horasUteis: 12 },
+          naoDecididas: {
+            chamados: 30,
+            horasUteis: 75.25,
+            etapas: [
+              { etapa: 'Aprovação', chamados: 20, horasUteis: 50 },
+              { etapa: 'Data Acordada', chamados: 10, horasUteis: 25.25 },
+            ],
+          },
+        }}
+      />,
+    )
+    const linha = (nome: RegExp) => screen.getByRole('rowheader', { name: nome }).closest('tr')!
+    expect(within(linha(/Não decidida: Aprovação/)).getAllByRole('cell')[0]).toHaveTextContent('20')
+    expect(within(linha(/Não decidida: Data Acordada/)).getAllByRole('cell')[1]).toHaveTextContent(
+      '25,25',
+    )
+    expect(within(linha(/Sem tempo por etapa/)).getAllByRole('cell')[0]).toHaveTextContent('3')
+    expect(within(linha(/Etapas finais/)).getAllByRole('cell')[1]).toHaveTextContent('12')
   })
 })

@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, MOTIVO_ALVOS_NAO_CARREGADOS, MOTIVO_ESCALA_NAO_PROJETADA, MOTIVO_FLUXOS_PROC_NAO_CARREGADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -23,7 +23,7 @@ const card = (id: string, tipo: string | null, extra: Partial<LinhaCard> = {}): 
   criado_em: new Date('2026-09-01T12:00:00Z'), comprometido_em: new Date('2026-09-02T12:00:00Z'), iniciado_em: new Date('2026-09-03T12:00:00Z'),
   concluido_em: null, arquivado_em: null, motivo_descarte: null, tamanho_declarado: null, titulo: 'Card de teste', granularidade: 'story',
   equipe: 'Time A', quadro_id: '35', coluna_atual_id: '3', excluido_em: null, eh_subtarefa: false, data_acordada: null,
-  responsabilidade_atraso: null, origem_demanda: null, fase_deteccao: null, severidade: null, origem_bug: null, adicionado_apos_inicio_pai: false,
+  responsabilidade_atraso: null, origem_demanda: null, fase_deteccao: null, severidade: null, origem_bug: null, causa_raiz: null, adicionado_apos_inicio_pai: false,
   ...extra,
 });
 const col = (id: string, nome: string, tipo: string, papel: string, ordem: number, limite: number, equipe: string | null = 'Time A'): LinhaColunaReal =>
@@ -44,7 +44,7 @@ const chamado = (id: string, extra: Partial<LinhaChamado> = {}): LinhaChamado =>
   aberto_em: new Date('2026-09-20T12:00:00Z'), primeiro_atendimento_em: null, restaurado_em: null, data_finalizado: null, status_sla_r: null,
   status_sla_pa: null, motivo_escalacao: null, motivo_pendencia_atual: null, previsao_retorno: null, motivo_encerramento: null,
   avaliacao_problema: null, excecao_sla_registro_posterior: false, incidente_critico_coordenado: false, nivel_resolucao: null,
-  com_agente: true, reincidente_90d: 'nao', ...extra,
+  com_agente: true, reincidente_90d: 'nao', escala_p: true, ...extra,
 });
 
 
@@ -227,7 +227,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(d.chamadas).toHaveLength(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; EI_SUST responde sem dado real; S5, S6, S7 e S11 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
+  it('sustentação (E2.115): S1 (D4), S2, S3, S4, S8, S9, S10 e S12 leem só a base real do Acelerato; EI_SUST (pedido 105, E7.243) é real; S5, S6, S7 e S11 são reais, mas sem os fluxos do PROC carregados respondem sem dado real com o motivo; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
     for (const id of ['S1', 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
@@ -246,10 +246,11 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
       expect(r.json(), id).toEqual({ estado: 'sem-dado-real', metrica: id, motivo: MOTIVO_FLUXOS_PROC_NAO_CARREGADOS });
     }
     for (const id of ['EI_SUST'] as MetricaId[]) {
-      expect(origemDaMetrica(id), id).toBe('sem-dado');
+      expect(origemDaMetrica(id), id).toBe('real');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
-      expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real' });
+      expect(r.json(), id).not.toHaveProperty('estado');
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
     }
     expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, AC_REAL)).toBe(1);
@@ -722,6 +723,19 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(p3.primeiroAtendimento.n).toBe(1);
     expect(p3.restauracao.n).toBe(1);
     expect(SCHEMAS_RESULTADO.S1.safeParse(r.json()).success).toBe(true);
+  }, 60_000);
+
+  it('E7.238 (S1 B do dono): S1 real mede só a escala P1 a P5 e conta as outras escalas e os sem prazo; sem a escala projetada responde sem dado real com o motivo', async () => {
+    const fechado = (id: string, extra: Partial<LinhaChamado> = {}) => chamado(id, { status: 'Concluído', data_finalizado: new Date('2026-09-25T12:00:00Z'), primeiro_atendimento_em: new Date('2026-09-20T13:00:00Z'), restaurado_em: new Date('2026-09-25T12:00:00Z'), ...extra });
+    const { app } = await montar({ chamados: [fechado('1'), fechado('2'), fechado('3', { escala_p: false }), fechado('4', { escala_p: false }), fechado('5', { prioridade: null, escala_p: null })] });
+    const r = (await app.inject('/api/v1/metricas/S1')).json() as { base: { n: number }; foraDaMatriz: { outrasEscalas: number; semPrazo: number } };
+    expect(r.base.n).toBe(2);
+    expect(r.foraDaMatriz).toEqual({ outrasEscalas: 2, semPrazo: 1 });
+    expect(SCHEMAS_RESULTADO.S1.safeParse(r).success).toBe(true);
+    const pendente = await montar({ chamados: [fechado('1', { escala_p: null })] });
+    const p = await pendente.app.inject('/api/v1/metricas/S1');
+    expect(p.statusCode).toBe(200);
+    expect(p.json()).toEqual({ estado: 'sem-dado-real', metrica: 'S1', motivo: MOTIVO_ESCALA_NAO_PROJETADA });
   }, 60_000);
 
   it('L18 (E3.298): S1 real sem os alvos carregados responde 200 "sem dado real" com o motivo (nenhum prazo é presumido); o modo mock não traz nota', async () => {

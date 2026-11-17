@@ -20,6 +20,7 @@ import {
   CartaoO25,
   CartaoO26,
 } from './operacionais'
+import { CartaoO27 } from './CartaoO27'
 import { CartaoE4, CartaoE5, CartaoT6, CartaoT8 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS11, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
@@ -87,6 +88,7 @@ const CARTOES: [string, ComponentType<{ filtros: never }>, 'fluxo' | 'sust'][] =
   ['O24', CartaoO24, 'fluxo'],
   ['O25', CartaoO25, 'fluxo'],
   ['O26', CartaoO26, 'fluxo'],
+  ['O27', CartaoO27, 'fluxo'],
   ['O17', CartaoO17, 'sust'],
   ['T6', CartaoT6, 'fluxo'],
   ['T8', CartaoT8, 'fluxo'],
@@ -99,7 +101,7 @@ const CARTOES: [string, ComponentType<{ filtros: never }>, 'fluxo' | 'sust'][] =
   ['S12', CartaoS12, 'sust'],
 ] as never
 
-const SEM_MINIMO = new Set(['O11', 'O14', 'O16', 'O17', 'E4', 'O20'])
+const SEM_MINIMO = new Set(['O11', 'O14', 'O16', 'O17', 'O27', 'E4', 'O20'])
 
 const ESTADO: Record<Modo, RegExp> = {
   insuficiente: /^ok$/,
