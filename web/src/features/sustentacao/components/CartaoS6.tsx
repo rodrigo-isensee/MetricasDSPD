@@ -56,6 +56,9 @@ export function CartaoS6({ filtros }: { filtros: FiltrosSustentacao }) {
         pergunta: m.pergunta,
         estado: q.estado,
         atualizando: q.atualizando,
+        ...(d
+          ? { complementoVazio: <NotaForaDoFluxo n={d.foraDoFluxo} testid="s6-fora-do-fluxo" /> }
+          : {}),
         ...(d ? { criterios: d.criterios } : {}),
         ...(leitura ? { leitura } : {}),
         nota: NOTAS_SUSTENTACAO.S6 as NonNullable<(typeof NOTAS_SUSTENTACAO)[string]>,

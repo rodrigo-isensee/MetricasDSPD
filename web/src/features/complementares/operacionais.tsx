@@ -128,6 +128,18 @@ function leituraO19(d: ResultadoO19): string | undefined {
 }
 
 /** O19: barras por motivo (ordem por dias somados, nunca por pessoa); P50/P85 só com 20 bloqueios na causa. */
+/** O19: bloqueios ainda abertos ficam fora da soma; a nota vale no corpo e no estado vazio (K-373). */
+function notaAbertosO19(n: number) {
+  if (n <= 0) return null
+  return (
+    <AvisoInfo testid="o19-abertos">
+      {fmtInteiro(n)}{' '}
+      {plural(n, 'bloqueio ainda aberto não entra', 'bloqueios ainda abertos não entram')} na soma;
+      eles estão em "Bloqueados agora".
+    </AvisoInfo>
+  )
+}
+
 export function CartaoO19({ filtros }: P) {
   const q = useMetrica('O19', filtros)
   const d = q.dados
@@ -139,6 +151,7 @@ export function CartaoO19({ filtros }: P) {
       periodo={filtros.periodo}
       className="lg:col-span-12"
       leitura={d ? leituraO19(d) : undefined}
+      complementoVazio={(r) => notaAbertosO19(r.abertosForaDaSoma)}
     >
       {(r) => {
         const motivos = ordenarMotivos(r.motivos, (x) => x.diasUteis)
@@ -203,17 +216,7 @@ export function CartaoO19({ filtros }: P) {
                 <ApoioMotivoNaoClassificado />
               </div>
             )}
-            {r.abertosForaDaSoma > 0 && (
-              <AvisoInfo testid="o19-abertos">
-                {fmtInteiro(r.abertosForaDaSoma)}{' '}
-                {plural(
-                  r.abertosForaDaSoma,
-                  'bloqueio ainda aberto não entra',
-                  'bloqueios ainda abertos não entram',
-                )}{' '}
-                na soma; eles estão em "Bloqueados agora".
-              </AvisoInfo>
-            )}
+            {notaAbertosO19(r.abertosForaDaSoma)}
             <Leia>
               A soma e a contagem valem sempre; o percentual e o P50 e P85 só saem com 20 bloqueios
               ou mais na causa.
