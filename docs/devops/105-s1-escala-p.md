@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s1-escala-p1-p5
-commit: 07cfc675032c45616599d29a0dc9ec8de547bd8c
+commit: 549dfd8b9d8c7e7f85eca204ac7db7740a2f561c
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-16
@@ -14,6 +14,9 @@ data: 2026-11-16
 - A1 (recomendado) docs/devops/105-roteiro-dono.md:64 · o roteiro não cita o `ac:reprojetar-escala` (nem a 0039 e a 0040: linha 31 diz que a última migração é a 0037); acrescentar passo 0.4 depois do 0.3, com a ordem e as contagens do Detalhes.
 - A2 (recomendado) server/package.json:36 · a marca `105:S1-escala-p` só é gravada pelo `criterios-ac.ts`, que não tem script `pnpm` nem passo em roteiro; o roteiro deve trazer `pnpm --filter @metricas-dspd/server exec tsx src/entradas/criterios-ac.ts AAAA-MM-DD` ou o dev dar um script.
 - A3 (recomendado) docs/devops/105-implantacao-vm.md:94 · a seção 2.1 não lista `ac:reprojetar-fluxo` nem `ac:reprojetar-escala` (migrador, uma vez, coleta parada); incluí-los após a migração do item 3.
+
+## Revalidação da junção (head 549dfd8b)
+Revalidado: o tech-lead integrou a `origin/develop` (edfff4d8, com #505 e #515) em 549dfd8b. `forge-check parecer delta docs/devops/105-s1-escala-p.md` (intervalo 07cfc675..549dfd8b, escopo sem o que veio da base) responde "delta: nenhum arquivo do domínio mudou"; os arquivos listados fora do domínio são código de produto e `CHANGELOG`. O `package.json` e o `.env.example` que o `forge-check pr` aponta vieram da develop (não são do S1): `git diff origin/develop 549dfd8b -- package.json` sai vazio. O S1 não mudou do ponto de vista de devops: sem alteração em `.github/`, `Dockerfile*`, `compose*`, IaC, `deploy/sql/` nem `scripts/`. Os achados A1 a A3 continuam valendo como recomendados; nada novo bloqueia.
 
 ## Detalhes
 Aprovado: sem defeito provado. O diff de `07cfc675` não toca `.github/`, `Dockerfile*`, `compose*` nem IaC; a mudança de devops é só o SQL do DBA em `deploy/sql/`, o comando novo e a ordem na VM. A branch andou depois de `07cfc675` só com commits de parecer em `docs/` (`git diff 07cfc675 HEAD --stat`: três arquivos em `docs/`); o código é o mesmo.
