@@ -15,7 +15,7 @@ Passada única de `6fb535ed` (Base-sha) até `7626f762`. 5 arquivos, +17/-50, de
 
 ## Revalidação (E7.512, head 41c275ef)
 Delta lido: `forge-check parecer delta docs/reviews/105-t7-sem-limite.md`, intervalo `7626f762..41c275ef`, no domínio só `web/src/features/tatico/components/CartaoT7.tsx` e `web/src/features/tatico/tatico.test.tsx`.
-- `CartaoT7.tsx`: saiu o terceiro `NumeroGrande` ("sem limite" / "limite de frentes simultâneas"), que repetia o status do cartão; a grade passa a `sm:grid-cols-2`; o rótulo vira "projetos com frentes em andamento", com o `textoCompleto` coerente. Resolve o A1.
+- `CartaoT7.tsx`: saiu o terceiro `NumeroGrande` ("sem limite" / "limite de frentes simultâneas"), que repetia o status do cartão; a grade passa a `sm:grid-cols-2`; o rótulo vira "projetos com frentes em andamento", com o `textoCompleto` coerente. Resolve o A1 (em `4c6e056a`); sem achados novos.
 - `tatico.test.tsx`: afirma "Sem limite de frentes", a ausência de "sem limite" e o rótulo novo; o teste acompanha a mudança e guarda contra a volta do indicador repetido.
 - Suíte: sem PR, fica para o CI do PR; cito o PQ do autor (`pnpm run pronto` com só um timeout alheio). Não afirmo CI verde. A rodada local do teste do T7 não rodou nesta worktree (o sandbox recusou a escrita do `.vite-temp`).
 
@@ -27,4 +27,3 @@ Delta lido: `forge-check parecer delta docs/reviews/105-t7-sem-limite.md`, inter
 - **Regras invioláveis.** Só texto de tela; sem pessoa, sem mistura de fontes, sem cálculo novo.
 
 ## Achados
-Nenhum. (A1 da passada anterior resolvido em `4c6e056a`.)
