@@ -34,7 +34,7 @@ export function CartaoS5({ filtros }: { filtros: FiltrosSustentacao }) {
         pergunta: m.pergunta,
         estado: q.estado,
         atualizando: q.atualizando,
-        ...(d
+        ...(d && d.foraDoFluxo > 0
           ? { complementoVazio: <NotaForaDoFluxo n={d.foraDoFluxo} testid="s5-fora-do-fluxo" /> }
           : {}),
         ...(d ? { criterios: d.criterios, notasDoCartao: d.notas } : {}),

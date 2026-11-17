@@ -93,7 +93,7 @@ export function CartaoS8({ filtros }: P) {
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
       complementoVazio={(r) =>
         (r.semResposta ?? r.cobertura.total - r.cobertura.n) > 0 && (
-          <p className="mt-2 text-sm" data-testid="s8-nota-vazio">
+          <p className="text-sm" data-testid="s8-nota-vazio">
             {textoSemResposta(r)}
           </p>
         )
@@ -283,9 +283,11 @@ export function CartaoS11({ filtros }: P) {
       q={q}
       semTabela
       baseVariante={d?.escopo.status === 'ok' ? 'ok' : 'insuficiente'}
-      complementoVazio={(r) => (
-        <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
-      )}
+      complementoVazio={(r) =>
+        r.semFluxo > 0 ? (
+          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
+        ) : null
+      }
       leitura={
         d
           ? `${textoTaxa(d.escopo)} dos chamados P1, P2 e encerrados por contorno têm avaliação de Problema.`

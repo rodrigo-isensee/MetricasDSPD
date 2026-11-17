@@ -156,5 +156,15 @@ describe('K-373: cartão vazio mostra a nota de exclusão da métrica', () => {
       if (caso.testid) expect(within(el).queryByTestId(caso.testid)).toBeNull()
       else expect(el).not.toHaveTextContent(/fora desta conta/)
     })
+
+    if (['S5', 'S6', 'S7', 'S11'].includes(caso.id)) {
+      it(`${caso.id}: vazio com n = 0 não deixa o div da nota vazio no cartão`, async () => {
+        const el = await vazio(caso, 0)
+        const vazios = Array.from(el.querySelectorAll('div.mt-2')).filter(
+          (d) => d.childElementCount === 0 && !d.textContent,
+        )
+        expect(vazios).toHaveLength(0)
+      })
+    }
   }
 })
