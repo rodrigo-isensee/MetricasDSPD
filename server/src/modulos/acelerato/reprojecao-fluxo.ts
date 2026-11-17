@@ -12,20 +12,17 @@ import { etapasDoStaging, TAMANHO_LOTE } from './projetor.js';
  * (`etapasDoStaging` + `fluxoDoChamado`, sem regra nova) às etapas da última versão do staging, SÓ nos chamados com `fluxo` nulo. Uma
  * transação só (tudo ou nada), lotes de `TAMANHO_LOTE`, credencial do migrador. Preencher coluna nula nunca apaga valor: o `UPDATE` só
  * toca linha com `fluxo IS NULL` e só grava resultado não nulo (fluxo múltiplo e "sem fluxo" seguem nulos). `dim_chamado_versao` não tem
- * a coluna, e o staging e os intervalos não são tocados. Repetir não muda nenhuma tabela de dados (só soma uma linha de execução em
- * `ctl_coleta`). Do staging só saem a descrição do workflow das etapas: nada de pessoa nem de texto livre.
+ * a coluna, e o staging e os intervalos não são tocados. Repetir não muda nenhuma tabela de dados e, sem chamado preenchido, não grava nada (nem
+ * `ctl_coleta`: K-397); com preenchimento, soma uma linha de execução em `ctl_coleta`. Do staging só saem a descrição do workflow das etapas: nada de pessoa nem de texto livre.
  */
 export const VERSAO_REPROJECAO_FLUXO = 'acelerato-f2/2-reprojecao-fluxo';
 
-export type ResultadoReprojecaoFluxo = { coletaId: number; lidos: number; preenchidos: number; fluxoMultiplo: number; semFluxo: number };
+export type ResultadoReprojecaoFluxo = { coletaId: number | null; lidos: number; preenchidos: number; fluxoMultiplo: number; semFluxo: number };
 
 export async function reprojetarFluxoAcelerato(pool: PoolLike, S: Esquemas, agora: () => Date): Promise<ResultadoReprojecaoFluxo> {
   return emTransacao(pool, async (db) => {
     await exigirEsquemaSemSeed(db, S);
     const inicio = agora();
-    const ctl = await db.query<{ coleta_id: string }>(
-      `INSERT INTO ${S.ac}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_REPROJECAO_FLUXO]);
-    const coletaId = Number(ctl.rows[0]!.coleta_id);
     const c = new Contadores();
     let lidos = 0, preenchidos = 0;
     let cursor = '';
@@ -47,6 +44,11 @@ export async function reprojetarFluxoAcelerato(pool: PoolLike, S: Esquemas, agor
     }
     const fluxoMultiplo = c.obter('fluxo_multiplo');
     const semFluxo = lidos - preenchidos - fluxoMultiplo;
+    // Sem linha mudada, nada é gravado: a linha de projecao em ctl_coleta moveria a marca d'água de carga que a API lê (K-397).
+    if (preenchidos === 0) return { coletaId: null, lidos, preenchidos, fluxoMultiplo, semFluxo };
+    const ctl = await db.query<{ coleta_id: string }>(
+      `INSERT INTO ${S.ac}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_REPROJECAO_FLUXO]);
+    const coletaId = Number(ctl.rows[0]!.coleta_id);
     const contagens: Contagem[] = [
       { entidade: 'reprojecao_fluxo_chamado', lidos, inseridos: preenchidos, jaExistentes: 0, falhas: 0 },
       { entidade: 'reprojecao_fluxo_multiplo', lidos: fluxoMultiplo, inseridos: 0, jaExistentes: 0, falhas: 0 },

@@ -4,13 +4,15 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { dataCivil, lerCalendarioVigente, lerTurnosVigentes, registrarCriterioD7528 } from '../referencia/index.js';
 import { exigirEsquemaSemSeed } from './erros.js';
+import { intervalosDasEtapas } from './etapas-sinteticas.js';
 import { etapasDoStaging, regravarIntervalos, TAMANHO_LOTE } from './projetor.js';
 
 /**
  * Reprojeção dos intervalos por etapa (D-7) com o dia útil de 8 h 48 (K-308; ADR 0027, item 7.4; Decisão 25a do dono, pedido 099). Uma transação
  * só (tudo ou nada), com a credencial do migrador: registra a versão `099:D-7-528` e refaz SÓ `fato_etapa_chamado` dos chamados fechados, a
  * partir das etapas da última versão do staging. Nada coletado é tocado (`stg_*`, `dim_chamado_versao`, `dim_chamado`, versões de critério
- * existentes, nenhuma tabela do outro domínio). Repetir é seguro. Sem dado de pessoa: o staging não tem coluna de pessoa (ADR 0020).
+ * existentes, nenhuma tabela do outro domínio). Repetir é seguro. Reprojeção sem mudança (versão de critério já registrada e intervalos
+ * idênticos aos gravados) não grava nada, nem `ctl_coleta`: a linha de `projecao` move a marca d'água de carga que a API lê (K-397). Sem dado de pessoa: o staging não tem coluna de pessoa (ADR 0020).
  */
 export const VERSAO_REPROJECAO_D7 = 'acelerato-f2/2-reprojecao-d7';
 
@@ -22,7 +24,7 @@ export class ErroReprojecao extends Error {
   }
 }
 
-export type ResultadoReprojecao = { vigenteDesde: string; versaoNova: boolean; coletaId: number; chamados: number; etapas: number; semIntervalo: number };
+export type ResultadoReprojecao = { vigenteDesde: string; versaoNova: boolean; coletaId: number | null; chamados: number; etapas: number; semIntervalo: number };
 
 const minutos = (t: { inicioMin: number; fimMin: number }): string => `${t.inicioMin}-${t.fimMin}`;
 
@@ -46,6 +48,41 @@ async function divergencias(db: Parameters<typeof lerCalendarioVigente>[0], S: E
   return lista;
 }
 
+const chaveIntervalo = (chamado: string, etapa: string, entrada: Date | string, saida: Date | string): string =>
+  `${chamado}|${etapa}|${new Date(entrada).getTime()}|${new Date(saida).getTime()}`;
+
+/** Só leitura: os intervalos que a reprojeção gravaria são os já gravados? (multiconjunto de chamado, etapa, entrada e saída; metadados de carga não contam) */
+async function compararComGravado(db: Parameters<typeof lerCalendarioVigente>[0], S: Esquemas): Promise<{ mudou: boolean; chamados: number; etapas: number; semIntervalo: number }> {
+  let mudou = false, chamados = 0, etapas = 0, semIntervalo = 0;
+  let cursor = '';
+  for (;;) {
+    const lote = await db.query<{ chamado_id: string; data_finalizado: Date; excluido: boolean; fora_do_recorte: boolean }>(
+      `SELECT chamado_id, data_finalizado, excluido, fora_do_recorte FROM ${S.ac}.dim_chamado
+        WHERE data_finalizado IS NOT NULL AND NOT excluido AND NOT fora_do_recorte AND chamado_id > $1
+        ORDER BY chamado_id LIMIT ${TAMANHO_LOTE}`, [cursor]);
+    if (lote.rows.length === 0) break;
+    const ids = lote.rows.map((x) => x.chamado_id);
+    const etapasDe = await etapasDoStaging(db, S, ids);
+    const novos: string[] = [];
+    for (const x of lote.rows) {
+      const s = intervalosDasEtapas(x.data_finalizado, etapasDe.get(x.chamado_id) ?? [], acelerato.CALENDARIO_SUSTENTACAO_PADRAO);
+      semIntervalo += s.semIntervalo;
+      for (const i of s.intervalos) novos.push(chaveIntervalo(x.chamado_id, i.etapa, i.entrada, i.saida));
+    }
+    etapas += novos.length;
+    chamados += lote.rows.length;
+    if (!mudou) {
+      const gravados = await db.query<{ chamado_id: string; etapa: string; entrada: Date; saida: Date }>(
+        `SELECT chamado_id, etapa, entrada, saida FROM ${S.ac}.fato_etapa_chamado WHERE chamado_id = ANY($1::text[])`, [ids]);
+      const atuais = gravados.rows.map((g) => chaveIntervalo(g.chamado_id, g.etapa, g.entrada, g.saida)).sort();
+      const esperados = [...novos].sort();
+      mudou = atuais.length !== esperados.length || atuais.some((k, i) => k !== esperados[i]);
+    }
+    cursor = ids[ids.length - 1]!;
+  }
+  return { mudou, chamados, etapas, semIntervalo };
+}
+
 export async function reprojetarEtapasAcelerato(pool: PoolLike, S: Esquemas, agora: () => Date): Promise<ResultadoReprojecao> {
   return emTransacao(pool, async (db) => {
     await exigirEsquemaSemSeed(db, S);
@@ -53,10 +90,14 @@ export async function reprojetarEtapasAcelerato(pool: PoolLike, S: Esquemas, ago
     if (diverge.length > 0) throw new ErroReprojecao(`o calendário da referência difere do da montagem (CALENDARIO_SUSTENTACAO_PADRAO): ${diverge.join('; ')}`);
     const inicio = agora();
     const vigenteDesde = dataCivil(inicio);
+    const versaoNova = await registrarCriterioD7528(db, S, vigenteDesde, inicio);
+    if (!versaoNova) {
+      const visto = await compararComGravado(db, S);
+      if (!visto.mudou) return { vigenteDesde, versaoNova, coletaId: null, chamados: visto.chamados, etapas: visto.etapas, semIntervalo: visto.semIntervalo };
+    }
     const ctl = await db.query<{ coleta_id: string }>(
       `INSERT INTO ${S.ac}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_REPROJECAO_D7]);
     const coletaId = Number(ctl.rows[0]!.coleta_id);
-    const versaoNova = await registrarCriterioD7528(db, S, vigenteDesde, inicio);
     let chamados = 0, etapas = 0, semIntervalo = 0;
     let cursor = '';
     for (;;) {
