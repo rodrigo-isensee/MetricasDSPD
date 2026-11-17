@@ -23,4 +23,3 @@ data: 2026-11-17
 - **Suíte.** Sem PR para a branch, a suíte inteira fica para o CI do PR. Vale o PQ do autor, e este parecer não afirma CI verde.
 
 ## Achados
-Nenhum.
