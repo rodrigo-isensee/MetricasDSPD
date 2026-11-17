@@ -20,6 +20,7 @@ import { ListaInsuficientes } from './comuns'
 import { CartaoO14, CartaoO5, CartaoO8 } from './fluxo'
 import { CartaoE4, CartaoE5, CartaoT6 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
+import { limiteEspera } from '@/test/espera'
 
 vi.setConfig({ testTimeout: 45000 })
 
@@ -373,7 +374,9 @@ describe('ramos dos componentes complementares', () => {
     })
     renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: incoerente })
     const el = await screen.findByTestId('metrica-O8')
-    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     expect(el).toHaveTextContent('Mediana')
     expect(within(el).queryByTestId('estado-sem-dado-real-O8-por-tamanho')).not.toBeInTheDocument()
     expect(within(el).getByRole('heading', { name: 'Por tamanho declarado' })).toBeInTheDocument()
@@ -508,7 +511,9 @@ describe('ramos dos componentes complementares', () => {
   it('O8 com todos os tipos com tamanho não mostra a nota (CA-6)', async () => {
     renderizarCartao(<CartaoO8 filtros={FILTROS_FLUXO} />, { fonte: comTamanhoExceto([]) })
     const el = await screen.findByTestId('metrica-O8')
-    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     expect(within(el).queryByTestId(NOTA_O8)).not.toBeInTheDocument()
   })
 
@@ -599,7 +604,9 @@ describe('ramos dos componentes complementares', () => {
       }),
     })
     const el = await screen.findByTestId('metrica-S9')
-    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     expect(el.textContent).toContain('26,4 h úteis')
     expect(el.textContent).not.toMatch(/dias? úteis|\d min\b/)
   })

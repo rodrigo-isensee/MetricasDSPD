@@ -3,6 +3,7 @@ import { waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { SemDadoRealErro } from '@/data'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
+import { limiteEspera } from '@/test/espera'
 
 /**
  * Guarda G4 da ADR 0030 (D6), pedido 099 (K-275): "painel sem nenhum dado real".
@@ -33,7 +34,7 @@ async function abrirTudo(rota: string): Promise<{ cartoes: HTMLElement[]; texto:
           cs.filter((c) => ['carregando', 'atualizando'].includes(c.dataset.estado ?? '')),
         ).toEqual([])
       },
-      { timeout: 10_000 },
+      { timeout: limiteEspera(10_000) },
     )
     for (const d of document.querySelectorAll<HTMLDetailsElement>(
       'details[data-testid="mais-metricas"]',
@@ -52,7 +53,7 @@ async function abrirTudo(rota: string): Promise<{ cartoes: HTMLElement[]; texto:
         anterior = atual
         expect(estavel && !/:(carregando|atualizando)(\||$)/.test(atual)).toBe(true)
       },
-      { timeout: 10_000, interval: 150 },
+      { timeout: limiteEspera(10_000), interval: 150 },
     )
     // o texto da tela é lido antes do desmonte; os cartões são devolvidos como texto e atributos já copiados
     return {
@@ -108,7 +109,7 @@ describe('G4: painel sem nenhum dado real (ADR 0030, D6)', () => {
           for (const id of ['tendencia-fluxo', 'tendencia-sustentacao'])
             expect(document.querySelector(`[data-testid="${id}-sem-dado-real"]`)).not.toBeNull()
         },
-        { timeout: 10_000 },
+        { timeout: limiteEspera(10_000) },
       )
       expect(document.body.textContent).not.toMatch(TEXTO_PROIBIDO)
       expect(document.querySelector('[data-testid*="simulado"]')).toBeNull()

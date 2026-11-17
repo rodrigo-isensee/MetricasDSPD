@@ -10,6 +10,7 @@ import type {
 } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { renderizarApp } from '@/test/helpers'
+import { limiteEspera } from '@/test/espera'
 
 afterEach(() => window.localStorage.clear())
 
@@ -56,13 +57,17 @@ class FonteSetor extends MockFonteMetricas {
 }
 
 const bloco = (id: 'resumo-fluxo' | 'resumo-sustentacao') =>
-  screen.findByTestId(id, undefined, { timeout: 8000 })
+  screen.findByTestId(id, undefined, { timeout: limiteEspera(8000) })
 const busca = (r: { roteador: { state: { location: { search: string } } } }) =>
   new URLSearchParams(r.roteador.state.location.search)
 const marcar = async (...nomes: string[]) => {
   const fluxo = await bloco('resumo-fluxo')
   await userEvent.click(
-    await within(fluxo).findByRole('button', { name: 'Setor: Todos' }, { timeout: 8000 }),
+    await within(fluxo).findByRole(
+      'button',
+      { name: 'Setor: Todos' },
+      { timeout: limiteEspera(8000) },
+    ),
   )
   const d = await screen.findByRole('dialog', { name: 'Setor' })
   for (const n of nomes) await userEvent.click(within(d).getByRole('checkbox', { name: n }))
@@ -74,7 +79,11 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     renderizarApp('/operacional', new FonteSetor())
     const fluxo = await bloco('resumo-fluxo')
     expect(
-      await within(fluxo).findByRole('button', { name: 'Setor: Todos' }, { timeout: 8000 }),
+      await within(fluxo).findByRole(
+        'button',
+        { name: 'Setor: Todos' },
+        { timeout: limiteEspera(8000) },
+      ),
     ).toBeInTheDocument()
     const sust = await bloco('resumo-sustentacao')
     await within(sust).findByTestId('filtro-bloco-sustentacao')
@@ -112,7 +121,7 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
             .com('TENDENCIA_FLUXO')
             .some((c) => (c.filtros.setor as string[] | undefined)?.[0] === 'plataformas'),
         ).toBe(true),
-      { timeout: 8000 },
+      { timeout: limiteEspera(8000) },
     )
   })
 
@@ -121,7 +130,7 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     const r = renderizarApp('/operacional', fonte)
     await marcar('Ciência de Dados')
     await waitFor(() => expect(busca(r).get('setor')).toBe('ciencia-de-dados'))
-    await screen.findByTestId('numero-s2', undefined, { timeout: 8000 })
+    await screen.findByTestId('numero-s2', undefined, { timeout: limiteEspera(8000) })
     const sust = fonte.chamadas.filter((c) => c.id.startsWith('S') || c.id === 'TENDENCIA_SUST')
     expect(sust.length).toBeGreaterThan(0)
     for (const c of sust) expect(c.filtros).not.toHaveProperty('setor')
@@ -148,7 +157,7 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
       await within(fluxo).findByRole(
         'button',
         { name: 'Limpar filtros de Setor do bloco Fluxo' },
-        { timeout: 8000 },
+        { timeout: limiteEspera(8000) },
       ),
     )
     await waitFor(() => expect(busca(r).has('setor')).toBe(false))
@@ -174,7 +183,7 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     renderizarApp('/operacional', f)
     const fluxo = await bloco('resumo-fluxo')
     const botao = await within(fluxo).findByTestId('setor-fluxo-vazio', undefined, {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
     expect(botao).toBeDisabled()
     expect(botao).toHaveTextContent('Setor: sem opções')
@@ -187,7 +196,7 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     renderizarApp('/operacional', f)
     const fluxo = await bloco('resumo-fluxo')
     const botao = await within(fluxo).findByTestId('setor-fluxo-carregando', undefined, {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
     expect(botao).toBeDisabled()
     expect(botao).toHaveTextContent('Setor: carregando…')
@@ -199,14 +208,16 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     renderizarApp('/operacional', f)
     const fluxo = await bloco('resumo-fluxo')
     const caixa = await within(fluxo).findByTestId('filtro-setor-bloco-fluxo', undefined, {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
-    const alerta = await within(caixa).findByRole('alert', undefined, { timeout: 15000 })
+    const alerta = await within(caixa).findByRole('alert', undefined, {
+      timeout: limiteEspera(15000),
+    })
     expect(alerta).toHaveTextContent('Não foi possível carregar as opções de Setor.')
     expect(within(alerta).getByRole('button', { name: 'Setor: indisponível' })).toBeDisabled()
     expect(within(alerta).getByRole('button', { name: 'Tentar de novo' })).toBeEnabled()
     expect(
-      await screen.findByTestId('numero-p85', undefined, { timeout: 8000 }),
+      await screen.findByTestId('numero-p85', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
 
@@ -216,12 +227,18 @@ describe('Resumo: filtro Setor no bloco Fluxo (097 L11)', () => {
     renderizarApp('/operacional', f)
     const fluxo = await bloco('resumo-fluxo')
     const caixa = await within(fluxo).findByTestId('filtro-setor-bloco-fluxo', undefined, {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
-    const alerta = await within(caixa).findByRole('alert', undefined, { timeout: 15000 })
+    const alerta = await within(caixa).findByRole('alert', undefined, {
+      timeout: limiteEspera(15000),
+    })
     await userEvent.click(within(alerta).getByRole('button', { name: 'Tentar de novo' }))
     expect(
-      await within(fluxo).findByRole('button', { name: 'Setor: Todos' }, { timeout: 8000 }),
+      await within(fluxo).findByRole(
+        'button',
+        { name: 'Setor: Todos' },
+        { timeout: limiteEspera(8000) },
+      ),
     ).toBeInTheDocument()
   })
 })

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 import { resumirEspera, textoAlerta, textoIndicador, type SegmentoEI } from './textos'
+import { limiteEspera } from '@/test/espera'
 
 const janela = { inicio: '2026-07-18', fim: '2026-10-09' }
 const seg = (
@@ -79,7 +80,9 @@ describe('textos', () => {
 describe('tela Visão geral', () => {
   it('mostra atenção, quatro níveis (máx. 3 indicadores), espera invisível e por reunião, sem filtros', async () => {
     renderizarApp('/')
-    const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
+    const faixa = await screen.findByTestId('faixa-atencao', undefined, {
+      timeout: limiteEspera(8000),
+    })
     expect(within(faixa).getAllByRole('listitem').length).toBeLessThanOrEqual(6)
     for (const n of ['operacional', 'tatico', 'estrategico', 'sustentacao']) {
       const c = await screen.findByTestId(`nivel-${n}`)
@@ -132,7 +135,9 @@ describe('tela Visão geral', () => {
 
   it('itens de atenção levam ao cartão do painel, sem filtro nem parâmetro mock', async () => {
     renderizarApp('/')
-    const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
+    const faixa = await screen.findByTestId('faixa-atencao', undefined, {
+      timeout: limiteEspera(8000),
+    })
     const links = within(faixa).getAllByRole('link')
     expect(links.length).toBeGreaterThan(0)
     for (const l of links) {
@@ -145,7 +150,7 @@ describe('tela Visão geral', () => {
 
   it('espera invisível: Operacional com um tipo nomeado e links "Ver todos os tipos"; FL3 insuficiente; Sustentação separada', async () => {
     renderizarApp('/')
-    const ei = await screen.findByTestId('ei-resumo', undefined, { timeout: 8000 })
+    const ei = await screen.findByTestId('ei-resumo', undefined, { timeout: limiteEspera(8000) })
     await waitFor(() => expect(within(ei).getByTestId('ei-resumo-fl1')).toBeInTheDocument())
     const fl1 = within(ei).getByTestId('ei-resumo-fl1')
     // mock: Requisição (54%) tem o maior índice entre os tipos com n >= 20
@@ -174,11 +179,11 @@ describe('tela Visão geral', () => {
 
   it('erro de carregamento: mensagem e "Tentar de novo" recupera a tela', async () => {
     renderizarApp('/?mock=erro-uma-vez:visao-geral')
-    const alerta = await screen.findByRole('alert', undefined, { timeout: 8000 })
+    const alerta = await screen.findByRole('alert', undefined, { timeout: limiteEspera(8000) })
     expect(alerta).toHaveTextContent('Não foi possível carregar a visão geral')
     await userEvent.click(within(alerta).getByRole('button', { name: 'Tentar de novo' }))
     expect(
-      await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 }),
+      await screen.findByTestId('faixa-atencao', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
 

@@ -9,6 +9,7 @@ import { separarSemProjeto } from './dezMaiores'
 import { RESPOSTA_FICTICIA } from './fixture'
 import { fraseDoAchado } from './textos'
 import type { FonteApontamento, LinhaDistribuicao, RespostaApontamento } from './types'
+import { limiteEspera } from '@/test/espera'
 
 const base = RESPOSTA_FICTICIA.distribuicao.porProjeto[0]!
 
@@ -47,7 +48,9 @@ async function renderizar(resposta: RespostaApontamento) {
     </QueryClientProvider>,
   )
   const kpis = await screen.findByTestId('metrica-AP-KPIS')
-  await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return screen.getByTestId('metrica-AP-PROJETO')
 }
 

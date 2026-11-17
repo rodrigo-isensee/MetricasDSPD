@@ -8,6 +8,7 @@ import ApontamentoPage from './ApontamentoPage'
 import { RESPOSTA_FICTICIA, fonteFicticia, respostaComLinhaSemProjeto } from './fixture'
 import { RESUMO_PROJETO } from './textos'
 import type { FonteApontamento } from './types'
+import { limiteEspera } from '@/test/espera'
 
 function renderizar(fonte: FonteApontamento = fonteFicticia) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -29,7 +30,7 @@ async function esperar(codigo: string) {
       for (const c of screen.getAllByTestId(/^metrica-/))
         expect(c).toHaveAttribute('data-estado', 'ok')
     },
-    { timeout: 8000 },
+    { timeout: limiteEspera(8000) },
   )
 }
 

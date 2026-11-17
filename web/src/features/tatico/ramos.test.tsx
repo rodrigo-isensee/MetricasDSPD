@@ -10,10 +10,13 @@ import { CartaoT4 } from './components/CartaoT4'
 import { CartaoT5 } from './components/CartaoT5'
 import { CartaoT7 } from './components/CartaoT7'
 import { CartaoT9 } from './components/CartaoT9'
+import { limiteEspera } from '@/test/espera'
 
 const pronto = async (codigo: string) => {
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return el
 }
 const INSUF = { status: 'insuficiente', n: 5, minimo: 20, janela: null }
@@ -299,7 +302,9 @@ describe('T9: estados de borda (UX T9-1, T9-2, T9-3)', () => {
       }),
     })
     const el = await screen.findByTestId('metrica-T9')
-    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'), { timeout: 8000 })
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'), {
+      timeout: limiteEspera(8000),
+    })
     expect(within(el).queryByTestId('t9-nota-vazio')).toBeNull()
   })
 

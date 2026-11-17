@@ -3,6 +3,7 @@ import * as mock from '@metricas-dspd/mock'
 import { MockFonteMetricas } from './MockFonteMetricas'
 import { NucleoMock, tratarPedido, type EstadoWorker } from './nucleoMock'
 import type { Pedido } from './protocolo'
+import { limiteEspera } from '@/test/espera'
 
 /** Worker de mentira: o mesmo `tratarPedido` do invólucro real, atrás de um clone de estrutura, em outra tarefa. */
 class FalsoWorker {
@@ -249,9 +250,9 @@ describe('invólucro do Worker', () => {
     await import('./nucleoMock.worker')
     const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
     onmessage({ data: { id: 1, metodo: 'iniciar', args: [{}] } })
-    await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+    await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: limiteEspera(15000) })
     onmessage({ data: { id: 2, metodo: 'dataReferencia', args: [] } })
-    await vi.waitFor(() => expect(enviados).toHaveLength(2), { timeout: 15000 })
+    await vi.waitFor(() => expect(enviados).toHaveLength(2), { timeout: limiteEspera(15000) })
     expect(enviados[1]).toStrictEqual({ id: 2, ok: true, valor: '2026-10-09' })
     self.onmessage = null
   })
@@ -273,7 +274,7 @@ describe('invólucro do Worker', () => {
       await import('./nucleoMock.worker')
       const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
       onmessage({ data: { id: 5, metodo: 'iniciar', args: [{}] } })
-      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: limiteEspera(15000) })
       expect(enviados[0]).toStrictEqual({
         id: 5,
         ok: false,
@@ -303,7 +304,7 @@ describe('invólucro do Worker', () => {
       await import('./nucleoMock.worker')
       const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
       onmessage({ data: { id: 6, metodo: 'iniciar', args: [{}] } })
-      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: 15000 })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1), { timeout: limiteEspera(15000) })
       expect(enviados[0]).toStrictEqual({
         id: 6,
         ok: false,

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 import { fmtPrazo, fmtHU } from './formatar'
 import { NotaForaDoFluxo } from './components/comuns'
+import { limiteEspera } from '@/test/espera'
 
 /** A Sustentação está em calibração no cenário padrão (sem Dentro/Fora); estes casos exigem as metas avaliadas. */
 const SEM_CALIBRACAO = '/sustentacao?mock=sem-calibracao'
@@ -12,7 +13,9 @@ const SEM_CALIBRACAO = '/sustentacao?mock=sem-calibracao'
 async function cartao(codigo: string, url = '/sustentacao') {
   const r = renderizarApp(url)
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return { ...r, el: el }
 }
 
@@ -74,14 +77,16 @@ describe('S3 e S2 sem zero falso (pedido 069, L9-a)', () => {
       },
     }) as typeof fonteDeTeste
     renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
-    const s3 = await screen.findByTestId('metrica-S3', undefined, { timeout: 8000 })
-    await waitFor(() => expect(s3).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    const s3 = await screen.findByTestId('metrica-S3', undefined, { timeout: limiteEspera(8000) })
+    await waitFor(() => expect(s3).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     const tabela = within(s3).getByTestId('tabela-S3-resumo')
     expect(tabela).toHaveTextContent('sem dado')
     expect(within(s3).getByTestId('notas-cartao-S3')).toHaveTextContent(
       'Ajustes manuais de prioridade: sem dado real',
     )
-    const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 })
+    const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: limiteEspera(8000) })
     await waitFor(() =>
       expect(within(s2).getByTestId('notas-cartao-S2')).toHaveTextContent(
         'Chamados abertos no sistema depois do atendimento ficam de fora do cálculo.',
@@ -105,13 +110,13 @@ describe('S1 com a nota da Q-099-5b (pedido 099)', () => {
       },
     }) as typeof fonteDeTeste
     renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
-    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: limiteEspera(8000) })
     await waitFor(
       () =>
         expect(within(s1).getByTestId('notas-cartao-S1')).toHaveTextContent(
           TEXTO_NOTA_S1['primeiro-atendimento-inclui-automatica'],
         ),
-      { timeout: 8000 },
+      { timeout: limiteEspera(8000) },
     )
   })
 })
@@ -131,13 +136,13 @@ describe('S1 com a contagem de fora da matriz (pedido 105, E7.238)', () => {
       },
     }) as typeof fonteDeTeste
     renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
-    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: limiteEspera(8000) })
     await waitFor(
       () =>
         expect(within(s1).getByTestId('s1-fora-da-matriz')).toHaveTextContent(
           'Fora da conta: 7 de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e 3 sem prazo.',
         ),
-      { timeout: 8000 },
+      { timeout: limiteEspera(8000) },
     )
   })
 })
@@ -157,13 +162,13 @@ describe('S1 sem a contagem de fora da matriz (pedido 105, E7.238)', () => {
       },
     }) as typeof fonteDeTeste
     renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
-    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 })
+    const s1 = await screen.findByTestId('metrica-S1', undefined, { timeout: limiteEspera(8000) })
     await waitFor(
       () =>
         expect(within(s1).getByTestId('s1-fora-da-matriz')).toHaveTextContent(
           /^Mede só os chamados da escala P1 a P5 da matriz\.$/,
         ),
-      { timeout: 8000 },
+      { timeout: limiteEspera(8000) },
     )
   })
 })
@@ -171,14 +176,16 @@ describe('S1 sem a contagem de fora da matriz (pedido 105, E7.238)', () => {
 describe('painel Sustentação', () => {
   it('mostra "Pede atenção no período" com link para S2 (SUS-01)', async () => {
     renderizarApp('/sustentacao?mock=sem-calibracao')
-    const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
+    const faixa = await screen.findByTestId('faixa-atencao', undefined, {
+      timeout: limiteEspera(8000),
+    })
     expect(faixa).toHaveTextContent('Pede atenção no período')
     const hrefs = () =>
       within(faixa)
         .queryAllByRole('link')
         .map((l) => l.getAttribute('href'))
     await waitFor(() => expect(hrefs()).toEqual(expect.arrayContaining(['#s2'])), {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
   })
 
@@ -186,7 +193,9 @@ describe('painel Sustentação', () => {
     renderizarApp('/sustentacao')
     for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']) {
       const el = await screen.findByTestId(`metrica-${c}`)
-      await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+      await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+        timeout: limiteEspera(8000),
+      })
       expect(el).toHaveAttribute('id', c.toLowerCase())
       expect(within(el).getByText('Fonte: Acelerato')).toBeInTheDocument()
       expect(within(el).getByText('Granularidade: chamado')).toBeInTheDocument()
@@ -322,20 +331,26 @@ describe('painel Sustentação', () => {
   it('erro em um cartão não derruba os outros e "Tentar de novo" o recupera', async () => {
     renderizarApp('/sustentacao?mock=erro-uma-vez:s2')
     const s2 = await screen.findByTestId('metrica-S2')
-    await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'erro'), { timeout: 8000 })
+    await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'erro'), {
+      timeout: limiteEspera(8000),
+    })
     const s3 = await screen.findByTestId('metrica-S3')
-    await waitFor(() => expect(s3).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(s3).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     await userEvent.click(within(s2).getByRole('button', { name: /Tentar de novo/ }))
-    await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
   })
 
   it('mock=vazio: cada cartão mostra o estado vazio com orientação', async () => {
     renderizarApp('/sustentacao?mock=vazio')
     expect(
-      await screen.findByTestId('estado-vazio-S1', undefined, { timeout: 8000 }),
+      await screen.findByTestId('estado-vazio-S1', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     expect(
-      await screen.findByTestId('estado-vazio-S4', undefined, { timeout: 8000 }),
+      await screen.findByTestId('estado-vazio-S4', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
 })
@@ -350,7 +365,9 @@ describe('faixa "Pede atenção" nos três estados (K-047)', () => {
 
   it('erro em uma métrica da faixa: mensagem com "Tentar de novo", sem "Nada pede atenção"', async () => {
     renderizarApp('/sustentacao?mock=erro:s2')
-    const erro = await screen.findByTestId('faixa-atencao-erro', undefined, { timeout: 8000 })
+    const erro = await screen.findByTestId('faixa-atencao-erro', undefined, {
+      timeout: limiteEspera(8000),
+    })
     expect(within(erro).getByRole('button', { name: 'Tentar de novo' })).toBeInTheDocument()
     expect(screen.getByTestId('faixa-atencao')).not.toHaveTextContent('Nada pede atenção')
   })
@@ -359,7 +376,7 @@ describe('faixa "Pede atenção" nos três estados (K-047)', () => {
     renderizarApp(SEM_CALIBRACAO)
     const faixa = await screen.findByTestId('faixa-atencao')
     await waitFor(() => expect(within(faixa).queryAllByRole('link').length).toBeGreaterThan(0), {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
     expect(screen.queryByTestId('faixa-atencao-carregando')).not.toBeInTheDocument()
     expect(screen.queryByTestId('faixa-atencao-erro')).not.toBeInTheDocument()

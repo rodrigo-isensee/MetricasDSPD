@@ -7,10 +7,13 @@ import { CartaoS3 } from './components/CartaoS3'
 import { CartaoS4 } from './components/CartaoS4'
 import { CartaoS6 } from './components/CartaoS6'
 import { CartaoS7 } from './components/CartaoS7'
+import { limiteEspera } from '@/test/espera'
 
 const pronto = async (codigo: string) => {
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return el
 }
 const INSUF = { status: 'insuficiente', k: 1, n: 5, minimo: 20, janela: null }
