@@ -94,7 +94,7 @@ export function CartaoS8({ filtros }: P) {
       complementoVazio={(r) =>
         (r.semResposta ?? r.cobertura.total - r.cobertura.n) > 0 && (
           <p className="text-sm" data-testid="s8-nota-vazio">
-            {textoSemResposta(r)}
+            Fora da conta: {textoSemResposta(r)}
           </p>
         )
       }
@@ -285,7 +285,7 @@ export function CartaoS11({ filtros }: P) {
       baseVariante={d?.escopo.status === 'ok' ? 'ok' : 'insuficiente'}
       complementoVazio={(r) =>
         r.semFluxo > 0 ? (
-          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" />
+          <NotaForaDoFluxo n={r.semFluxo} testid="s11-fora-do-fluxo" variante="sem-fluxo" vazio />
         ) : null
       }
       leitura={

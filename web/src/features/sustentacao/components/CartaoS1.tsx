@@ -136,12 +136,14 @@ function Bloco({
 type ForaDaMatriz = { outrasEscalas: number; semPrazo: number } | undefined
 
 /** S1: o que ficou fora da conta (outras escalas e sem prazo); a nota vale no corpo e no estado vazio (K-373). */
-function notaForaDaMatriz(f: ForaDaMatriz) {
+function notaForaDaMatriz(f: ForaDaMatriz, vazio = false) {
   return (
     <p className="text-sm text-texto-2" data-testid="s1-fora-da-matriz">
-      {f === undefined
-        ? 'Mede só os chamados da escala P1 a P5 da matriz.'
-        : `Mede só os chamados da escala P1 a P5 da matriz. Fora da conta: ${fmtInteiro(f.outrasEscalas)} de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e ${fmtInteiro(f.semPrazo)} sem prazo.`}
+      {f !== undefined && vazio
+        ? `Fora da conta: ${fmtInteiro(f.outrasEscalas)} de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e ${fmtInteiro(f.semPrazo)} sem prazo. Mede só os chamados da escala P1 a P5 da matriz.`
+        : f === undefined
+          ? 'Mede só os chamados da escala P1 a P5 da matriz.'
+          : `Mede só os chamados da escala P1 a P5 da matriz. Fora da conta: ${fmtInteiro(f.outrasEscalas)} de outras escalas (DSPD-*, SSSC-*, com prazos próprios) e ${fmtInteiro(f.semPrazo)} sem prazo.`}
     </p>
   )
 }
@@ -189,7 +191,7 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
       erro={q.erro}
       className="lg:col-span-12"
       {...(d?.foraDaMatriz && d.foraDaMatriz.outrasEscalas + d.foraDaMatriz.semPrazo > 0
-        ? { complementoVazio: notaForaDaMatriz(d.foraDaMatriz) }
+        ? { complementoVazio: notaForaDaMatriz(d.foraDaMatriz, true) }
         : {})}
     >
       {d && (

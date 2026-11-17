@@ -129,10 +129,11 @@ function leituraO19(d: ResultadoO19): string | undefined {
 
 /** O19: barras por motivo (ordem por dias somados, nunca por pessoa); P50/P85 só com 20 bloqueios na causa. */
 /** O19: bloqueios ainda abertos ficam fora da soma; a nota vale no corpo e no estado vazio (K-373). */
-function notaAbertosO19(n: number) {
+function notaAbertosO19(n: number, vazio = false) {
   if (n <= 0) return null
   return (
     <AvisoInfo testid="o19-abertos">
+      {vazio && 'Fora da conta: '}
       {fmtInteiro(n)}{' '}
       {plural(n, 'bloqueio ainda aberto não entra', 'bloqueios ainda abertos não entram')} na soma;
       eles estão em "Bloqueados agora".
@@ -151,7 +152,7 @@ export function CartaoO19({ filtros }: P) {
       periodo={filtros.periodo}
       className="lg:col-span-12"
       leitura={d ? leituraO19(d) : undefined}
-      complementoVazio={(r) => notaAbertosO19(r.abertosForaDaSoma)}
+      complementoVazio={(r) => notaAbertosO19(r.abertosForaDaSoma, true)}
     >
       {(r) => {
         const motivos = ordenarMotivos(r.motivos, (x) => x.diasUteis)
@@ -699,12 +700,13 @@ function leituraO25(d: ResultadoO25): string | undefined {
 }
 
 /** O25: cards com motivo de descarte sem estarem descartados ficam fora da taxa; vale no corpo e no vazio (K-399). */
-function notaPreenchimentoO25(n: number) {
+function notaPreenchimentoO25(n: number, vazio = false) {
   if (n <= 0) return null
   return (
     <AvisoInfo testid="o25-aviso-preenchimento">
-      Aviso de preenchimento: {fmtInteiro(n)} {plural(n, 'card tem', 'cards têm')} motivo de
-      descarte sem estar descartado nem excluído; fora da taxa.
+      {vazio ? 'Fora da conta:' : 'Aviso de preenchimento:'} {fmtInteiro(n)}{' '}
+      {plural(n, 'card tem', 'cards têm')} motivo de descarte sem estar descartado nem excluído
+      {vazio ? '.' : '; fora da taxa.'}
     </AvisoInfo>
   )
 }
@@ -723,7 +725,7 @@ export function CartaoO25({ filtros }: P) {
       periodo={filtros.periodo}
       className="lg:col-span-12"
       leitura={d ? leituraO25(d) : undefined}
-      complementoVazio={(r) => notaPreenchimentoO25(r.avisoPreenchimento.itens)}
+      complementoVazio={(r) => notaPreenchimentoO25(r.avisoPreenchimento.itens, true)}
     >
       {(r) => {
         const dep = r.consumido.depoisDoInicio
