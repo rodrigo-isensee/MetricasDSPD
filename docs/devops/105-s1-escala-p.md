@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: feature/105-s1-escala-p1-p5
-commit: 549dfd8b9d8c7e7f85eca204ac7db7740a2f561c
+commit: fb20f3fb51388ddcffe8d745920481836c563fb6
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-16
@@ -15,7 +15,16 @@ data: 2026-11-16
 - A2 (recomendado) server/package.json:36 · a marca `105:S1-escala-p` só é gravada pelo `criterios-ac.ts`, que não tem script `pnpm` nem passo em roteiro; o roteiro deve trazer `pnpm --filter @metricas-dspd/server exec tsx src/entradas/criterios-ac.ts AAAA-MM-DD` ou o dev dar um script.
 - A3 (recomendado) docs/devops/105-implantacao-vm.md:94 · a seção 2.1 não lista `ac:reprojetar-fluxo` nem `ac:reprojetar-escala` (migrador, uma vez, coleta parada); incluí-los após a migração do item 3.
 
-## Revalidação da junção (head 549dfd8b)
+## Revalidação da junção com o #517 (head fb20f3fb)
+Revalidado: o head fb20f3fb integra a `origin/develop` (018d9817, o #517 `vm:preparar`) à branch. O único conflito foi `server/package.json`; `git diff origin/develop -- server/package.json` mostra só a linha `ac:reprojetar-escala` (o `ac:criterios` e o `vm:preparar` do #517 estão intactos: os três scripts presentes). Nada em `.github/`, `Dockerfile*` nem IaC mudou; o `docker-compose.prod.yml`, o `package.json` da raiz e o `vm-preparar` vieram da develop, não são do S1.
+
+Efeito na subida da VM, conferido no código: `PASSOS` em `server/src/plataforma/db/vm-preparar.ts` tem `ac:reprojetar-escala` com `opcional: true`, entre `ac:reprojetar-fluxo` e `ac:criterios`, e `server/src/entradas/vm-preparar.ts` só o roda se `src/entradas/reprojetar-escala-ac.ts` existir (agora existe). A ordem está certa: `migrar` (aplica a 0040 e exige o backup de hoje sobre base com dados) vem primeiro; a reprojeção usa o migrador (`PG_MIGRADOR_URL`, já no serviço `migrate`), é idempotente (`WHERE escala_p IS NULL`), só lê o staging e não chama o Acelerato; o `ac:criterios` vem depois, no mesmo dia, e grava `105:S1-escala-p` (`criterios-acelerato.ts:67`), o que resolve o A2 na subida. O teste `server/tests/vm-preparar.test.ts:17` trava que o único passo opcional é o `ac:reprojetar-escala`. Falha de passo interrompe a subida nomeando o passo, e API e worker só sobem com o `migrate` concluído com sucesso.
+
+Atenção operacional, já escrita em `docs/devops/105-implantacao-vm.md:110`: a coleta do Acelerato deve estar parada antes do `up`, porque a reprojeção não pode correr junto de uma coleta. É risco de execução coberto pela ordem do roteiro, não defeito. O A3 está atendido pela seção 2.1 (itens 7 e 8); o item 7 ainda diz que o comando "não está na develop", texto a acertar na release (recomendado, não bloqueia). O A1 segue recomendado: a seção 5 do roteiro do dono já cobre `ac:reprojetar-escala` e `ac:criterios`; falta só a receita de rollback da 0040 com `down 1`, que remete à seção 4.
+
+Não rodei a suíte nem o `db:sql` (ficam para o CI do PR). `forge-check` e `shellcheck` no PATH; `actionlint` ausente, desnecessário (sem workflow alterado). Parecer segue aprovado.
+
+## Revalidação anterior da junção (head 549dfd8b)
 Revalidado: o tech-lead integrou a `origin/develop` (edfff4d8, com #505 e #515) em 549dfd8b. `forge-check parecer delta docs/devops/105-s1-escala-p.md` (intervalo 07cfc675..549dfd8b, escopo sem o que veio da base) responde "delta: nenhum arquivo do domínio mudou"; os arquivos listados fora do domínio são código de produto e `CHANGELOG`. O `package.json` e o `.env.example` que o `forge-check pr` aponta vieram da develop (não são do S1): `git diff origin/develop 549dfd8b -- package.json` sai vazio. O S1 não mudou do ponto de vista de devops: sem alteração em `.github/`, `Dockerfile*`, `compose*`, IaC, `deploy/sql/` nem `scripts/`. Os achados A1 a A3 continuam valendo como recomendados; nada novo bloqueia.
 
 ## Detalhes
