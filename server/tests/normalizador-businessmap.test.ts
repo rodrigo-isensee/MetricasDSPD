@@ -350,6 +350,14 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
   });
 
+  it('K-393: campo sem seleção (nulo ou vazio) é campo_sem_selecao; desconhecido é campo_fora_do_dominio; valor nulo nos dois', () => {
+    const p = proj(cf({ field_id: '501', valor: '' }, { field_id: '502', valor: null }), [], {}, COM_MAPA);
+    expect(p.dim.origem_demanda).toBeNull();
+    expect(p.dim.sistema).toBeNull();
+    expect(p.notas.filter((n) => n === 'campo_sem_selecao')).toHaveLength(2);
+    expect(p.notas).not.toContain('campo_fora_do_dominio');
+  });
+
   it('pedido 105 (E7.100): severidade, a prioridade do painel, não vem de campo customizado; só do priority nativo pelo mapa', () => {
     const p = proj(card({ priority: 2, custom_fields: [{ field_id: '503', valor: 'Crítica' }] }), [], {}, { ...COM_MAPA, prioridades: new Map([['2', 'Alta']]) });
     expect(p.dim.severidade).toBe('Alta');
