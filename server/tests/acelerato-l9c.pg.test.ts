@@ -21,8 +21,8 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
   let dono: pg.Pool, coletor: pg.Pool;
   const tipoDe = async (t: string): Promise<string> => (await dono.query<{ t: string }>(
     `SELECT format_type(a.atttypid, a.atttypmod) AS t FROM pg_attribute a WHERE a.attrelid = '${E.ac}.${t}'::regclass AND a.attname = 'previsao_retorno'`)).rows[0]!.t;
-  // 'fluxo' (0038) nasce na subida depois do down até a 0035; a 0038 não é o objeto desta comparação, então a coluna fica de fora e todas as demais seguem comparadas
-  const linhas = async (): Promise<string> => JSON.stringify((await dono.query(`SELECT to_jsonb(d) - 'fluxo' AS linha FROM ${E.ac}.dim_chamado d ORDER BY chamado_id`)).rows);
+  // 'fluxo' (0038) e 'escala_p' (0040) nascem na subida depois do down até a 0035; a 0038 não é o objeto desta comparação, então a coluna fica de fora e todas as demais seguem comparadas
+  const linhas = async (): Promise<string> => JSON.stringify((await dono.query(`SELECT to_jsonb(d) - 'fluxo' - 'escala_p' AS linha FROM ${E.ac}.dim_chamado d ORDER BY chamado_id`)).rows);
   const insere = async (id: string, previsao: string): Promise<void> => {
     await dono.query(`INSERT INTO ${E.ac}.dim_chamado (chamado_id, motivo_escalacao, previsao_retorno, coletado_em, atualizado_por_coleta_id)
       VALUES ($1, 'X', ${previsao}, now(), $2)`, [id, await novaColeta(dono, E.ac)]);

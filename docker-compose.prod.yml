@@ -17,10 +17,16 @@ x-log: &log
 services:
   migrate:
     <<: *servidor
-    command: ["node", "--import", "tsx", "src/entradas/migrar.ts"]
+    # Decisão do dono (K-396): a subida deixa a base pronta. `vm:preparar` migra e roda as listas de referência, as reprojeções e os critérios, nessa
+    # ordem e parando no primeiro erro (nomeia o passo); idempotente, sem primeira carga. Docs: docs/devops/105-implantacao-vm.md, seção 2.1.
+    command: ["node", "--import", "tsx", "src/entradas/vm-preparar.ts"]
     environment:
       NODE_EXTRA_CA_CERTS: /segredos-db/ca.pem
       PG_MIGRADOR_URL: postgres://dspd_migrador:${DSPD_PWD_MIGRADOR:?defina DSPD_PWD_MIGRADOR}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      # Listas de referência (bm:ref-sync, ac:ref-sync, calendário, apontamento): papel dspd_ref, só INSERT de vigência nas tabelas ref_.
+      PG_REF_URL: postgres://dspd_ref:${DSPD_PWD_REF:?defina DSPD_PWD_REF}@${DB_HOST:?defina DB_HOST}:${DB_PORT:-5432}/${DB_NOME:-metricas}?sslmode=verify-full
+      # Com migração pendente sobre base com dados, o vm:preparar recusa sem o backup de hoje: `DSPD_BACKUP_CONFIRMADO=$(TZ=America/Sao_Paulo date +%F)` no `up`.
+      DSPD_BACKUP_CONFIRMADO: ${DSPD_BACKUP_CONFIRMADO:-}
     volumes:
       - ${DB_CA_ARQUIVO:?defina DB_CA_ARQUIVO (PEM da CA do banco)}:/segredos-db/ca.pem:ro
     restart: "no"

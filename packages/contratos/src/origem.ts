@@ -136,6 +136,12 @@ export const MOTIVO_ALVOS_NAO_CARREGADOS =
  */
 export const MOTIVO_FLUXOS_PROC_NAO_CARREGADOS =
   'fluxos do PROC não carregados (ref_dominio, campo fluxo_proc); o dono roda o ac:ref-sync'
+/**
+ * Pedido 105 (E7.238, S1 B do dono): o S1 mede só a escala P1 a P5 da matriz e precisa saber a escala de cada chamado (`dim_chamado.escala_p`, migração 0040).
+ * Chamado com prioridade e sem a coluna preenchida = reprojeção ainda não rodada: nada é presumido e o estado é "sem dado real" com este motivo.
+ */
+export const MOTIVO_ESCALA_NAO_PROJETADA =
+  'escala da prioridade dos chamados não projetada (dim_chamado.escala_p); o dono roda o ac:reprojetar-escala'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
 export const BLOQUEIOS_COM_DADO_REAL = true
