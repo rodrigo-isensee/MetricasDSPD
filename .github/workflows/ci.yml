@@ -1,7 +1,10 @@
 name: CI
 
 on:
+  # Economia de minutos (E7.594): branch de trabalho roda o CI pelo PR, sem duplicar no push.
+  # develop e homolog seguem com push (homolog.yml é o portão da homolog; develop prova o squash).
   push:
+    branches: [develop, homolog]
   pull_request:
   schedule:
     - cron: '0 5 * * *' # 02:00 em Brasília: perf noturno
@@ -37,6 +40,7 @@ jobs:
 
   testes:
     name: testes
+    needs: filtro
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -49,13 +53,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Igual ao `pronto` sem o build: typecheck + cobertura 100% bloqueante em cada pacote.
-      - run: pnpm -r --if-present run typecheck
+      - if: needs.filtro.outputs.pesado == 'true'
+        run: pnpm -r --if-present run typecheck
       # E7.541: no runner, buscas do web (findBy) passam de 5 s (5,2 a 8,5 s) só por lentidão; a folga vale só aqui.
-      - run: pnpm run cobertura
+      - if: needs.filtro.outputs.pesado == 'true'
+        run: pnpm run cobertura
         env:
           METRICAS_DSPD_ESPERA_ASYNC_MS: '15000'
       - name: Resumo de cobertura no job
-        if: always()
+        if: always() && needs.filtro.outputs.pesado == 'true'
         run: |
           {
             echo '### Cobertura (limite 100%)'
@@ -67,7 +73,7 @@ jobs:
             done
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        if: always()
+        if: always() && needs.filtro.outputs.pesado == 'true'
         with:
           name: cobertura
           path: |
@@ -89,6 +95,7 @@ jobs:
       pull-requests: read
     outputs:
       banco: ${{ steps.f.outputs.banco }}
+      pesado: ${{ steps.p.outputs.pesado }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
@@ -102,6 +109,35 @@ jobs:
               - 'docker/**'
               - 'pnpm-lock.yaml'
               - '.github/workflows/ci.yml'
+      # Só documento (E7.594): todo arquivo alterado é .md em docs/, .md da raiz ou changelog.d/.
+      # `every` + negações: o filtro acha qualquer arquivo FORA dessa lista (json de docs/architecture/fontes,
+      # snapshots, docs/api e o resto contam como código, porque o código os lê).
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        id: d
+        with:
+          predicate-quantifier: every
+          filters: |
+            fora_de_docs:
+              - '**'
+              - '!docs/**/*.md'
+              - '!changelog.d/**'
+              - '!*.md'
+      # pesado=true: testes, build, e2e, openapi e imagem rodam inteiros. Só vira false em mudança só de documento
+      # em PR para develop ou push em develop. Release (PR para homolog ou main), push em homolog, dispatch e
+      # agendamento rodam sempre inteiros: o portão não afrouxa.
+      - id: p
+        env:
+          EVENTO: ${{ github.event_name }}
+          BASE: ${{ github.base_ref }}
+          REF: ${{ github.ref_name }}
+          FORA: ${{ steps.d.outputs.fora_de_docs }}
+        run: |
+          pesado=true
+          if [ "$FORA" != 'true' ]; then
+            if [ "$EVENTO" = 'pull_request' ] && [ "$BASE" != 'homolog' ] && [ "$BASE" != 'main' ]; then pesado=false; fi
+            if [ "$EVENTO" = 'push' ] && [ "$REF" = 'develop' ]; then pesado=false; fi
+          fi
+          echo "pesado=$pesado" >> "$GITHUB_OUTPUT"
 
   banco:
     name: banco
@@ -149,7 +185,8 @@ jobs:
 
   openapi:
     name: openapi
-    if: github.event_name != 'schedule'
+    needs: filtro
+    if: github.event_name != 'schedule' && needs.filtro.outputs.pesado == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -165,7 +202,8 @@ jobs:
 
   imagem:
     name: imagem
-    if: github.event_name != 'schedule'
+    needs: filtro
+    if: github.event_name != 'schedule' && needs.filtro.outputs.pesado == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -175,7 +213,8 @@ jobs:
 
   build:
     name: build
-    if: github.event_name != 'schedule'
+    needs: filtro
+    if: github.event_name != 'schedule' && needs.filtro.outputs.pesado == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -193,7 +232,8 @@ jobs:
 
   e2e-parte:
     name: e2e-parte (${{ matrix.parte }}/2)
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    needs: filtro
+    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && needs.filtro.outputs.pesado == 'true'
     # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
     runs-on: ubuntu-24.04
     # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
@@ -234,15 +274,18 @@ jobs:
   e2e:
     name: e2e
     if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    needs: e2e-parte
+    needs: [filtro, e2e-parte]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: As 2 partes da E2E passaram
         env:
           RESULTADO: ${{ needs.e2e-parte.result }}
+          PESADO: ${{ needs.filtro.outputs.pesado }}
         run: |
-          echo "e2e-parte: $RESULTADO"
+          echo "e2e-parte: $RESULTADO (pesado=$PESADO)"
+          # Pulado só vale quando o filtro disse "só documento" (pesado=false); em código, pulado ou cancelado falha.
+          if [ "$PESADO" = 'false' ] && [ "$RESULTADO" = 'skipped' ]; then exit 0; fi
           test "$RESULTADO" = "success"
 
   perf:
