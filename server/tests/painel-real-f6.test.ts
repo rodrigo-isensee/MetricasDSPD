@@ -257,13 +257,14 @@ describe('pedido 105 (E7.504): T15 tamanho das sprints, pela mesma janela do T8'
     const m = mundo(20);
     const extras = [
       sprint(30, { inicio_em: null }), sprint(31, { fim_em: null }),
-      sprint(32, { inicio_em: new Date('2026-03-02T12:00:00Z'), fim_em: new Date('2026-06-30T12:00:00Z') }),
+      sprint(32, { inicio_em: new Date('2026-07-20T12:00:00Z'), fim_em: new Date('2026-09-30T12:00:00Z') }),
     ];
     const { j } = await t15({
       ...m, cards: [...m.cards, card('G0', 'Melhoria'), card('G1', 'Melhoria'), card('G2', 'Melhoria')], sprints: [...m.sprints, ...extras],
       sprintFilhos: [...m.sprintFilhos, ...extras.map((s, i) => ({ sprint_id: s.sprint_id, filho_id: `G${i}` }))],
     });
-    expect(j.foraDaConta).toEqual({ semDatas: 2, acimaDoTeto: 1, tetoDiasUteis: 30 });
+    // E7.536: S31 (sem first_end) não tem conclusão para recortar e não entra na contagem; S30 (sem início) é contada
+    expect(j.foraDaConta).toEqual({ semDatas: 1, acimaDoTeto: 1, tetoDiasUteis: 30 });
     expect(j.sprintsNoRecorte).toBe(20);
   });
 
