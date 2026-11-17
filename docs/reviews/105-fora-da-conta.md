@@ -3,13 +3,13 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-fora-da-conta
-commit: 6e7dfe71a529abfaf0e66a843d2265f63905b527
+commit: 22ebb624a5af28e6b3561fd3ee45c09f2e9a42f1
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-17
 ---
 
-# Code review: nota do cartão vazio abre com "Fora da conta:" (K-404, E7.488)
+# Code review: nota do cartão vazio abre com "Fora da conta:" (K-404, E7.488, revalidação E7.494)
 
 ## Escopo lido
 Diff `ca6a1281...6e7dfe71`: 12 arquivos, 51 adições e 28 remoções (dentro da orientação de 150 linhas), um comportamento só. Arquivos: `estrategicas.tsx` (E6), `operacionais.tsx` (O19, O25), `sustentacao.tsx` (S8, S11), `CartaoS1.tsx`, `CartaoS5.tsx`, `CartaoS6.tsx`, `CartaoS7.tsx`, `comuns.tsx` (`NotaForaDoFluxo` com `vazio`), `CartaoT9.tsx`, os dois testes e o fragmento `changelog.d/fix-105-fora-da-conta.md`.
@@ -20,10 +20,17 @@ Diff `ca6a1281...6e7dfe71`: 12 arquivos, 51 adições e 28 remoções (dentro da
 - Testes: rodei `vazio-nota-exclusao.test.tsx` e `tatico/ramos.test.tsx`: 2 arquivos, 45 testes passam. O PQ do autor é `pnpm run pronto` rc=0. Sem PR para a branch: a suíte inteira fica para o CI do PR; não afirmo CI verde.
 - `docs/engineering/praticas.md`: nenhuma regra "decidida por: leitura" além do checklist alcança estes arquivos.
 
+## Revalidação (volta 1, head 22ebb624)
+Delta lido: `forge-check parecer delta docs/reviews/105-fora-da-conta.md`, intervalo `6e7dfe71..22ebb624`, 6 arquivos no domínio: `estrategicas.tsx`, `operacionais.tsx`, `comuns.tsx`, `CartaoT9.tsx`, `vazio-nota-exclusao.test.tsx`, `tatico/ramos.test.tsx`.
+- A3 resolvido: no vazio, T9, E6, O25 e `NotaForaDoFluxo` (S5, S6, S7, S11) não repetem "fora"; o ramo com dado mantém o texto anterior (o `vazio` só escolhe a frase).
+- A1 e A2 resolvidos: S1 e E6 ancorados em `^Fora da conta:`; o caso sem testid passa a usar `getByText` com a regex, que ancora no elemento da nota.
+- Rodei os dois testes do delta no head 22ebb624: 2 arquivos, 45 testes passam. PQ do autor: `pnpm run pronto` rc=0. Sem PR: não afirmo CI verde.
+- Sem achado novo.
+
 ## Achados
-- A1 (recomendado) web/src/features/complementares/vazio-nota-exclusao.test.tsx:134 · a regex do S1 (`/Fora da conta: 2 de outras escalas/`) não ancora a ordem; um mutante que deixe a nota depois de "Mede só os chamados..." (o texto do ramo com dado) passa. Sugestão: `^Fora da conta:` como nos demais casos.
-- A2 (recomendado) web/src/features/complementares/vazio-nota-exclusao.test.tsx:67 · E6 sem `^`, ao contrário dos outros casos; mesma sugestão.
-- A3 (recomendado) web/src/features/complementares/estrategicas.tsx:196 · E6 e T9 vazios leem "Fora da conta: 2 projetos ... ficaram fora desta conta", redundante. Texto é decisão do UX; fica para a revisão de interface.
+- A1 (recomendado) web/src/features/complementares/vazio-nota-exclusao.test.tsx:134 · resolvido em 22ebb624: regex do S1 ancorada em `^Fora da conta:`.
+- A2 (recomendado) web/src/features/complementares/vazio-nota-exclusao.test.tsx:67 · resolvido em 22ebb624: E6 ancorado em `^Fora da conta:`.
+- A3 (recomendado) web/src/features/complementares/estrategicas.tsx:196 · resolvido em 22ebb624: no vazio, E6, T9, O25 e S5-S7/S11 sem repetir "fora".
 
 ## UX
 O parecer `docs/ux/105-revisao-fora-da-conta.md` do ux-designer foi copiado de /home/rodrigoisensee/MetricasDSPD-065 e commitado nesta branch, como o brief pede; não o alterei.
