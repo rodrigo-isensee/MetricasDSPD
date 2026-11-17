@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import type { FiltrosFluxo, TipoCard } from '@metricas-dspd/contratos'
 import { CALENDARIO_PADRAO, diaDeIso, isoDeDia } from '../core/calendario'
 import {
   calcularE1,
@@ -341,17 +341,14 @@ describe('T1, T2, T3, T4, T5, E1: divisões por zero e dados ausentes', () => {
     expect(padrao?.statusMeta).toBe('fora')
   })
 
-  it('T3: sem alocação acordada configurada, o acordado é nulo (nunca 0) e a métrica fica sem-referencia', () => {
+  it('T3: o contrato não traz acordado, desvio nem selo de meta (D-T3b, E7.496)', () => {
     const base = umaBase(varios(21, (i) => entregue(`A${i}`, i % 10, (i % 10) + 1)))
     const r = calcularT3(ctxDe(base), F)
     expect(r.status).toBe('ok')
-    expect(r.naturezas.every((n) => n.acordadoPct === null)).toBe(true)
-    expect(
-      r.naturezas.every(
-        (n) => n.itens.statusMeta === 'sem-referencia' && n.tempo.statusMeta === 'sem-referencia',
-      ),
-    ).toBe(true)
-    expect(r.naturezas.every((n) => n.itens.desvioPP === null)).toBe(true)
+    for (const n of r.naturezas) {
+      expect(Object.keys(n).sort()).toEqual(['abaixoDe20', 'itens', 'natureza', 'tempo'])
+      expect(Object.keys(n.itens)).toEqual(['quantidade', 'pct'])
+    }
   })
 
   it('T4: período curto sem semana completa não tem médias; chegadas sem entregas não têm razão', () => {
@@ -623,36 +620,63 @@ describe('E7.62: referência ausente sai nula, nunca 0', () => {
   })
 
   const entregues = (n: number) => varios(n, (i) => entregue(`A${i}`, i % 10, (i % 10) + 1))
-  const todas = (acordado: number | null) =>
-    (['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'] as const).flatMap((natureza) =>
-      acordado === null ? [] : [{ natureza, pct: acordado }],
-    )
+  const tipado = (n: number, tipo: TipoCard, prefixo: string) =>
+    varios(n, (i) => entregue(`${prefixo}${i}`, i % 10, (i % 10) + 1, { tipo }))
+  const fatias = (r: ReturnType<typeof calcularT3>) =>
+    Object.fromEntries(r.naturezas.map((n) => [n.natureza, n]))
 
-  it('T3: fronteira de 19 e 20 itens, sem referência: acordado nulo; pct só a partir de 20', () => {
+  it('T3: fronteira de 19 e 20 itens no total: pct só a partir de 20', () => {
     const r19 = calcularT3(ctxDe(umaBase(entregues(19))), F)
     expect(r19.status).toBe('insuficiente')
-    expect(r19.naturezas.every((n) => n.acordadoPct === null && n.itens.pct === null)).toBe(true)
+    expect(r19.naturezas.every((n) => n.itens.pct === null && n.tempo.pct === null)).toBe(true)
     const r20 = calcularT3(ctxDe(umaBase(entregues(20))), F)
     expect(r20.status).toBe('ok')
-    expect(r20.naturezas.every((n) => n.acordadoPct === null)).toBe(true)
-    expect(r20.naturezas.some((n) => n.itens.pct !== null)).toBe(true)
-    expect(r20.naturezas.every((n) => n.itens.statusMeta === 'sem-referencia')).toBe(true)
+    expect(fatias(r20)['Saúde técnica e de processo']?.itens.pct).toBe(100)
   })
 
-  it('T3: com referência, acordado vem do cadastro e o desvio é calculado', () => {
-    const r = calcularT3(ctxDe(comConfig(umaBase(entregues(20)), { alocacao: todas(25) })), F)
-    const ev = r.naturezas.find((n) => n.natureza === 'Evolução')
-    expect(ev?.acordadoPct).toBe(25)
-    expect(ev?.itens.pct).toBe(100)
-    expect(ev?.itens.desvioPP).toBe(75)
-    expect(ev?.itens.statusMeta).toBe('fora')
-    const r19 = calcularT3(ctxDe(comConfig(umaBase(entregues(19)), { alocacao: todas(25) })), F)
-    expect(r19.naturezas.every((n) => n.itens.statusMeta === 'sem-referencia')).toBe(true)
+  it('T3: quatro fatias pelo tipo (Enabler = Habilitador; Dívida técnica + Melhoria juntas), Bug interno fora, sem olhar projeto', () => {
+    const base = umaBase([
+      ...tipado(25, 'Trabalho de produto', 'P'),
+      ...tipado(21, 'Habilitador', 'H'),
+      ...tipado(20, 'Defeito em produção', 'C'),
+      ...tipado(12, 'Dívida técnica', 'D'),
+      ...tipado(10, 'Melhoria', 'M'),
+      ...tipado(30, 'Bug interno', 'B'),
+    ])
+    const r = calcularT3(ctxDe(base), F)
+    expect(r.naturezas.map((n) => n.natureza)).toEqual([
+      'Produto',
+      'Habilitador',
+      'Correção em produção',
+      'Saúde técnica e de processo',
+    ])
+    const f = fatias(r)
+    expect(r.base.n).toBe(88)
+    expect(f['Produto']?.itens).toEqual({ quantidade: 25, pct: 28.41 })
+    expect(f['Habilitador']?.itens.quantidade).toBe(21)
+    expect(f['Correção em produção']?.itens.quantidade).toBe(20)
+    expect(f['Saúde técnica e de processo']?.itens.quantidade).toBe(22)
+    expect(r.naturezas.every((n) => !n.abaixoDe20)).toBe(true)
   })
 
-  it('T3: acordado 0 cadastrado de propósito continua 0 (diferente de ausente)', () => {
-    const r = calcularT3(ctxDe(comConfig(umaBase(entregues(20)), { alocacao: todas(0) })), F)
-    expect(r.naturezas.every((n) => n.acordadoPct === 0)).toBe(true)
+  it('T3: fatia com menos de 20 entregas mostra a contagem, sem percentual de itens nem de tempo, e não se junta a outra', () => {
+    const base = umaBase([
+      ...tipado(30, 'Trabalho de produto', 'P'),
+      ...tipado(19, 'Habilitador', 'H'),
+    ])
+    const f = fatias(calcularT3(ctxDe(base), F))
+    expect(f['Habilitador']).toMatchObject({
+      abaixoDe20: true,
+      itens: { quantidade: 19, pct: null },
+    })
+    expect(f['Habilitador']?.tempo.pct).toBeNull()
+    expect(f['Produto']).toMatchObject({ abaixoDe20: false, itens: { quantidade: 30 } })
+    expect(f['Produto']?.itens.pct).not.toBeNull()
+    expect(f['Produto']?.tempo.pct).not.toBeNull()
+    expect(f['Correção em produção']).toMatchObject({
+      abaixoDe20: true,
+      itens: { quantidade: 0, pct: null },
+    })
   })
 })
 

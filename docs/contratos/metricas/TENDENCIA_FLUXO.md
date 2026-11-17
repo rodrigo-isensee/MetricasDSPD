@@ -1,6 +1,6 @@
 # Contrato da métrica TENDENCIA_FLUXO
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_FLUXO. Público: time (back-end, front-end, QA). Revisão: 2026-11-15.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_FLUXO. Público: time (back-end, front-end, QA). Revisão: 2026-11-17.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -135,6 +135,7 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.TENDENCIA_FLUXO`); a fotografia ve
                     "Bug interno",
                     "Defeito em produção",
                     "Dívida técnica",
+                    "Habilitador",
                     "Trabalho de produto"
                   ]
                 },

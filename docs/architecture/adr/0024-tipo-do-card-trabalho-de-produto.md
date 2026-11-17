@@ -48,3 +48,7 @@ Reverter (voltar a sete rótulos e reabrir a decisão) se o dono mudar a H-17 de
 |---|---|---|
 | 2026-10-31 | Decisão escrita (E2.67); nenhuma projeção real ainda | manter |
 | pendente | Contagem por `dim_card.tipo` depois da primeira projeção real (E2.58 e projeção) | pendente |
+
+## Adendo de 2026-11-17 (pedido 105, E7.496, T3 = A do dono)
+- A tabela de categorias ganha `habilitador` -> `Habilitador` (Enabler, antes "Trabalho de produto"). `TIPOS_CARD` e `TIPOS_FILTRO` o recebem **antes** de `Trabalho de produto`, que segue no fim (a regra da decisão 1 vale). O CHECK de `ref_tipo_card.categoria` foi ampliado pela migração 0041 (a 0018 segue como está). Mudança de critério T2.6 com data 2026-11-17 (`criterio-2026-11-17-habilitador-t3`).
+- A consequência "`T3.naturezaDe` cai em Evolução" deixa de valer: o T3 usa `fatiaT3De` (tipo -> uma de quatro fatias); `naturezaDe` fica só para o E7.

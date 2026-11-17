@@ -5,5 +5,10 @@
     "descricao": "Prazo de referência (SLE) do T2 por prioridade nativa do BusinessMap, aprovado pelo dono",
     "motivo": "Pedido 105 (K-214, D-T2): o time propõe o P85 das últimas 12 semanas por prioridade e o dono aprova; o prazo aprovado passa a valer na data da aprovação e muda a aderência do T2 a partir dela."
   },
-  "prazos": []
+  "prazos": [
+    { "prioridade": "Crítica", "dias_uteis": 12.5, "aprovado_em": "2026-11-17" },
+    { "prioridade": "Alta", "dias_uteis": 5.8, "aprovado_em": "2026-11-17" },
+    { "prioridade": "Média", "dias_uteis": 11.2, "aprovado_em": "2026-11-17" },
+    { "prioridade": "Baixa", "dias_uteis": 2.1, "aprovado_em": "2026-11-17" }
+  ]
 }

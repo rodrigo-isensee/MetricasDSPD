@@ -19,7 +19,9 @@ describe('notas sem texto de dado fictício', () => {
     expect(NOTAS_TATICO.T2.cuidados).toBe(
       'O SLE é um valor de configuração com data de publicação; só é válido após 60 dias de dados limpos e 20 itens por prioridade. Enquanto o dono não aprovar os prazos, o SLE fica não definido. A contagem dos 60 dias recomeça desde a troca de critério marcada no gráfico, quando a separação passou a ser pela prioridade do cartão.',
     )
-    expect(NOTAS_TATICO.T3.cuidados).toBe('Contar cards distorce quando os tamanhos diferem muito.')
+    expect(NOTAS_TATICO.T3.cuidados).toBe(
+      'Contar cards distorce quando os tamanhos diferem muito; use o tempo em execução para conferir. Critério com data: o Enabler passou a ser Habilitador em 17/11/2026 (marca no gráfico).',
+    )
     expect(NOTAS_COMPLEMENTARES.T13.cuidados).toBe(
       'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu".',
     )

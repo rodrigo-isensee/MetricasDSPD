@@ -1,12 +1,6 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras, Dispersao, Histograma } from '@/components/charts'
-import {
-  AmostraInsuficiente,
-  CartaoMetrica,
-  NumeroGrande,
-  StatusMeta,
-  TabelaDados,
-} from '@/components/ui'
+import { AmostraInsuficiente, CartaoMetrica, NumeroGrande, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
@@ -44,21 +38,13 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
           }
         : {})}
       {...(leitura ? { leitura } : {})}
-      {...(d && d.kpis.acimaDoLimite === null ? { textoStatus: 'Limite não definido' } : {})}
-      statusMeta={
-        d
-          ? d.kpis.acimaDoLimite === null
-            ? 'sem-meta'
-            : d.kpis.acimaDoLimite
-              ? 'fora'
-              : 'dentro'
-          : 'sem-meta'
-      }
+      textoStatus="Sem limite de frentes"
+      statusMeta="sem-meta"
       className="lg:col-span-6"
     >
       {d && (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <NumeroGrande
               valor={fmtInteiro(d.kpis.frentesEmAndamento)}
               rotulo="frentes em andamento"
@@ -66,27 +52,8 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
             />
             <NumeroGrande
               valor={fmtInteiro(d.kpis.projetosComFrentes)}
-              rotulo="projetos com frentes ao mesmo tempo"
-              textoCompleto={`${d.kpis.projetosComFrentes} projetos com frentes ao mesmo tempo`}
-            />
-            <NumeroGrande
-              valor={
-                d.kpis.limiteFrentes === null ? 'não definido' : fmtInteiro(d.kpis.limiteFrentes)
-              }
-              rotulo="limite de frentes simultâneas"
-              textoCompleto={
-                d.kpis.limiteFrentes === null
-                  ? 'Limite de frentes simultâneas não definido'
-                  : `Limite de ${d.kpis.limiteFrentes} frentes simultâneas`
-              }
-              complemento={
-                d.kpis.acimaDoLimite === null ? null : (
-                  <StatusMeta
-                    status={d.kpis.acimaDoLimite ? 'fora' : 'dentro'}
-                    texto={d.kpis.acimaDoLimite ? 'Acima do limite' : 'Dentro do limite'}
-                  />
-                )
-              }
+              rotulo="projetos com frentes em andamento"
+              textoCompleto={`${d.kpis.projetosComFrentes} projetos com frentes em andamento`}
             />
           </div>
           {projetos.length > 0 && (
