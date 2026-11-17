@@ -47,6 +47,8 @@ export type LinhaChamado = {
   com_agente?: boolean; reincidente_90d?: Texto;
   /** Workflow único do chamado (D1, 1a); nulo = sem fluxo ou mais de um. Opcional para a base semeada e os dublês antigos. */
   fluxo?: Texto;
+  /** Escala da prioridade (0040, pedido 105, E7.238): verdadeiro = escala P1 a P5 da matriz, falso = outra escala; nulo = sem prioridade ou ainda não reprojetada. Opcional para a base semeada e os dublês antigos. */
+  escala_p?: boolean | null;
 };
 /** Instantes das tabelas grandes vêm como epoch ms (float8): o parser de `timestamptz` do driver custa mais que a consulta. */
 export type LinhaEtapa = { chamado_id: string; etapa: string; entrada: number; saida: number | null; motivo_pendencia: Texto };
@@ -111,7 +113,7 @@ export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbie
             prioridade, prioridade_ajustada_manualmente, justificativa_informada, aberto_em, primeiro_atendimento_em, restaurado_em,
             data_finalizado, status_sla_r, status_sla_pa, motivo_escalacao, motivo_pendencia_atual, previsao_retorno,
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
-            nivel_resolucao, com_agente, reincidente_90d, fluxo
+            nivel_resolucao, com_agente, reincidente_90d, fluxo, escala_p
        FROM ${S.ac}.dim_chamado
       WHERE ${CORTE_CHAMADOS}
       ORDER BY chamado_id`)).rows;

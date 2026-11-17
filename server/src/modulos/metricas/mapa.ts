@@ -175,6 +175,7 @@ export function chamadoDe(l: LinhaChamado): Chamado {
     excecao_sla_registro_posterior: l.excecao_sla_registro_posterior,
     incidente_critico_coordenado: l.incidente_critico_coordenado, nivel_resolucao: campo(l.nivel_resolucao),
     ...(l.fluxo === undefined ? {} : { fluxo: l.fluxo }),
+    ...(l.escala_p === undefined || l.escala_p === null ? {} : { escala_p: l.escala_p }),
   };
 }
 

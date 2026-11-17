@@ -33,7 +33,19 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
   const fechados = selecionarAC(ctx, f).filter(
     (x) => x.fechado && noIntervalo(ctx, x.c.data_finalizado, janela),
   )
-  const apuraveis = fechados.filter((x) => x.apuravel)
+  // Pedido 105 (E7.238, decisão B do dono): o S1 mede só a escala P1 a P5 da matriz. Outras escalas (prazos próprios) e chamado sem prioridade
+  // (sem prazo) ficam fora da conta e são contados; a contagem não depende do filtro de prioridade e nunca vira estatística.
+  const naMatriz = (x: (typeof fechados)[number]) =>
+    x.c.prioridade !== undefined && x.c.escala_p !== false
+  const apuraveis = fechados.filter((x) => x.apuravel && naMatriz(x))
+  const doEscopo = selecionarAC(ctx, f, { semPrioridade: true }).filter(
+    (x) => x.fechado && noIntervalo(ctx, x.c.data_finalizado, janela),
+  )
+  const foraDaMatriz = {
+    outrasEscalas: doEscopo.filter((x) => x.c.prioridade !== undefined && x.c.escala_p === false)
+      .length,
+    semPrazo: doEscopo.filter((x) => x.c.prioridade === undefined).length,
+  }
   const alvos = ctx.idx.base.config.alvos
 
   const classe = (
@@ -71,7 +83,8 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
     base: baseAmostral(apuraveis.length, 'chamados fechados', janela),
     criterios: criterios('S1', periodo, janela, ctx),
     janelaPercentis: janela,
-    excecoesForaDaApuracao: fechados.length - apuraveis.length,
+    excecoesForaDaApuracao: fechados.filter((x) => naMatriz(x)).length - apuraveis.length,
+    foraDaMatriz,
     horasPorDiaUtil: ctx.cal.horasPorDia,
     prioridades: prioridadesAlvo(f).map((p) => {
       const a = alvos.find((x) => x.prioridade === p) as AlvoPrioridade
