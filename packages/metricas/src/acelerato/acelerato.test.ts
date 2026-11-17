@@ -443,6 +443,8 @@ describe('Acelerato', () => {
     expect(pausaOSla('pendente')).toBe(true)
     expect(pausaOSla(' Pendente ')).toBe(true)
     expect(pausaOSla('Aguardando validação')).toBe(true)
+    expect(pausaOSla('Aguardando Validação')).toBe(true)
+    expect(pausaOSla('AGUARDANDO VALIDACAO')).toBe(true)
     expect(pausaOSla('Aguardando Equipe Interna')).toBe(false)
     expect(pausaOSla('Aguardando Aprovação')).toBe(false)
   })

@@ -63,6 +63,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisões do dono (pedido 105, E7.243): P-EI-1 B (time = total menos as esperas da D5a, as que pausam o SLA do S1), P-EI-2 A (Concluído, Encerramento, Causa Raiz e Revisão fora das duas visões, contadas); suposição P-EI-3 (a fila inicial conta como espera invisível). Antes a métrica não era publicada. Afeta EI_SUST.',
     metricas: ['EI_SUST'],
   },
+  {
+    referencia: '105:S1-pausa-validacao',
+    descricao: 'S1 pausa o relógio de SLA na etapa "Aguardando Validação": a comparação da etapa passa a ignorar caixa, espaços e acentos; a lista de etapas que pausam não muda',
+    motivo: 'K-389 (A3 do review do EI_SUST, pedido 105, E7.412): a comparação era de caixa exata e a etapa real é "Aguardando Validação", então o SLA não pausava nela. Os chamados que passaram por essa etapa têm o tempo de SLA do S1 recalculado. Afeta S1.',
+    metricas: ['S1'],
+  },
 ];
 
 /**
