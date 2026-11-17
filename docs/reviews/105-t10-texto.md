@@ -3,36 +3,41 @@ tipo: review
 contrato: 1
 pedido: 105-melhorias-15-11
 branch: fix/105-t10-texto
-commit: a505dc99d86ba4fb1e5022ee5705fa3eae78d2ba
-parecer: reprovado
+commit: df13bf908df26292414cf6f45d2f57147c434146
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-16
 ---
 
-# Code review: texto do T10 com os motivos 11 e 14 (105, K-391, E7.363)
+# Code review: texto do T10 com os motivos 11 e 14 (105, K-391, E7.363, revalidação E7.389)
 
-Escopo: `d999ee29..a505dc99`, um commit (a505dc99), 3 arquivos, 8 linhas a mais e 8 a menos (`notas.ts`, `taticas.tsx`, `taticas.test.tsx`). Está dentro do teto de 150 linhas (M14).
+Escopo original: `d999ee29..a505dc99`, um commit, 3 arquivos (`notas.ts`, `taticas.tsx`, `taticas.test.tsx`), 8 linhas a mais e 8 a menos. Revalidação: `a505dc99..df13bf90`, lida só pelo `forge-check parecer delta`. Dentro do teto de 150 linhas (M14).
 
-**Veredito: reprovado.** O texto novo está de acordo com o cálculo. O defeito é que o e2e `tatico-011-lote2.spec.ts` ainda afirma a frase antiga do aviso de vazio, que esta mudança trocou (A1). A correção é de uma linha.
+**Veredito: aprovado.** O A1 foi corrigido, e o A2 foi atendido pelo lado do teste.
+
+## Revalidação (delta lido)
+`forge-check parecer delta docs/reviews/105-t10-texto.md` mostra o intervalo `a505dc99..df13bf90` e 2 arquivos no domínio:
+- `e2e/tests-api/tatico-011-lote2.spec.ts:139`: o TT-04 agora espera a frase nova ('com os motivos "Dependência Externa" ou "Aguardando fornecedor"'). É o mesmo texto de `taticas.tsx:77-78`. Isso fecha o A1.
+- `web/src/features/complementares/taticas.test.tsx`: há um teste novo que percorre `MOTIVOS_FORNECEDOR` (importado de `@metricas-dspd/contratos`) e confere cada motivo, entre aspas, no aviso `t10-sem-fornecedor` e em `NOTAS_COMPLEMENTARES.T10.comoSeCalcula`. O texto ainda está escrito à mão, mas um motivo novo na lista sem o texto correspondente agora faz o teste falhar. Isso atende o A2.
+- O A3 (comentários em `tambem.ts:197` e `origem.ts:57`) fica como cartão, fora do brief.
+
+## Ferramentas (citadas, sem refazer)
+- Não há PR para a branch, então a suíte inteira fica para o CI do PR, e este parecer não afirma CI verde. O brief do autor registra `pnpm run pronto` com rc=0 no head df13bf90.
+- Rodei o teste tocado no head df13bf90: `npx vitest run src/features/complementares/taticas.test.tsx` (em `web/`). Resultado: 1 arquivo, 38 testes, todos passaram (eram 37, mais o teste novo dos motivos).
+- O projeto `chromium-api` continua fora do CI. O TT-04 foi conferido por leitura contra `taticas.tsx:77-78`.
 
 ## Conferência contra o cálculo (develop)
 - `packages/contratos/src/comum.ts:127`: `MOTIVOS_FORNECEDOR = ['Aguardando fornecedor', 'Dependência Externa']`. `packages/metricas/src/businessmap/t10.ts` filtra `encerrados` por essa lista e soma as horas úteis.
-- `notas.ts:266` (Como se calcula), `taticas.tsx:53` (leitura), `taticas.tsx:77-78` (aviso de vazio) e `taticas.tsx:56` (comentário) agora citam os dois motivos, e "encerrados" continua no texto. O aviso de vazio usa "ou", e a soma usa "e". As duas formas estão corretas.
-
-## Ferramentas (citadas, sem refazer)
-- Sem PR para a branch, então a suíte inteira fica para o CI do PR. Não afirmo CI verde. O PQ do autor (brief react-frontend-40) é só o push (`ls-remote`) e não traz a saída do `pnpm run pronto`.
-- Rodei o teste tocado: `pnpm exec vitest run src/features/complementares/taticas.test.tsx` (em `web/`). Resultado: 1 arquivo, 37 testes, todos passaram.
-- O projeto `chromium-api` não roda no CI (`ci.yml` usa `test:chromium`, sem `E2E_API_URL`). É por isso que o A1 não aparece em verificador automático.
+- `notas.ts:266`, `taticas.tsx:53`, `taticas.tsx:56` e `taticas.tsx:77-78` citam os dois motivos. O aviso de vazio usa "ou", e a soma usa "e". As duas formas estão corretas.
 
 ## Checklist (leitura)
-1. Escopo: faz o que o K-391 pede, só texto e asserções. Não muda cálculo nem contrato.
+1. Escopo: só texto e asserções. Não muda cálculo nem contrato.
 2. Regras invioláveis: não há impacto. O texto não cita fornecedor nem pessoa.
-3. Legibilidade: os textos estão claros. A lista de motivos está escrita à mão em três lugares, quando o brief sugeria ler `MOTIVOS_FORNECEDOR` "se couber" (A2).
-7. Testes: a leitura com e sem percentis e o aviso de vazio têm asserção de texto exato. O "Como se calcula" (`notas.ts:266`) não tem asserção (A2).
-11. Teste de ausência ou de texto cujo alvo mudou: o e2e da API com a frase antiga ficou para trás (A1).
-9. Commit: um commit, Conventional Commits em português, e a mensagem diz o que muda.
+7. Testes: o aviso de vazio e a leitura têm asserção de texto exato. O "Como se calcula" agora é coberto pelo teste dos motivos.
+9. Commits: Conventional Commits em português, e as mensagens dizem o que muda.
+11. Teste cujo alvo mudou: o TT-04 foi atualizado. O laço sobre `MOTIVOS_FORNECEDOR` percorre uma lista de 2 itens, e a lista é um contrato tipado.
 
 ## Achados
-- A1 (bloqueante) e2e/tests-api/tatico-011-lote2.spec.ts:139 · o TT-04 espera com `toHaveText` a frase antiga do vazio ('com o motivo "Aguardando fornecedor"'). `taticas.tsx:77` agora diz os dois motivos, então o teste falha ao rodar o `chromium-api`. Trocar pela frase nova.
-- A2 (recomendado) web/src/features/complementares/notas.ts:266 · os motivos estão fixos à mão em `notas.ts:266` e `taticas.tsx:53,77`, e o `comoSeCalcula` não tem asserção. Montar o texto a partir de `MOTIVOS_FORNECEDOR` ou testar que cada motivo da lista aparece.
-- A3 (recomendado) packages/contratos/src/tambem.ts:197 · os comentários de `tambem.ts:197` e `origem.ts:57` ainda citam só "Aguardando fornecedor". Estão fora dos arquivos do brief, então viram cartão.
+- A1 (bloqueante) e2e/tests-api/tatico-011-lote2.spec.ts:139 · resolvido em df13bf90: o TT-04 espera a frase nova.
+- A2 (recomendado) web/src/features/complementares/notas.ts:266 · atendido em df13bf90 por `taticas.test.tsx`, que confere cada motivo de `MOTIVOS_FORNECEDOR` no aviso e na nota.
+- A3 (recomendado) packages/contratos/src/tambem.ts:197 · os comentários de `tambem.ts:197` e `origem.ts:57` ainda citam só "Aguardando fornecedor". Estão fora do brief e viram cartão.
