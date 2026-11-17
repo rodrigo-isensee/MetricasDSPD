@@ -57,7 +57,11 @@ export function CartaoS6({ filtros }: { filtros: FiltrosSustentacao }) {
         estado: q.estado,
         atualizando: q.atualizando,
         ...(d && d.foraDoFluxo > 0
-          ? { complementoVazio: <NotaForaDoFluxo n={d.foraDoFluxo} testid="s6-fora-do-fluxo" /> }
+          ? {
+              complementoVazio: (
+                <NotaForaDoFluxo n={d.foraDoFluxo} testid="s6-fora-do-fluxo" vazio />
+              ),
+            }
           : {}),
         ...(d ? { criterios: d.criterios } : {}),
         ...(leitura ? { leitura } : {}),

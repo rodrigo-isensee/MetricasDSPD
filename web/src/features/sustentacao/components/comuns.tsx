@@ -20,11 +20,14 @@ export function NotaForaDoFluxo({
   n,
   testid,
   variante = 'proc',
+  vazio = false,
 }: {
   n: number
   testid: string
   /** `proc` (S5 a S7): só os cinco fluxos do PROC. `sem-fluxo` (S11): a regra da avaliação depende do fluxo do chamado. */
   variante?: 'proc' | 'sem-fluxo'
+  /** Cartão vazio: a nota abre com "Fora da conta:" (K-404). */
+  vazio?: boolean
 }) {
   if (n <= 0) return null
   const um = n === 1
@@ -35,6 +38,7 @@ export function NotaForaDoFluxo({
   return (
     <p className="flex items-start gap-1 text-sm text-texto-2" data-testid={testid}>
       <Icone nome="info" className="mt-1 size-3.5 shrink-0" />
+      {vazio && 'Fora da conta: '}
       {fmtInteiro(n)} {texto}
     </p>
   )

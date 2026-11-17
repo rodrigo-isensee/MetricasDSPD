@@ -37,7 +37,7 @@ const CASOS: {
       x.base.n = 0
       x.abertosForaDaSoma = fora
     },
-    texto: /2 bloqueios ainda abertos não entram na soma/,
+    texto: /^Fora da conta: 2 bloqueios ainda abertos não entram na soma/,
   },
   {
     id: 'O25',
@@ -51,7 +51,7 @@ const CASOS: {
       x.avisoPreenchimento = { itens: fora }
     },
     texto:
-      /Aviso de preenchimento: 2 cards têm motivo de descarte sem estar descartado nem excluído; fora da taxa/,
+      /^Fora da conta: 2 cards têm motivo de descarte sem estar descartado nem excluído; fora da taxa/,
   },
   {
     id: 'E6',
@@ -63,7 +63,8 @@ const CASOS: {
       x.base.n = 0
       x.semData = fora
     },
-    texto: /2 projetos concluídos sem data comprometida registrada ficaram fora desta conta/,
+    texto:
+      /Fora da conta: 2 projetos concluídos sem data comprometida registrada ficaram fora desta conta/,
   },
   {
     id: 'S8',
@@ -75,7 +76,7 @@ const CASOS: {
       x.cobertura = { n: 0, total: fora }
       x.semResposta = fora
     },
-    texto: /2 incidentes sem resposta no campo/,
+    texto: /^Fora da conta: 2 incidentes sem resposta no campo/,
   },
   {
     id: 'S11',
@@ -86,7 +87,7 @@ const CASOS: {
       x.base.n = 0
       x.semFluxo = fora
     },
-    texto: /2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
   },
   {
     id: 'S5',
@@ -97,7 +98,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDoFluxo = fora
     },
-    texto: /2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
   },
   {
     id: 'S6',
@@ -108,7 +109,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDoFluxo = fora
     },
-    texto: /2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
   },
   {
     id: 'S7',
@@ -119,7 +120,7 @@ const CASOS: {
       x.base.n = 0
       x.foraDoFluxo = fora
     },
-    texto: /2 chamados ficaram fora desta métrica/,
+    texto: /^Fora da conta: 2 chamados ficaram fora desta métrica/,
   },
   {
     id: 'S1',

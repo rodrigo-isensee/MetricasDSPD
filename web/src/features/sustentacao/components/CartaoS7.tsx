@@ -89,7 +89,9 @@ export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
       erro={q.erro}
       className="lg:col-span-12"
       {...(d && d.foraDoFluxo > 0
-        ? { complementoVazio: <NotaForaDoFluxo n={d.foraDoFluxo} testid="s7-fora-do-fluxo" /> }
+        ? {
+            complementoVazio: <NotaForaDoFluxo n={d.foraDoFluxo} testid="s7-fora-do-fluxo" vazio />,
+          }
         : {})}
     >
       {d && <NotaForaDoFluxo n={d.foraDoFluxo} testid="s7-fora-do-fluxo" />}
