@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 import { respostaComNomesReais, respostaComOutraArea, respostaVazia } from './fixture'
 import { criarFetchFalso, type OpcoesFetchFalso } from './rota-falsa'
+import { limiteEspera } from '@/test/espera'
 
 const URL_ABA = '/operacional/apontamento'
 
@@ -25,7 +26,7 @@ async function pronto() {
       for (const c of screen.getAllByTestId(/^metrica-/))
         expect(c).toHaveAttribute('data-estado', 'ok')
     },
-    { timeout: 8000 },
+    { timeout: limiteEspera(8000) },
   )
   return kpis
 }
@@ -79,7 +80,9 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
     vi.stubGlobal('fetch', falso.fetchFalso)
     renderizarApp(URL_ABA)
     const kpis = await screen.findByTestId('metrica-AP-KPIS')
-    await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'erro'), { timeout: 8000 })
+    await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'erro'), {
+      timeout: limiteEspera(8000),
+    })
     const antes = falso.chamadas.length
     await userEvent.click(within(kpis).getByRole('button', { name: 'Tentar de novo' }))
     await waitFor(() => expect(falso.chamadas.length).toBeGreaterThan(antes))

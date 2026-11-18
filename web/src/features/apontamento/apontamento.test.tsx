@@ -14,6 +14,7 @@ import {
   respostaVazia,
 } from './fixture'
 import type { FonteApontamento, RespostaApontamento } from './types'
+import { limiteEspera } from '@/test/espera'
 
 const URL_ABA = '/operacional/apontamento'
 
@@ -42,7 +43,9 @@ function renderizar(url: string = URL_ABA, fonte: FonteApontamento = fonteFictic
 async function cartao(codigo: string, url?: string, fonte?: FonteApontamento) {
   const r = renderizar(url, fonte)
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return { ...r, el }
 }
 

@@ -7,6 +7,7 @@ import { renderizarApp, renderizarBarra } from '@/test/helpers'
 import { contarAtivos } from './contarAtivos'
 import { colapsarTodos, escreverFluxo, lerFluxo, paramsDeFluxo } from './codec'
 import { PAINEIS } from './paineis'
+import { limiteEspera } from '@/test/espera'
 
 afterEach(() => window.localStorage.clear())
 
@@ -51,7 +52,7 @@ class FonteSetor extends MockFonteMetricas {
 }
 
 const botaoSetor = (nome: string | RegExp) =>
-  screen.findByRole('button', { name: nome }, { timeout: 8000 })
+  screen.findByRole('button', { name: nome }, { timeout: limiteEspera(8000) })
 const marcar = async (...nomes: string[]) => {
   await userEvent.click(await botaoSetor(/^Setor:/))
   const d = await screen.findByRole('dialog', { name: 'Setor' })
@@ -88,7 +89,7 @@ describe('filtro Setor na BarraFiltros (097 L11)', () => {
     const r = renderizarApp('/operacional?setor=plataformas', new FonteSetor())
     // a memória só guarda o setor depois que as opções chegam e a URL é validada: o chip prova isso
     expect(
-      await screen.findByTestId('chip-filtro-setor', undefined, { timeout: 8000 }),
+      await screen.findByTestId('chip-filtro-setor', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     const nav = await screen.findByRole('navigation', { name: 'Navegação principal' })
     await waitFor(() =>

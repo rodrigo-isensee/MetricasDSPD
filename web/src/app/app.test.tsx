@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 import type { FonteMetricas } from '@/data'
+import { limiteEspera } from '@/test/espera'
 
 const busca = (r: { roteador: { state: { location: { search: string; pathname: string } } } }) =>
   new URLSearchParams(r.roteador.state.location.search)
@@ -186,7 +187,7 @@ describe('Visão geral e Ajuda', () => {
   it('a Visão geral consome a fonte e a Ajuda lista as mudanças de critério', async () => {
     renderizarApp('/')
     expect(
-      await screen.findByTestId('nivel-operacional', undefined, { timeout: 8000 }),
+      await screen.findByTestId('nivel-operacional', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
   it('Ajuda traz as regras de uso e a tabela de critérios do mock', async () => {

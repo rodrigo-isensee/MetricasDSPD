@@ -1,0 +1,7 @@
+### Alterado
+
+- CI: o ci.yml, o homolog.yml e o restauracao.yml passam a rodar nos runners próprios (`runs-on: [self-hosted, metricas]`), para a CI não ter custo, por decisão do dono (pedido 105, E7.611). O `homolog-aprovada` e o `homolog-reavalia` seguem em `ubuntu-latest`.
+- CI: sem Docker nos jobs do runner. Saem os `services: postgres` (3 jobs) e o `container:` do Playwright (4 jobs): o Postgres 17 e o navegador vêm na imagem do runner. O gitleaks vira o binário fixado na imagem (no lugar de `zricethezav/gitleaks:latest`) e o `pgci` do restauracao.yml vira o Postgres local (pedido 107, E1.12).
+- CI: o job `imagem` (docker build) roda em `ubuntu-latest` quando `server/Dockerfile`, `server/package.json`, `docker/**`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml` ou o `ci.yml` mudam, e sempre em PR para `homolog` e `main`; pulado conta como aprovado.
+- CI: o job `migracao-smoke` do homolog.yml se divide em `migracao` (H1, runner próprio, sem Docker) e `smoke` (H2, compose, em `ubuntu-latest`, só no push em `homolog` e no `workflow_dispatch`, fora da noturna). O `portao` exige os dois e, na noturna, aceita o `smoke` pulado. Reversão (critério do review): se o `smoke` hospedado falhar por ambiente ou custo, voltar o job único `migracao-smoke` em `ubuntu-latest` com `services: postgres`, como na develop `acb62951`.
+- CI: o gitleaks do job `seguranca` falha fechado quando o binário falta na imagem do runner (antes seguia verde).
