@@ -552,3 +552,42 @@ describe('105: tamanho_declarado pela régua do time do card (size nativo)', () 
     expect(p.dim.tamanho_declarado).toBe('M');
   });
 });
+
+describe('projetarCard: Sprint e vínculo dos filhos (105, E7.499, D-T8 "A")', () => {
+  const sprint = (extra: Record<string, unknown> = {}) => proj(card({ card_id: 9, type_id: 12, ...extra }), [], { id: '9' });
+
+  it('o card Sprint leva a janela de execução (primeiro início e primeira conclusão) e os filhos pelo vínculo child; sem título nem pessoa', () => {
+    const p = sprint({
+      first_start_time: '2026-05-04T12:16:59Z', first_end_time: '2026-06-01T11:52:58Z',
+      linked_cards: [{ card_id: 30, link_type: 'child' }, { card_id: 31, link_type: 'child' }, { card_id: 30, link_type: 'child' }, { card_id: 5, link_type: 'parent' }, { card_id: 6, link_type: 'relative' }],
+    });
+    expect(p.sprint).toEqual({
+      sprint_id: '9', quadro_id: 'Q', inicio_em: new Date('2026-05-04T12:16:59Z'), fim_em: new Date('2026-06-01T11:52:58Z'), descartada: false,
+    });
+    expect(p.vinculosSprint).toEqual([{ sprint_id: '9', filho_id: '30' }, { sprint_id: '9', filho_id: '31' }]);
+    expect(JSON.stringify(p.sprint)).not.toContain('Card de teste');
+  });
+
+  it('Sprint sem as datas guarda nulos (nada é inferido); descartada ou excluída fica marcada; data inválida vira nulo', () => {
+    expect(sprint().sprint).toMatchObject({ inicio_em: null, fim_em: null, descartada: false });
+    expect(sprint({ first_start_time: 'ontem', first_end_time: 7 }).sprint).toMatchObject({ inicio_em: null, fim_em: null });
+    expect(sprint({ discarded_at: '2026-05-09T12:00:00Z' }).sprint?.descartada).toBe(true);
+    expect(proj(card({ card_id: 9, type_id: 12 }), [], { id: '9', excluidoDetectado: true }).sprint?.descartada).toBe(true);
+  });
+
+  it('o filho guarda o pai que é Sprint (vínculo parent); pai de outro tipo, desconhecido ou vínculo relativo não vale', () => {
+    const filho = (vinculos: unknown, tipoDoPai: EntradaCard['tipoDoPai']) => proj(card({ type_id: 11, linked_cards: vinculos }), [], { tipoDoPai });
+    const daSprint = filho([{ card_id: 9, link_type: 'parent' }, { card_id: 8, link_type: 'parent' }, { card_id: 4, link_type: 'relative' }], (id) => (id === '9' ? '12' : '11'));
+    expect(daSprint.sprint).toBeNull();
+    expect(daSprint.vinculosSprint).toEqual([{ sprint_id: '9', filho_id: '7' }]);
+    expect(filho([{ card_id: 9, link_type: 'parent' }], () => undefined).vinculosSprint).toEqual([]);
+    expect(filho([{ card_id: 9, link_type: 'relative' }], () => '12').vinculosSprint).toEqual([]);
+    expect(filho('x', () => '12').vinculosSprint).toEqual([]);
+  });
+
+  it('tipo 12 sem referência de Sprint (eh_item verdadeiro ou ausente) não é Sprint', () => {
+    const semRef = { ...REF, tipos: new Map() };
+    expect(proj(card({ card_id: 9, type_id: 12 }), [], { id: '9' }, semRef).sprint).toBeNull();
+    expect(proj(card({ card_id: 9, type_id: 11 }), [], { id: '9' }).sprint).toBeNull();
+  });
+});

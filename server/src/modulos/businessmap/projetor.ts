@@ -57,6 +57,9 @@ export interface ResultadoProjecao {
   /** Por motivo, a quantidade de cards (nunca id de card nem valor). */
   notas: Record<string, number>;
   responsaveisGravados: number;
+  /** 105 (E7.499): sprints projetadas em `dim_sprint` e vínculos filho-Sprint lidos e inseridos em `fato_sprint_filho` (só contagens). */
+  sprints: { projetadas: number };
+  vinculosSprint: { lidos: number; inseridos: number };
   /** 105: bugs cuja fase de detecção mudou (primeira carga ou troca de linha da tabela) e foi gravada. */
   fasesDeteccaoGravadas: number;
   /** 105 (segurança A1): linhas da régua de tamanho ignoradas por time inexistente em `ref_time` (só a contagem; nunca o time nem o valor). */
@@ -292,6 +295,7 @@ async function projetarLote(
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
   // 105 (O22, B7b, R6-6): o DELETE + INSERT acima zera o primeiro toque; ele se refaz da staging e do controle do toque, sem chamar a API
   await projetarToque(db, S, ok);
+  await projetarSprints(db, S, ok, projetados.map((x) => x.p), inicio, coletaId, acc);
 
   // I-2: na mesma execução, o conjunto lido pela coleta (muda de dono sem mudar o staging); `null` não sobrescreve nada
   for (const { stg: l } of projetados) {
@@ -300,6 +304,21 @@ async function projetarLote(
     const g = await gravarResponsaveis(db, { cardId: l.id_origem, responsaveis: [...r], stgCardSk: l.stg_sk, vigenteDe: inicio, coletaId, agora: inicio }, S);
     if (g.versao || g.dimCard) acc.responsaveisGravados += 1;
   }
+}
+
+/**
+ * 105 (E7.499, D-T8 "A"): `dim_sprint` (projeção do card Sprint, refeita por card: um card que deixou de ser Sprint sai) e `fato_sprint_filho` (vínculo filho -> Sprint, append-only:
+ * só entra o par que ainda não existe, nada é apagado nem sobrescrito, vínculo desfeito no BusinessMap continua). Só ids e instantes: nenhum título, nenhuma pessoa.
+ */
+async function projetarSprints(db: Consultavel, S: Esquemas, ok: readonly string[], cards: readonly CardProjetado[], inicio: Date, coletaId: number, acc: ResultadoProjecao): Promise<void> {
+  await db.query(`DELETE FROM ${S.bm}.dim_sprint WHERE sprint_id = ANY($1::text[])`, [ok]);
+  const sprints = cards.flatMap((p) => (p.sprint === null ? [] : [p.sprint]));
+  acc.sprints.projetadas += await inserir(db, `${S.bm}.dim_sprint`, ['sprint_id', 'quadro_id', 'inicio_em', 'fim_em', 'descartada', 'coletado_em', 'atualizado_por_coleta_id'],
+    sprints.map((x) => [x.sprint_id, x.quadro_id, x.inicio_em, x.fim_em, x.descartada, inicio, coletaId]), '');
+  const vinculos = cards.flatMap((p) => p.vinculosSprint);
+  acc.vinculosSprint.lidos += vinculos.length;
+  acc.vinculosSprint.inseridos += await inserir(db, `${S.bm}.fato_sprint_filho`, ['sprint_id', 'filho_id', 'coletado_em', 'coleta_id'],
+    vinculos.map((v) => [v.sprint_id, v.filho_id, inicio, coletaId]), 'ON CONFLICT ON CONSTRAINT uq_fato_sprint_filho DO NOTHING');
 }
 
 type LinhaBug = { card_id: string; tipo: string | null; card_pai: string | null; criado_em: Date; fase_deteccao: string | null };
@@ -368,7 +387,7 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
     const coletaId = Number(ctl.rows[0]!.coleta_id);
     const acc: ResultadoProjecao = {
       coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, bloqueios: { lidos: 0, inseridos: 0 }, fatosBloqueio: { lidos: 0, inseridos: 0 }, notas: {},
-      responsaveisGravados: 0, fasesDeteccaoGravadas: 0, reguaLinhasDescartadas: 0,
+      responsaveisGravados: 0, sprints: { projetadas: 0 }, vinculosSprint: { lidos: 0, inseridos: 0 }, fasesDeteccaoGravadas: 0, reguaLinhasDescartadas: 0,
     };
     if (d.reconstruir === true) for (const t of TABELAS_LIMPAS_NA_RECONSTRUCAO) await db.query(`DELETE FROM ${S.bm}.${t}`);
     const ref = await carregarReferencia(db, S);
@@ -394,6 +413,8 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
     await contagem('projecao_versao', acc.versoes, acc.versoes, 0);
     await contagem('projecao_bloqueio_evento', acc.bloqueios.lidos, acc.bloqueios.inseridos, 0);
     await contagem('projecao_bloqueio_fato', acc.fatosBloqueio.lidos, acc.fatosBloqueio.inseridos, 0);
+    await contagem('projecao_sprint', acc.sprints.projetadas, acc.sprints.projetadas, 0);
+    await contagem('projecao_sprint_vinculo', acc.vinculosSprint.lidos, acc.vinculosSprint.inseridos, 0);
     // motivo de card fora ou com ressalva (nunca id): `lidos` = quantidade de cards
     for (const [nota, n] of Object.entries(acc.notas)) await contagem(`nota_${nota}`.slice(0, 40), n, n, 0);
     await db.query(`UPDATE ${S.bm}.ctl_coleta SET status = 'sucesso', finalizado_em = $2 WHERE coleta_id = $1`, [coletaId, d.agora()]);

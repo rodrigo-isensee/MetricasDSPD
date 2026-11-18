@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 import { propsCartao, diaNum, isoDoDia, slug, textoTaxa } from './propsCartao'
+import { limiteEspera } from '@/test/espera'
 
 describe('PainelPagina: erro simulado (?mock=erro)', () => {
   it('o painel todo falha dentro do shell e "Tentar de novo" não derruba nada', async () => {
@@ -76,7 +77,7 @@ describe('recolher cartão nos painéis (097 E5, L8b)', () => {
     const botoes = await screen.findAllByRole(
       'button',
       { name: /^Recolher cartão:/ },
-      { timeout: 8000 },
+      { timeout: limiteEspera(8000) },
     )
     expect(screen.queryByRole('button', { name: 'Restaurar cartões recolhidos' })).toBeNull()
     await userEvent.click(botoes[0]!)

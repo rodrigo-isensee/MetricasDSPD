@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { CartaoEI, ComposicaoSust } from './components/CartaoEI'
 import { fonteDeTeste, renderizarApp, renderizarCartao } from '@/test/helpers'
+import { limiteEspera } from '@/test/espera'
 
 const URL_DO: Record<string, string> = {
   'EI-FL1': '/operacional?cadencia=semanal',
@@ -14,7 +15,9 @@ const URL_DO: Record<string, string> = {
 async function pronto(codigo: string, url = URL_DO[codigo] as string) {
   const r = renderizarApp(url)
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return { ...r, el }
 }
 

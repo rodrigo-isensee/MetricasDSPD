@@ -125,10 +125,12 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   T8: {
     oQueE: 'O que a sprint entregou do que comprometeu, o que sobrou e o que entrou depois.',
     comoSeCalcula:
-      'Entregue do comprometido ÷ comprometido, carry-over e entrada não planejada = itens que entraram após o início ÷ itens da sprint. Cada sprint é um card com filhos; mostra por sprint, sem comparar times.',
-    comoLer: 'Leia sempre junto com a entrada não planejada. 100% não é objetivo.',
+      'A sprint vai do primeiro início de execução à primeira conclusão do próprio card Sprint. Sprint sem as duas datas, ou com mais de 30 dias úteis, fica fora da conta e é contada à parte. Entregue do comprometido ÷ comprometido; carry-over = o que foi comprometido e não foi entregue; entrada não planejada = filhos criados depois do início da sprint ÷ itens da sprint. Mostra por sprint, sem comparar times.',
+    comoLer:
+      'Leia sempre junto com a entrada não planejada. 100% não é objetivo. Com menos de 20 sprints no recorte nenhuma estatística é publicada.',
     meta: 'Sem alvo de 100%.',
-    cuidados: 'Não compara sprints entre times nem usa pontos como meta.',
+    cuidados:
+      'Limite do dado: o BusinessMap não guarda a data em que o filho foi ligado à sprint. Por isso o não planejado é o filho criado depois do início da sprint; quem foi criado antes e ligado depois conta como planejado. Não compara sprints entre times nem usa pontos como meta.',
   },
   E4: {
     oQueE: 'Quantos projetos começaram e quantos terminaram por trimestre.',

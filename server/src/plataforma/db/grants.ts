@@ -54,8 +54,8 @@ export const TABELAS_FORA_DA_API: readonly string[] = [
 ];
 
 const COM = (nomes: string[], ...prefixos: string[]): string[] => nomes.filter((n) => prefixos.some((p) => n.startsWith(p)));
-const PROJECAO = /^(dim_card|dim_chamado|fato_bloqueio|fato_etapa_chamado)$/;
-const IMUTAVEL = /^(stg_|evt_|rec_|fato_transicao$)|_versao$/;
+const PROJECAO = /^(dim_card|dim_chamado|dim_sprint|fato_bloqueio|fato_etapa_chamado)$/;
+const IMUTAVEL = /^(stg_|evt_|rec_|fato_transicao$|fato_sprint_filho$)|_versao$/;
 const OUTBOX_COLUNAS_COLETOR = 'status, tentativas, disponivel_em, reservado_ate, processado_em, ultimo_erro';
 
 const nomeLogico = (chave: 'bm' | 'ac' | 'core'): string => `dspd_${chave}`;
@@ -110,7 +110,7 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
     g('SELECT', schema, tabs.filter((n) => n === 'cfg_pessoa_eliminada'), 'dspd_coletor');
     g('SELECT', schema, COM(tabs, 'ref_'), 'dspd_coletor');
     // API: projeções, views, ref_ e ctl_; nunca stg_, evt_, *_versao. Tabela com coluna de pessoa: só as demais colunas.
-    const paraApi = [...tabs.filter((n) => PROJECAO.test(n) || n === 'fato_transicao' || n === 'rec_transicao_par' || n === 'agg_conhecimento_sistema'),
+    const paraApi = [...tabs.filter((n) => PROJECAO.test(n) || n === 'fato_transicao' || n === 'fato_sprint_filho' || n === 'rec_transicao_par' || n === 'agg_conhecimento_sistema'),
       ...COM(tabs, 'vw_', 'ref_', 'ctl_')].filter((n) => !TABELAS_FORA_DA_API.includes(`${nomeLogico(chave)}.${n}`));
     for (const t of paraApi) {
       const cols = colunasApi(chave, t);
