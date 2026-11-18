@@ -25572,6 +25572,37 @@
                             "naoPlanejadoPct"
                           ],
                           "additionalProperties": false
+                        },
+                        "foraDaConta": {
+                          "type": "object",
+                          "properties": {
+                            "semDatas": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "acimaDoTeto": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "tetoDiasUteis": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "semDatas",
+                            "acimaDoTeto",
+                            "tetoDiasUteis"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "sprintsNoRecorte": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
                         }
                       },
                       "required": [

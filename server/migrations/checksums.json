@@ -39,5 +39,6 @@
   "0038_ac_dim_chamado_fluxo": "e04d08d709e4bf294cb0dec19eeaca837304d531accc42fec43a2c7cdc2797a2",
   "0039_bm_toque_primeiro": "9a1535b7cbc395e455fa800536624ed17932ad6e5dcf1f9ad82cb7cb2eec7f67",
   "0040_ac_dim_chamado_escala_p": "ec2572f4142391761be6137ef1a6a6ee67f112efbaec356cf95831553528d013",
-  "0041_bm_ref_tipo_card_habilitador": "1986186dad27c7137124f9103ecb26ee5235f220ec830be4046bb067c566a9b5"
+  "0041_bm_ref_tipo_card_habilitador": "1986186dad27c7137124f9103ecb26ee5235f220ec830be4046bb067c566a9b5",
+  "0042_bm_sprint": "85de3930efb565e842320da4d15854a71c058b814b95371641f512bae5b738f1"
 }

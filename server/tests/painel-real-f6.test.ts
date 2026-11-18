@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { ServicoMetricas } from '../src/modulos/metricas/index.js';
 import { colunasDe, configBM, limitesDosTimes, montarBaseBM, type RefBM } from '../src/modulos/metricas/mapa.js';
-import type { LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColunaReal, LinhaEtapa, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
+import type { LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColunaReal, LinhaEtapa, LinhaSprint, LinhaSprintFilho, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Chamada, type Respondedor } from './duble-pg.js';
@@ -54,7 +54,7 @@ const ALVOS = [
   ['P4', '4', 'util', '44', 'util', 'h', 'dia'], ['P5', '8.8', 'util', '88', 'util', 'dia', 'dia'],
 ].map(([prioridade, pa, upa, r, ur, epa, er]) => ({ prioridade, prazo_pa_horas: pa, unidade_pa: upa, prazo_r_horas: r, unidade_r: ur, exibir_pa: epa, exibir_r: er }));
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[]; entregues?: boolean | string[] };
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[]; bloqueios?: LinhaBloqueio[]; coleta?: string; semAlvos?: boolean; fluxosProc?: string[]; etapas?: LinhaEtapa[]; entregues?: boolean | string[]; sprints?: LinhaSprint[]; sprintFilhos?: LinhaSprintFilho[] };
 /** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -66,6 +66,8 @@ function banco(o: OpcoesReal = {}): Respondedor {
     if (x.includes('FROM r_dspd_ac.fato_etapa_chamado')) return o.etapas ?? [];
     if (x.includes('FROM r_dspd_ac.ref_dominio') && x.includes("'fluxo_proc'")) return (o.fluxosProc ?? []).map((codigo) => ({ codigo }));
     if (x.includes('FROM r_dspd_ac.ref_alvo_prioridade')) return o.semAlvos === true ? [] : ALVOS;
+    if (x.includes('FROM r_dspd_bm.dim_sprint')) return o.sprints ?? [];
+    if (x.includes('FROM r_dspd_bm.fato_sprint_filho')) return o.sprintFilhos ?? [];
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
     if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z'), ...(o.entregues === true ? [tr(k.card_id, '3', '4', '2026-09-08T12:00:00Z')] : Array.isArray(o.entregues) && o.entregues.includes(k.card_id) ? [tr(k.card_id, '3', '4', '2026-09-20T12:00:00Z')] : [])]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
@@ -138,6 +140,75 @@ describe('pedido 105 (E7.64): T11 com dado real pelo dim_card', () => {
     expect(j.base.n).toBe(20);
     const semExcluido = (await t11(cards.filter((c) => c.card_id !== 'ARQ'))).j;
     expect(semExcluido.base.n).toBe(19);
+  });
+});
+
+describe('pedido 105 (E7.499, D-T8 "A"): T8 com dado real pelas sprints e pelo vínculo dos filhos', () => {
+  const sprint = (i: number, extra: Partial<LinhaSprint> = {}): LinhaSprint => ({
+    sprint_id: `S${i}`, inicio_em: new Date('2026-09-02T12:00:00Z'), fim_em: new Date('2026-09-10T12:00:00Z'), ...extra,
+  });
+  /** n sprints iguais (7 dias úteis), um filho planejado (criado em 01/09) e entregue em 08/09 em cada. */
+  const mundo = (n: number) => ({
+    cards: Array.from({ length: n }, (_, i) => card(`F${i}`, 'Melhoria')),
+    sprints: Array.from({ length: n }, (_, i) => sprint(i)),
+    sprintFilhos: Array.from({ length: n }, (_, i) => ({ sprint_id: `S${i}`, filho_id: `F${i}` })),
+    entregues: true,
+  });
+  type R = {
+    base: { n: number; unidade: string };
+    sprints: { sprintId: string; nome: string; comprometidos: number; entreguesDoComprometido: number; entradaNaoPlanejada: number }[];
+    agregado: { entreguePct: { status: string }; naoPlanejadoPct: { status: string } };
+    foraDaConta?: { semDatas: number; acimaDoTeto: number; tetoDiasUteis: number };
+    sprintsNoRecorte?: number;
+  };
+  const t8 = async (o: OpcoesReal) => {
+    const { app, d } = await montar(o);
+    const r = await app.inject('/api/v1/metricas/T8');
+    expect(r.statusCode).toBe(200);
+    return { r, j: r.json() as R, d };
+  };
+
+  it('T8 está no mapa real, lê só a base real e passa no schema; o nome da sprint é só o id (nunca o título)', async () => {
+    expect(origemDaMetrica('T8')).toBe('real');
+    const { r, j, d } = await t8(mundo(20));
+    expect(r.headers['x-estado-dado']).toBeUndefined();
+    expect(SCHEMAS_RESULTADO.T8.safeParse(j).success).toBe(true);
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+    expect(j.sprintsNoRecorte).toBe(20);
+    expect(j.sprints).toHaveLength(20);
+    expect(j.sprints[0]).toMatchObject({ sprintId: 'S0', nome: 'Sprint S0', comprometidos: 1, entreguesDoComprometido: 1, entradaNaoPlanejada: 0 });
+    expect(j.agregado.entreguePct.status).toBe('ok');
+  });
+
+  it('com 19 sprints no recorte não publica estatística (só a contagem)', async () => {
+    const com19 = (await t8(mundo(19))).j;
+    expect(com19.sprints).toEqual([]);
+    expect(com19.sprintsNoRecorte).toBe(19);
+    expect(com19.agregado.entreguePct.status).toBe('insuficiente');
+    expect(com19.agregado.naoPlanejadoPct.status).toBe('insuficiente');
+  });
+
+  it('sem as duas datas ou acima de 30 dias úteis: fora da conta, contada à parte, sem derrubar as demais', async () => {
+    const m = mundo(20);
+    const extras = [
+      sprint(30, { inicio_em: null }), sprint(31, { fim_em: null }),
+      sprint(32, { inicio_em: new Date('2026-07-20T12:00:00Z'), fim_em: new Date('2026-09-30T12:00:00Z') }),
+    ];
+    const { j } = await t8({
+      ...m, cards: [...m.cards, card('G0', 'Melhoria'), card('G1', 'Melhoria'), card('G2', 'Melhoria')], sprints: [...m.sprints, ...extras],
+      sprintFilhos: [...m.sprintFilhos, ...extras.map((s, i) => ({ sprint_id: s.sprint_id, filho_id: `G${i}` }))],
+    });
+    // E7.536: S31 (sem first_end) não tem conclusão para recortar e não entra na contagem
+    expect(j.foraDaConta).toEqual({ semDatas: 1, acimaDoTeto: 1, tetoDiasUteis: 30 });
+    expect(j.sprintsNoRecorte).toBe(20);
+    expect(j.sprints.map((x) => x.sprintId)).not.toContain('S32');
+  });
+
+  it('sem sprint na base: vazio, nunca 0%', async () => {
+    const { j } = await t8({});
+    expect(j.sprints).toEqual([]);
+    expect(j.sprintsNoRecorte).toBe(0);
+    expect(j.agregado.entreguePct.status).toBe('insuficiente');
   });
 });
 

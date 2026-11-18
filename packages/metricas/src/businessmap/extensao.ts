@@ -8,27 +8,39 @@ import type { NaturezaProjeto, TipoCard } from '@metricas-dspd/contratos'
 import { ehDemanda } from './comum'
 import type { ContextoBM } from './indice'
 
+/** Teto da janela de uma sprint, em dias úteis (D-T8 "A", E7.499): acima dele a sprint fica fora da conta. */
+export const TETO_DIAS_UTEIS_SPRINT = 30
+
 /** Sprint = card-template pai no BusinessMap; as entregas são os cards filhos ligados a ele. */
 export interface Sprint {
   /** card_id do card-template pai. */
   sprint_id: string
   nome: string
-  /** AAAA-MM-DD, inclusivo. */
-  inicio: string
-  fim: string
+  /** AAAA-MM-DD, inclusivo: primeiro início de execução do card Sprint. `null` = o card nunca entrou em execução (E7.499). */
+  inicio: string | null
+  /** AAAA-MM-DD, inclusivo: primeira conclusão do card Sprint. `null` = o card não foi concluído (E7.499). */
+  fim: string | null
 }
 
 /** Card filho ligado ao pai da sprint. */
 export interface SprintCard {
   card_id: string
   sprint_id: string
-  /** AAAA-MM-DD em que o filho foi ligado ao pai. Depois do início da sprint = entrada não planejada. */
-  ligado_em: string
+  /**
+   * AAAA-MM-DD em que o filho foi ligado ao pai. Depois do início da sprint = entrada não planejada. `null` = a data do vínculo não existe na
+   * base (a revisão não a guarda; E7.499): vale a criação do filho, criado depois do início da sprint = entrada não planejada.
+   */
+  ligado_em: string | null
 }
 
 export interface ExtensaoBM {
   sprints: Sprint[]
   sprintCards: SprintCard[]
+  /**
+   * Pedido 105 (E7.499): `true` = `sprints` e `sprintCards` vêm da base real (`dim_sprint`, `fato_sprint_filho`); só então vale o mínimo de 20 sprints
+   * no recorte para publicar e o resultado traz as sprints fora da conta. Ausente = mock (as sprints do mock têm sempre as duas datas).
+   */
+  sprintsDadoReal?: boolean
   /** card_id (projeto) -> natureza. */
   naturezaProjeto: Record<string, NaturezaProjeto>
 }

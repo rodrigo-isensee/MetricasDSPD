@@ -30,6 +30,12 @@ export function instanteDoBm(texto: unknown): number | null {
   return instanteDeIso(`${dia}T${hora}${fuso}`, CALENDARIO_PADRAO);
 }
 
+/** Instante do BusinessMap como `Date`, ou nulo. */
+const dataDoBm = (v: unknown): Date | null => {
+  const ms = instanteDoBm(v);
+  return ms === null ? null : new Date(ms);
+};
+
 // ADR 0024: `dim_card.tipo` guarda o rótulo do contrato (TIPO_DA_CATEGORIA), nunca o código da categoria.
 /** Dia civil (AAAA-MM-DD) no fuso do calendário (-03:00): a resolução da vigência (ADR 0016). */
 export const diaDe = (ms: number): string => dataIso(ms, CALENDARIO_PADRAO);
@@ -162,7 +168,23 @@ export interface FatoTransicaoProjetado {
   direcao: 'avanco' | 'retorno'; id_origem: string; ocorrido_em: Date;
 }
 export interface EventoCard { card_id: string; tipo: 'criado' | 'arquivado' | 'excluido_detectado'; ocorrido_em: Date }
-export interface CardProjetado { dim: LinhaDimCard; transicoes: FatoTransicaoProjetado[]; eventos: EventoCard[]; notas: string[] }
+/**
+ * Pedido 105 (E7.499, D-T8 "A"): o card Sprint (tipo `TIPO_SPRINT_ID`, `eh_item = false` na referência) com a janela de execução dele. Só ids e instantes: sem título,
+ * sem pessoa. `inicio_em` = `first_start_time` e `fim_em` = `first_end_time` (a janela é decidida no cálculo; aqui nada é inferido); nulo = o card nunca entrou em execução ou não concluiu.
+ */
+export interface SprintProjetada { sprint_id: string; quadro_id: string | null; inicio_em: Date | null; fim_em: Date | null; descartada: boolean }
+/** Pedido 105 (E7.499): vínculo do filho com a Sprint, só os dois ids. */
+export interface VinculoSprintProjetado { sprint_id: string; filho_id: string }
+export interface CardProjetado {
+  dim: LinhaDimCard; transicoes: FatoTransicaoProjetado[]; eventos: EventoCard[]; notas: string[];
+  /** Não nulo só no card Sprint. */
+  sprint: SprintProjetada | null;
+  /** No card Sprint: um par por filho (`link_type` child); no card filho: um par por pai Sprint (`link_type` parent). */
+  vinculosSprint: VinculoSprintProjetado[];
+}
+
+/** Tipo Sprint no BusinessMap (`ref_tipo_card.tipo_id` 12, `eh_item = false`; análise 105-t8-datas-sprint). */
+export const TIPO_SPRINT_ID = '12';
 
 const NIVEL_PARA_GRANULARIDADE: Record<string, string> = { projeto: 'projeto', feature: 'frente', story: 'story' };
 const texto = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
@@ -347,6 +369,25 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   if (arquivadoNativo !== null) eventos.push({ card_id: e.id, tipo: 'arquivado', ocorrido_em: new Date(arquivadoNativo) });
   if (e.excluidoDetectado) eventos.push({ card_id: e.id, tipo: 'excluido_detectado', ocorrido_em: e.coletadoEm });
 
+  // 105 (E7.499): o card Sprint guarda a janela de execução e os filhos; o filho guarda o pai que é Sprint (só ids)
+  const ehSprint = texto(e.card.type_id) === TIPO_SPRINT_ID && tipoRef?.eh_item === false;
+  const ligados = (link: string): string[] => (Array.isArray(e.card.linked_cards)
+    ? [...new Set((e.card.linked_cards as unknown[]).flatMap((l) => {
+      const v = l as { card_id?: unknown; link_type?: unknown } | null;
+      const id = v !== null && typeof v === 'object' && v.link_type === link ? texto(v.card_id) : null;
+      return id === null || id === e.id ? [] : [id];
+    }))].sort((a, b) => Number(a) - Number(b))
+    : []);
+  const sprint: SprintProjetada | null = ehSprint
+    ? {
+      sprint_id: e.id, quadro_id: quadro, inicio_em: dataDoBm(e.card.first_start_time), fim_em: dataDoBm(e.card.first_end_time),
+      descartada: descartadoEm !== null || e.excluidoDetectado,
+    }
+    : null;
+  const vinculosSprint: VinculoSprintProjetado[] = ehSprint
+    ? ligados('child').map((f) => ({ sprint_id: e.id, filho_id: f }))
+    : ligados('parent').filter((p) => e.tipoDoPai(p) === TIPO_SPRINT_ID).map((p) => ({ sprint_id: p, filho_id: e.id }));
+
   return {
     dim: {
       card_id: e.id, tipo: tipoRef?.eh_item === true ? TIPO_DA_CATEGORIA[tipoRef.categoria as CategoriaTipoCard] : null, card_pai: pai, criado_em: new Date(criado),
@@ -360,6 +401,6 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       // 105 (E7.100): a prioridade do painel; sem mapa, nula (nunca Média por omissão)
       severidade: severidade ?? null,
     },
-    transicoes, eventos, notas,
+    transicoes, eventos, notas, sprint, vinculosSprint,
   };
 }

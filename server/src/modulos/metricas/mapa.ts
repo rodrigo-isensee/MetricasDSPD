@@ -1,12 +1,12 @@
 import { MOTIVO_NAO_CLASSIFICADO, MOTIVOS_BLOQUEIO, NIVEIS_PRIORIDADE_BM, ORIGENS_DEMANDA, TIPOS_CARD, type NivelPrioridadeBM, type OrigemDemanda, type VersaoCriterio } from '@metricas-dspd/contratos';
-import { CALENDARIO_PADRAO, diaDeIso, fimDoExpediente } from '@metricas-dspd/metricas/core';
+import { CALENDARIO_PADRAO, dataIso, diaDeIso, fimDoExpediente, type Calendario } from '@metricas-dspd/metricas/core';
 import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC, UnidadeExibicao, UnidadePrazo } from '@metricas-dspd/metricas/acelerato';
 import type {
-  BaseBM, ConfigBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao, FichaResultado,
+  BaseBM, ConfigBM, ExtensaoBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao, FichaResultado,
 } from '@metricas-dspd/metricas/businessmap';
 import type {
   LinhaAlvo, LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColuna, LinhaColunaReal, LinhaDominio, LinhaEtapa, LinhaFicha, LinhaGlobal,
-  LinhaTransicao,
+  LinhaSprint, LinhaSprintFilho, LinhaTransicao,
 } from './repositorio.js';
 
 /**
@@ -116,6 +116,23 @@ export type RefBM = {
   /** Setor de cada quadro (L10b do 097): `id` = quadro, `nome` = rótulo do dicionário, já sem sobrenome. Ausente = nenhum. */
   setores?: { id: string; nome: string }[];
 };
+
+/**
+ * Pedido 105 (E7.499, D-T8 "A"): linhas de `dim_sprint` e `fato_sprint_filho` -> extensão do T8 da biblioteca. As datas viram dia civil no calendário da fonte; a Sprint sem data fica com
+ * `null` (a biblioteca a conta em "sem datas"). O nome é "Sprint <id>": o título do card nunca é lido (nem guardado). `ligado_em` é sempre `null`: a data do vínculo não existe na base
+ * (a revisão não a guarda), e a biblioteca usa a criação do filho.
+ */
+export function extensaoSprints(sprints: readonly LinhaSprint[], filhos: readonly LinhaSprintFilho[], cal: Calendario): ExtensaoBM {
+  return {
+    sprints: sprints.map((s) => ({
+      sprint_id: s.sprint_id, nome: `Sprint ${s.sprint_id}`,
+      inicio: s.inicio_em === null ? null : dataIso(s.inicio_em.getTime(), cal), fim: s.fim_em === null ? null : dataIso(s.fim_em.getTime(), cal),
+    })),
+    sprintCards: filhos.map((f) => ({ card_id: f.filho_id, sprint_id: f.sprint_id, ligado_em: null })),
+    naturezaProjeto: {},
+    sprintsDadoReal: true,
+  };
+}
 
 export const fichaDe = (l: LinhaFicha): FichaResultado => ({ ...(l.ficha as Omit<FichaResultado, 'card_id'>), card_id: l.card_id });
 
