@@ -21,4 +21,12 @@ describe('IndiceDeSecoes fora de um painel com preferências', () => {
     ])
     expect(screen.getByRole('navigation', { name: 'Ir para' })).toBeInTheDocument()
   })
+
+  it('fica fixo abaixo do cabeçalho e da barra de filtros, pelas variáveis CSS (K-416)', () => {
+    render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', []], SECAO_MAIS_METRICAS]} />)
+    const nav = screen.getByRole('navigation', { name: 'Ir para' })
+    expect(nav).toHaveClass('md:sticky', 'z-20', 'bg-fundo')
+    expect(nav.className).toContain('md:top-[calc(var(--h-cabecalho)+var(--h-filtros))]')
+    for (const link of screen.getAllByRole('link')) expect(link).toHaveClass('alvo')
+  })
 })

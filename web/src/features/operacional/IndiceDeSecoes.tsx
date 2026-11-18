@@ -18,7 +18,12 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
     return ids.some((c) => !prefs.estaOculto(c))
   })
   return (
-    <nav aria-label="Ir para" className="flex flex-wrap items-center gap-2 text-sm">
+    // K-416 (medido): cabeçalho e barra de filtros são fixos em md+; sem isto o índice rola para baixo deles e os
+    // alvos ficam cobertos (WCAG 2.5.8). Fixa logo abaixo dos dois, pelas variáveis CSS medidas em execução.
+    <nav
+      aria-label="Ir para"
+      className="z-20 flex flex-wrap items-center gap-2 bg-fundo text-sm md:sticky md:top-[calc(var(--h-cabecalho)+var(--h-filtros))]"
+    >
       <span className="text-texto-2">Ir para:</span>
       {visiveis.map(([id, nome]) => (
         <a key={id} href={`#${id}`} className="alvo inline-flex items-center text-acento underline">
