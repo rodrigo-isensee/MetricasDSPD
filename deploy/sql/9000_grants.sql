@@ -36,6 +36,8 @@ GRANT SELECT, INSERT ON dspd_bm.evt_bloqueio TO dspd_coletor;
 
 GRANT SELECT, INSERT ON dspd_bm.evt_card TO dspd_coletor;
 
+GRANT SELECT, INSERT ON dspd_bm.fato_sprint_filho TO dspd_coletor;
+
 GRANT SELECT, INSERT ON dspd_bm.fato_transicao TO dspd_coletor;
 
 GRANT SELECT, INSERT ON dspd_bm.rec_transicao_par TO dspd_coletor;
@@ -63,6 +65,8 @@ GRANT SELECT, INSERT ON dspd_bm.stg_webhook_evento TO dspd_coletor;
 GRANT SELECT, INSERT ON dspd_bm.stg_webhook_processamento TO dspd_coletor;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON dspd_bm.dim_card TO dspd_coletor;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON dspd_bm.dim_sprint TO dspd_coletor;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON dspd_bm.fato_bloqueio TO dspd_coletor;
 
@@ -124,7 +128,11 @@ GRANT SELECT ON dspd_bm.ref_workflow TO dspd_coletor;
 
 GRANT SELECT (card_id, tipo, classe_servico, sistema, area_solicitante, fornecedor, objetivo_estrategico, card_pai, criado_em, comprometido_em, iniciado_em, concluido_em, arquivado_em, motivo_descarte, tamanho_declarado, titulo, granularidade, equipe, quadro_id, coluna_atual_id, excluido_em, eh_subtarefa, data_acordada, responsabilidade_atraso, origem_demanda, fase_deteccao, severidade, causa_raiz, origem_bug, adicionado_apos_inicio_pai, coletado_em, atualizado_por_coleta_id, sistema_origem, primeiro_toque_em, toque_situacao) ON dspd_bm.dim_card TO dspd_api;
 
+GRANT SELECT ON dspd_bm.dim_sprint TO dspd_api;
+
 GRANT SELECT ON dspd_bm.fato_bloqueio TO dspd_api;
+
+GRANT SELECT ON dspd_bm.fato_sprint_filho TO dspd_api;
 
 GRANT SELECT ON dspd_bm.fato_transicao TO dspd_api;
 

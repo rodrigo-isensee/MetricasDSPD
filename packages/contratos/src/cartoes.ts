@@ -56,7 +56,6 @@ type Def = readonly [
  * O22, O26, T13, T14, E6 e E8. T11 (fase 1) e E7 (sem custo no mock, CA-13) não entram, como manda o plano §4.
  */
 export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
-  'T8',
   'E4',
   'S8',
   'O22',

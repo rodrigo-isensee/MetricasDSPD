@@ -32,7 +32,8 @@ function gerarBM(base: BaseMock): ExtensaoBM {
   }
 
   const hoje = diaLocal(Date.parse(base.config.hoje), CALENDARIO_PADRAO)
-  const sprints: Sprint[] = []
+  // o mock sempre tem as duas datas (a sprint real pode não ter, E7.499)
+  const sprints: (Sprint & { inicio: string; fim: string })[] = []
   for (let d = diaDeIso(INICIO_SPRINTS), i = 1; d <= hoje; d += DIAS_SPRINT, i++)
     sprints.push({
       sprint_id: `SPR-${String(i).padStart(2, '0')}`,

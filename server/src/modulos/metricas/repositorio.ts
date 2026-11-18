@@ -65,6 +65,19 @@ export const lerCards = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
       ORDER BY card_id`)).rows;
 
 /**
+ * Pedido 105 (E7.499, D-T8 "A"): a janela de execução de cada Sprint (`dim_sprint`, sem a descartada ou excluída) e o vínculo dos filhos com ela (`fato_sprint_filho`). Só ids e
+ * instantes (nenhuma coluna de pessoa nem título); o recorte, o teto de dias úteis e as sprints sem datas são da biblioteca.
+ */
+export type LinhaSprint = { sprint_id: string; inicio_em: Date | null; fim_em: Date | null };
+export type LinhaSprintFilho = { sprint_id: string; filho_id: string };
+export const lerSprints = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaSprint[]> =>
+  (await db.query<LinhaSprint>(`SELECT sprint_id, inicio_em, fim_em FROM ${S.bm}.dim_sprint WHERE NOT descartada ORDER BY sprint_id`)).rows;
+export const lerSprintFilhos = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaSprintFilho[]> =>
+  (await db.query<LinhaSprintFilho>(
+    `SELECT f.sprint_id, f.filho_id FROM ${S.bm}.fato_sprint_filho f JOIN ${S.bm}.dim_sprint s ON s.sprint_id = f.sprint_id
+      WHERE NOT s.descartada ORDER BY f.sprint_id, f.filho_id`)).rows;
+
+/**
  * Lê a view canônica (`vw_transicao_canonica`: todas as revision + webhooks sem par em `rec_transicao_par`), nunca `fato_transicao`
  * direto: a mesma transição gravada pela coleta e pelo webhook contaria em dobro (auditoria R1/C1).
  * Sem ORDER BY: a biblioteca ordena as transições de cada card (timestamp, destino, origem); ordenar no banco custaria um sort em disco.

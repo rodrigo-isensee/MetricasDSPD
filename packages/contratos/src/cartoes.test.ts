@@ -86,7 +86,7 @@ describe('catálogo de cartões', () => {
       for (const p of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(p)?.grupo).toBe('nucleo')
   })
 
-  it('classifica os cartões: mock só onde falta fonte real (T8, E4, E6, E8, O22, O26, T13, T14, S8, S11; o O17 é real por sistema e o S12 só com o volume)', () => {
+  it('classifica os cartões: mock só onde falta fonte real (E4, E6, E8, O22, O26, T13, T14, S8, S11; o O17 é real por sistema e o S12 só com o volume)', () => {
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
     expect(compl.map((c) => c.codigo).sort()).toEqual(
       [
@@ -126,7 +126,7 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    const mock = ['T8', 'E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8']
+    const mock = ['E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8']
     for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')
@@ -217,7 +217,7 @@ describe('COM_EXTENSAO_MOCK (pedido 011, fase 2)', () => {
   it('recebe O22, O26, T13, T14, E6 e E8; T11 e E7 não entram (sem extração nova nem custo no mock)', () => {
     for (const c of ['O22', 'O26', 'T13', 'T14', 'E6', 'E8'])
       expect(COM_EXTENSAO_MOCK.has(c), c).toBe(true)
-    for (const c of ['T11', 'E7', 'O19', 'T10', 'S12'])
+    for (const c of ['T11', 'E7', 'O19', 'T10', 'S12', 'T8'])
       expect(COM_EXTENSAO_MOCK.has(c), c).toBe(false)
   })
 })

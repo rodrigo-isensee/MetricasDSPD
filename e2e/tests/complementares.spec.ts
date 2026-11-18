@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test'
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
 // Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios". O S12 saiu daqui no D9 (pedido 099): é real só com o volume. O S11 saiu no pedido 105 (avaliação real).
-const MOCK = new Set(['O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8'])
+const MOCK = new Set(['O22', 'O26', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8'])
 
 const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 15, ids: ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16', 'O27'] },

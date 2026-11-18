@@ -195,7 +195,8 @@ describe('projetarBusinessMap (F4)', () => {
     const d = montar({ stg: [stg('1')] });
     await proj(d, { reconstruir: true });
     const apagou = d.chamadas.filter((x) => /^DELETE|^TRUNCATE|^DROP/.test(x.texto)).map((x) => x.texto);
-    expect(apagou).toEqual(['DELETE FROM dspd_bm.dim_card', 'DELETE FROM dspd_bm.dim_card WHERE card_id = ANY($1::text[])']);
+    // 105 (E7.499): dim_sprint é projeção por card, refeita no lote como dim_card; fato_sprint_filho nunca é apagada
+    expect(apagou).toEqual(['DELETE FROM dspd_bm.dim_card', 'DELETE FROM dspd_bm.dim_card WHERE card_id = ANY($1::text[])', 'DELETE FROM dspd_bm.dim_sprint WHERE sprint_id = ANY($1::text[])']);
     expect([...TABELAS_LIMPAS_NA_RECONSTRUCAO]).toEqual(['dim_card']);
     expect(d.chamadas.map((x) => x.texto).join('\n')).not.toContain('dim_responsavel');
     // estrutural: o módulo do projetor não importa cliente HTTP nem a leitura de /users
@@ -211,7 +212,7 @@ describe('projetarBusinessMap (F4)', () => {
   it('sem reconstruir nada é apagado além da projeção do lote', async () => {
     const d = montar({ stg: [stg('1')] });
     await proj(d);
-    expect(d.chamadas.filter((x) => /^DELETE/.test(x.texto)).map((x) => x.texto)).toEqual(['DELETE FROM dspd_bm.dim_card WHERE card_id = ANY($1::text[])']);
+    expect(d.chamadas.filter((x) => /^DELETE/.test(x.texto)).map((x) => x.texto)).toEqual(['DELETE FROM dspd_bm.dim_card WHERE card_id = ANY($1::text[])', 'DELETE FROM dspd_bm.dim_sprint WHERE sprint_id = ANY($1::text[])']);
   });
 
   it('nenhum card com criação utilizável: fatos e dim_card não são tocados', async () => {
