@@ -1,6 +1,6 @@
 import { slug } from '@metricas-dspd/metricas/core';
 import { describe, expect, it } from 'vitest';
-import { INATIVOS, JA_NOMEADOS, NOMES_NOVOS, UNIFICADOS, ddl, validarNomes } from '../migrations/0043_bm_nomes_times.js';
+import { INATIVOS, JA_NOMEADOS, NOMES_NOVOS, UNIFICADOS, ddl, validarNomes, validarSlugs } from '../migrations/0043_bm_nomes_times.js';
 import { TIMES, TIMES_PROPRIOS } from '../migrations/0019_bm_carga_inicial_times.js';
 import { S_PADRAO } from '../src/plataforma/db/esquemas.js';
 
@@ -36,6 +36,7 @@ describe('0043: lista fechada dos nomes dos times', () => {
   });
   it('a lista real passa nas validações: nenhum nome vazio, longo, [revisar] ou provisório, e slug único entre os 48 ativos', () => {
     expect(() => validarNomes()).not.toThrow();
+    expect(() => validarSlugs(slug)).not.toThrow();
     const slugs = [...JA_NOMEADOS.map((n) => n[1]), ...NOMES_NOVOS.map((n) => n[2])].map(slug);
     expect(new Set(slugs).size).toBe(48);
     expect(NOMES_NOVOS.every((n) => n[2].length <= 80 && !/\[revisar\]/i.test(n[2]))).toBe(true);
@@ -48,20 +49,44 @@ describe('0043: validações que falham antes de gravar (a mensagem cita só o t
     expect(m).toMatch(/time 6: nome com mais de 80 caracteres/);
     expect(m).not.toContain('xxx');
   });
+  it('nome com espaço nas pontas, com cifrão (fecharia o bloco DO) e a fronteira de 80 caracteres', () => {
+    expect(mensagem(() => validarNomes(com(6, ' Protheus')))).toMatch(/time 6: nome com espaço nas pontas/);
+    expect(mensagem(() => validarNomes(com(6, 'Protheus ')))).toMatch(/time 6: nome com espaço nas pontas/);
+    expect(mensagem(() => validarNomes(com(6, 'Pro$$theus')))).toMatch(/time 6: nome com cifrão/);
+    expect(mensagem(() => validarNomes(com(6, 'Protheus$')))).toMatch(/time 6: nome com cifrão/);
+    expect(mensagem(() => validarNomes(NOMES_NOVOS, INATIVOS, [[1, 'Equipe $$ x'], ...JA_NOMEADOS.slice(1)]))).toMatch(/time 1: nome com cifrão/);
+    expect(mensagem(() => validarNomes(com(6, 'x'.repeat(80))))).toBe('');
+  });
   it('nome com [revisar], vazio, provisório ou sem letra', () => {
     expect(mensagem(() => validarNomes(com(7, 'Fluxo [revisar]')))).toMatch(/time 7: .*\[revisar\]/);
     expect(mensagem(() => validarNomes(com(7, '  ')))).toMatch(/time 7: nome vazio/);
     expect(mensagem(() => validarNomes(com(7, 'Workflow 222')))).toMatch(/time 7: nome continua provisório/);
-    expect(mensagem(() => validarNomes(com(7, '---')))).toMatch(/time 7: nome sem letra/);
+    expect(mensagem(() => validarSlugs(slug, com(7, '---')))).toMatch(/time 7: nome sem letra/);
   });
   it('slug repetido entre os ativos, inclusive com um dos times 1 a 3 (acento e caixa não distinguem)', () => {
-    expect(mensagem(() => validarNomes(com(6, 'ARQUITETURA')))).toMatch(/times 2 e 6: mesmo slug/);
-    expect(mensagem(() => validarNomes(com(6, 'Sustentação')))).toMatch(/times 6 e 36: mesmo slug|times 36 e 6: mesmo slug/);
+    expect(mensagem(() => validarSlugs(slug, com(6, 'ARQUITETURA')))).toMatch(/times 2 e 6: mesmo slug/);
+    expect(mensagem(() => validarSlugs(slug, com(6, 'Sustentação')))).toMatch(/times 6 e 36: mesmo slug|times 36 e 6: mesmo slug/);
   });
   it('lista incompleta, com time_id repetido ou fora de 4 a 50', () => {
     expect(mensagem(() => validarNomes(NOMES_NOVOS.slice(1)))).toMatch(/46 times; esperados 47/);
     expect(mensagem(() => validarNomes([...NOMES_NOVOS.slice(1), NOMES_NOVOS[1]!]))).toMatch(/time_id repetido na lista: 5/);
     expect(mensagem(() => validarNomes([...NOMES_NOVOS.slice(1), [51, '999', 'Outro'] as const]))).toMatch(/fora de 4 a 50: 51/);
+  });
+});
+
+describe('0043: o ddl valida a lista antes de montar o SQL', () => {
+  it('lista inválida no ddl: nome longo, [revisar], cifrão, espaço nas pontas ou lista incompleta lançam', () => {
+    expect(() => ddl(S_PADRAO, com(6, 'x'.repeat(81)))).toThrow(/time 6: nome com mais de 80/);
+    expect(() => ddl(S_PADRAO, com(6, 'Fluxo [revisar]'))).toThrow(/time 6: .*\[revisar\]/);
+    expect(() => ddl(S_PADRAO, com(6, 'a$$b'))).toThrow(/time 6: nome com cifrão/);
+    expect(() => ddl(S_PADRAO, com(6, 'Protheus '))).toThrow(/time 6: nome com espaço nas pontas/);
+    expect(() => ddl(S_PADRAO, NOMES_NOVOS.slice(1))).toThrow(/46 times; esperados 47/);
+    expect(() => ddl(S_PADRAO)).not.toThrow();
+  });
+  it('a migração não importa o slug (o ddl não depende do slug.ts vivo)', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const fonte = await readFile(new URL('../migrations/0043_bm_nomes_times.ts', import.meta.url), 'utf8');
+    expect(fonte).not.toMatch(/^import .*slug/m);
   });
 });
 

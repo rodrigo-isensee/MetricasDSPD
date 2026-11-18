@@ -1,4 +1,3 @@
-import { slug } from '@metricas-dspd/metricas/core';
 import { migracao } from '../src/plataforma/db/executar.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
@@ -12,7 +11,8 @@ import type { Esquemas } from '../src/plataforma/db/esquemas.js';
  *  - 24 e 25 (sem card) passam a inativos, com o nome atual; seus workflows 127 e 220 passam a apontar para os times 20 e 10 (decisão 7a);
  *  - os times 1 a 3 já têm nome (0019) e só entram na checagem de slug único.
  * Falha fechada: as validações (em TypeScript, ao montar o SQL, e em SQL, antes do primeiro UPDATE) abortam sem gravar nada, e a
- * mensagem cita só o `time_id`. O slug é calculado aqui, pela função do projeto, nunca em SQL.
+ * mensagem cita só o `time_id`. O slug único (função `slug` do projeto) é conferido só no teste (`nomes-times.test.ts`):
+ * o `ddl()` não depende de código vivo que possa mudar depois de a migração aplicada (checksum e `down` seguem estáveis).
  * `down`: como a 0019, só desfaz se nada foi gravado depois; o gatilho de vigência é desligado só dentro da transação.
  */
 export const REFERENCIA_VERSAO = '098-E4:nomes-dos-times';
@@ -43,9 +43,11 @@ export const UNIFICADOS: readonly (readonly [workflow: string, quadro: string, t
 /** Times 1 a 3: nome da 0019, que a migração só confere (entram na checagem de slug único). */
 export const JA_NOMEADOS: readonly (readonly [timeId: number, nome: string])[] = [[1, 'Equipe de processos'], [2, 'Arquitetura'], [3, 'Auditoria PwC - ITGC']];
 
+const aspas = (v: string): string => `'${v.replaceAll("'", "''")}'`;
+
 const TODOS: readonly (readonly [number, string])[] = [...NOMES_NOVOS.map((n) => [n[0], n[1]] as const), ...INATIVOS];
 const IDS = TODOS.map(([id]) => id).join(',');
-const WORKFLOWS_UNIFICADOS = UNIFICADOS.map(([w]) => `'${w}'`).join(',');
+const WORKFLOWS_UNIFICADOS = UNIFICADOS.map(([w]) => aspas(w)).join(',');
 export const LIMITE_NOME = 80;
 
 /**
@@ -68,8 +70,20 @@ export function validarNomes(
     if (nome.length > LIMITE_NOME) throw new Error(`time ${id}: nome com mais de ${LIMITE_NOME} caracteres`);
     if (/\[revisar\]/i.test(nome)) throw new Error(`time ${id}: nome ainda marcado [revisar]`);
     if (/^Workflow \d+$/.test(nome)) throw new Error(`time ${id}: nome continua provisório`);
-    if (slug(nome) === '') throw new Error(`time ${id}: nome sem letra nem número`);
+    if (nome.includes('$')) throw new Error(`time ${id}: nome com cifrão (fecharia o bloco DO)`);
   }
+  for (const [id, nome] of jaNomeados) if (nome.includes('$')) throw new Error(`time ${id}: nome com cifrão (fecharia o bloco DO)`);
+}
+
+/**
+ * Conferência de slug (só o teste chama): nome com letra ou número e slug único entre os 48 ativos. Recebe o `slug` por parâmetro
+ * para a migração não depender do `slug.ts` vivo.
+ */
+export function validarSlugs(
+  slug: (nome: string) => string, novos: readonly NomeNovo[] = NOMES_NOVOS,
+  jaNomeados: readonly (readonly [number, string])[] = JA_NOMEADOS,
+): void {
+  for (const [id, , nome] of novos) if (slug(nome) === '') throw new Error(`time ${id}: nome sem letra nem número`);
   const vistos = new Map<string, number>();
   for (const [id, nome] of [...jaNomeados.map(([i, n]) => [i, n] as const), ...novos.map(([i, , n]) => [i, n] as const)]) {
     const s = slug(nome);
@@ -79,18 +93,17 @@ export function validarNomes(
   }
 }
 
-const aspas = (v: string): string => `'${v.replaceAll("'", "''")}'`;
-
-export const ddl = (S: Esquemas): Ddl => {
-  validarNomes();
+/** `novos` só existe para o teste provar que o `ddl` valida a lista antes de montar o SQL. */
+export const ddl = (S: Esquemas, novos: readonly NomeNovo[] = NOMES_NOVOS): Ddl => {
+  validarNomes(novos);
   const rt = `${S.bm}.ref_time`;
   const rw = `${S.bm}.ref_time_workflow`;
   const versao = `(SELECT max(versao_id) FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = ${aspas(REFERENCIA_VERSAO)})`;
   const rastro = `'correcao', ${versao}, ${aspas(REGISTRADO_POR)}`;
-  const esperados = TODOS.map(([id, w]) => `(${id}, ${aspas(w)})`).join(', ');
+  const esperados = [...novos.map((n) => [n[0], n[1]] as const), ...INATIVOS].map(([id, w]) => `(${id}, ${aspas(w)})`).join(', ');
   const jaNomeados = JA_NOMEADOS.map(([id, nome]) => `(${id}, ${aspas(nome)})`).join(', ');
   const linhasNovas = [
-    ...NOMES_NOVOS.map(([id, , nome]) => `(${id}, current_date, ${aspas(nome)}, true, ${rastro})`),
+    ...novos.map(([id, , nome]) => `(${id}, current_date, ${aspas(nome)}, true, ${rastro})`),
     ...INATIVOS.map(([id, w]) => `(${id}, current_date, ${aspas(`Workflow ${w}`)}, false, ${rastro})`),
   ];
   const linhasWf = UNIFICADOS.map(([w, q, t]) => `(${aspas(w)}, current_date, ${aspas(q)}, ${t}, 'time', NULL, ${rastro})`);

@@ -79,8 +79,10 @@ d('referência do quadro real e tabela de times (plano 052, F0)', () => {
     expect(orfas.rows).toEqual([]);
     const rp = await dono.query(`SELECT DISTINCT registrado_por, motivo FROM ${S.bm}.ref_time_workflow UNION SELECT DISTINCT registrado_por, motivo FROM ${S.bm}.ref_time`);
     // a 0043 (pedido 098, E4) acrescenta as vigências de correção; o conteúdo delas é de `nomes-times.pg.test.ts`
-    expect(rp.rows).toEqual(expect.arrayContaining([{ registrado_por: 'carga-inicial-057-E3', motivo: 'carga_inicial' }]));
-    expect(rp.rows.length).toBeLessThanOrEqual(2);
+    expect([...rp.rows].sort((a, b) => String(a.registrado_por).localeCompare(String(b.registrado_por)))).toEqual([
+      { registrado_por: 'carga-inicial-057-E3', motivo: 'carga_inicial' },
+      { registrado_por: 'correcao-098-E4', motivo: 'correcao' },
+    ]);
   });
 
   it('imutabilidade: UPDATE de campo, DELETE e TRUNCATE são barrados até para o dono, nas quatro tabelas', async () => {

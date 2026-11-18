@@ -2,6 +2,8 @@ import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { INATIVOS, NOMES_NOVOS, REFERENCIA_VERSAO, REGISTRADO_POR, REGISTRADO_POR_CARGA, UNIFICADOS, ddl } from '../migrations/0043_bm_nomes_times.js';
 import { vigenteEm } from '../src/modulos/businessmap/referencia.js';
+import { noDia } from '../src/modulos/businessmap/normalizador.js';
+import { carregarReferencia } from '../src/modulos/businessmap/projetor.js';
 import { poolDe, S, url } from './pg/ctx.js';
 
 const d = describe.skipIf(!url);
@@ -101,6 +103,24 @@ d('0043: nomes reais dos times (pedido 098, E4)', () => {
       `SELECT vigente_de, motivo, time_id FROM ${S.bm}.ref_time_workflow WHERE workflow_id = '127'`)).rows;
     expect(vigenteEm(tw, partida)?.time_id).toBe(20);
   });
+  it('T-B1.4 (projeção): com a referência real, um card do wf 127 projeta com o time 20 e o do wf 220 com o time 10, nos dias da partida e de hoje; o nome é o novo', async () => {
+    const ref = await carregarReferencia(dono, S);
+    const partida = (await versoesDoTime(5))[0]!.vigente_de;
+    const hoje = new Date().toISOString().slice(0, 10);
+    const dia = (v: unknown): string => (v instanceof Date ? v.toISOString().slice(0, 10) : String(v));
+    for (const [w, , t] of UNIFICADOS) {
+      for (const d1 of [dia(partida), hoje]) {
+        const tw = noDia(ref.timesDoWorkflow.get(w), d1, []);
+        expect(tw, `wf ${w} em ${d1}`).toMatchObject({ time_id: t, situacao: 'time' });
+        expect(noDia(ref.times.get(String(t)), d1, [])?.nome, `wf ${w} em ${d1}`).toBe(NOMES_NOVOS.find((n) => n[0] === t)![2]);
+      }
+    }
+    expect(NOMES_NOVOS.find((n) => n[0] === 20)![2]).toBe('5G BTV');
+    expect(NOMES_NOVOS.find((n) => n[0] === 10)![2]).toBe('Relatórios e Indicadores - Dir. Financeira');
+    // T-B1.3 para o 220: o dia de partida já vale o time 10
+    const tw220 = (await dono.query<{ vigente_de: string; motivo: string; time_id: number }>(`SELECT vigente_de, motivo, time_id FROM ${S.bm}.ref_time_workflow WHERE workflow_id = '220'`)).rows;
+    expect(vigenteEm(tw220, partida)?.time_id).toBe(10);
+  });
   it('T-B1.2: rodar o up de novo (os 47 já renomeados) aborta e não grava nada; a mensagem cita só os time_id', async () => {
     await emTransacao(async (c) => {
       const antes = await nGravadas(c);
@@ -146,10 +166,49 @@ d('0043: nomes reais dos times (pedido 098, E4)', () => {
       expect(await nGravadas(c)).toBe(0);
     });
   });
+  it('T-B1.2: workflow diferente do da lista, situação diferente de time ou time inativo (1 só, e dos 47 com unificado) aborta o up, cita só o time_id e nada é gravado', async () => {
+    const trocaWorkflow = (wf: string, novo: string, situacao: 'time' | 'fora', timeId: number): string[] => [
+      `UPDATE ${S.bm}.ref_time_workflow SET vigente_ate = current_date WHERE workflow_id = '${wf}' AND ${VIGENTE}`,
+      `INSERT INTO ${S.bm}.ref_time_workflow (workflow_id, vigente_de, quadro_id, time_id, situacao, motivo_fora, motivo, versao_id, registrado_por)
+       VALUES ('${novo}', current_date, '24', ${situacao === 'time' ? timeId : 'NULL'}, '${situacao}', ${situacao === 'fora' ? "'fora_de_todo_calculo'" : 'NULL'}, 'processo', ${VERSAO}, 'teste')`];
+    const inativa = (id: number, nome: string): string[] => [
+      `UPDATE ${S.bm}.ref_time SET vigente_ate = current_date WHERE time_id = ${id} AND ${VIGENTE}`,
+      `INSERT INTO ${S.bm}.ref_time (time_id, vigente_de, nome, ativo, motivo, versao_id, registrado_por)
+       VALUES (${id}, current_date, '${nome}', false, 'processo', ${VERSAO}, 'teste')`];
+    const casos: [string, string[], RegExp][] = [
+      ['workflow diferente', trocaWorkflow('255', '256', 'time', 5), /\(nome provisório e workflow da lista\): 5$/],
+      ['situação diferente de time', trocaWorkflow('255', '255', 'fora', 5), /\(nome provisório e workflow da lista\): 5$/],
+      ['time dos 47 inativo', inativa(5, 'Workflow 255'), /\(nome provisório e workflow da lista\): 5$/],
+      ['time 24 (inativo na lista) já inativo', inativa(24, 'Workflow 127'), /\(nome provisório e workflow da lista\): 24$/],
+    ];
+    for (const [caso, preparo, msg] of casos) {
+      await emTransacao(async (c) => {
+        await rodar(c, ddl(S).down);
+        await rodar(c, preparo);
+        const e = await recusa(c, ddl(S).up);
+        expect(e.message, caso).toMatch(msg);
+        expect(e.message, caso).not.toContain('Workflow 255');
+        expect(await nGravadas(c), caso).toBe(0);
+      });
+    }
+  });
+  it('T-B1.2: a versão de critério da correção já existir aborta o up e nada é gravado', async () => {
+    await emTransacao(async (c) => {
+      await rodar(c, ddl(S).down);
+      await c.query(
+        `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+         VALUES (current_date, 'businessmap', 'ja existe', 'teste', $1, now())`, [REFERENCIA_VERSAO]);
+      const e = await recusa(c, ddl(S).up);
+      expect(e.message).toMatch(/a versão de critério .* já existe/);
+      expect(await nGravadas(c)).toBe(0);
+    });
+  });
   it('T-B1.5: o down volta ao estado da 0019 (nomes provisórios, vigências reabertas, versão removida) e o up refaz o mesmo estado', async () => {
     await emTransacao(async (c) => {
-      const foto = async (): Promise<unknown> =>
-        (await c.query(`SELECT time_id, nome, ativo, vigente_ate IS NULL AS vigente FROM ${S.bm}.ref_time ORDER BY time_id, vigente_de`)).rows;
+      const foto = async (): Promise<unknown> => ({
+        rt: (await c.query(`SELECT time_id, nome, ativo, vigente_ate IS NULL AS vigente FROM ${S.bm}.ref_time ORDER BY time_id, vigente_de`)).rows,
+        rw: (await c.query(`SELECT workflow_id, quadro_id, time_id, situacao, vigente_ate IS NULL AS vigente FROM ${S.bm}.ref_time_workflow ORDER BY workflow_id, vigente_de`)).rows,
+      });
       const depois = await foto();
       await rodar(c, ddl(S).down);
       const v = await c.query<{ time_id: number; nome: string; ativo: boolean }>(`SELECT time_id, nome, ativo FROM ${S.bm}.ref_time WHERE ${VIGENTE} ORDER BY time_id`);
@@ -160,29 +219,56 @@ d('0043: nomes reais dos times (pedido 098, E4)', () => {
       expect(await nGravadas(c)).toBe(0);
       const ver = await c.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE referencia = $1`, [REFERENCIA_VERSAO]);
       expect(ver.rows).toEqual([]);
-      // o gatilho de vigência voltou a valer dentro do down
-      await c.query('SAVEPOINT g');
-      await expect(c.query(`DELETE FROM ${S.bm}.ref_time WHERE time_id = 4`)).rejects.toMatchObject({ code: '55000' });
-      await c.query('ROLLBACK TO SAVEPOINT g');
+      // o gatilho de vigência voltou a valer nas duas tabelas (UPDATE de vigente_de e DELETE), não só em ref_time
+      expect(await gatilhosAtivos(c)).toEqual([{ tabela: 'ref_time', ativo: true }, { tabela: 'ref_time_workflow', ativo: true }]);
+      for (const [tabela, chave, valor] of [['ref_time', 'time_id', '4'], ['ref_time_workflow', 'workflow_id', "'127'"]] as const) {
+        await c.query('SAVEPOINT g');
+        await expect(c.query(`UPDATE ${S.bm}.${tabela} SET vigente_de = vigente_de + 1 WHERE ${chave} = ${valor} AND ${VIGENTE}`), `UPDATE ${tabela}`).rejects.toMatchObject({ code: '55000' });
+        await c.query('ROLLBACK TO SAVEPOINT g');
+        await c.query('SAVEPOINT g');
+        await expect(c.query(`DELETE FROM ${S.bm}.${tabela} WHERE ${chave} = ${valor}`), `DELETE ${tabela}`).rejects.toMatchObject({ code: '55000' });
+        await c.query('ROLLBACK TO SAVEPOINT g');
+      }
       await rodar(c, ddl(S).up);
       expect(await foto()).toEqual(depois);
     });
   });
-  it('T-B1.5: o down falha com vigência posterior (nova vigência de um dos times, ou fechamento de uma vigência da correção)', async () => {
-    await emTransacao(async (c) => {
-      await c.query(`UPDATE ${S.bm}.ref_time SET vigente_ate = current_date WHERE time_id = 5 AND ${VIGENTE}`);
-      await c.query(
-        `INSERT INTO ${S.bm}.ref_time (time_id, vigente_de, nome, ativo, motivo, versao_id, registrado_por)
-         VALUES (5, current_date + 1, 'Nome posterior', true, 'processo', (SELECT max(versao_id) FROM ${S.core}.ref_versao_criterio), 'tela-057')`);
-      const e = await recusa(c, ddl(S).down);
-      expect(e.message).toMatch(/vigências posteriores à 0043/);
-      expect(await nGravadas(c)).toBeGreaterThan(0);
-    });
-    await emTransacao(async (c) => {
-      // só o fechamento de uma vigência da correção já conta como posterior
-      await c.query(`UPDATE ${S.bm}.ref_time_workflow SET vigente_ate = current_date WHERE workflow_id = '127' AND ${VIGENTE}`);
-      const e = await recusa(c, ddl(S).down);
-      expect(e.message).toMatch(/vigências posteriores à 0043/);
-    });
+  const VERSAO = `(SELECT max(versao_id) FROM ${S.core}.ref_versao_criterio)`;
+  /** Cada cláusula da guarda do down: prepara a vigência posterior, o down recusa e nada do estado é tocado (nem o gatilho). */
+  const posteriores: [string, string[]][] = [
+    ['nova vigência de um dos times em ref_time', [
+      `UPDATE ${S.bm}.ref_time SET vigente_ate = current_date WHERE time_id = 5 AND ${VIGENTE}`,
+      `INSERT INTO ${S.bm}.ref_time (time_id, vigente_de, nome, ativo, motivo, versao_id, registrado_por)
+       VALUES (5, current_date + 1, 'Nome posterior', true, 'processo', ${VERSAO}, 'tela-057')`]],
+    ['fechamento de uma vigência da correção em ref_time', [`UPDATE ${S.bm}.ref_time SET vigente_ate = current_date WHERE time_id = 6 AND ${VIGENTE}`]],
+    ['fechamento de uma vigência da correção em ref_time_workflow', [`UPDATE ${S.bm}.ref_time_workflow SET vigente_ate = current_date WHERE workflow_id = '127' AND ${VIGENTE}`]],
+    ['vigência de outra origem em ref_time_workflow', [
+      `INSERT INTO ${S.bm}.ref_time_workflow (workflow_id, vigente_de, quadro_id, time_id, situacao, motivo_fora, motivo, versao_id, registrado_por)
+       VALUES ('99999', current_date, '24', 4, 'time', NULL, 'processo', ${VERSAO}, 'tela-057')`]],
+    ['vigência da 0019 fechada fora da lista em ref_time (time 1)', [`UPDATE ${S.bm}.ref_time SET vigente_ate = current_date WHERE time_id = 1 AND ${VIGENTE}`]],
+    ['vigência da 0019 fechada fora da lista em ref_time_workflow (workflow 224)', [`UPDATE ${S.bm}.ref_time_workflow SET vigente_ate = current_date WHERE workflow_id = '224' AND ${VIGENTE}`]],
+  ];
+  const estado = async (c: pg.PoolClient): Promise<unknown> => ({
+    rt: (await c.query(`SELECT to_jsonb(t) AS l FROM ${S.bm}.ref_time t ORDER BY time_id, vigente_de`)).rows,
+    rw: (await c.query(`SELECT to_jsonb(t) AS l FROM ${S.bm}.ref_time_workflow t ORDER BY workflow_id, vigente_de`)).rows,
+    versoes: (await c.query(`SELECT versao_id, referencia FROM ${S.core}.ref_versao_criterio ORDER BY versao_id`)).rows,
   });
+  /** `tgenabled = 'O'`: gatilho de linha ligado (o `DISABLE` do down o poria em 'D'). */
+  const gatilhosAtivos = async (c: pg.PoolClient): Promise<{ tabela: string; ativo: boolean }[]> =>
+    (await c.query<{ tabela: string; ativo: boolean }>(
+      `SELECT cl.relname AS tabela, tg.tgenabled = 'O' AS ativo FROM pg_trigger tg JOIN pg_class cl ON cl.oid = tg.tgrelid JOIN pg_namespace n ON n.oid = cl.relnamespace
+        WHERE n.nspname = $1 AND tg.tgname IN ('tg_ref_time_vigencia', 'tg_ref_time_workflow_vigencia') ORDER BY cl.relname`, [S.bm])).rows;
+  for (const [caso, preparo] of posteriores) {
+    it(`T-B1.5: o down recusa com vigência posterior (${caso}) e não toca em nada`, async () => {
+      await emTransacao(async (c) => {
+        await rodar(c, preparo);
+        const antes = await estado(c);
+        const e = await recusa(c, ddl(S).down);
+        expect(e.message).toMatch(/vigências posteriores à 0043/);
+        expect(await estado(c)).toEqual(antes);
+        expect(await nGravadas(c)).toBeGreaterThan(0);
+        expect(await gatilhosAtivos(c)).toEqual([{ tabela: 'ref_time', ativo: true }, { tabela: 'ref_time_workflow', ativo: true }]);
+      });
+    });
+  }
 });
