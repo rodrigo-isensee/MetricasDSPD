@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 098-acelerato-todos-os-times
 branch: feature/098-b1-nomes-times
-commit: 856804d29c3c5644f0544447c901e40d673b70b0
+commit: 34793256b4e8dd874dced2e78bed6a2ea86e9c75
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-18
@@ -46,3 +46,20 @@ Logs do assistente em `~/.metricas-k274/b1`, no commit 856804d2:
 - O PR para a `develop` só depois da 0042 na base (A1). O CI do head precisa estar todo verde, com o e2e.
 - Os pareceres do QA (E1.10) e da segurança (E1.11, gatilho migração e R4) ficam no mesmo head.
 - Depois de migrar (B3): `bm:projetar --reconstruir` (§3.2).
+
+## Delta (856804d2..34793256)
+
+Diff lido: `git diff 856804d2..34793256 -- server/` (4 arquivos: a migração 0043 e três de teste). Medida: fila324 (`~/.metricas-k274/b1-v3`), no head 34793256. Suíte pg: 376 de 376 (`pg.log`). Vitest sem banco: 38 de 39 (`vitest.log`). A única falha é a esperada, "sequenciais" (`expected 43 to be 42`). O teste de checksum passa, e o `checksums.json` não mudou porque o SQL gerado para a lista real é o mesmo.
+
+**Veredito do delta: aprovado.** Nenhum achado bloqueante. O que muda em cada achado:
+
+- A1 · segue aberto, como pendência de integração: a 0042 ainda precisa estar na base, ou o B1 é renumerado.
+- A2 · resolvido. A migração não importa mais o `slug`. A checagem de slug passou para `validarSlugs(slug, ...)`, que só o teste chama. O `ddl()` guarda só as validações puras e duas novas: espaço nas pontas e cifrão, este porque fecharia o bloco `DO $$`. O teste unitário prova cada ramo, inclusive pelo `ddl(S, novos)`.
+- A3 · resolvido. `referencia-times.pg.test.ts:82` afirma agora o conjunto exato: carga inicial e `correcao-098-E4`/`correcao`.
+- A4 · resolvido. O novo T-B1.4 (projeção) carrega a referência pelo `carregarReferencia` do projetor. Ele prova que os workflows 127 e 220 projetam com os times 20 e 10, com o nome novo, no dia de partida e no de hoje. A parte de que nenhuma métrica muda segue com o QA (E1.10).
+- A5 · segue aberto, e o número muda. A conta de `git diff --numstat --no-renames acb62951...34793256` dá **171 linhas de código**: 169 da migração e 2 do `checksums.json`. O `server/tests/migracoes.ts` é de teste e não conta. Cortar mais não cabe, porque a migração é atômica. **O PR leva `teto: excedido, 171 linhas, migração atômica com lista fechada de 45 nomes`**, e não mais as 159.
+- Testes novos do delta: T-B1.2 cobre workflow diferente, situação diferente de time, time inativo e versão já existente, todos sem gravar nada. T-B1.5 cobre cada cláusula da guarda do `down`, com o estado intacto e os dois gatilhos ativos (`tgenabled = 'O'`), e o `down` religa os gatilhos de `ref_time` e de `ref_time_workflow`.
+
+## Achados do delta
+
+- A6 (recomendado) server/tests/nomes-times.test.ts:86 · O teste "a migração não importa o slug" lê o texto da fonte. A garantia de comportamento já está no `ddl(S_PADRAO)` sem `slug`, então este teste só repete essa prova. Pode sair num próximo toque, e não bloqueia.

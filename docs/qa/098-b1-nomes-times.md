@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 098-acelerato-todos-os-times
 branch: feature/098-b1-nomes-times
-commit: 856804d29c3c5644f0544447c901e40d673b70b0
+commit: 34793256b4e8dd874dced2e78bed6a2ea86e9c75
 parecer: reprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -62,3 +62,20 @@ Não rodados: sem PR, sem pnpm e git só leitura nesta passada. Comando exato pa
 
 ## Resultado
 Reprovado nesta rodada: a lógica da migração (up, validações e down) está correta e a lista casa com o plano na leitura, mas T-B1.5 não cobre o que o plano e o CP-historico pedem (A1, A2) e o check `sequenciais` bloqueia o PR (A7). Os demais achados são recomendados.
+
+## Delta (856804d2..34793256)
+Leitura do diff (git só leitura, sem pnpm). Medida do assistente (`fila324`, logs em `~/.metricas-k274/b1-v3`): pg 376/376; vitest 38/39, única falha a esperada (`sequenciais`: expected 43 to be 42). Sem PR: a suíte inteira fica para o `bateria` do CI do PR. Vermelho antes do verde e mutação seguem não rodados (sem pnpm); comando: `forge-testes --vermelho acb62951646cfebc2243c8429e1f6582bc9d1175`.
+
+| Achado | Estado | Evidência no delta |
+|---|---|---|
+| A1 | resolvido | `nomes-times.pg.test.ts` T-B1.5: `gatilhosAtivos` (`tgenabled = 'O'`) nas duas tabelas; UPDATE de `vigente_de` e DELETE barrados (55000) em `ref_time` e `ref_time_workflow` após o down |
+| A2 | resolvido | 6 casos `posteriores` (cada cláusula da guarda, inclusive outra origem e 0019 fora da lista, nas duas tabelas); `estado()` antes e depois igual, gatilhos ativos |
+| A3 | resolvido em parte | cobre workflow diferente, situação diferente, inativo dos 47, time 24 já inativo e versão já existente. Falta caso de time inativo entre 1 e 3 (o `DO` os confere pelo nome); recomendação, não bloqueia |
+| A4 | resolvido | `ddl(S, novos)` valida antes de montar o SQL (teste com 5 listas ruins); espaço nas pontas, cifrão e 80 exatos cobertos |
+| A5 | resolvido | T-B1.4 (projeção) com `carregarReferencia`/`noDia`: wf 127 e 220 nos dias da partida e de hoje, time 20 e 10, nome novo; 220 em T-B1.3 |
+| A6 | resolvido | `referencia-times.pg.test.ts:82` afirma os dois pares exatos (`carga-inicial-057-E3`/`carga_inicial`, `correcao-098-E4`/`correcao`) |
+| A7 | aberto, esperado | `sequenciais` continua vermelho (43 contra 42): depende da 0042 do 105 na `develop`; sem ela o PR não passa. Decisão de sequência do tech-lead, não defeito de teste |
+
+Mudança de produção no delta: a migração deixou de importar `slug` (slug único passou a `validarSlugs`, chamado só pelo teste, com teste de que o import não volta) e rejeita `$` no nome (fecharia o bloco `DO $$`). Coerente com o plano, coberto por teste, sem achado novo.
+
+Veredito do delta: A1 a A6 atendidos; resta só A7, bloqueante por depender da 0042. Parecer segue `reprovado` até a 0042 entrar na `develop` (ou renumeração) e o `sequenciais` ficar verde; resolvida essa ordem e com o CI do head verde, aprova sem novo código de teste.
