@@ -21,7 +21,7 @@ jobs:
   rapida:
     name: rapida
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -38,7 +38,7 @@ jobs:
   testes:
     name: testes
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -82,13 +82,14 @@ jobs:
   filtro:
     name: filtro
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
     outputs:
       banco: ${{ steps.f.outputs.banco }}
+      imagem: ${{ steps.f.outputs.imagem }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
@@ -102,6 +103,14 @@ jobs:
               - 'docker/**'
               - 'pnpm-lock.yaml'
               - '.github/workflows/ci.yml'
+            imagem:
+              - 'server/Dockerfile'
+              - 'server/package.json'
+              - 'docker/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - '.github/workflows/ci.yml'
 
   banco:
     name: banco
@@ -109,19 +118,9 @@ jobs:
     # Pulado (conta como aprovado) quando nada de server/, packages/ ou migrações mudou.
     # Em PR para homolog ou main roda sempre (migração é o que mais quebra na promoção).
     if: needs.filtro.outputs.banco == 'true' || github.event_name == 'workflow_dispatch' || github.base_ref == 'homolog' || github.base_ref == 'main'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 15
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+    # Postgres 17 local do runner (127.0.0.1:5432, postgres/postgres_ci): sem `services:`.
     env:
       PGHOST: 127.0.0.1
       PGPASSWORD: postgres_ci
@@ -150,7 +149,7 @@ jobs:
   openapi:
     name: openapi
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -165,7 +164,10 @@ jobs:
 
   imagem:
     name: imagem
-    if: github.event_name != 'schedule'
+    needs: filtro
+    # Quando o Dockerfile, docker/**, os manifestos/lockfile ou este workflow mudam, e sempre em PR para homolog ou main;
+    # pulado conta como aprovado no check exigido. ubuntu-latest (hospedado): o runner próprio não tem Docker.
+    if: needs.filtro.outputs.imagem == 'true' || github.event_name == 'workflow_dispatch' || github.base_ref == 'homolog' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -176,7 +178,7 @@ jobs:
   build:
     name: build
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -194,12 +196,8 @@ jobs:
   e2e-parte:
     name: e2e-parte (${{ matrix.parte }}/2)
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
-    runs-on: ubuntu-24.04
-    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
-      options: --ipc=host
+    # Navegador e libs do Playwright já vêm na imagem do runner (sem `container:`).
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -235,7 +233,7 @@ jobs:
     name: e2e
     if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     needs: e2e-parte
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 5
     steps:
       - name: As 2 partes da E2E passaram
@@ -250,12 +248,8 @@ jobs:
     if: >-
       github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && (github.base_ref == 'homolog' || github.base_ref == 'main'))
-    # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
-    runs-on: ubuntu-24.04
-    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
-      options: --ipc=host
+    # Navegador e libs do Playwright já vêm na imagem do runner (sem `container:`).
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -285,7 +279,7 @@ jobs:
     name: seguranca
     # Informativo: nunca bloqueia (não faz parte da proteção da main).
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 10
     continue-on-error: true
     steps:
@@ -297,7 +291,9 @@ jobs:
         run: |
           pnpm audit --prod 2>&1 | tee audit.txt || echo '::warning::pnpm audit encontrou vulnerabilidades (informativo)'
           { echo '### pnpm audit --prod'; echo '```'; tail -n 30 audit.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - name: Varredura de segredos (gitleaks via imagem oficial, sem licença)
+      - name: Varredura de segredos (gitleaks, binário fixado na imagem do runner)
         run: |
-          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source /repo --redact --no-banner --exit-code 1 \
+          # Falha fechado: sem o binário na imagem do runner o passo quebra (o job segue informativo).
+          command -v gitleaks >/dev/null || { echo '::error::gitleaks ausente na imagem do runner' >&2; exit 1; }
+          gitleaks detect --source "$PWD" --redact --no-banner --exit-code 1 \
             || echo '::warning::gitleaks encontrou possíveis segredos (informativo)'

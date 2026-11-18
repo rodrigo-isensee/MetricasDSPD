@@ -24,7 +24,7 @@ env:
 jobs:
   escopo:
     name: escopo
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 5
     outputs:
       sha: ${{ steps.alvo.outputs.sha }}
@@ -52,7 +52,7 @@ jobs:
     name: portao-docs
     needs: escopo
     if: needs.escopo.outputs.escopo == 'docs'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -65,7 +65,7 @@ jobs:
     name: qualidade
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -90,19 +90,9 @@ jobs:
     name: banco-homolog
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+    # Postgres 17 local do runner (127.0.0.1:5432, postgres/postgres_ci): sem `services:`.
     env:
       PGHOST: 127.0.0.1
       PGPASSWORD: postgres_ci
@@ -130,12 +120,8 @@ jobs:
     name: e2e-homolog-parte (${{ matrix.parte }}/2)
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
-    runs-on: ubuntu-24.04
-    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
-      options: --ipc=host
+    # Navegador e libs do Playwright já vêm na imagem do runner (sem `container:`).
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -168,7 +154,7 @@ jobs:
     name: e2e-homolog
     needs: [escopo, e2e-parte]
     if: always() && needs.escopo.outputs.escopo == 'codigo'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 5
     steps:
       - name: As 2 partes da E2E do portão passaram
@@ -182,12 +168,8 @@ jobs:
     name: perf-homolog
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
-    runs-on: ubuntu-24.04
-    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
-      options: --ipc=host
+    # Navegador e libs do Playwright já vêm na imagem do runner (sem `container:`).
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -210,24 +192,14 @@ jobs:
             e2e/perf-results
           retention-days: 3
 
-  # H1: migra com o código da main e depois com o candidato (e repete o candidato). H2: sobe a pilha de homologação e confere o smoke.
-  migracao-smoke:
-    name: migracao-smoke
+  # H1: migra com o código da main e depois com o candidato (e repete o candidato). Runner próprio, sem Docker.
+  migracao:
+    name: migracao
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s --health-timeout 5s --health-retries 12
+    # Postgres 17 local do runner (127.0.0.1:5432, postgres/postgres_ci): sem `services:`.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -258,6 +230,20 @@ jobs:
         env:
           PG_MIGRADOR_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas
         run: node tools/homolog/src/main.ts migracao --origem main-src --destino .
+
+  # H2: sobe a pilha de homologação (compose) e confere o smoke. Precisa de Docker, que o runner próprio não tem:
+  # ubuntu-latest (hospedado), só no push em homolog e no workflow_dispatch; a noturna não o roda.
+  smoke:
+    name: smoke
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'codigo' && github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: ./.github/actions/preparar
       - name: Ambiente de homologação (segredos gerados nesta execução)
         run: |
           {
@@ -274,9 +260,9 @@ jobs:
 
   portao:
     name: portao ${{ needs.escopo.outputs.sha }}
-    needs: [escopo, portao-docs, qualidade, banco, e2e, perf, migracao-smoke]
+    needs: [escopo, portao-docs, qualidade, banco, e2e, perf, migracao, smoke]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, metricas]
     timeout-minutes: 5
     steps:
       - name: Resultado do portão (a conclusão desta execução é a evidência)
@@ -285,10 +271,12 @@ jobs:
           SHA: ${{ needs.escopo.outputs.sha }}
           ESCOPO: ${{ needs.escopo.outputs.escopo }}
           RESULTADO_ESCOPO: ${{ needs.escopo.result }}
-          RESULTADOS_CODIGO: ${{ needs.qualidade.result }} ${{ needs.banco.result }} ${{ needs.e2e.result }} ${{ needs.perf.result }} ${{ needs.migracao-smoke.result }}
+          RESULTADOS_CODIGO: ${{ needs.qualidade.result }} ${{ needs.banco.result }} ${{ needs.e2e.result }} ${{ needs.perf.result }} ${{ needs.migracao.result }}
+          RESULTADO_SMOKE: ${{ needs.smoke.result }}
           RESULTADO_DOCS: ${{ needs.portao-docs.result }}
         run: |
-          # Docs: só o docs:check. Código: os cinco jobs precisam estar em success (skipped não vale).
+          # Docs: só o docs:check. Código: qualidade, banco, e2e, perf e migracao em success (skipped não vale);
+          # o smoke também, salvo na noturna (schedule), onde pulado é aceito.
           estado=failure
           if [ "$RESULTADO_ESCOPO" = 'success' ]; then
             if [ "$ESCOPO" = 'docs' ]; then
@@ -296,6 +284,11 @@ jobs:
             else
               estado=success
               for r in $RESULTADOS_CODIGO; do [ "$r" = 'success' ] || estado=failure; done
+              if [ "$EVENTO" = 'schedule' ]; then
+                [ "$RESULTADO_SMOKE" = 'success' ] || [ "$RESULTADO_SMOKE" = 'skipped' ] || estado=failure
+              else
+                [ "$RESULTADO_SMOKE" = 'success' ] || estado=failure
+              fi
             fi
           fi
           echo "estado=$estado escopo=$ESCOPO evento=$EVENTO"

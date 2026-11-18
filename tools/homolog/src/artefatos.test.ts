@@ -69,6 +69,7 @@ interface Job {
   name?: string
   needs?: string | string[]
   if?: string
+  'runs-on'?: string | string[]
   permissions?: Record<string, string>
   steps?: { uses?: string; with?: Record<string, string> }[]
 }
@@ -96,7 +97,8 @@ describe('workflows de homologação', () => {
         'banco',
         'e2e',
         'perf',
-        'migracao-smoke',
+        'migracao',
+        'smoke',
         'portao',
       ]),
     )
@@ -105,7 +107,7 @@ describe('workflows de homologação', () => {
     expect(ler('.github/workflows/homolog.yml')).not.toMatch(/statuses|gh api/)
   })
   it('o portão depende dos jobs de código e os avalia, e o nome do job carrega o SHA', () => {
-    const jobs = ['qualidade', 'banco', 'e2e', 'perf', 'migracao-smoke']
+    const jobs = ['qualidade', 'banco', 'e2e', 'perf', 'migracao', 'smoke']
     expect(homolog.jobs.portao?.needs).toEqual(
       expect.arrayContaining(['escopo', 'portao-docs', ...jobs]),
     )
@@ -129,8 +131,14 @@ describe('workflows de homologação', () => {
   })
   it('documentação roda só o docs:check', () => {
     expect(homolog.jobs['portao-docs']?.if).toContain("== 'docs'")
-    for (const nome of ['qualidade', 'banco', 'e2e', 'perf', 'migracao-smoke'])
+    for (const nome of ['qualidade', 'banco', 'e2e', 'perf', 'migracao', 'smoke'])
       expect(homolog.jobs[nome]?.if, nome).toContain("== 'codigo'")
+  })
+  it('o smoke (precisa de Docker) roda em ubuntu-latest e fora da noturna; a migração, no runner próprio', () => {
+    expect(homolog.jobs.smoke?.['runs-on']).toBe('ubuntu-latest')
+    expect(homolog.jobs.smoke?.if).toContain("github.event_name != 'schedule'")
+    expect(homolog.jobs.migracao?.['runs-on']).toEqual(['self-hosted', 'metricas'])
+    expect(ler('.github/workflows/homolog.yml')).toContain("[ \"$RESULTADO_SMOKE\" = 'skipped' ]")
   })
   it('homolog-aprovada lê a regra da BASE do PR, nunca da branch candidata', () => {
     const passos = aprovada.jobs['homolog-aprovada']?.steps ?? []
@@ -196,9 +204,11 @@ describe('segredos do init do Postgres (B-1: nenhuma senha padrão em homologaç
     ])
       for (const chave of usadas)
         expect(ler(arquivo), `${arquivo} ${chave}`).toMatch(new RegExp(`${chave}: `))
-    const docker =
-      ler('.github/workflows/restauracao.yml').match(/docker run[\s\S]*?postgres:17/)?.[0] ?? ''
-    for (const chave of usadas) expect(docker, chave).toContain(`-e ${chave}`)
+    // Postgres local do runner: sem `docker run`; o script de papéis lê as senhas do ambiente do job.
+    const restauracao = ler('.github/workflows/restauracao.yml')
+    expect(restauracao).not.toMatch(/docker run/)
+    expect(restauracao).toContain('PGHOST: 127.0.0.1')
+    expect(restauracao).toContain('docker/postgres/init/01-databases-papeis.sh')
     for (const chave of usadas.filter((c) => c !== 'DSPD_PWD_MIGRADOR'))
       expect(ler('scripts/test-pg.sh'), chave).toContain(chave)
   })
