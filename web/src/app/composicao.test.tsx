@@ -4,6 +4,7 @@ import { Component, type ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HttpFonteMetricas, type FonteMetricas } from '@/data'
 import { App, criarFontePadrao, criarQueryClient } from './App'
+import { limiteEspera } from '@/test/espera'
 
 const estado = vi.hoisted(() => ({ quebrar: false }))
 
@@ -97,7 +98,7 @@ describe('App e composição', () => {
     window.history.pushState({}, '', '/operacional')
     render(<App />)
     await waitFor(() => expect(screen.getAllByText(/Sem dado real/i).length).toBeGreaterThan(0), {
-      timeout: 5000,
+      timeout: limiteEspera(5000),
     })
     expect(screen.queryByText(/Simulado/i)).not.toBeInTheDocument()
     expect(screen.queryByTestId(/simulado/i)).not.toBeInTheDocument()

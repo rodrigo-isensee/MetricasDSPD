@@ -2,6 +2,7 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
+import { limiteEspera } from '@/test/espera'
 
 const visaoMarcada = () =>
   within(screen.getByRole('radiogroup', { name: 'Visão' }))
@@ -33,7 +34,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     expect(busca(r).get('equipe')).toBe('fluig')
     expect(r.roteador.state.historyAction).toBe('PUSH')
     expect(
-      await screen.findByTestId('recorte-sustentacao', undefined, { timeout: 8000 }),
+      await screen.findByTestId('recorte-sustentacao', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     for (const s of ['prazos', 'volume', 'causas', 'espera', 'percepcao'])
       expect(document.getElementById(s), s).not.toBeNull()
@@ -44,7 +45,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     expect(document.title).toContain('Operacional · Sustentação · Métricas DSPD')
     // O Voltar desfaz a troca
     await r.roteador.navigate(-1)
-    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
+    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: limiteEspera(15000) })
   })
 
   it('Voltar e a troca de hash também anunciam a visão (D-02)', async () => {
@@ -73,9 +74,13 @@ describe('seletor Visão (CA-2, CA-19)', () => {
 
   it('"Ver na Sustentação" do Resumo anuncia a visão e leva o foco ao título, não ao body (D-02, D-03)', async () => {
     renderizarApp('/operacional')
-    const nota = await screen.findByTestId('nota-janelas-alerta', undefined, { timeout: 15000 })
+    const nota = await screen.findByTestId('nota-janelas-alerta', undefined, {
+      timeout: limiteEspera(15000),
+    })
     await userEvent.click(within(nota).getByRole('link', { name: 'Ver na Sustentação' }))
-    await waitFor(() => expect(visaoMarcada()).toBe('Sustentação'), { timeout: 15000 })
+    await waitFor(() => expect(visaoMarcada()).toBe('Sustentação'), {
+      timeout: limiteEspera(15000),
+    })
     expect(screen.getByTestId('anuncio-visao')).toHaveTextContent(
       'Visão Sustentação. Fonte: Acelerato.',
     )
@@ -86,11 +91,15 @@ describe('seletor Visão (CA-2, CA-19)', () => {
 
   it('sem h1 no documento a troca por link não quebra: só não move o foco', async () => {
     renderizarApp('/operacional')
-    const nota = await screen.findByTestId('nota-janelas-alerta', undefined, { timeout: 15000 })
+    const nota = await screen.findByTestId('nota-janelas-alerta', undefined, {
+      timeout: limiteEspera(15000),
+    })
     const espia = vi.spyOn(Document.prototype, 'querySelector').mockReturnValue(null)
     try {
       await userEvent.click(within(nota).getByRole('link', { name: 'Ver na Sustentação' }))
-      await waitFor(() => expect(visaoMarcada()).toBe('Sustentação'), { timeout: 15000 })
+      await waitFor(() => expect(visaoMarcada()).toBe('Sustentação'), {
+        timeout: limiteEspera(15000),
+      })
       expect(espia).toHaveBeenCalledWith('h1')
       expect(screen.getByTestId('anuncio-visao')).toHaveTextContent('Visão Sustentação.')
     } finally {
@@ -103,13 +112,17 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     const radio = await screen.findByRole('radio', { name: 'Diária' })
     radio.focus()
     await userEvent.keyboard('{ArrowRight}')
-    await waitFor(() => expect(busca(r).get('cadencia')).toBe('semanal'), { timeout: 15000 })
+    await waitFor(() => expect(busca(r).get('cadencia')).toBe('semanal'), {
+      timeout: limiteEspera(15000),
+    })
     expect(r.roteador.state.historyAction).toBe('PUSH')
     await userEvent.keyboard('{ArrowLeft}')
-    await waitFor(() => expect(busca(r).get('cadencia')).toBe('diaria'), { timeout: 15000 })
+    await waitFor(() => expect(busca(r).get('cadencia')).toBe('diaria'), {
+      timeout: limiteEspera(15000),
+    })
     expect(r.roteador.state.historyAction).toBe('PUSH')
     await r.roteador.navigate(-1)
-    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
+    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: limiteEspera(15000) })
   })
 
   it('V6-4: duas escolhas no mesmo quadro que voltam à visão de partida não prendem o foco nem o rastro do seletor', async () => {
@@ -128,7 +141,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
       await r.roteador.navigate('/operacional?cadencia=sustentacao')
     })
     await waitFor(() => expect(document.activeElement).toBe(document.querySelector('h1')), {
-      timeout: 15000,
+      timeout: limiteEspera(15000),
     })
   })
 
@@ -148,20 +161,20 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     const a = renderizarApp('/operacional?cadencia=diaria#s1')
     await waitFor(() => expect(a.roteador.state.location.search).toContain('cadencia=sustentacao'))
     expect(
-      await screen.findByTestId('metrica-S1', undefined, { timeout: 8000 }),
+      await screen.findByTestId('metrica-S1', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     a.unmount()
     const b = renderizarApp('/operacional?cadencia=sustentacao#o3')
     await waitFor(() => expect(b.roteador.state.location.search).toContain('cadencia=semanal'))
     expect(
-      await screen.findByTestId('metrica-O3', undefined, { timeout: 8000 }),
+      await screen.findByTestId('metrica-O3', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
 
   it('o link antigo /sustentacao termina na visão com o cartão do hash', async () => {
     const r = renderizarApp('/sustentacao?prioridade=P1&periodo=12m&equipe=sssc-totvs&tipo=Bug#s2')
     expect(
-      await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 }),
+      await screen.findByTestId('metrica-S2', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     await waitFor(() => expect(busca(r).get('sust_prioridade')).toBe('p1'))
     expect(busca(r).get('sust_periodo')).toBe('12m')
@@ -174,7 +187,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
 describe('uma fonte por visão (CA-3, CA-4, CA-8)', () => {
   it('a Sustentação só tem cartões do Acelerato e da pesquisa; faixa com a fonte e só S2 e S1', async () => {
     renderizarApp('/operacional?cadencia=sustentacao&mock=sem-calibracao')
-    await screen.findByTestId('recorte-sustentacao', undefined, { timeout: 8000 })
+    await screen.findByTestId('recorte-sustentacao', undefined, { timeout: limiteEspera(8000) })
     for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'EI-SUST', 'PV1']) {
       const el = await screen.findByTestId(`metrica-${c}`)
       expect(el).toHaveTextContent(
@@ -201,7 +214,7 @@ describe('uma fonte por visão (CA-3, CA-4, CA-8)', () => {
 
   it('as visões do fluxo não têm cartões S*, EI-SUST nem PV1, e a faixa cita o BusinessMap', async () => {
     renderizarApp('/operacional?cadencia=semanal')
-    await screen.findByTestId('metrica-O3', undefined, { timeout: 8000 })
+    await screen.findByTestId('metrica-O3', undefined, { timeout: limiteEspera(8000) })
     expect(document.querySelectorAll('[data-testid^="metrica-S"]')).toHaveLength(0)
     expect(screen.queryByTestId('metrica-EI-SUST')).toBeNull()
     expect(screen.queryByTestId('metrica-PV1')).toBeNull()
@@ -215,7 +228,7 @@ describe('uma fonte por visão (CA-3, CA-4, CA-8)', () => {
     renderizarApp(
       '/operacional?cadencia=diaria&equipe=fluig&sust_prioridade=p1&mock=sem-calibracao',
     )
-    await screen.findByTestId('metrica-O2', undefined, { timeout: 8000 })
+    await screen.findByTestId('metrica-O2', undefined, { timeout: limiteEspera(8000) })
     expect(screen.getByTestId('faixa-atencao')).toHaveTextContent(
       'Pede atenção hoje · Fluxo de projeto (BusinessMap)',
     )
@@ -258,7 +271,7 @@ describe('filtros por visão (CA-5, CA-6)', () => {
     await screen.findByRole('button', { name: 'Remover filtro Equipe: Fluig' })
     await userEvent.click(screen.getByRole('radio', { name: 'Sustentação' }))
     await userEvent.click(
-      await screen.findByTestId('filtro-prioridade', undefined, { timeout: 8000 }),
+      await screen.findByTestId('filtro-prioridade', undefined, { timeout: limiteEspera(8000) }),
     )
     await userEvent.click(await screen.findByLabelText('P1'))
     await waitFor(() => expect(busca(r).get('sust_prioridade')).toBe('p1'))
@@ -285,8 +298,10 @@ describe('filtros por visão (CA-5, CA-6)', () => {
     renderizarApp(
       '/operacional?cadencia=sustentacao&sust_prioridade=p1&sust_equipe=sssc-totvs&mock=sem-calibracao',
     )
-    const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 })
-    await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: limiteEspera(8000) })
+    await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     for (const c of ['S1', 'S2', 'S3', 'S4']) {
       const t = screen.getByTestId(`metrica-${c}`).textContent
       expect(t).not.toMatch(/Tipo de demanda|Sistema/)
@@ -306,7 +321,11 @@ describe('índice da visão (CA-10)', () => {
     )
     try {
       renderizarApp('/operacional?cadencia=sustentacao')
-      const nav = await screen.findByRole('navigation', { name: 'Ir para' }, { timeout: 8000 })
+      const nav = await screen.findByRole(
+        'navigation',
+        { name: 'Ir para' },
+        { timeout: limiteEspera(8000) },
+      )
       expect(
         within(nav)
           .getAllByRole('link')
@@ -328,12 +347,12 @@ describe('fonte sem coleta (CA-22)', () => {
   it('a Sustentação mostra SemDadosDaFonte e a Semanal funciona', async () => {
     const a = renderizarApp('/operacional?cadencia=sustentacao&mock=coleta-vazia:ac')
     expect(
-      await screen.findByTestId('sem-dados-acelerato', undefined, { timeout: 8000 }),
+      await screen.findByTestId('sem-dados-acelerato', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     a.unmount()
     renderizarApp('/operacional?cadencia=semanal&mock=coleta-vazia:ac')
     expect(
-      await screen.findByTestId('metrica-O3', undefined, { timeout: 8000 }),
+      await screen.findByTestId('metrica-O3', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
     expect(screen.queryByTestId('sem-dados-acelerato')).toBeNull()
   })

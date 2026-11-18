@@ -3,6 +3,7 @@ import { cleanup, configure } from '@testing-library/react'
 import { cloneElement, isValidElement, type ReactElement } from 'react'
 import { afterEach, vi } from 'vitest'
 import { limparBuscaPendente } from '@/features/filtros/buscaPendente'
+import { lerEsperaAsync } from './espera'
 
 // jsdom não mede layout: o ResponsiveContainer recebe um tamanho fixo para o gráfico renderizar.
 vi.mock('recharts', async (importar) => {
@@ -21,7 +22,8 @@ vi.mock('recharts', async (importar) => {
 
 // A primeira chamada gera a base fictícia (import dinâmico + geração): folga para esperas assíncronas.
 // 5 s na estação; maior só no CI, pela variável que o workflow define (E7.541, `test.env` em vite.config.ts).
-configure({ asyncUtilTimeout: Number(process.env.METRICAS_DSPD_ESPERA_ASYNC_MS) })
+// Esperas explícitas passam por `limiteEspera(n)` (./espera), que respeita esta global (E7.548).
+configure({ asyncUtilTimeout: lerEsperaAsync(process.env.METRICAS_DSPD_ESPERA_ASYNC_MS) })
 
 afterEach(() => {
   cleanup()

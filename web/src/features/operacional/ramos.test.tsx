@@ -10,10 +10,13 @@ import { CartaoO18 } from './components/CartaoO18'
 import { CartaoO2 } from './components/CartaoO2'
 import { CartaoO4 } from './components/CartaoO4'
 import { CartaoO7 } from './components/CartaoO7'
+import { limiteEspera } from '@/test/espera'
 
 const pronto = async (codigo: string) => {
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return el
 }
 
