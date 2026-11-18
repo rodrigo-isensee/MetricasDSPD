@@ -11,18 +11,19 @@ import {
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { FonteAjustada } from '@/features/painel/testes/fonteFixa'
 import { renderizarApp } from '@/test/helpers'
+import { limiteEspera } from '@/test/espera'
 
 afterEach(() => window.localStorage.clear())
 
 const bloco = async (id: 'resumo-fluxo' | 'resumo-sustentacao') => {
-  const el = await screen.findByTestId(id, undefined, { timeout: 8000 })
+  const el = await screen.findByTestId(id, undefined, { timeout: limiteEspera(8000) })
   return el
 }
 /** Espera os números do bloco saírem do esqueleto. */
 const numero = async (id: string) => {
-  const el = await screen.findByTestId(`numero-${id}`, undefined, { timeout: 8000 })
+  const el = await screen.findByTestId(`numero-${id}`, undefined, { timeout: limiteEspera(8000) })
   await waitFor(() => expect(within(el).queryByTestId(`numero-${id}-carregando`)).toBeNull(), {
-    timeout: 8000,
+    timeout: limiteEspera(8000),
   })
   return el
 }
@@ -64,7 +65,9 @@ describe('Resumo: padrão e estrutura (CA-23, CA-25)', () => {
   it('valor de visão desconhecido cai no Resumo com o aviso de valor inválido', async () => {
     const r = renderizarApp('/operacional?cadencia=xyz')
     expect(
-      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 15000 }),
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, {
+        timeout: limiteEspera(15000),
+      }),
     ).toHaveTextContent('visão "xyz"')
     expect(r.roteador.state.location.search).toBe('')
     await userEvent.click(screen.getByRole('button', { name: 'Entendi' }))
@@ -85,8 +88,8 @@ describe('Resumo: padrão e estrutura (CA-23, CA-25)', () => {
     )
     await numero('p85')
     await numero('s2')
-    await screen.findByTestId('tendencia-sustentacao', undefined, { timeout: 8000 })
-    await screen.findByTestId('tendencia-fluxo', undefined, { timeout: 8000 })
+    await screen.findByTestId('tendencia-sustentacao', undefined, { timeout: limiteEspera(8000) })
+    await screen.findByTestId('tendencia-fluxo', undefined, { timeout: limiteEspera(8000) })
     expect(fluxo.textContent).not.toMatch(/\bS(?:\d{1,2})\b|EI-SUST|PV1|Acelerato/)
     expect(sust.textContent).not.toMatch(/\bO(?:\d{1,2})\b|BusinessMap|BLOQUEADOS/)
     expect(screen.queryByText(/total geral|combinado/i)).toBeNull()
@@ -191,7 +194,9 @@ describe('Resumo: números-chave (CA-26)', () => {
 describe('Resumo: tendência (CA-27)', () => {
   it('cada série tem 6 meses, título com a janela, tabela alternativa e frase de leitura', async () => {
     renderizarApp('/operacional')
-    const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, { timeout: 15000 })
+    const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, {
+      timeout: limiteEspera(15000),
+    })
     expect(within(p85).getByRole('heading', { level: 3 })).toHaveTextContent(
       /P85 do tempo de ciclo · Melhoria, em dias úteis, últimos 6 meses/,
     )
@@ -223,7 +228,9 @@ describe('Resumo: tendência (CA-27)', () => {
 
   it('mês com poucos itens aparece sem valor, com marcador vazado e rótulo "poucos itens (n=14)", sem ligar os vizinhos', async () => {
     renderizarApp('/operacional?mock=tendencia-poucos')
-    const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, { timeout: 15000 })
+    const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, {
+      timeout: limiteEspera(15000),
+    })
     expect(within(p85).getByTestId('tendencia-fluxo-p85-sem-valor')).toHaveTextContent(
       'jun/2026 · Poucos itens (n=14). Estatística não publicada.',
     )
@@ -257,7 +264,9 @@ describe('Resumo: tendência (CA-27)', () => {
       new Espiao({ latenciaMs: 0 }),
     )
     expect(
-      await screen.findByTestId('tendencia-fluxo-p85-vazio', undefined, { timeout: 15000 }),
+      await screen.findByTestId('tendencia-fluxo-p85-vazio', undefined, {
+        timeout: limiteEspera(15000),
+      }),
     ).toHaveTextContent(
       'Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens.',
     )
@@ -284,8 +293,8 @@ describe('Resumo: tendência (CA-27)', () => {
       }
     }
     renderizarApp('/operacional', new Espiao({ latenciaMs: 0 }))
-    await screen.findByTestId('tendencia-sustentacao', undefined, { timeout: 15000 })
-    await screen.findByTestId('tendencia-fluxo', undefined, { timeout: 15000 })
+    await screen.findByTestId('tendencia-sustentacao', undefined, { timeout: limiteEspera(15000) })
+    await screen.findByTestId('tendencia-fluxo', undefined, { timeout: limiteEspera(15000) })
     const ids = chamadas.map(([id]) => id)
     const t = chamadas.filter(([id]) => id.startsWith('TENDENCIA'))
     expect(t.map(([, f]) => (f as { dataReferencia: string }).dataReferencia)).toEqual([
@@ -310,7 +319,9 @@ describe('Resumo: tendência (CA-27)', () => {
       },
     })
     renderizarApp('/operacional', fonte)
-    const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, { timeout: 15000 })
+    const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, {
+      timeout: limiteEspera(15000),
+    })
     expect(within(p85).getAllByTestId('marcador-criterio')).toHaveLength(1)
     expect(p85).toHaveTextContent('Mudança de critério em 10/06/2026: Novo critério de conclusão')
   })
@@ -339,10 +350,10 @@ describe('Resumo: alertas por fonte (CA-28)', () => {
       name: 'Pede atenção · Sustentação (Acelerato)',
     })
     await waitFor(() => expect(within(faixaF).queryAllByRole('link').length).toBeGreaterThan(0), {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
     await waitFor(() => expect(within(faixaS).queryAllByRole('link').length).toBeGreaterThan(0), {
-      timeout: 8000,
+      timeout: limiteEspera(8000),
     })
     for (const l of within(faixaF).getAllByRole('link')) {
       const h = l.getAttribute('href') as string
@@ -355,7 +366,7 @@ describe('Resumo: alertas por fonte (CA-28)', () => {
     // clicar leva à visão dona com o cartão
     await userEvent.click(within(faixaS).getAllByRole('link')[0] as HTMLElement)
     expect(
-      await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 }),
+      await screen.findByTestId('metrica-S2', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
 
@@ -392,14 +403,14 @@ describe('Resumo: alertas por fonte (CA-28)', () => {
     renderizarApp('/operacional?mock=sem-calibracao', fonte)
     expect(
       await screen.findByText('Nada pede atenção no fluxo de projeto agora.', undefined, {
-        timeout: 8000,
+        timeout: limiteEspera(8000),
       }),
     ).toBeInTheDocument()
     expect(
       await screen.findByText(
         'Nada pede atenção na Sustentação nas últimas 12 semanas.',
         undefined,
-        { timeout: 8000 },
+        { timeout: limiteEspera(8000) },
       ),
     ).toBeInTheDocument()
     for (const id of ['resumo-fluxo', 'resumo-sustentacao'] as const)
@@ -441,7 +452,9 @@ describe('Resumo: filtros, preferências e exportação (CA-29, CA-30)', () => {
     expect(within(p85).queryByRole('link')).toBeNull()
     const s2 = await numero('s2')
     expect(within(s2).getByTestId('numero-s2-oculto')).toBeInTheDocument()
-    await screen.findByTestId('tendencia-fluxo-concluidos', undefined, { timeout: 15000 })
+    await screen.findByTestId('tendencia-fluxo-concluidos', undefined, {
+      timeout: limiteEspera(15000),
+    })
     expect(screen.queryByTestId('tendencia-fluxo-p85')).toBeNull()
     expect(screen.queryByTestId('tendencia-sustentacao-sla')).toBeNull()
     expect(screen.getByTestId('tendencia-sustentacao-volume')).toBeInTheDocument()
@@ -480,19 +493,21 @@ describe('Resumo: filtros, preferências e exportação (CA-29, CA-30)', () => {
 describe('Resumo: estados e anúncio (CA-31)', () => {
   it('erro de um número não derruba o bloco nem o outro; "Tentar de novo" recarrega só ele', async () => {
     renderizarApp('/operacional?mock=erro-uma-vez:s2')
-    const s2 = await screen.findByTestId('numero-s2-erro', undefined, { timeout: 8000 })
+    const s2 = await screen.findByTestId('numero-s2-erro', undefined, {
+      timeout: limiteEspera(8000),
+    })
     expect(await numero('p85')).toBeInTheDocument()
     expect(await numero('s1')).toBeInTheDocument()
     await userEvent.click(within(s2).getByRole('button', { name: 'Tentar de novo' }))
     expect(
-      await screen.findByTestId('numero-s2-valor', undefined, { timeout: 8000 }),
+      await screen.findByTestId('numero-s2-valor', undefined, { timeout: limiteEspera(8000) }),
     ).toBeInTheDocument()
   })
 
   it('erro no O3: a tendência não afirma falta de histórico e oferece "Tentar de novo" do P85', async () => {
     renderizarApp('/operacional?mock=erro:o3')
     const erro = await screen.findByTestId('tendencia-fluxo-p85-erro', undefined, {
-      timeout: 15000,
+      timeout: limiteEspera(15000),
     })
     expect(erro).toHaveTextContent('P85 indisponível')
     expect(screen.queryByText(/Ainda não há histórico suficiente/)).toBeNull()
@@ -502,13 +517,15 @@ describe('Resumo: estados e anúncio (CA-31)', () => {
   it('erro só na tendência: o bloco continua e o "Tentar de novo" é da série', async () => {
     renderizarApp('/operacional?mock=erro-uma-vez:tendencia-sust')
     const erro = await screen.findByTestId('tendencia-sustentacao-erro', undefined, {
-      timeout: 15000,
+      timeout: limiteEspera(15000),
     })
     expect(await numero('s2')).toBeInTheDocument()
     expect(screen.getByTestId('tendencia-fluxo', undefined)).toBeInTheDocument()
     await userEvent.click(within(erro).getByRole('button', { name: 'Tentar de novo' }))
     expect(
-      await screen.findByTestId('tendencia-sustentacao-sla', undefined, { timeout: 8000 }),
+      await screen.findByTestId('tendencia-sustentacao-sla', undefined, {
+        timeout: limiteEspera(8000),
+      }),
     ).toBeInTheDocument()
   })
 

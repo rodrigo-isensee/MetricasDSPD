@@ -7,6 +7,7 @@ import ApontamentoPage from './ApontamentoPage'
 import { RESPOSTA_FICTICIA } from './fixture'
 import { INCOMPLETO } from './textos'
 import type { FonteApontamento, RegistroIncompleto, RespostaApontamento } from './types'
+import { limiteEspera } from '@/test/espera'
 
 const PROJETO = RESPOSTA_FICTICIA.distribuicao.porProjeto[0]!
 
@@ -60,7 +61,7 @@ async function aba() {
       for (const c of screen.getAllByTestId(/^metrica-/))
         expect(c).toHaveAttribute('data-estado', 'ok')
     },
-    { timeout: 8000 },
+    { timeout: limiteEspera(8000) },
   )
 }
 

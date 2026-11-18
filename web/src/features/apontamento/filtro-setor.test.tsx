@@ -8,6 +8,7 @@ import { consultaParaQuery } from './api'
 import { RESPOSTA_FICTICIA, fonteFicticia, respostaFicticia } from './fixture'
 import { lerFiltros, opcoesDeSetor } from './filtros'
 import type { ConsultaApontamento, FonteApontamento, RespostaApontamento } from './types'
+import { limiteEspera } from '@/test/espera'
 
 const URL_ABA = '/operacional/apontamento'
 const PADRAO: ConsultaApontamento = { nivelMatriz: 'tipo', anomalos: 'incluir' }
@@ -34,7 +35,7 @@ async function pronto(url?: string, fonte?: FonteApontamento) {
       for (const c of screen.getAllByTestId(/^metrica-/))
         expect(c).toHaveAttribute('data-estado', 'ok')
     },
-    { timeout: 8000 },
+    { timeout: limiteEspera(8000) },
   )
   return roteador
 }

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import ApontamentoPage from './ApontamentoPage'
 import { RESPOSTA_FICTICIA } from './fixture'
 import type { FonteApontamento, LinhaDistribuicao, RespostaApontamento } from './types'
+import { limiteEspera } from '@/test/espera'
 
 const base = RESPOSTA_FICTICIA.distribuicao.porProjeto[0]!
 
@@ -64,7 +65,7 @@ async function renderizar(resposta: RespostaApontamento) {
       for (const c of screen.getAllByTestId(/^metrica-/))
         expect(c).toHaveAttribute('data-estado', 'ok')
     },
-    { timeout: 8000 },
+    { timeout: limiteEspera(8000) },
   )
   return screen.getByTestId('metrica-AP-PROJETO')
 }

@@ -5,6 +5,7 @@ import { CHAVE_PREFERENCIAS, cartoesDoPainel } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { renderizarApp } from '@/test/helpers'
 import * as carregar from './carregarPdf'
+import { limiteEspera } from '@/test/espera'
 
 let blobs: Blob[] = []
 beforeEach(() => {
@@ -22,7 +23,7 @@ const abrir = async (user: ReturnType<typeof userEvent.setup>, nome: string) => 
 }
 const gerar = async (user: ReturnType<typeof userEvent.setup>, dlg: HTMLElement) => {
   await user.click(within(dlg).getByRole('button', { name: 'Gerar arquivo' }))
-  return within(dlg).findByRole('link', { name: 'Baixar' }, { timeout: 15000 })
+  return within(dlg).findByRole('link', { name: 'Baixar' }, { timeout: limiteEspera(15000) })
 }
 const textoDoPdf = (i = blobs.length - 1) => (blobs[i] as Blob).text()
 

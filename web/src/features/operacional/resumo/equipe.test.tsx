@@ -10,6 +10,7 @@ import type {
 } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
+import { limiteEspera } from '@/test/espera'
 
 afterEach(() => window.localStorage.clear())
 
@@ -62,9 +63,9 @@ beforeAll(async () => {
 }, 60000)
 
 const bloco = (id: 'resumo-fluxo' | 'resumo-sustentacao') =>
-  screen.findByTestId(id, undefined, { timeout: 8000 })
+  screen.findByTestId(id, undefined, { timeout: limiteEspera(8000) })
 const botao = async (id: 'resumo-fluxo' | 'resumo-sustentacao', nome: string | RegExp) =>
-  within(await bloco(id)).findByRole('button', { name: nome }, { timeout: 8000 })
+  within(await bloco(id)).findByRole('button', { name: nome }, { timeout: limiteEspera(8000) })
 const abrir = async (id: 'resumo-fluxo' | 'resumo-sustentacao') => {
   await userEvent.click(await botao(id, 'Equipe: Todas'))
   return screen.findByRole('dialog', { name: 'Equipe' })
@@ -75,9 +76,9 @@ const marcar = async (id: 'resumo-fluxo' | 'resumo-sustentacao', nome: string) =
   await userEvent.click(within(d).getByRole('button', { name: 'Fechar' }))
 }
 const espera = async (id: string) => {
-  const el = await screen.findByTestId(`numero-${id}`, undefined, { timeout: 8000 })
+  const el = await screen.findByTestId(`numero-${id}`, undefined, { timeout: limiteEspera(8000) })
   await waitFor(() => expect(within(el).queryByTestId(`numero-${id}-carregando`)).toBeNull(), {
-    timeout: 8000,
+    timeout: limiteEspera(8000),
   })
   return el
 }
@@ -123,7 +124,7 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     const r = renderizarApp('/operacional', fonte)
     await espera('p85')
     await espera('s2')
-    await screen.findByTestId('tendencia-sustentacao', undefined, { timeout: 8000 })
+    await screen.findByTestId('tendencia-sustentacao', undefined, { timeout: limiteEspera(8000) })
     fonte.chamadas = []
     await marcar('resumo-fluxo', bm[0]!.nome)
     await waitFor(() => expect(busca(r).get('equipe')).toBe(bm[0]!.id))
@@ -245,7 +246,9 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
   it('equipe do link que não existe cai em "Todas" com o aviso de valor ignorado', async () => {
     const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=abc', new FonteEquipe())
     expect(
-      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, {
+        timeout: limiteEspera(8000),
+      }),
     ).toHaveTextContent('equipe "xyz"')
     await waitFor(() => expect(r.roteador.state.location.search).toBe(''))
     expect(await botao('resumo-fluxo', 'Equipe: Todas')).toBeInTheDocument()
@@ -254,7 +257,9 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
   it('as duas normalizações da URL se somam: o fluxo descarta o valor inválido e a Sustentação descarta o id antigo', async () => {
     const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=totvs', new FonteEquipe())
     expect(
-      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, {
+        timeout: limiteEspera(8000),
+      }),
     ).toHaveTextContent('equipe "xyz"')
     expect(screen.getByTestId('aviso-filtros-invalidos')).toHaveTextContent('equipe "totvs"')
     await waitFor(() => expect(busca(r).toString()).toBe(''))
@@ -264,7 +269,9 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
   it('as duas normalizações se somam também quando uma só ajusta o valor (maiúscula vira slug)', async () => {
     const r = renderizarApp('/operacional?equipe=xyz&sust_equipe=SSSC-TOTVS', new FonteEquipe())
     expect(
-      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 8000 }),
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, {
+        timeout: limiteEspera(8000),
+      }),
     ).toHaveTextContent('equipe "xyz"')
     await waitFor(() => expect(busca(r).toString()).toBe('sust_equipe=sssc-totvs'))
     expect(await botao('resumo-sustentacao', 'Equipe: SSSC TOTVS')).toBeInTheDocument()
@@ -312,7 +319,7 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     const alerta = await within(await within(fluxo).findByTestId('filtro-bloco-fluxo')).findByRole(
       'alert',
       undefined,
-      { timeout: 15000 },
+      { timeout: limiteEspera(15000) },
     )
     expect(alerta).toHaveTextContent('Não foi possível carregar as opções de Equipe.')
     expect(within(alerta).getByRole('button', { name: 'Equipe: indisponível' })).toBeDisabled()
