@@ -147,7 +147,7 @@ export default function ApontamentoPage({
               >
                 {estado === 'carregando' ? CARREGANDO : vazio ? VAZIO.anuncio : ''}
               </div>
-              {!vazio && <IndiceDeSecoes secoes={INDICE} />}
+              {!vazio && <IndiceDeSecoes secoes={INDICE} fixo />}
               <RestaurarRecolhidos />
               {vazio ? (
                 <Secao id="secao-periodo" titulo={VAZIO.secao}>
