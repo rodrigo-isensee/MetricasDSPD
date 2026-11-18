@@ -12,7 +12,9 @@ const ddls = nomes.map((n) => ({ n, ...MIGRACOES[n]!.ddl(S_PADRAO) }));
 const todoSql = ddls.flatMap((d) => d.up);
 /** Única migração com INSERT: a carga inicial da tabela de times (plano 052, F0). As demais seguem a regra da ADR 0014. */
 const CARGA_INICIAL = '0019_bm_carga_inicial_times';
-const sqlSemCarga = ddls.filter((d) => d.n !== CARGA_INICIAL).flatMap((d) => d.up);
+/** Segunda e última migração com INSERT: a correção dos nomes dos times (pedido 098, E4); só INSERT e fechamento de vigência. */
+const CORRECAO_NOMES = '0043_bm_nomes_times';
+const sqlSemCarga = ddls.filter((d) => d.n !== CARGA_INICIAL && d.n !== CORRECAO_NOMES).flatMap((d) => d.up);
 
 /** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD/DROP COLUMN): separa por vírgula de nível 0 e ignora restrições. */
 function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: string }[] {
@@ -82,6 +84,13 @@ describe('migrações (análise estática, sem banco)', () => {
     expect(carga).not.toMatch(/TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
     expect([...carga.matchAll(/INSERT\s+INTO\s+(\S+)/g)].map((m) => m[1])).toEqual([
       `${S_PADRAO.core}.ref_versao_criterio`, `${S_PADRAO.bm}.ref_time`, `${S_PADRAO.bm}.ref_time_workflow`]);
+    const correcao = ddls.find((d) => d.n === CORRECAO_NOMES)!.up.join('\n');
+    expect(correcao).not.toMatch(/TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*|DELETE\s+FROM/i);
+    expect([...correcao.matchAll(/INSERT\s+INTO\s+(\S+)/g)].map((m) => m[1])).toEqual([
+      `${S_PADRAO.core}.ref_versao_criterio`, `${S_PADRAO.bm}.ref_time`, `${S_PADRAO.bm}.ref_time_workflow`]);
+    // o único UPDATE é fechar a vigência vigente
+    expect([...correcao.matchAll(/UPDATE\s+(\S+)\s+SET\s+(\w+)/g)].map((m) => [m[1], m[2]])).toEqual([
+      [`${S_PADRAO.bm}.ref_time`, 'vigente_ate'], [`${S_PADRAO.bm}.ref_time_workflow`, 'vigente_ate']]);
   });
   it('só tabelas stg_ têm colunas de pessoa, e só as permitidas (LGPD, data-model §9): varre TODAS as colunas', () => {
     const fora = colunas.filter((c) => !/\.stg_/.test(c.tabela));

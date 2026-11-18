@@ -40,6 +40,7 @@ import * as m0038 from '../migrations/0038_ac_dim_chamado_fluxo.js';
 import * as m0039 from '../migrations/0039_bm_toque_primeiro.js';
 import * as m0040 from '../migrations/0040_ac_dim_chamado_escala_p.js';
 import * as m0041 from '../migrations/0041_bm_ref_tipo_card_habilitador.js';
+import * as m0043 from '../migrations/0043_bm_nomes_times.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -65,6 +66,7 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0039_bm_toque_primeiro': m0039,
   '0040_ac_dim_chamado_escala_p': m0040,
   '0041_bm_ref_tipo_card_habilitador': m0041,
+  '0043_bm_nomes_times': m0043,
 };
 
 export const arquivosDeMigracao = (): string[] =>
