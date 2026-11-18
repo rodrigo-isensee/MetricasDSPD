@@ -78,7 +78,11 @@ d('referência do quadro real e tabela de times (plano 052, F0)', () => {
        (SELECT 1 FROM ${S.bm}.ref_time t WHERE t.time_id = w.time_id AND t.${VIGENTE})`);
     expect(orfas.rows).toEqual([]);
     const rp = await dono.query(`SELECT DISTINCT registrado_por, motivo FROM ${S.bm}.ref_time_workflow UNION SELECT DISTINCT registrado_por, motivo FROM ${S.bm}.ref_time`);
-    expect(rp.rows).toEqual([{ registrado_por: 'carga-inicial-057-E3', motivo: 'carga_inicial' }]);
+    // a 0043 (pedido 098, E4) acrescenta as vigências de correção; o conteúdo delas é de `nomes-times.pg.test.ts`
+    expect([...rp.rows].sort((a, b) => String(a.registrado_por).localeCompare(String(b.registrado_por)))).toEqual([
+      { registrado_por: 'carga-inicial-057-E3', motivo: 'carga_inicial' },
+      { registrado_por: 'correcao-098-E4', motivo: 'correcao' },
+    ]);
   });
 
   it('imutabilidade: UPDATE de campo, DELETE e TRUNCATE são barrados até para o dono, nas quatro tabelas', async () => {
@@ -167,7 +171,7 @@ d('referência do quadro real e tabela de times (plano 052, F0)', () => {
          FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`, [S.bm, t]);
       expect(priv.rows.filter((r) => !r.le).map((r) => r.coluna), t).toEqual(['registrado_por']);
     }
-    expect((await api.query(`SELECT time_id, nome, ativo, vigente_de, vigente_ate, motivo, versao_id, registrado_em FROM ${S.bm}.ref_time`)).rows).toHaveLength(50);
+    expect((await api.query(`SELECT time_id, nome, ativo, vigente_de, vigente_ate, motivo, versao_id, registrado_em FROM ${S.bm}.ref_time WHERE vigente_ate IS NULL`)).rows).toHaveLength(50);
     expect((await api.query(`SELECT * FROM ${S.bm}.ref_workflow`)).rows).toBeDefined();
     expect((await api.query(`SELECT * FROM ${S.bm}.ref_tipo_card`)).rows).toBeDefined();
     await expect(api.query(`INSERT INTO ${S.bm}.ref_time (time_id, vigente_de, nome, motivo, versao_id, registrado_por) VALUES (902, now(), 'x', 'processo', 1, 'a')`)).rejects.toMatchObject({ code: '42501' });
