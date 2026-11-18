@@ -138,7 +138,7 @@ describe('workflows de homologação', () => {
     expect(homolog.jobs.smoke?.['runs-on']).toBe('ubuntu-latest')
     expect(homolog.jobs.smoke?.if).toContain("github.event_name != 'schedule'")
     expect(homolog.jobs.migracao?.['runs-on']).toEqual(['self-hosted', 'metricas'])
-    expect(ler('.github/workflows/homolog.yml')).toContain("[ \"$RESULTADO_SMOKE\" = 'skipped' ]")
+    expect(ler('.github/workflows/homolog.yml')).toContain('[ "$RESULTADO_SMOKE" = \'skipped\' ]')
   })
   it('homolog-aprovada lê a regra da BASE do PR, nunca da branch candidata', () => {
     const passos = aprovada.jobs['homolog-aprovada']?.steps ?? []
