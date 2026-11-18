@@ -29,4 +29,11 @@ describe('IndiceDeSecoes fora de um painel com preferências', () => {
     expect(nav.className).toContain('md:top-[calc(var(--h-cabecalho)+var(--h-filtros))]')
     for (const link of screen.getAllByRole('link')) expect(link).toHaveClass('alvo')
   })
+
+  it('publica a própria altura em --h-indice e a retira ao desmontar (WCAG 2.4.11)', () => {
+    const { unmount } = render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', []]]} />)
+    expect(document.documentElement.style.getPropertyValue('--h-indice')).toMatch(/px$/)
+    unmount()
+    expect(document.documentElement.style.getPropertyValue('--h-indice')).toBe('')
+  })
 })

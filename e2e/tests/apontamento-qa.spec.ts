@@ -808,6 +808,30 @@ test.describe('acessibilidade automática (CT-65, WCAG 2.2 AA)', () => {
     for (let i = (await botoes.count()) - 1; i >= 0; i--) await botoes.nth(i).click()
     const r = await rodarAxe(page)
     expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+    // K-416: depois do salto pelo índice, o link e o título da seção ficam fora da área fixa
+    // (cabeçalho, filtros e índice), como exige a WCAG 2.4.11.
+    const link = page
+      .getByRole('navigation', { name: 'Ir para' })
+      .getByRole('link', { name: 'Dia a dia' })
+    await link.click()
+    const titulo = page.locator('#secao-diario').getByRole('heading').first()
+    await expect(titulo).toBeVisible()
+    const fixoAte = await page.evaluate(() => {
+      const base = (s: string) => document.querySelector(s)?.getBoundingClientRect().bottom ?? 0
+      return Math.max(
+        base('header'),
+        base('[data-testid="barra-filtros"]'),
+        base('nav[aria-label="Ir para"]'),
+      )
+    })
+    const t = await titulo.boundingBox()
+    expect(t?.y ?? -1, 'titulo.y=' + t?.y + ' fixoAte=' + fixoAte).toBeGreaterThanOrEqual(fixoAte)
+    const l = await link.boundingBox()
+    const alvo = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x, y)?.closest('a')?.getAttribute('href'),
+      [(l?.x ?? 0) + (l?.width ?? 0) / 2, (l?.y ?? 0) + (l?.height ?? 0) / 2] as [number, number],
+    )
+    expect(alvo, 'link coberto por outro elemento').toBe('#secao-diario')
   })
 })
 

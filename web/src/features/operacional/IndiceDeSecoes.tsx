@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import { usePreferenciasPainel } from '@/components/ui'
+import { useAlturaCss } from '@/lib/useAlturaCss'
 
 export type SecaoDoIndice = readonly [id: string, nome: string, cartoes: readonly string[]]
 
@@ -11,6 +13,8 @@ export const SECAO_MAIS_METRICAS: SecaoDoIndice = ['mais-metricas', 'Mais métri
  */
 export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] }) {
   const prefs = usePreferenciasPainel()
+  const nav = useRef<HTMLElement>(null)
+  useAlturaCss(nav, '--h-indice')
   const visiveis = secoes.filter(([id, , ids]) => {
     if (!prefs) return true
     if (id === SECAO_MAIS_METRICAS[0])
@@ -20,7 +24,11 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
   return (
     // K-416 (medido): cabeçalho e barra de filtros são fixos em md+; sem isto o índice rola para baixo deles e os
     // alvos ficam cobertos (WCAG 2.5.8). Fixa logo abaixo dos dois, pelas variáveis CSS medidas em execução.
+    // Como o índice também é fixo, publica a própria altura em --h-indice: o scroll-padding-top de md+ a soma, para
+    // que o título da seção e o foco por Tab não parem sob ele (WCAG 2.4.11). Abaixo de 768 px não é fixo e o
+    // scroll-padding não a usa.
     <nav
+      ref={nav}
       aria-label="Ir para"
       className="z-20 flex flex-wrap items-center gap-2 bg-fundo text-sm md:sticky md:top-[calc(var(--h-cabecalho)+var(--h-filtros))]"
     >
