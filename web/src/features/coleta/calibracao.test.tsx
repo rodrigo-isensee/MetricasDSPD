@@ -12,13 +12,16 @@ import {
 import { renderizarApp, renderizarCartao } from '@/test/helpers'
 import { CalibracaoDasFontes } from './CalibracaoDasFontes'
 import { dominiosDaRota } from './fontes'
+import { limiteEspera } from '@/test/espera'
 
 const SUST = '/operacional?cadencia=sustentacao'
 
 async function cartao(codigo: string, url: string) {
   renderizarApp(url)
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return el
 }
 
@@ -221,11 +224,15 @@ describe('calibração: leitura falha e Visão geral', () => {
     )
     const r = renderizarCartao(cartaoT2, { url: '/?mock=coleta-erro:bm' })
     const t2 = await screen.findByTestId('metrica-T2')
-    await waitFor(() => expect(t2).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(t2).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     expect(within(t2).queryByText('Fora da meta')).not.toBeInTheDocument()
     r.unmount()
     renderizarCartao(cartaoT2, { url: '/' })
-    expect(await screen.findByText('Fora da meta', {}, { timeout: 8000 })).toBeInTheDocument()
+    expect(
+      await screen.findByText('Fora da meta', {}, { timeout: limiteEspera(8000) }),
+    ).toBeInTheDocument()
   })
 
   it('Visão geral: o nível com indicador em calibração mostra só o selo (R4)', async () => {

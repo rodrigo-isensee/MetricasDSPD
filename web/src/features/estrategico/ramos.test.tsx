@@ -4,10 +4,13 @@ import { FILTROS_FLUXO, FonteAjustada } from '@/features/painel/testes/fonteFixa
 import { renderizarApp, renderizarCartao } from '@/test/helpers'
 import { CartaoE1 } from './components/CartaoE1'
 import { CartaoE2 } from './components/CartaoE2'
+import { limiteEspera } from '@/test/espera'
 
 const pronto = async (codigo: string) => {
   const el = await screen.findByTestId(`metrica-${codigo}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(8000),
+  })
   return el
 }
 const J = { inicio: '2026-07-18', fim: '2026-10-09' }

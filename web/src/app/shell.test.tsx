@@ -8,6 +8,7 @@ import { Provedores } from './App'
 import { AppShell } from './AppShell'
 import { ErroDeRota, PaginaNaoEncontrada } from './Erros'
 import { useTema } from './tema'
+import { limiteEspera } from '@/test/espera'
 
 // Shell com painéis leves: o que importa aqui é o comportamento do shell (foco, título, menu, erro, tema),
 // não o conteúdo dos painéis (cobertos nos testes de cada painel).
@@ -109,7 +110,7 @@ describe('AppShell: título e foco', () => {
 
   it('âncora sem título de cartão foca o próprio elemento; âncora que chega depois é encontrada', async () => {
     montar('/a#tardio', [{ path: 'a', Component: Tardio }])
-    const alvo = await screen.findByTestId('alvo', undefined, { timeout: 4000 })
+    const alvo = await screen.findByTestId('alvo', undefined, { timeout: limiteEspera(4000) })
     await waitFor(() => expect(alvo).toHaveFocus())
   })
 

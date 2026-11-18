@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 import { criarFetchFalso } from './rota-falsa'
+import { limiteEspera } from '@/test/espera'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -15,7 +16,9 @@ describe('rota da aba Apontamento', () => {
       await screen.findByRole('heading', { level: 1, name: 'Apontamento' }),
     ).toBeInTheDocument()
     const kpis = await screen.findByTestId('metrica-AP-KPIS')
-    await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), {
+      timeout: limiteEspera(8000),
+    })
     await waitFor(() => expect(document.title).toContain('Operacional · Apontamento'))
   })
 })

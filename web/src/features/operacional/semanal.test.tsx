@@ -3,10 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 import { COMUM, FonteFixa, J, JANELA, insuf, ok } from '@/features/painel/testes/fonteFixa'
+import { limiteEspera } from '@/test/espera'
 
 const cartao = async (c: string) => {
   const el = await screen.findByTestId(`metrica-${c}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 4000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), {
+    timeout: limiteEspera(4000),
+  })
   return el
 }
 const URL = '/operacional?cadencia=semanal'

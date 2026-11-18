@@ -14,6 +14,7 @@ import { renderizarCartao } from '@/test/helpers'
 import { CartaoO19, CartaoO25 } from './operacionais'
 import { CartaoE6 } from './estrategicas'
 import { CartaoS11, CartaoS8 } from './sustentacao'
+import { limiteEspera } from '@/test/espera'
 
 // K-373 (pedido 105, E7.450): o cartão em estado vazio (base.n = 0) mostra a nota de exclusão que a
 // métrica já tem no corpo; sem itens de fora, nenhuma nota.
@@ -138,7 +139,9 @@ async function vazio(caso: (typeof CASOS)[number], fora: number) {
     fonte: new FonteAjustada({ [caso.id]: (x: Dto) => caso.esvaziar(x, fora) }),
   })
   const el = await screen.findByTestId(`metrica-${caso.id}`)
-  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'), { timeout: 8000 })
+  await waitFor(() => expect(el).toHaveAttribute('data-estado', 'vazio'), {
+    timeout: limiteEspera(8000),
+  })
   return el
 }
 
