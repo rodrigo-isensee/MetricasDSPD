@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 109-pendencias-de-dado
 branch: fix/109-k416-alvo-toque
-commit: 910cbab7598c3c4f71fd1f2cef541fb62f94dc63
-parecer: reprovado
+commit: 2c769d909133619d78b0b25e02c5c36c7516cff9
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-18
 ---
@@ -26,8 +26,11 @@ O check `rapida` passou, e também os checks `testes`, `seguranca` e `e2e-parte 
 
 O brief só aprova com o CI do head todo verde, e2e incluso. Esse critério não foi cumprido, e por isso o parecer é reprovado. **Não há defeito de código no delta.** O caminho é rerrodar o e2e-parte 2/2 com a vaga livre (fila315), e não abrir volta ao autor. Com o CI do head 910cbab7 verde, sem commit novo, o delta lido é zero e o parecer vira aprovado só pela citação do CI, sem nova leitura.
 
+## CI (head 2c769d90, veredito final)
+Delta lido: `git diff 910cbab7 2c769d90` toca só `docs/reviews/109-k416-alvo-toque-r4.md` (+35), então o delta de código é zero. O head da worktree é igual ao remoto (`git ls-remote`: 2c769d90). O run pull_request 44299896673 no head 2c769d90 terminou em `success`: `build`, `testes`, `rapida`, `seguranca`, `openapi`, `filtro`, `e2e-parte (1/2)`, `e2e-parte (2/2)` e `e2e` (agregador) passaram; `banco`, `imagem` e `perf` foram pulados pelo filtro. O push run 44299881813 foi `cancelled` pela concorrência com o run do PR. O A5 foi resolvido, e o parecer passa a aprovado só pela citação do CI.
+
 ## Achados
-- A5 (bloqueante) e2e/tests/intensivo-sistemico.spec.ts:33 · pendente: CI do head 910cbab7 vermelho no e2e-parte (2/2), com SIS-INV-03 por timeout de parede (K-418) e não pelo delta; rerrodar com a vaga livre. O critério do brief é CI todo verde.
+- A5 (bloqueante) e2e/tests/intensivo-sistemico.spec.ts:33 · resolvido: CI do head 2c769d90 (run 44299896673) todo verde, e2e incluso.
 - A4 (recomendado) e2e/tests/apontamento-qa.spec.ts:823 · segue da r3, porque o delta não toca o e2e: o seletor `barra-filtros` não existe no Apontamento, e o termo é morto.
 
 ## Sondas
