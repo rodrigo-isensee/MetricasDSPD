@@ -1,14 +1,14 @@
 name: Playwright
-description: Confere o Chromium já instalado na imagem do runner próprio (sem apt, sem download)
+description: Confere o Chromium do container oficial do Playwright (sem apt, sem download)
 runs:
   using: composite
   steps:
-    # O job roda no runner próprio (sem container): navegador e dependências do sistema vêm na imagem do runner.
-    # Falha alto se a versão do Chromium da imagem não casar com a do Playwright do pnpm-lock.yaml
-    # (o executável esperado não existe).
-    - name: Confere o Chromium da imagem do runner
+    # O job roda no container mcr.microsoft.com/playwright (versão e digest fixados no workflow, K-269):
+    # navegador e dependências do sistema já estão na imagem. Falha alto se a versão do container
+    # não casar com a do Playwright do pnpm-lock.yaml (o executável esperado não existe).
+    - name: Confere o Chromium do container
       shell: bash
       run: |
         exe="$(pnpm --filter @metricas-dspd/e2e exec node -p "require('@playwright/test').chromium.executablePath()")"
         echo "Playwright $(pnpm --filter @metricas-dspd/e2e exec playwright --version | awk '{print $2}'); chromium em $exe"
-        test -x "$exe" || { echo "Chromium ausente: a versão da imagem do runner difere da do pnpm-lock.yaml" >&2; exit 1; }
+        test -x "$exe" || { echo "Chromium ausente: a versão do container difere da do pnpm-lock.yaml" >&2; exit 1; }
