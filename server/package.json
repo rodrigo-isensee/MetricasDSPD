@@ -51,7 +51,7 @@
     "openapi:verificar": "tsx src/entradas/openapi.ts --verificar"
   },
   "dependencies": {
-    "@fastify/swagger": "^9.9.3",
+    "@fastify/swagger": "^9.9.5",
     "@metricas-dspd/contratos": "workspace:*",
     "@metricas-dspd/metricas": "workspace:*",
     "@metricas-dspd/mock": "workspace:*",
